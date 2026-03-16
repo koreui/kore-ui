@@ -43,11 +43,23 @@
                     x-transition:leave-start="{{ $anim['leave']['from'] }}"
                     x-transition:leave-end="{{ $anim['leave']['to'] }}"
                     x-trap.inert="show && current === '{{ $id }}'"
+                    :style="getSwipeStyle()"
                     class="relative w-full transform bg-kore-surface text-kore-surface-fg shadow-xl transition-all {{ $containerClass }} {{ $sizeClass }}"
                     role="dialog"
                     aria-modal="true"
                     wire:key="{{ $id }}"
                 >
+                    @if($type === 'bottom-sheet')
+                        {{-- Swipe handle for bottom-sheet --}}
+                        <div
+                            class="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing touch-none"
+                            @pointerdown="startSwipe($event)"
+                            @pointermove="moveSwipe($event)"
+                            @pointerup="endSwipe($event)"
+                        >
+                            <div class="w-10 h-1 rounded-full bg-kore-muted-fg/30"></div>
+                        </div>
+                    @endif
                     @livewire($overlay['name'], $overlay['arguments'], key($id))
                 </div>
             @empty

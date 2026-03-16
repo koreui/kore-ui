@@ -10,6 +10,8 @@ export default function KoreOverlay() {
         listeners: [],
         transitioning: false,
         savedScrollY: 0,
+        swipe: null,
+        swipeTranslateY: 0,
 
         init() {
             this.listeners.push(
@@ -210,6 +212,49 @@ export default function KoreOverlay() {
             // modal, confirm — min-h-full allows scroll when content is taller than viewport.
             // my-auto on the panel (via containerClass) centers short modals vertically.
             return 'min-h-full items-start justify-center p-4 text-center sm:py-8';
+        },
+
+        // --- Bottom-sheet swipe-to-close ---
+
+        isBottomSheet() {
+            if (!this.current) return false;
+            const attrs = this.attr(this.current);
+            return attrs?.type === 'bottom-sheet';
+        },
+
+        startSwipe(e) {
+            if (!this.isBottomSheet()) return;
+            this.swipe = { startY: e.clientY };
+            this.swipeTranslateY = 0;
+            e.target.setPointerCapture(e.pointerId);
+        },
+
+        moveSwipe(e) {
+            if (!this.swipe) return;
+            const delta = e.clientY - this.swipe.startY;
+            // Only allow dragging downward
+            this.swipeTranslateY = Math.max(0, delta);
+        },
+
+        endSwipe(e) {
+            if (!this.swipe) return;
+            const threshold = 80;
+
+            if (this.swipeTranslateY > threshold) {
+                // Past threshold — close
+                this.swipeTranslateY = 0;
+                this.swipe = null;
+                this.closeOverlay(false);
+            } else {
+                // Spring back
+                this.swipeTranslateY = 0;
+                this.swipe = null;
+            }
+        },
+
+        getSwipeStyle() {
+            if (!this.swipeTranslateY) return '';
+            return `transform: translateY(${this.swipeTranslateY}px); transition: none;`;
         },
 
         attr(id) {
