@@ -3,7 +3,7 @@
     x-on:keydown.escape.window="closeOnEscape()"
     x-show="show"
     x-cloak
-    class="fixed inset-0 z-50 overflow-y-auto"
+    class="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden"
     aria-live="assertive"
 >
     {{-- Backdrop --}}
@@ -22,9 +22,9 @@
     ></div>
 
     {{-- Overlay container --}}
-    <div class="fixed inset-0 overflow-y-auto">
+    <div class="fixed inset-0 overflow-y-auto overflow-x-hidden">
         <div
-            class="flex h-full"
+            class="flex"
             x-bind:class="positionClasses"
         >
             @forelse($overlays as $id => $overlay)
@@ -42,7 +42,7 @@
                     x-transition:leave="{{ $anim['leave']['duration'] }}"
                     x-transition:leave-start="{{ $anim['leave']['from'] }}"
                     x-transition:leave-end="{{ $anim['leave']['to'] }}"
-                    x-trap.noscroll.inert="show && current === '{{ $id }}'"
+                    x-trap.inert="show && current === '{{ $id }}'"
                     class="relative w-full transform bg-kore-surface text-kore-surface-fg shadow-xl transition-all {{ $containerClass }} {{ $sizeClass }}"
                     role="dialog"
                     aria-modal="true"

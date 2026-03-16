@@ -9,6 +9,7 @@ export default function KoreOverlay() {
         positionClasses: '',
         listeners: [],
         transitioning: false,
+        savedScrollY: 0,
 
         init() {
             this.listeners.push(
@@ -44,7 +45,7 @@ export default function KoreOverlay() {
                 this.show = true;
                 this.contentVisible = true;
                 this.updateAttributes(id);
-                document.body.classList.add('overflow-y-hidden');
+                this.lockScroll();
                 this.$nextTick(() => {
                     setTimeout(() => this.focusFirst(), 50);
                 });
@@ -147,18 +148,34 @@ export default function KoreOverlay() {
         toggle(show) {
             if (show) {
                 this.show = true;
-                document.body.classList.add('overflow-y-hidden');
+                this.lockScroll();
             } else {
                 this.contentVisible = false;
-                document.body.classList.remove('overflow-y-hidden');
 
                 setTimeout(() => {
                     this.show = false;
                     this.current = null;
                     this.stack = [];
+                    this.unlockScroll();
                     this.$wire.resetState();
                 }, 300);
             }
+        },
+
+        lockScroll() {
+            this.savedScrollY = window.scrollY;
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${this.savedScrollY}px`;
+            document.body.style.left = '0';
+            document.body.style.right = '0';
+        },
+
+        unlockScroll() {
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.left = '';
+            document.body.style.right = '';
+            window.scrollTo(0, this.savedScrollY);
         },
 
         updateAttributes(id) {
@@ -178,20 +195,21 @@ export default function KoreOverlay() {
         getPositionClasses(type, position) {
             if (type === 'drawer') {
                 return position === 'left'
-                    ? 'items-stretch justify-start'
-                    : 'items-stretch justify-end';
+                    ? 'h-full items-stretch justify-start'
+                    : 'h-full items-stretch justify-end';
             }
 
             if (type === 'bottom-sheet') {
-                return 'items-end justify-center p-4 sm:p-0';
+                return 'h-full items-end justify-center';
             }
 
             if (type === 'fullscreen') {
-                return 'items-stretch';
+                return 'h-full items-stretch';
             }
 
-            // modal, confirm — centered
-            return 'items-end justify-center p-4 text-center sm:items-center sm:p-0';
+            // modal, confirm — min-h-full allows scroll when content is taller than viewport.
+            // my-auto on the panel (via containerClass) centers short modals vertically.
+            return 'min-h-full items-start justify-center p-4 text-center sm:py-8';
         },
 
         attr(id) {
