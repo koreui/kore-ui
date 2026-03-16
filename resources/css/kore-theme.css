@@ -30,6 +30,12 @@
 
 @layer base {
   :root {
+    --kore-spring-easing: linear(
+      0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 18.9%, 0.721 25.3%,
+      0.849 31.5%, 0.937 38.1%, 0.968 41.8%, 0.991 45.7%,
+      1.006 50.1%, 1.015 55%, 1.017 63.9%, 1.001 85.9%, 1
+    );
+    --kore-spring-duration: 500ms;
     --kore-primary: oklch(0.55 0.25 250);
     --kore-primary-fg: oklch(0.98 0 0);
     --kore-secondary: oklch(0.97 0.01 260);
@@ -83,5 +89,53 @@
     --kore-ring: oklch(0.70 0.20 250);
     --kore-surface: oklch(0.17 0 0);
     --kore-surface-fg: oklch(0.93 0 0);
+  }
+}
+
+/* Toast progress bar animation */
+@keyframes kore-toast-countdown {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+.kore-toast-progress {
+  animation: kore-toast-countdown var(--kore-toast-duration, 5s) linear forwards;
+  animation-play-state: running;
+}
+
+.kore-toast:hover .kore-toast-progress {
+  animation-play-state: paused;
+}
+
+/* Toast enter/leave transitions use spring easing */
+.kore-toast {
+  transition:
+    transform var(--kore-spring-duration) var(--kore-spring-easing),
+    opacity var(--kore-spring-duration) var(--kore-spring-easing);
+}
+
+/* Toast icon crossfade during resolve */
+.kore-toast-icon {
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.kore-toast[data-resolving="true"] .kore-toast-icon {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --kore-spring-easing: ease;
+    --kore-spring-duration: 0ms;
+  }
+
+  .kore-toast-progress {
+    animation-duration: 0.01ms !important;
+  }
+
+  .kore-toast {
+    transition: none !important;
   }
 }

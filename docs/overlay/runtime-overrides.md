@@ -8,7 +8,7 @@ Pass `overlayAttributes` as the third parameter in the `kore:open` event:
 
 ```html
 <button x-on:click="$dispatch('kore:open', {
-    component: 'overlays.edit-form',
+    name: 'overlays.edit-form',
     arguments: { userId: 5 },
     overlayAttributes: { size: 'lg', backdropBlur: true }
 })">
@@ -36,7 +36,7 @@ You can still override the derived attributes explicitly, and they take final pr
 
 ```html
 <button x-on:click="$dispatch('kore:open', {
-    component: 'overlays.my-component',
+    name: 'overlays.my-component',
     overlayAttributes: {
         type: 'drawer',
         animation: {
@@ -89,7 +89,7 @@ Open the same component as a modal on desktop or a bottom sheet on mobile:
 <button
     class="hidden sm:block"
     x-on:click="$dispatch('kore:open', {
-        component: 'overlays.picker',
+        name: 'overlays.picker',
         overlayAttributes: { type: 'modal', size: 'lg' }
     })"
 >
@@ -100,7 +100,7 @@ Open the same component as a modal on desktop or a bottom sheet on mobile:
 <button
     class="sm:hidden"
     x-on:click="$dispatch('kore:open', {
-        component: 'overlays.picker',
+        name: 'overlays.picker',
         overlayAttributes: { type: 'bottom-sheet' }
     })"
 >
@@ -112,7 +112,7 @@ Open the same component as a modal on desktop or a bottom sheet on mobile:
 
 ```html
 <button x-on:click="$dispatch('kore:open', {
-    component: 'overlays.data-viewer',
+    name: 'overlays.data-viewer',
     arguments: { tableId: 1 },
     overlayAttributes: { size: '3xl' }
 })">
@@ -120,7 +120,7 @@ Open the same component as a modal on desktop or a bottom sheet on mobile:
 </button>
 
 <button x-on:click="$dispatch('kore:open', {
-    component: 'overlays.data-viewer',
+    name: 'overlays.data-viewer',
     arguments: { tableId: 2 },
     overlayAttributes: { size: '7xl' }
 })">
@@ -133,14 +133,14 @@ Open the same component as a modal on desktop or a bottom sheet on mobile:
 ```html
 <!-- Normal: can be dismissed easily -->
 <button x-on:click="$dispatch('kore:open', {
-    component: 'overlays.feedback-form'
+    name: 'overlays.feedback-form'
 })">
     Give Feedback
 </button>
 
 <!-- Important: cannot be clicked away, notify on close -->
 <button x-on:click="$dispatch('kore:open', {
-    component: 'overlays.feedback-form',
+    name: 'overlays.feedback-form',
     overlayAttributes: {
         closesOnClickAway: false,
         dispatchesCloseEvent: true,
@@ -157,7 +157,7 @@ Open a normally right-aligned drawer on the left side:
 
 ```html
 <button x-on:click="$dispatch('kore:open', {
-    component: 'overlays.navigation',
+    name: 'overlays.navigation',
     overlayAttributes: { type: 'drawer', position: 'left' }
 })">
     Open Nav

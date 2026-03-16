@@ -151,7 +151,7 @@ Override the animation at open time:
 
 ```html
 <button x-on:click="$dispatch('kore:open', {
-    component: 'overlays.notification',
+    name: 'overlays.notification',
     overlayAttributes: {
         animation: {
             enter: {

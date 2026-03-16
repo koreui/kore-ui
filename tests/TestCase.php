@@ -2,8 +2,10 @@
 
 namespace KoreUi\Tests;
 
+use BladeUI\Icons\BladeIconsServiceProvider;
 use KoreUi\KoreUiServiceProvider;
 use Livewire\LivewireServiceProvider;
+use MallardDuck\LucideIcons\BladeLucideIconsServiceProvider;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 
 class TestCase extends BaseTestCase
@@ -12,6 +14,8 @@ class TestCase extends BaseTestCase
     {
         return [
             LivewireServiceProvider::class,
+            BladeIconsServiceProvider::class,
+            BladeLucideIconsServiceProvider::class,
             KoreUiServiceProvider::class,
         ];
     }

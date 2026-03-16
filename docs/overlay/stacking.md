@@ -25,7 +25,7 @@ From inside an overlay, dispatch `kore:open` the same way as from a page:
 ```html
 <!-- Inside an overlay component's Blade view -->
 <button x-on:click="$dispatch('kore:open', {
-    component: 'overlays.nested-detail',
+    name: 'overlays.nested-detail',
     arguments: { itemId: {{ $itemId }} }
 })">
     View Details
@@ -37,7 +37,7 @@ You can also dispatch from PHP inside an overlay:
 ```php
 public function openNested(): void
 {
-    $this->dispatch('kore:open', component: 'overlays.nested-detail', arguments: ['itemId' => $this->itemId]);
+    $this->dispatch('kore:open', name: 'overlays.nested-detail', arguments: ['itemId' => $this->itemId]);
 }
 ```
 
@@ -154,21 +154,21 @@ Overlays of different types can be stacked freely. The position, size, and anima
 
 ```html
 <!-- Page: open a drawer -->
-<button x-on:click="$dispatch('kore:open', { component: 'overlays.settings-drawer' })">
+<button x-on:click="$dispatch('kore:open', { name: 'overlays.settings-drawer' })">
     Settings
 </button>
 ```
 
 ```html
 <!-- Inside settings-drawer: open a confirm dialog -->
-<button x-on:click="$dispatch('kore:open', { component: 'overlays.reset-confirm' })">
+<button x-on:click="$dispatch('kore:open', { name: 'overlays.reset-confirm' })">
     Reset to Defaults
 </button>
 ```
 
 ```html
 <!-- Inside reset-confirm: open a fullscreen preview -->
-<button x-on:click="$dispatch('kore:open', { component: 'overlays.preview-fullscreen' })">
+<button x-on:click="$dispatch('kore:open', { name: 'overlays.preview-fullscreen' })">
     Preview Changes
 </button>
 ```
@@ -182,7 +182,7 @@ class WizardStep1 extends OverlayComponent
 {
     public function next(): void
     {
-        $this->dispatch('kore:open', component: 'overlays.wizard-step2', arguments: ['data' => $this->formData]);
+        $this->dispatch('kore:open', name: 'overlays.wizard-step2', arguments: ['data' => $this->formData]);
     }
 
     public function render()

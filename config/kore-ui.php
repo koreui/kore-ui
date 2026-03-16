@@ -26,4 +26,33 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Feedback Defaults
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for toast notifications and confirm dialogs.
+    |
+    */
+    'feedback' => [
+        'toast' => [
+            'position'         => 'top-right',
+            'timeout'          => 5,
+            'dismissible'      => true,
+            'max_visible'      => 5,
+            'spacing'          => 'gap-3',
+            'z_index'          => 'z-[60]',
+            'expand_delay'     => 150,
+            'collapse_delay'   => 300,
+            'swipe_to_dismiss' => true,
+        ],
+        'confirm' => [
+            'size'               => 'md',
+            'confirm_text'       => 'Confirmar',
+            'cancel_text'        => 'Cancelar',
+            'closes_on_escape'   => true,
+            'closes_on_click_away' => false,
+        ],
+    ],
+
 ];

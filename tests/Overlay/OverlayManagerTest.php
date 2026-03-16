@@ -14,14 +14,14 @@ beforeEach(function () {
 
 it('opens an overlay', function () {
     Livewire::test(OverlayManager::class)
-        ->dispatch('kore:open', component: 'demo-overlay')
+        ->dispatch('kore:open', name: 'demo-overlay')
         ->assertNotSet('current', null)
         ->assertDispatched('kore:overlay-changed');
 });
 
 it('stores overlay data correctly', function () {
     $component = Livewire::test(OverlayManager::class)
-        ->dispatch('kore:open', component: 'demo-overlay');
+        ->dispatch('kore:open', name: 'demo-overlay');
 
     $overlays = $component->get('overlays');
 
@@ -37,14 +37,14 @@ it('stores overlay data correctly', function () {
 
 it('maintains stack when opening nested overlays', function () {
     Livewire::test(OverlayManager::class)
-        ->dispatch('kore:open', component: 'demo-overlay')
-        ->dispatch('kore:open', component: 'custom-overlay')
+        ->dispatch('kore:open', name: 'demo-overlay')
+        ->dispatch('kore:open', name: 'custom-overlay')
         ->assertCount('overlays', 2);
 });
 
 it('respects custom overlay attributes', function () {
     $component = Livewire::test(OverlayManager::class)
-        ->dispatch('kore:open', component: 'custom-overlay');
+        ->dispatch('kore:open', name: 'custom-overlay');
 
     $overlays = $component->get('overlays');
     $attrs = array_values($overlays)[0]['overlayAttributes'];
@@ -59,12 +59,12 @@ it('respects custom overlay attributes', function () {
 
 it('throws exception when component does not implement Overlayable', function () {
     Livewire::test(OverlayManager::class)
-        ->dispatch('kore:open', component: 'invalid-overlay');
+        ->dispatch('kore:open', name: 'invalid-overlay');
 })->throws(InvalidArgumentException::class);
 
 it('destroys an overlay', function () {
     $component = Livewire::test(OverlayManager::class)
-        ->dispatch('kore:open', component: 'demo-overlay');
+        ->dispatch('kore:open', name: 'demo-overlay');
 
     $id = $component->get('current');
 
@@ -75,8 +75,8 @@ it('destroys an overlay', function () {
 
 it('resets state', function () {
     Livewire::test(OverlayManager::class)
-        ->dispatch('kore:open', component: 'demo-overlay')
-        ->dispatch('kore:open', component: 'custom-overlay')
+        ->dispatch('kore:open', name: 'demo-overlay')
+        ->dispatch('kore:open', name: 'custom-overlay')
         ->call('resetState')
         ->assertCount('overlays', 0)
         ->assertSet('current', null);
@@ -84,8 +84,8 @@ it('resets state', function () {
 
 it('generates unique ids for same component with same arguments', function () {
     $component = Livewire::test(OverlayManager::class)
-        ->dispatch('kore:open', component: 'demo-overlay')
-        ->dispatch('kore:open', component: 'demo-overlay');
+        ->dispatch('kore:open', name: 'demo-overlay')
+        ->dispatch('kore:open', name: 'demo-overlay');
 
     $overlays = $component->get('overlays');
 
@@ -98,7 +98,7 @@ it('generates unique ids for same component with same arguments', function () {
 
 it('passes arguments to overlay', function () {
     $component = Livewire::test(OverlayManager::class)
-        ->dispatch('kore:open', component: 'demo-overlay', arguments: ['title' => 'Custom Title']);
+        ->dispatch('kore:open', name: 'demo-overlay', arguments: ['title' => 'Custom Title']);
 
     $overlays = $component->get('overlays');
     $first = array_values($overlays)[0];
@@ -108,7 +108,7 @@ it('passes arguments to overlay', function () {
 
 it('allows overlay attribute overrides at open time', function () {
     $component = Livewire::test(OverlayManager::class)
-        ->dispatch('kore:open', component: 'demo-overlay', overlayAttributes: ['backdropBlur' => true]);
+        ->dispatch('kore:open', name: 'demo-overlay', overlayAttributes: ['backdropBlur' => true]);
 
     $overlays = $component->get('overlays');
     $attrs = array_values($overlays)[0]['overlayAttributes'];

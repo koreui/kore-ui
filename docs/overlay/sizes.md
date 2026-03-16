@@ -89,14 +89,14 @@ You can override the size at open time without changing the component:
 
 ```html
 <button x-on:click="$dispatch('kore:open', {
-    component: 'overlays.edit-form',
+    name: 'overlays.edit-form',
     overlayAttributes: { size: 'lg' }
 })">
     Open (small)
 </button>
 
 <button x-on:click="$dispatch('kore:open', {
-    component: 'overlays.edit-form',
+    name: 'overlays.edit-form',
     overlayAttributes: { size: '5xl' }
 })">
     Open (large)

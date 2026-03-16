@@ -4,6 +4,8 @@ namespace KoreUi;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use KoreUi\Feedback\ConfirmDialog;
+use KoreUi\Feedback\FeedbackManager;
 use KoreUi\Overlay\OverlayManager;
 use Livewire\Livewire;
 
@@ -12,6 +14,8 @@ class KoreUiServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/kore-ui.php', 'kore-ui');
+
+        $this->app->singleton('kore-ui', fn () => new KoreManager);
     }
 
     public function boot(): void
@@ -21,6 +25,8 @@ class KoreUiServiceProvider extends ServiceProvider
         Blade::componentNamespace('KoreUi\\View\\Components', 'kore');
 
         Livewire::component('kore-overlay-manager', OverlayManager::class);
+        Livewire::component('kore-feedback-manager', FeedbackManager::class);
+        Livewire::component('kore-confirm-dialog', ConfirmDialog::class);
 
         if ($this->app->runningInConsole()) {
             $this->publishes([

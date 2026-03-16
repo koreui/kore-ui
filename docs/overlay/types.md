@@ -163,7 +163,7 @@ When the position is `left`, the drawer slides in from the left side (`-translat
 Open a drawer from a button:
 
 ```html
-<button x-on:click="$dispatch('kore:open', { component: 'overlays.user-settings' })">
+<button x-on:click="$dispatch('kore:open', { name: 'overlays.user-settings' })">
     Settings
 </button>
 ```
@@ -205,7 +205,7 @@ class DeleteConfirm extends OverlayComponent
 
 ```html
 <button x-on:click="$dispatch('kore:open', {
-    component: 'overlays.delete-confirm',
+    name: 'overlays.delete-confirm',
     arguments: { itemId: {{ $item->id }} }
 })">
     Delete

@@ -18,11 +18,11 @@ class OverlayManager extends Component
     public array $overlays = [];
 
     #[On('kore:open')]
-    public function openOverlay(string $component, array $arguments = [], array $overlayAttributes = []): void
+    public function openOverlay(string $name, array $arguments = [], array $overlayAttributes = []): void
     {
-        $class = ComponentResolver::resolve($component);
+        $class = ComponentResolver::resolve($name);
 
-        $id = md5($component.serialize($arguments).uniqid('', true));
+        $id = md5($name.serialize($arguments).uniqid('', true));
 
         // Resolve effective type/position/size — overrides take priority
         $effectiveType = $overlayAttributes['type'] ?? $class::overlayType();
@@ -45,7 +45,7 @@ class OverlayManager extends Component
         ], $overlayAttributes);
 
         $this->overlays[$id] = [
-            'name' => $component,
+            'name' => $name,
             'arguments' => $arguments,
             'overlayAttributes' => $attributes,
         ];

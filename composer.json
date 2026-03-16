@@ -6,8 +6,10 @@
     "keywords": ["laravel", "livewire", "tailwind", "ui", "components", "overlay", "modal"],
     "require": {
         "php": "^8.2",
+        "blade-ui-kit/blade-icons": "^1.9",
         "illuminate/support": "^12.0",
-        "livewire/livewire": "^4.0"
+        "livewire/livewire": "^4.0",
+        "mallardduck/blade-lucide-icons": "^1.26"
     },
     "require-dev": {
         "orchestra/testbench": "^10.0",
@@ -16,7 +18,10 @@
     "autoload": {
         "psr-4": {
             "KoreUi\\": "src/"
-        }
+        },
+        "files": [
+            "src/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

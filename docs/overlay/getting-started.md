@@ -106,13 +106,13 @@ Dispatch the `kore:open` event with the Livewire component name:
 
 ```html
 <button
-    x-on:click="$dispatch('kore:open', { component: 'overlays.edit-profile' })"
+    x-on:click="$dispatch('kore:open', { name: 'overlays.edit-profile' })"
 >
     Edit Profile
 </button>
 ```
 
-The `component` value is the standard Livewire component name (dot-notation or kebab-case). The `ComponentResolver` validates that the class implements the `Overlayable` interface.
+The `name` value is the standard Livewire component name (dot-notation or kebab-case). The `ComponentResolver` validates that the class implements the `Overlayable` interface.
 
 ## Passing Arguments
 
@@ -121,7 +121,7 @@ Use the `arguments` object to pass data to the component's `mount()` method:
 ```html
 <button
     x-on:click="$dispatch('kore:open', {
-        component: 'overlays.edit-profile',
+        name: 'overlays.edit-profile',
         arguments: { userId: {{ $user->id }} }
     })"
 >
@@ -193,7 +193,7 @@ class Welcome extends OverlayComponent
 ```html
 <button
     x-on:click="$dispatch('kore:open', {
-        component: 'overlays.welcome',
+        name: 'overlays.welcome',
         arguments: { message: 'Welcome to kore-ui!' }
     })"
 >
