@@ -1,0 +1,41 @@
+{
+    "name": "kore-ui/kore-ui",
+    "description": "A modern UI component library for Laravel with Livewire 4, Tailwind CSS v4, and Alpine.js",
+    "license": "MIT",
+    "type": "library",
+    "keywords": ["laravel", "livewire", "tailwind", "ui", "components", "overlay", "modal"],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^12.0",
+        "livewire/livewire": "^4.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.0",
+        "pestphp/pest": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "KoreUi\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "KoreUi\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "KoreUi\\KoreUiServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}

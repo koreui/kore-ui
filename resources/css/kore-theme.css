@@ -1,0 +1,87 @@
+@theme inline {
+  --color-kore-primary: var(--kore-primary);
+  --color-kore-primary-fg: var(--kore-primary-fg);
+  --color-kore-secondary: var(--kore-secondary);
+  --color-kore-secondary-fg: var(--kore-secondary-fg);
+  --color-kore-accent: var(--kore-accent);
+  --color-kore-accent-fg: var(--kore-accent-fg);
+  --color-kore-destructive: var(--kore-destructive);
+  --color-kore-destructive-fg: var(--kore-destructive-fg);
+  --color-kore-success: var(--kore-success);
+  --color-kore-success-fg: var(--kore-success-fg);
+  --color-kore-warning: var(--kore-warning);
+  --color-kore-warning-fg: var(--kore-warning-fg);
+  --color-kore-info: var(--kore-info);
+  --color-kore-info-fg: var(--kore-info-fg);
+  --color-kore-bg: var(--kore-bg);
+  --color-kore-fg: var(--kore-fg);
+  --color-kore-muted: var(--kore-muted);
+  --color-kore-muted-fg: var(--kore-muted-fg);
+  --color-kore-border: var(--kore-border);
+  --color-kore-input: var(--kore-input);
+  --color-kore-ring: var(--kore-ring);
+  --color-kore-surface: var(--kore-surface);
+  --color-kore-surface-fg: var(--kore-surface-fg);
+  --radius-kore-sm: var(--kore-radius-sm);
+  --radius-kore-md: var(--kore-radius-md);
+  --radius-kore-lg: var(--kore-radius-lg);
+  --radius-kore-xl: var(--kore-radius-xl);
+}
+
+@layer base {
+  :root {
+    --kore-primary: oklch(0.55 0.25 250);
+    --kore-primary-fg: oklch(0.98 0 0);
+    --kore-secondary: oklch(0.97 0.01 260);
+    --kore-secondary-fg: oklch(0.20 0.02 260);
+    --kore-accent: oklch(0.92 0.01 260);
+    --kore-accent-fg: oklch(0.20 0.02 260);
+    --kore-destructive: oklch(0.58 0.25 27);
+    --kore-destructive-fg: oklch(0.98 0 0);
+    --kore-success: oklch(0.62 0.19 145);
+    --kore-success-fg: oklch(0.98 0 0);
+    --kore-warning: oklch(0.75 0.18 85);
+    --kore-warning-fg: oklch(0.20 0 0);
+    --kore-info: oklch(0.62 0.15 250);
+    --kore-info-fg: oklch(0.98 0 0);
+    --kore-bg: oklch(1 0 0);
+    --kore-fg: oklch(0.15 0 0);
+    --kore-muted: oklch(0.97 0 0);
+    --kore-muted-fg: oklch(0.55 0 0);
+    --kore-border: oklch(0.92 0 0);
+    --kore-input: oklch(0.92 0 0);
+    --kore-ring: oklch(0.55 0.25 250);
+    --kore-surface: oklch(1 0 0);
+    --kore-surface-fg: oklch(0.15 0 0);
+    --kore-radius-sm: 0.25rem;
+    --kore-radius-md: 0.375rem;
+    --kore-radius-lg: 0.5rem;
+    --kore-radius-xl: 0.75rem;
+  }
+
+  .dark, [data-theme="dark"] {
+    --kore-primary: oklch(0.70 0.20 250);
+    --kore-primary-fg: oklch(0.15 0 0);
+    --kore-secondary: oklch(0.25 0.01 260);
+    --kore-secondary-fg: oklch(0.90 0 0);
+    --kore-accent: oklch(0.30 0.01 260);
+    --kore-accent-fg: oklch(0.90 0 0);
+    --kore-destructive: oklch(0.55 0.25 27);
+    --kore-destructive-fg: oklch(0.98 0 0);
+    --kore-success: oklch(0.58 0.19 145);
+    --kore-success-fg: oklch(0.98 0 0);
+    --kore-warning: oklch(0.70 0.18 85);
+    --kore-warning-fg: oklch(0.20 0 0);
+    --kore-info: oklch(0.58 0.15 250);
+    --kore-info-fg: oklch(0.98 0 0);
+    --kore-bg: oklch(0.13 0 0);
+    --kore-fg: oklch(0.93 0 0);
+    --kore-muted: oklch(0.20 0 0);
+    --kore-muted-fg: oklch(0.65 0 0);
+    --kore-border: oklch(0.25 0 0);
+    --kore-input: oklch(0.25 0 0);
+    --kore-ring: oklch(0.70 0.20 250);
+    --kore-surface: oklch(0.17 0 0);
+    --kore-surface-fg: oklch(0.93 0 0);
+  }
+}
