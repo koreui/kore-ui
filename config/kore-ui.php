@@ -78,6 +78,10 @@ return [
             'start_of_week' => 1,
             'format' => null,
         ],
+        'upload' => [
+            'max_size' => null,
+            'delete_method' => 'deleteUpload',
+        ],
     ],
 
     /*
