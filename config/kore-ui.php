@@ -55,4 +55,24 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Form Defaults
+    |--------------------------------------------------------------------------
+    |
+    | Default configuration for form components.
+    |
+    */
+    'form' => [
+        'size' => 'md',
+        'show_errors' => true,
+        'select' => [
+            'debounce' => 300,
+            'min_search' => 2,
+            'search_threshold' => 10,
+        ],
+        'password' => ['toggleable' => true],
+        'textarea' => ['rows' => 4],
+    ],
+
 ];

@@ -22,6 +22,7 @@ class KoreUiServiceProvider extends ServiceProvider
     {
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'kore');
 
+        Blade::anonymousComponentPath(__DIR__.'/../resources/views/components', 'kore');
         Blade::componentNamespace('KoreUi\\View\\Components', 'kore');
 
         Livewire::component('kore-overlay-manager', OverlayManager::class);
