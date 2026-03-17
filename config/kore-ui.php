@@ -75,4 +75,17 @@ return [
         'textarea' => ['rows' => 4],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Theme Defaults
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the theme switcher component and anti-FOUC script.
+    |
+    */
+    'theme' => [
+        'default' => 'system',  // 'light', 'dark', 'system'
+        'nonce' => null,         // CSP nonce for the anti-FOUC inline script
+    ],
+
 ];
