@@ -73,6 +73,11 @@ return [
         ],
         'password' => ['toggleable' => true],
         'textarea' => ['rows' => 4],
+        'datepicker' => [
+            'locale' => null,
+            'start_of_week' => 1,
+            'format' => null,
+        ],
     ],
 
     /*
