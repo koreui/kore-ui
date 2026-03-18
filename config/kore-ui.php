@@ -112,6 +112,52 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | UI Component Defaults
+    |--------------------------------------------------------------------------
+    |
+    | Default configuration for general UI components (button, alert, badge,
+    | card, dropdown, tooltip, avatar, loading).
+    |
+    */
+    'ui' => [
+        'size' => 'md',
+        'button' => [
+            'variant' => 'solid',
+            'color' => 'primary',
+        ],
+        'alert' => [
+            'variant' => 'soft',
+        ],
+        'badge' => [
+            'variant' => 'soft',
+        ],
+        'card' => [
+            'bordered' => true,
+            'shadow' => true,
+        ],
+        'dropdown' => [
+            'position' => 'bottom-start',
+            'width' => 'auto',
+        ],
+        'tooltip' => [
+            'position' => 'top',
+            'delay' => 200,
+        ],
+        'avatar' => [
+            'shape' => 'circle',
+        ],
+        'loading' => [
+            'type' => 'spinner',
+        ],
+        'page-loading' => [
+            'type' => 'spinner',
+            'blur' => true,
+            'text' => null,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Theme Defaults
     |--------------------------------------------------------------------------
     |
