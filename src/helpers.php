@@ -12,6 +12,16 @@ if (! function_exists('kore_toast')) {
     }
 }
 
+if (! function_exists('kore_breadcrumbs')) {
+    /**
+     * Get the BreadcrumbManager singleton.
+     */
+    function kore_breadcrumbs(): \KoreUi\Breadcrumbs\BreadcrumbManager
+    {
+        return app(\KoreUi\Breadcrumbs\BreadcrumbManager::class);
+    }
+}
+
 if (! function_exists('kore_confirm')) {
     /**
      * Create a new Confirm builder instance.

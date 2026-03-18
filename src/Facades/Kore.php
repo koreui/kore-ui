@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @method static \KoreUi\Feedback\Toast toast()
  * @method static \KoreUi\Feedback\Confirm confirm(string $title)
+ * @method static \KoreUi\Breadcrumbs\BreadcrumbManager breadcrumbs()
  *
  * @see \KoreUi\KoreManager
  */
