@@ -2,6 +2,7 @@
 
 namespace KoreUi;
 
+use KoreUi\Breadcrumbs\BreadcrumbManager;
 use KoreUi\Feedback\Confirm;
 use KoreUi\Feedback\Toast;
 
@@ -21,5 +22,13 @@ class KoreManager
     public function confirm(string $title): Confirm
     {
         return new Confirm($title);
+    }
+
+    /**
+     * Get the BreadcrumbManager singleton.
+     */
+    public function breadcrumbs(): BreadcrumbManager
+    {
+        return app(BreadcrumbManager::class);
     }
 }

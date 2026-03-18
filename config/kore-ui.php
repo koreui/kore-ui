@@ -222,6 +222,35 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Breadcrumbs
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the breadcrumb navigation component and its
+    | PHP registration system.
+    |
+    */
+    'breadcrumbs' => [
+        // Set to false to disable the breadcrumb registration system entirely.
+        // Useful when using another breadcrumbs library (e.g. diglactic/laravel-breadcrumbs).
+        // The <x-kore::breadcrumbs /> component still works with manual :items.
+        'enabled' => true,
+
+        // File(s) where breadcrumbs are defined. Supports string or array of paths.
+        // Uses a kore-specific filename to avoid conflicts with other libraries.
+        'files' => base_path('routes/kore-breadcrumbs.php'),
+
+        'separator' => 'icon:chevron-right',
+        'size' => 'md',
+        'json_ld' => false,
+        'exceptions' => [
+            'missing' => true,
+            'unnamed' => true,
+            'duplicate' => true,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Theme Defaults
     |--------------------------------------------------------------------------
     |

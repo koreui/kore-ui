@@ -4,6 +4,7 @@ namespace KoreUi;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use KoreUi\Breadcrumbs\BreadcrumbManager;
 use KoreUi\Feedback\ConfirmDialog;
 use KoreUi\Feedback\FeedbackManager;
 use KoreUi\Overlay\OverlayManager;
@@ -16,6 +17,10 @@ class KoreUiServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/kore-ui.php', 'kore-ui');
 
         $this->app->singleton('kore-ui', fn () => new KoreManager);
+
+        if (config('kore-ui.breadcrumbs.enabled', true)) {
+            $this->app->singleton(BreadcrumbManager::class);
+        }
     }
 
     public function boot(): void
@@ -36,6 +41,10 @@ class KoreUiServiceProvider extends ServiceProvider
             return '<?php echo \'<script'.$nonceAttr.'>(function(){try{var m=localStorage.getItem("kore-theme")||"system";var d=m==="dark"||(m==="system"&&window.matchMedia("(prefers-color-scheme:dark)").matches);if(d){document.documentElement.classList.add("dark");document.documentElement.setAttribute("data-theme","dark")}}catch(e){}})();</script>\'; ?>';
         });
 
+        if (config('kore-ui.breadcrumbs.enabled', true)) {
+            $this->loadBreadcrumbs();
+        }
+
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../config/kore-ui.php' => config_path('kore-ui.php'),
@@ -44,6 +53,25 @@ class KoreUiServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../resources/views' => resource_path('views/vendor/kore'),
             ], 'kore-ui-views');
+        }
+    }
+
+    protected function loadBreadcrumbs(): void
+    {
+        $files = config('kore-ui.breadcrumbs.files');
+
+        if ($files === null) {
+            return;
+        }
+
+        if (is_string($files) && ! is_file($files)) {
+            return;
+        }
+
+        foreach ((array) $files as $file) {
+            if (is_file($file)) {
+                require $file;
+            }
         }
     }
 }
