@@ -143,7 +143,7 @@ export default function KoreOverlay() {
             }
             if (!params.closing) return;
 
-            // Click-away respects the stack (not forced) — fix over wire-elements
+            // Click-away respects the stack (only closes topmost overlay)
             this.closeOverlay(false);
         },
 

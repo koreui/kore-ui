@@ -1,6 +1,6 @@
 # Float Label
 
-Floating label wrapper inspired by PrimeVue with three variants. Wraps any kore-ui input component.
+Floating label wrapper with three variants. Wraps any kore-ui input component.
 
 ## Basic Usage
 
