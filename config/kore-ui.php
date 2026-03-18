@@ -154,6 +154,26 @@ return [
             'blur' => true,
             'text' => null,
         ],
+        'divider' => [
+            'type' => 'solid',
+        ],
+        'progress' => [
+            'size' => 'md',
+            'color' => 'primary',
+        ],
+        'toolbar' => [
+            'variant' => 'default',
+        ],
+        'accordion' => [
+            'variant' => 'bordered',
+        ],
+        'tab' => [
+            'variant' => 'line',
+        ],
+        'stepper' => [
+            'variant' => 'horizontal',
+            'linear' => false,
+        ],
     ],
 
     /*
