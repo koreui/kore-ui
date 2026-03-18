@@ -81,6 +81,10 @@ return [
         'upload' => [
             'max_size' => null,
             'delete_method' => 'deleteUpload',
+            'auto_upload' => true,
+            'retryable' => false,
+            'max_retries' => 3,
+            'retry_delay' => 2000,
         ],
     ],
 

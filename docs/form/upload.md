@@ -37,6 +37,11 @@ File upload with drag & drop, real-time progress via Livewire, client-side valid
 | `showError` | bool | true | Auto-detect errors from `$errors` bag |
 | `invalidSizeMessage` | string | null | Custom message for size validation errors |
 | `invalidTypeMessage` | string | null | Custom message for type validation errors |
+| `autoUpload` | bool | true | Auto-upload on file selection. When false, files are staged until `uploadPending()` |
+| `retryable` | bool | false | Enable automatic retry on upload error |
+| `maxRetries` | int | 3 | Maximum retry attempts per file |
+| `retryDelay` | int | 2000 | Delay in ms between retries |
+| `capture` | string | null | Camera capture mode: `'user'` (front) or `'environment'` (rear) |
 
 ## Configuration
 
@@ -47,6 +52,10 @@ Global defaults in `config/kore-ui.php`:
     'upload' => [
         'max_size' => null,              // MB per file (null = no client-side limit)
         'delete_method' => 'deleteUpload',
+        'auto_upload' => true,           // false = staging mode
+        'retryable' => false,            // auto-retry on error
+        'max_retries' => 3,
+        'retry_delay' => 2000,           // ms
     ],
 ],
 ```
@@ -182,6 +191,56 @@ Each static file object supports:
 | `size` | int | yes | File size in bytes |
 | `type` | string | no | MIME type (used for preview detection) |
 | `url` | string | no | URL for image thumbnail preview |
+
+## Auto Upload
+
+By default, files are uploaded immediately when selected (`autoUpload=true`). When disabled, files are staged locally and displayed in the file list with a "pending" status. The user must click the **Upload** button to start the actual upload.
+
+```html
+<x-kore::upload wire:model="files" label="Files"
+    :auto-upload="false" multiple deletable clearable />
+```
+
+**How it works**: When `autoUpload=false` and `wire:model` is present, two `<input type="file">` elements are rendered:
+- A visible input (without `wire:model`) for file selection
+- A hidden input (with `wire:model`) used only when `uploadPending()` is triggered
+
+This prevents Livewire from auto-uploading on the `change` event.
+
+## Retry
+
+When `retryable` is enabled, failed uploads automatically retry up to `maxRetries` times with a `retryDelay` between attempts. During retry, the file shows a spinning loader with the retry count.
+
+```html
+<x-kore::upload wire:model="file" label="File"
+    retryable :max-retries="3" :retry-delay="2000" />
+```
+
+If all retries are exhausted, the file shows an error status with a manual retry button. Clicking the retry button resets the retry counter and tries again.
+
+## Upload Speed & ETA
+
+During Livewire uploads, the component automatically calculates and displays:
+- **Upload speed** (e.g., "1.2 MB/s", "450 KB/s")
+- **Estimated time remaining** (e.g., "~12s", "~2m 30s")
+
+Speed is smoothed using an Exponential Moving Average (alpha=0.3) to avoid jittery numbers. Both values appear below the progress bar and disappear when the upload completes. No props needed — this is enabled automatically.
+
+## Camera Capture
+
+On mobile devices, the `capture` prop opens the device camera directly instead of a file picker.
+
+```html
+{{-- Front camera (selfie) --}}
+<x-kore::upload wire:model="selfie" label="Selfie"
+    capture="user" accept="image/*" />
+
+{{-- Rear camera (document scan) --}}
+<x-kore::upload wire:model="scan" label="Scan"
+    capture="environment" accept="image/*" />
+```
+
+The `capture` attribute is a standard HTML attribute. On desktop browsers it's ignored and the regular file picker opens.
 
 ## Progress Tracking
 

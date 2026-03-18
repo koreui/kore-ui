@@ -5,9 +5,13 @@ export default (config = {}) => ({
     validationErrors: [],
     _dragCounter: 0,
     _isLivewire: false,
+    _nativeFiles: null,
+    _uploadMeta: null,
 
     init() {
         this._isLivewire = !!this.$wire;
+        this._nativeFiles = new Map();
+        this._uploadMeta = new Map();
 
         // Load static files
         if (config.static && config.staticFiles) {
@@ -19,6 +23,9 @@ export default (config = {}) => ({
                 progress: 100,
                 status: 'static',
                 previewUrl: f.url || null,
+                speed: 0,
+                eta: null,
+                retries: 0,
             }));
         }
 
@@ -36,22 +43,54 @@ export default (config = {}) => ({
                 URL.revokeObjectURL(f.previewUrl);
             }
         });
+        this._nativeFiles.clear();
+        this._uploadMeta.clear();
     },
 
     // --- Livewire event binding ---
 
     _bindLivewireEvents() {
-        const input = this.$refs.fileInput;
+        const input = this._getLivewireInput();
         if (!input) return;
 
         this._onStart = () => {
             this.uploading = true;
             const last = this.files.findLast(f => f.status === 'pending');
-            if (last) last.status = 'uploading';
+            if (last) {
+                last.status = 'uploading';
+                // Initialize upload metadata for speed/ETA tracking
+                const now = performance.now();
+                this._uploadMeta.set(last.id, { startTime: now, lastBytes: 0, lastTime: now });
+            }
         };
         this._onProgress = (e) => {
             const uploading = this.files.findLast(f => f.status === 'uploading');
-            if (uploading) uploading.progress = e.detail.progress;
+            if (!uploading) return;
+
+            const progress = e.detail.progress;
+            uploading.progress = progress;
+
+            // Calculate speed and ETA
+            const meta = this._uploadMeta.get(uploading.id);
+            if (meta) {
+                const now = performance.now();
+                const currentBytes = (progress / 100) * uploading.size;
+                const deltaTime = (now - meta.lastTime) / 1000;
+
+                if (deltaTime > 0.2) {
+                    const deltaBytes = currentBytes - meta.lastBytes;
+                    const instantSpeed = deltaBytes / deltaTime;
+                    uploading.speed = uploading.speed > 0
+                        ? uploading.speed * 0.7 + instantSpeed * 0.3
+                        : instantSpeed;
+                    const remainingBytes = uploading.size - currentBytes;
+                    uploading.eta = uploading.speed > 0
+                        ? Math.ceil(remainingBytes / uploading.speed)
+                        : null;
+                    meta.lastBytes = currentBytes;
+                    meta.lastTime = now;
+                }
+            }
         };
         this._onFinish = () => {
             this.uploading = false;
@@ -59,12 +98,28 @@ export default (config = {}) => ({
             if (uploading) {
                 uploading.status = 'complete';
                 uploading.progress = 100;
+                uploading.speed = 0;
+                uploading.eta = null;
+                this._uploadMeta.delete(uploading.id);
             }
         };
         this._onError = () => {
             this.uploading = false;
             const uploading = this.files.findLast(f => f.status === 'uploading');
-            if (uploading) uploading.status = 'error';
+            if (uploading) {
+                uploading.speed = 0;
+                uploading.eta = null;
+                this._uploadMeta.delete(uploading.id);
+
+                if (config.retryable && uploading.retries < (config.maxRetries || 3)) {
+                    uploading.retries++;
+                    uploading.status = 'retrying';
+                    uploading.progress = 0;
+                    setTimeout(() => this._retryFile(uploading.id), config.retryDelay || 2000);
+                } else {
+                    uploading.status = 'error';
+                }
+            }
         };
 
         input.addEventListener('livewire-upload-start', this._onStart);
@@ -74,7 +129,7 @@ export default (config = {}) => ({
     },
 
     _unbindLivewireEvents() {
-        const input = this.$refs.fileInput;
+        const input = this._getLivewireInput();
         if (!input) return;
 
         if (this._onStart) input.removeEventListener('livewire-upload-start', this._onStart);
@@ -127,6 +182,9 @@ export default (config = {}) => ({
                 progress: 0,
                 status: this._isLivewire ? 'pending' : 'ready',
                 previewUrl: null,
+                speed: 0,
+                eta: null,
+                retries: 0,
             };
 
             // Create preview for images
@@ -134,10 +192,14 @@ export default (config = {}) => ({
                 fileObj.previewUrl = URL.createObjectURL(nativeFile);
             }
 
+            // Store native File reference (for retry and manual upload)
+            this._nativeFiles.set(fileObj.id, nativeFile);
+
             // Single mode: replace existing file
             if (!config.multiple) {
                 this.files.forEach(f => {
                     if (f.previewUrl && f.status !== 'static') URL.revokeObjectURL(f.previewUrl);
+                    this._nativeFiles.delete(f.id);
                 });
                 this.files = [fileObj];
             } else {
@@ -172,9 +234,12 @@ export default (config = {}) => ({
         const droppedFiles = e.dataTransfer.files;
         if (!droppedFiles || droppedFiles.length === 0) return;
 
-        // Assign files to the file input so Livewire can detect them
-        this._assignFilesToInput(droppedFiles);
         this._addFiles(droppedFiles);
+
+        // Auto-assign to Livewire input (unless autoUpload is false)
+        if (config.autoUpload !== false) {
+            this._assignFilesToInput(droppedFiles);
+        }
     },
 
     // --- Paste ---
@@ -185,8 +250,12 @@ export default (config = {}) => ({
         const files = event.clipboardData?.files;
         if (!files || files.length === 0) return;
 
-        this._assignFilesToInput(files);
         this._addFiles(files);
+
+        // Auto-assign to Livewire input (unless autoUpload is false)
+        if (config.autoUpload !== false) {
+            this._assignFilesToInput(files);
+        }
     },
 
     // --- Delete & Clear ---
@@ -208,6 +277,7 @@ export default (config = {}) => ({
         }
 
         this.files.splice(index, 1);
+        this._nativeFiles.delete(fileId);
 
         // Reset input for non-Livewire
         if (!this._isLivewire) {
@@ -223,6 +293,7 @@ export default (config = {}) => ({
         });
         this.files = [];
         this.validationErrors = [];
+        this._nativeFiles.clear();
         this.$refs.fileInput.value = '';
 
         if (this._isLivewire) {
@@ -235,6 +306,59 @@ export default (config = {}) => ({
 
     removeValidationError(index) {
         this.validationErrors.splice(index, 1);
+    },
+
+    // --- Retry ---
+
+    _retryFile(fileId) {
+        const file = this.files.find(f => f.id === fileId);
+        if (!file) return;
+
+        const nativeFile = this._nativeFiles.get(fileId);
+        if (!nativeFile) {
+            file.status = 'error';
+            return;
+        }
+
+        file.status = 'pending';
+        this._assignFilesToInput([nativeFile]);
+    },
+
+    retryFile(fileId) {
+        const file = this.files.find(f => f.id === fileId);
+        if (!file) return;
+
+        file.retries = 0;
+        file.progress = 0;
+        this._retryFile(fileId);
+    },
+
+    // --- Manual Upload (staging mode) ---
+
+    get hasPendingFiles() {
+        return this.files.some(f => f.status === 'pending');
+    },
+
+    get pendingCount() {
+        return this.files.filter(f => f.status === 'pending').length;
+    },
+
+    uploadPending() {
+        const pendingFiles = this.files.filter(f => f.status === 'pending');
+        const nativeFiles = pendingFiles.map(f => this._nativeFiles.get(f.id)).filter(Boolean);
+        if (nativeFiles.length === 0) return;
+
+        const input = this._getLivewireInput();
+        if (!input) return;
+
+        try {
+            const dt = new DataTransfer();
+            nativeFiles.forEach(f => dt.items.add(f));
+            input.files = dt.files;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        } catch (e) {
+            // DataTransfer not supported
+        }
     },
 
     // --- Validation ---
@@ -324,13 +448,18 @@ export default (config = {}) => ({
 
     // --- Utilities ---
 
+    _getLivewireInput() {
+        return this.$refs.livewireInput || this.$refs.fileInput;
+    },
+
     _assignFilesToInput(fileList) {
         if (!this._isLivewire) return;
         try {
+            const input = this._getLivewireInput();
             const dt = new DataTransfer();
             Array.from(fileList).forEach(f => dt.items.add(f));
-            this.$refs.fileInput.files = dt.files;
-            this.$refs.fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+            input.files = dt.files;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
         } catch (e) {
             // DataTransfer not supported in older browsers — Livewire won't get the file
         }
@@ -342,6 +471,25 @@ export default (config = {}) => ({
         const i = Math.floor(Math.log(bytes) / Math.log(1024));
         const size = (bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1);
         return size + ' ' + units[i];
+    },
+
+    formatSpeed(bytesPerSec) {
+        if (bytesPerSec <= 0) return '';
+        if (bytesPerSec >= 1024 * 1024) {
+            return (bytesPerSec / (1024 * 1024)).toFixed(1) + ' MB/s';
+        }
+        if (bytesPerSec >= 1024) {
+            return (bytesPerSec / 1024).toFixed(0) + ' KB/s';
+        }
+        return Math.round(bytesPerSec) + ' B/s';
+    },
+
+    formatEta(seconds) {
+        if (seconds == null || seconds <= 0) return '';
+        if (seconds < 60) return seconds + 's';
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
     },
 
     _uid() {

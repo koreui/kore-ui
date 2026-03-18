@@ -181,11 +181,11 @@
                             </div>
                         </template>
                         <template x-if="selectedOptions.length === 0">
-                            <span class="text-kore-muted-fg">{{ $placeholder ?? '&nbsp;' }}</span>
+                            <span class="text-kore-muted-fg">{!! $placeholder ? e($placeholder) : '&nbsp;' !!}</span>
                         </template>
                     @else
                         <span x-show="hasValue" x-text="displayValue" class="block truncate"></span>
-                        <span x-show="!hasValue" class="text-kore-muted-fg">{{ $placeholder ?? '&nbsp;' }}</span>
+                        <span x-show="!hasValue" class="text-kore-muted-fg">{!! $placeholder ? e($placeholder) : '&nbsp;' !!}</span>
                     @endif
                 </div>
 

@@ -214,3 +214,94 @@ it('binds paste event on root div', function () {
 
     $view->assertSee('onPaste($event)', false);
 });
+
+// --- Camera Capture ---
+
+it('renders capture attribute on file input', function () {
+    $view = $this->blade('<x-kore::upload name="photo" capture="user" />');
+
+    $view->assertSee('capture="user"', false);
+});
+
+it('renders capture environment attribute', function () {
+    $view = $this->blade('<x-kore::upload name="photo" capture="environment" />');
+
+    $view->assertSee('capture="environment"', false);
+});
+
+it('does not render capture when null', function () {
+    $view = $this->blade('<x-kore::upload name="photo" />');
+
+    $view->assertDontSee('capture=', false);
+});
+
+// --- Speed & ETA ---
+
+it('renders speed display markup in file list', function () {
+    $view = $this->blade('<x-kore::upload name="file" />');
+
+    $view->assertSee('formatSpeed(file.speed)', false)
+        ->assertSee('formatEta(file.eta)', false);
+});
+
+// --- Retry ---
+
+it('renders retry button when retryable', function () {
+    $view = $this->blade('<x-kore::upload name="file" retryable />');
+
+    $view->assertSee('retryFile(file.id)', false);
+});
+
+it('does not render retry button when not retryable', function () {
+    $view = $this->blade('<x-kore::upload name="file" />');
+
+    $view->assertDontSee('retryFile(file.id)', false);
+});
+
+it('passes retry config to JS', function () {
+    $view = $this->blade('<x-kore::upload name="file" retryable :max-retries="5" :retry-delay="3000" />');
+
+    $view->assertSee('&quot;retryable&quot;:true', false)
+        ->assertSee('&quot;maxRetries&quot;:5', false)
+        ->assertSee('&quot;retryDelay&quot;:3000', false);
+});
+
+it('renders retrying status template', function () {
+    $view = $this->blade('<x-kore::upload name="file" retryable />');
+
+    $view->assertSee("file.status === 'retrying'", false)
+        ->assertSee('animate-spin', false);
+});
+
+// --- Auto Upload ---
+
+it('renders upload button when auto-upload is false', function () {
+    $view = $this->blade('<x-kore::upload name="file" :auto-upload="false" />');
+
+    $view->assertSee('uploadPending()', false);
+});
+
+it('does not render upload button when auto-upload is true', function () {
+    $view = $this->blade('<x-kore::upload name="file" />');
+
+    $view->assertDontSee('uploadPending()', false);
+});
+
+it('renders livewire input when auto-upload is false with wire:model', function () {
+    $view = $this->blade('<x-kore::upload wire:model="file" :auto-upload="false" />');
+
+    $view->assertSee('x-ref="livewireInput"', false)
+        ->assertSee('aria-hidden="true"', false);
+});
+
+it('does not render livewire input when auto-upload is true', function () {
+    $view = $this->blade('<x-kore::upload wire:model="file" />');
+
+    $view->assertDontSee('x-ref="livewireInput"', false);
+});
+
+it('passes autoUpload false to JS config', function () {
+    $view = $this->blade('<x-kore::upload name="file" :auto-upload="false" />');
+
+    $view->assertSee('&quot;autoUpload&quot;:false', false);
+});

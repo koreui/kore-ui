@@ -27,7 +27,7 @@ Full-featured date selection: single, range, multiple modes with calendar naviga
 | `multipleMax` | int | null | Max selections in `multiple` mode |
 | `minDate` | string | null | Minimum selectable date (`YYYY-MM-DD`) |
 | `maxDate` | string | null | Maximum selectable date (`YYYY-MM-DD`) |
-| `disabledDates` | array | null | Array of disabled dates (`['YYYY-MM-DD', ...]`) |
+| `disabledDates` | array | null | Array of disabled dates and/or date ranges (`['YYYY-MM-DD', ['start', 'end'], ...]`) |
 | `disabledWeekdays` | array | null | Disabled days of week (`[0, 6]` for Sun, Sat) |
 | `weekdaysOnly` | bool | false | Only weekdays selectable |
 | `weekendsOnly` | bool | false | Only weekends selectable |
@@ -39,7 +39,7 @@ Full-featured date selection: single, range, multiple modes with calendar naviga
 | `showWeekNumbers` | bool | false | Show ISO week numbers column |
 | `withTime` | bool | false | Enable time picker below calendar |
 | `timeFormat` | string | `'24'` | Time format: `'24'` or `'12'` (AM/PM) |
-| `presets` | bool | false | Show preset ranges sidebar (range mode only) |
+| `presets` | bool\|array | false | Show preset ranges sidebar (range mode only). `true` for defaults, or array of custom presets |
 | `helpers` | bool | false | Show Yesterday/Today/Tomorrow buttons (single mode) |
 | `manualInput` | bool | false | Allow typing date directly in `YYYY-MM-DD` format |
 | `requiresConfirmation` | bool | false | Apply/Cancel buttons, selection doesn't commit until confirmed |
@@ -100,11 +100,24 @@ When `with-time` is enabled, `wire:ignore` is applied automatically to prevent L
 Quick-select sidebar for common date ranges. Only available in `range` mode.
 
 ```html
+{{-- Default presets --}}
 <x-kore::datepicker wire:model="period" label="Report Period"
     mode="range" :presets="true" clearable />
 ```
 
 Built-in presets: Today, Last 7 days, Last 30 days, This month, Last month, This year.
+
+### Custom Presets
+
+Pass an array of presets with `label`, `start`, and `end` keys:
+
+```html
+<x-kore::datepicker wire:model="period" label="Report Period"
+    mode="range" :presets="[
+        ['label' => 'This week', 'start' => '2026-03-16', 'end' => '2026-03-22'],
+        ['label' => 'Next week', 'start' => '2026-03-23', 'end' => '2026-03-29'],
+        ['label' => 'Q1 2026', 'start' => '2026-01-01', 'end' => '2026-03-31'],
+    ]" clearable />
 
 ## Helpers
 
@@ -145,6 +158,14 @@ Always-visible calendar without dropdown trigger.
 {{-- Specific dates disabled --}}
 <x-kore::datepicker label="Availability"
     :disabled-dates="['2026-03-25', '2026-12-25']" />
+
+{{-- Date ranges disabled --}}
+<x-kore::datepicker label="Availability"
+    :disabled-dates="[
+        '2026-12-25',
+        ['2026-04-01', '2026-04-10'],
+        ['2026-07-20', '2026-07-31'],
+    ]" />
 
 {{-- Disabled weekdays by number --}}
 <x-kore::datepicker label="No weekends"

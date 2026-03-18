@@ -292,7 +292,20 @@ export default (config) => ({
         if (config.disabledDates) {
             if (Array.isArray(config.disabledDates)) {
                 const isoStr = this._toISOString(date);
-                if (config.disabledDates.includes(isoStr)) return true;
+                for (const entry of config.disabledDates) {
+                    if (Array.isArray(entry) && entry.length === 2) {
+                        const rStart = this._parseDate(entry[0]);
+                        const rEnd = this._parseDate(entry[1]);
+                        if (rStart && rEnd) {
+                            const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                            const s = new Date(rStart.getFullYear(), rStart.getMonth(), rStart.getDate());
+                            const e = new Date(rEnd.getFullYear(), rEnd.getMonth(), rEnd.getDate());
+                            if (d >= s && d <= e) return true;
+                        }
+                    } else if (typeof entry === 'string' && entry === isoStr) {
+                        return true;
+                    }
+                }
             }
             if (typeof config.disabledDates === 'function') {
                 if (config.disabledDates(date)) return true;
@@ -826,6 +839,17 @@ export default (config) => ({
 
     get presetOptions() {
         if (!config.presets) return [];
+
+        // Custom presets array from PHP
+        if (Array.isArray(config.presets)) {
+            return config.presets.map(p => ({
+                label: p.label,
+                start: this._parseDate(p.start),
+                end: this._parseDate(p.end),
+            })).filter(p => p.start && p.end);
+        }
+
+        // Default presets when presets === true
         const today = new Date();
         return [
             { label: 'Today', start: today, end: today },

@@ -20,11 +20,20 @@
     'required' => false,
     'invalidSizeMessage' => null,
     'invalidTypeMessage' => null,
+    'capture' => null,
+    'autoUpload' => null,
+    'retryable' => null,
+    'maxRetries' => null,
+    'retryDelay' => null,
 ])
 
 @php
     $deleteMethod = $deleteMethod ?? config('kore-ui.form.upload.delete_method', 'deleteUpload');
     $maxSize = $maxSize ?? config('kore-ui.form.upload.max_size');
+    $autoUpload = $autoUpload ?? config('kore-ui.form.upload.auto_upload', true);
+    $retryable = $retryable ?? config('kore-ui.form.upload.retryable', false);
+    $maxRetries = $maxRetries ?? config('kore-ui.form.upload.max_retries', 3);
+    $retryDelay = $retryDelay ?? config('kore-ui.form.upload.retry_delay', 2000);
 
     $name = $name ?? $attributes->whereStartsWith('wire:model')->first();
 
@@ -59,6 +68,10 @@
         'staticFiles' => $static && $staticFiles ? $staticFiles : null,
         'invalidSizeMessage' => $invalidSizeMessage,
         'invalidTypeMessage' => $invalidTypeMessage,
+        'autoUpload' => !$autoUpload ? false : null,
+        'retryable' => $retryable ?: null,
+        'maxRetries' => $retryable ? $maxRetries : null,
+        'retryDelay' => $retryable ? $retryDelay : null,
     ], fn ($v) => $v !== null));
 @endphp
 
@@ -75,19 +88,34 @@
         x-on:paste.prevent="onPaste($event)"
         class="relative"
     >
-        {{-- Hidden file input --}}
+        {{-- File input for selection --}}
         <input
             type="file"
             x-ref="fileInput"
-            {{ $wireModelAttr }}
+            @if($autoUpload) {{ $wireModelAttr }} @endif
             @if($name) name="{{ $name }}" @endif
             @if($accept) accept="{{ $accept }}" @endif
             @if($multiple) multiple @endif
             @if($disabled) disabled @endif
+            @if($capture !== null) capture="{{ $capture === true ? '' : $capture }}" @endif
             x-on:change="onFileSelected($event)"
             class="sr-only"
             id="{{ $fieldId }}"
         />
+
+        {{-- Hidden Livewire input for manual upload (autoUpload=false + wire:model) --}}
+        @if(!$autoUpload && $wireModelAttr->isNotEmpty())
+            <input
+                type="file"
+                x-ref="livewireInput"
+                {{ $wireModelAttr }}
+                @if($accept) accept="{{ $accept }}" @endif
+                @if($multiple) multiple @endif
+                class="hidden"
+                tabindex="-1"
+                aria-hidden="true"
+            />
+        @endif
 
         @if(!$static)
             @if($variant === 'button')
@@ -160,6 +188,14 @@
                                          x-bind:style="'width: ' + file.progress + '%'"></div>
                                 </div>
                             </div>
+
+                            {{-- Speed & ETA --}}
+                            <div x-show="file.status === 'uploading' && file.speed > 0" x-cloak class="flex items-center gap-1.5 mt-0.5">
+                                <span x-text="formatSpeed(file.speed)" class="text-xs text-kore-muted-fg"></span>
+                                <template x-if="file.eta !== null && file.eta > 0">
+                                    <span class="text-xs text-kore-muted-fg">&bull; ~<span x-text="formatEta(file.eta)"></span></span>
+                                </template>
+                            </div>
                         </div>
 
                         {{-- Status indicators --}}
@@ -167,7 +203,22 @@
                             <x-lucide-check-circle-2 class="size-5 text-kore-success shrink-0" />
                         </template>
                         <template x-if="file.status === 'error'">
-                            <x-lucide-alert-circle class="size-5 text-kore-destructive shrink-0" />
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <x-lucide-alert-circle class="size-5 text-kore-destructive" />
+                                @if($retryable)
+                                    <button type="button" x-on:click="retryFile(file.id)"
+                                        class="text-kore-muted-fg hover:text-kore-warning transition-colors"
+                                        title="Retry upload">
+                                        <x-lucide-refresh-cw class="size-4" />
+                                    </button>
+                                @endif
+                            </div>
+                        </template>
+                        <template x-if="file.status === 'retrying'">
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <x-lucide-loader-2 class="size-5 text-kore-warning animate-spin" />
+                                <span class="text-xs text-kore-muted-fg" x-text="'Retry ' + file.retries + '/{{ $maxRetries }}'"></span>
+                            </div>
                         </template>
 
                         {{-- Delete button --}}
@@ -198,15 +249,29 @@
             </ul>
         </template>
 
-        {{-- Clear all button --}}
-        @if($clearable)
-            <template x-if="hasFiles && !uploading">
-                <button type="button" x-on:click="clear()"
-                    class="mt-2 text-sm text-kore-muted-fg hover:text-kore-fg transition-colors inline-flex items-center gap-1">
-                    <x-lucide-x class="size-3.5" />
-                    Clear all
-                </button>
-            </template>
-        @endif
+        {{-- Action buttons --}}
+        <div class="flex items-center gap-3 mt-2">
+            {{-- Upload pending button (staging mode) --}}
+            @if(!$autoUpload)
+                <template x-if="hasPendingFiles && !uploading">
+                    <button type="button" x-on:click="uploadPending()"
+                        class="text-sm text-kore-primary hover:text-kore-primary/80 transition-colors inline-flex items-center gap-1 font-medium">
+                        <x-lucide-upload class="size-3.5" />
+                        Upload <span x-text="pendingCount"></span> file<span x-show="pendingCount > 1">s</span>
+                    </button>
+                </template>
+            @endif
+
+            {{-- Clear all button --}}
+            @if($clearable)
+                <template x-if="hasFiles && !uploading">
+                    <button type="button" x-on:click="clear()"
+                        class="text-sm text-kore-muted-fg hover:text-kore-fg transition-colors inline-flex items-center gap-1">
+                        <x-lucide-x class="size-3.5" />
+                        Clear all
+                    </button>
+                </template>
+            @endif
+        </div>
     </div>
 </x-kore::field>
