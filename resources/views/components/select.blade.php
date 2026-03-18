@@ -19,6 +19,7 @@
     'async' => null,
     'debounce' => null,
     'minSearch' => null,
+    'creatable' => false,
     'disabled' => false,
     'required' => false,
     'showError' => true,
@@ -28,6 +29,11 @@
     $size = $size ?? config('kore-ui.form.size', 'md');
     $debounce = $debounce ?? config('kore-ui.form.select.debounce', 300);
     $minSearch = $minSearch ?? config('kore-ui.form.select.min_search', 2);
+
+    // Creatable implies searchable
+    if ($creatable && !$native) {
+        $searchable = true;
+    }
 
     $name = $name ?? $attributes->whereStartsWith('wire:model')->first();
 
@@ -137,6 +143,7 @@
                 async: {{ $async ? "'{$async}'" : 'null' }},
                 debounce: {{ $debounce }},
                 minSearch: {{ $minSearch }},
+                creatable: {{ $creatable ? 'true' : 'false' }},
             })"
             x-on:keydown="onKeydown($event)"
             @if($multiple) wire:ignore @endif
@@ -251,7 +258,7 @@
                     class="max-h-60 overflow-auto py-1"
                     role="listbox"
                 >
-                    <template x-if="filteredOptions.length === 0 && !loading">
+                    <template x-if="filteredOptions.length === 0 && !loading && !showCreateOption">
                         <li class="px-3 py-2 text-sm text-kore-muted-fg text-center">No options found</li>
                     </template>
 
@@ -287,6 +294,22 @@
                             </template>
                         </li>
                     </template>
+
+                    {{-- Create option (creatable mode) --}}
+                    @if($creatable && !$native)
+                        <template x-if="showCreateOption">
+                            <li
+                                x-on:click="createFromSearch()"
+                                x-bind:class="{ 'bg-kore-muted': highlighted === filteredOptions.length }"
+                                class="flex items-center gap-2 px-3 py-2 cursor-pointer text-sm transition-colors hover:bg-kore-muted text-kore-primary"
+                                role="option"
+                                x-on:mouseenter="highlighted = filteredOptions.length"
+                            >
+                                <x-lucide-plus class="{{ $iconSizeClasses }} shrink-0" />
+                                <span>Create "<span x-text="search" class="font-medium"></span>"</span>
+                            </li>
+                        </template>
+                    @endif
                 </ul>
             </div>
             </template>
