@@ -251,6 +251,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | DataTable Defaults
+    |--------------------------------------------------------------------------
+    |
+    | Default configuration for the DataTable component (sorting, search,
+    | pagination, density).
+    |
+    */
+    'datatable' => [
+        'per_page'         => 25,
+        'per_page_options' => [10, 25, 50, 100],
+        'density'          => 'normal',      // compact|normal|relaxed
+        'pagination_type'  => 'standard',    // standard|simple|cursor
+        'search_debounce'  => 300,
+        'empty_text'       => 'No se encontraron resultados',
+        'empty_icon'       => 'inbox',
+        'translations'     => [
+            'search'     => 'Buscar...',
+            'per_page'   => 'Por página',
+            'showing'    => 'Mostrando :from a :to de :total resultados',
+            'no_results' => 'No se encontraron resultados',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Theme Defaults
     |--------------------------------------------------------------------------
     |
