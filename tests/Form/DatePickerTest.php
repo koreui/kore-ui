@@ -207,3 +207,37 @@ it('passes min and max date to config', function () {
         ->assertSee('maxDate', false)
         ->assertSee('2026-12-31', false);
 });
+
+it('passes disabled date ranges to config', function () {
+    $view = $this->blade('
+        <x-kore::datepicker name="date" :disabled-dates="[\'2026-03-25\', [\'2026-04-01\', \'2026-04-10\']]" />
+    ');
+
+    $view->assertSee('2026-03-25', false)
+        ->assertSee('2026-04-01', false)
+        ->assertSee('2026-04-10', false);
+});
+
+it('passes custom presets array to config', function () {
+    $presets = [
+        ['label' => 'This week', 'start' => '2026-03-16', 'end' => '2026-03-22'],
+        ['label' => 'Next week', 'start' => '2026-03-23', 'end' => '2026-03-29'],
+    ];
+
+    $view = $this->blade('
+        <x-kore::datepicker name="dates" mode="range" :presets="$presets" />
+    ', ['presets' => $presets]);
+
+    $view->assertSee('This week', false)
+        ->assertSee('2026-03-16', false)
+        ->assertSee('Next week', false);
+});
+
+it('passes presets true for default presets', function () {
+    $view = $this->blade('
+        <x-kore::datepicker name="dates" mode="range" :presets="true" />
+    ');
+
+    // json_encode produces "presets":true, assertSee (escaped) matches in HTML attributes
+    $view->assertSee('"presets":true');
+});

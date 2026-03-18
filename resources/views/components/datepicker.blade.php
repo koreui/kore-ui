@@ -174,7 +174,7 @@
                 >
                     <div class="flex-1 truncate min-w-0">
                         <span x-show="hasValue" x-text="displayValue" class="block truncate"></span>
-                        <span x-show="!hasValue" class="text-kore-muted-fg">{{ $placeholder ?? '&nbsp;' }}</span>
+                        <span x-show="!hasValue" class="text-kore-muted-fg">{!! $placeholder ? e($placeholder) : '&nbsp;' !!}</span>
                     </div>
 
                     <div class="flex items-center gap-1 shrink-0">
