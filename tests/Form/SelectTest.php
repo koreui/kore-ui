@@ -113,3 +113,77 @@ it('forwards wire:model on hidden input', function () {
 
     $view->assertSee('wire:model="status"', false);
 });
+
+it('renders creatable config in KoreSelect', function () {
+    $view = $this->blade('
+        <x-kore::select
+            label="Tags"
+            :options="[\'a\' => \'A\']"
+            creatable
+        />
+    ');
+
+    $view->assertSee('creatable: true', false);
+});
+
+it('auto-enables search input when creatable', function () {
+    $view = $this->blade('
+        <x-kore::select
+            label="Tags"
+            :options="[\'a\' => \'A\']"
+            creatable
+        />
+    ');
+
+    $view->assertSee('x-ref="search"', false);
+});
+
+it('renders create option template when creatable', function () {
+    $view = $this->blade('
+        <x-kore::select
+            label="Tags"
+            :options="[\'a\' => \'A\']"
+            creatable
+        />
+    ');
+
+    $view->assertSee('createFromSearch()', false);
+});
+
+it('does not render create option when not creatable', function () {
+    $view = $this->blade('
+        <x-kore::select
+            label="Tags"
+            :options="[\'a\' => \'A\']"
+        />
+    ');
+
+    $view->assertDontSee('createFromSearch()', false);
+});
+
+it('ignores creatable in native mode', function () {
+    $view = $this->blade('
+        <x-kore::select
+            label="Tags"
+            :options="[\'a\' => \'A\']"
+            creatable
+            native
+        />
+    ');
+
+    $view->assertDontSee('createFromSearch()', false);
+});
+
+it('renders with multiple and creatable', function () {
+    $view = $this->blade('
+        <x-kore::select
+            label="Tags"
+            :options="[\'a\' => \'A\']"
+            creatable
+            multiple
+        />
+    ');
+
+    $view->assertSee('creatable: true', false)
+        ->assertSee('multiple: true', false);
+});

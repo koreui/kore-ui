@@ -151,6 +151,28 @@ export default (config) => ({
         }
     },
 
+    get showCreateOption() {
+        if (!config.creatable) return false;
+        if (!this.search || !this.search.trim()) return false;
+        const term = this.search.trim().toLowerCase();
+        return !this.options.some(opt => {
+            const label = String(this.getLabel(opt)).toLowerCase();
+            return label === term;
+        });
+    },
+
+    createFromSearch() {
+        if (!this.search || !this.search.trim()) return;
+        const text = this.search.trim();
+        const newOption = {};
+        newOption[config.optionLabel || 'label'] = text;
+        newOption[config.optionValue || 'value'] = text;
+        this.options.push(newOption);
+        this.select(newOption);
+        this.search = '';
+        if (!config.multiple) this.close();
+    },
+
     get filteredOptions() {
         if (!this.search) return this.options;
         const term = this.search.toLowerCase();
@@ -261,19 +283,23 @@ export default (config) => ({
             case 'ArrowDown':
                 e.preventDefault();
                 if (!this.open) { this.openDropdown(); return; }
-                this.highlighted = (this.highlighted + 1) % opts.length;
+                const maxDown = opts.length + (this.showCreateOption ? 1 : 0);
+                this.highlighted = maxDown > 0 ? (this.highlighted + 1) % maxDown : -1;
                 this.scrollToHighlighted();
                 break;
             case 'ArrowUp':
                 e.preventDefault();
                 if (!this.open) { this.openDropdown(); return; }
-                this.highlighted = this.highlighted <= 0 ? opts.length - 1 : this.highlighted - 1;
+                const maxUp = opts.length + (this.showCreateOption ? 1 : 0);
+                this.highlighted = this.highlighted <= 0 ? maxUp - 1 : this.highlighted - 1;
                 this.scrollToHighlighted();
                 break;
             case 'Enter':
                 e.preventDefault();
                 if (this.open && this.highlighted >= 0 && opts[this.highlighted]) {
                     this.select(opts[this.highlighted]);
+                } else if (this.open && this.showCreateOption && this.highlighted === opts.length) {
+                    this.createFromSearch();
                 }
                 break;
             case 'Escape':

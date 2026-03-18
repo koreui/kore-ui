@@ -6,6 +6,9 @@
     'size' => null,
     'icon' => null,
     'toggleable' => null,
+    'strength' => null,
+    'minLength' => null,
+    'showRules' => true,
     'disabled' => false,
     'readonly' => false,
     'required' => false,
@@ -15,6 +18,9 @@
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
     $toggleable = $toggleable ?? config('kore-ui.form.password.toggleable', true);
+    $strength = $strength ?? config('kore-ui.form.password.strength', false);
+    $minLength = $minLength ?? config('kore-ui.form.password.min_length', 8);
+    $isStrengthEnabled = (bool) $strength;
 
     $name = $name ?? $attributes->whereStartsWith('wire:model')->first();
 
@@ -65,6 +71,76 @@
     :field-id="$fieldId"
     :required="$required"
 >
+    @if($isStrengthEnabled)
+    <div x-data="KorePassword({ minLength: {{ $minLength }} })">
+        <div class="relative">
+            @if($icon)
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <x-dynamic-component :component="'lucide-' . $icon" class="{{ $iconSizeClasses }} text-kore-muted-fg" />
+                </div>
+            @endif
+
+            <input
+                {{ $attributes->merge([
+                    'id' => $fieldId,
+                    'name' => $name,
+                    'disabled' => $disabled,
+                    'readonly' => $readonly,
+                    'required' => $required,
+                    'autocomplete' => 'current-password',
+                    'class' => $inputClasses,
+                ])->except(['label', 'hint', 'error', 'size', 'icon', 'toggleable', 'strength', 'min-length', 'show-rules', 'show-error']) }}
+                x-bind:type="show ? 'text' : 'password'"
+                x-on:input="onInput($event)"
+            />
+
+            @if($toggleable)
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <button
+                        type="button"
+                        x-on:click="show = !show"
+                        class="text-kore-muted-fg hover:text-kore-fg transition-colors focus:outline-none"
+                        x-bind:aria-label="show ? 'Hide password' : 'Show password'"
+                    >
+                        <x-lucide-eye x-show="!show" class="{{ $iconSizeClasses }}" />
+                        <x-lucide-eye-off x-show="show" x-cloak class="{{ $iconSizeClasses }}" />
+                    </button>
+                </div>
+            @endif
+        </div>
+
+        {{-- Strength meter --}}
+        <div class="mt-2 space-y-2" x-show="value.length > 0" x-cloak>
+            {{-- Progress bar: 4 segments --}}
+            <div class="flex gap-1">
+                <template x-for="i in 4" :key="i">
+                    <div
+                        class="h-1.5 flex-1 rounded-full transition-colors duration-300"
+                        x-bind:class="i <= level ? levelColorClass : 'bg-kore-muted'"
+                    ></div>
+                </template>
+            </div>
+            {{-- Level label --}}
+            <p class="text-xs font-medium" x-bind:class="levelTextClass" x-text="levelLabel"></p>
+            {{-- Rules checklist --}}
+            @if($showRules)
+            <ul class="space-y-1">
+                <template x-for="rule in rules" :key="rule.id">
+                    <li class="flex items-center gap-1.5 text-xs">
+                        <template x-if="rule.passed">
+                            <x-lucide-check class="size-3 text-green-500" />
+                        </template>
+                        <template x-if="!rule.passed">
+                            <x-lucide-x class="size-3 text-kore-muted-fg" />
+                        </template>
+                        <span x-bind:class="rule.passed ? 'text-green-600 dark:text-green-400' : 'text-kore-muted-fg'" x-text="rule.label"></span>
+                    </li>
+                </template>
+            </ul>
+            @endif
+        </div>
+    </div>
+    @else
     <div class="relative" x-data="{ show: false }">
         @if($icon)
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -81,7 +157,7 @@
                 'required' => $required,
                 'autocomplete' => 'current-password',
                 'class' => $inputClasses,
-            ])->except(['label', 'hint', 'error', 'size', 'icon', 'toggleable', 'show-error']) }}
+            ])->except(['label', 'hint', 'error', 'size', 'icon', 'toggleable', 'strength', 'min-length', 'show-rules', 'show-error']) }}
             x-bind:type="show ? 'text' : 'password'"
         />
 
@@ -99,4 +175,5 @@
             </div>
         @endif
     </div>
+    @endif
 </x-kore::field>

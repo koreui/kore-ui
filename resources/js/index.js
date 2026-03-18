@@ -10,6 +10,8 @@ import KoreRange from './form/range.js';
 import KoreTagInput from './form/tag-input.js';
 import KoreColorPicker from './form/color-picker.js';
 import KoreMaskable from './form/maskable.js';
+import KorePassword from './form/password.js';
+import KoreNumber from './form/number.js';
 import KoreTheme from './theme.js';
 
 document.addEventListener('alpine:init', () => {
@@ -25,5 +27,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('KoreTagInput', KoreTagInput);
     Alpine.data('KoreColorPicker', KoreColorPicker);
     Alpine.data('KoreMaskable', KoreMaskable);
+    Alpine.data('KorePassword', KorePassword);
+    Alpine.data('KoreNumber', KoreNumber);
     Alpine.store('koreTheme', KoreTheme);
 });

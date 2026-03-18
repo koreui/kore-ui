@@ -71,7 +71,16 @@ return [
             'min_search' => 2,
             'search_threshold' => 10,
         ],
-        'password' => ['toggleable' => true],
+        'password' => [
+            'toggleable' => true,
+            'strength' => false,
+            'min_length' => 8,
+        ],
+        'number' => [
+            'currency' => 'USD',
+            'locale' => null,
+            'precision' => 2,
+        ],
         'textarea' => ['rows' => 4],
         'datepicker' => [
             'locale' => null,

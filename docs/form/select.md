@@ -121,3 +121,31 @@ The dropdown is teleported to `<body>` via Alpine's `x-teleport` to escape `over
 ```
 
 The endpoint receives `?search=term` and should return a JSON array of options. Requests are debounced and use `AbortController` to cancel previous in-flight requests.
+
+## Creatable
+
+Allow users to create new options on the fly by typing a value that doesn't exist in the options list:
+
+```html
+<x-kore::select wire:model="tag" label="Framework"
+    :options="$frameworks" option-label="label" option-value="value"
+    creatable clearable />
+```
+
+When `creatable` is enabled:
+- `searchable` is automatically enabled (no need to set it separately)
+- A "Create" option appears when the search term doesn't match any existing option
+- The created option uses the same `optionLabel`/`optionValue` keys as existing options, with the typed text as both label and value
+- Works with keyboard navigation — the create option is included in ArrowUp/ArrowDown cycling and can be selected with Enter
+
+### Creatable Multi-select
+
+Combine with `multiple` for tagging interfaces:
+
+```html
+<x-kore::select wire:model="skills" label="Skills"
+    :options="$skills" option-label="label" option-value="value"
+    creatable multiple />
+```
+
+> **Note:** `creatable` is ignored in `native` mode since native selects don't support dynamic options.
