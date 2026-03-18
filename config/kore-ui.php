@@ -190,6 +190,34 @@ return [
         'clipboard' => [
             'variant' => 'input',
         ],
+        'kbd' => [
+            'size' => 'md',
+        ],
+        'boolean' => [
+            'true_icon' => 'check',
+            'false_icon' => 'x',
+            'true_color' => 'success',
+            'false_color' => 'destructive',
+        ],
+        'speed-dial' => [
+            'icon' => 'plus',
+            'direction' => 'up',
+            'size' => 'sm',
+        ],
+        'splitter' => [
+            'orientation' => 'horizontal',
+            'gutter_size' => 8,
+        ],
+        'carousel' => [
+            'autoplay' => false,
+            'interval' => 5000,
+            'loop' => true,
+            'pause_on_hover' => true,
+            'show_indicators' => true,
+            'show_navigation' => true,
+            'num_visible' => 1,
+            'gap' => 16,
+        ],
     ],
 
     /*
