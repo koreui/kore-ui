@@ -86,6 +86,19 @@ return [
             'max_retries' => 3,
             'retry_delay' => 2000,
         ],
+        'rating' => [
+            'stars' => 5,
+            'clearable' => true,
+        ],
+        'color_picker' => [
+            'columns' => 8,
+            'allow_custom' => true,
+        ],
+        'maskable' => [
+            'slot_char' => '_',
+            'auto_clear' => false,
+            'emit_formatted' => false,
+        ],
     ],
 
     /*

@@ -11,27 +11,36 @@ export default (config) => ({
     init() {
         const input = this.$refs.hiddenInput;
 
-        // Sync initial value from hidden input (wire:model may set it)
-        this._syncFromInput(input);
-
-        // Livewire sets the input property after morph — catch it on next tick
-        if (input && !input.value) {
-            this.$nextTick(() => this._syncFromInput(input));
-        }
-
-        // Listen for Livewire re-syncs (e.g. $this->reset()) on multi w/ wire:ignore
         if (config.multiple && input) {
             const wireModel = input.getAttribute('wire:model.live')
                 || input.getAttribute('wire:model.blur')
                 || input.getAttribute('wire:model.defer')
                 || input.getAttribute('wire:model');
+
+            // Read initial array from $wire (arrays don't serialize to hidden input value)
             if (wireModel && this.$wire) {
+                const initial = this.$wire.$get(wireModel);
+                if (Array.isArray(initial)) {
+                    this.selected = [...initial];
+                }
+
+                // Watch Livewire re-syncs (e.g. $this->reset())
                 this.$wire.$watch(wireModel, (val) => {
                     const newVal = Array.isArray(val) ? val : [];
                     if (JSON.stringify(newVal) !== JSON.stringify(this.selected)) {
                         this.selected = newVal;
                     }
                 });
+            } else {
+                this._syncFromInput(input);
+            }
+        } else {
+            // Single select: sync from hidden input
+            this._syncFromInput(input);
+
+            // Livewire sets the input property after morph — catch it on next tick
+            if (input && !input.value) {
+                this.$nextTick(() => this._syncFromInput(input));
             }
         }
     },
