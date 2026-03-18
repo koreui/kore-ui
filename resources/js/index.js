@@ -13,6 +13,9 @@ import KoreMaskable from './form/maskable.js';
 import KorePassword from './form/password.js';
 import KoreNumber from './form/number.js';
 import KoreDropdown from './ui/dropdown.js';
+import KoreAccordion from './ui/accordion.js';
+import KoreTab from './ui/tab.js';
+import KoreStepper from './ui/stepper.js';
 import KoreTheme from './theme.js';
 
 document.addEventListener('alpine:init', () => {
@@ -31,5 +34,8 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('KorePassword', KorePassword);
     Alpine.data('KoreNumber', KoreNumber);
     Alpine.data('KoreDropdown', KoreDropdown);
+    Alpine.data('KoreAccordion', KoreAccordion);
+    Alpine.data('KoreTab', KoreTab);
+    Alpine.data('KoreStepper', KoreStepper);
     Alpine.store('koreTheme', KoreTheme);
 });

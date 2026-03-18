@@ -177,6 +177,40 @@
 .kore-range-input:disabled::-webkit-slider-thumb { transform: none; }
 .kore-range-input:disabled::-moz-range-thumb { transform: none; }
 
+/* Progress bar — striped */
+.kore-progress-striped {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 1rem 1rem;
+}
+
+.kore-progress-animated {
+  animation: kore-progress-stripes 1s linear infinite;
+}
+
+@keyframes kore-progress-stripes {
+  from { background-position: 1rem 0; }
+  to   { background-position: 0 0; }
+}
+
+.kore-progress-indeterminate {
+  width: 50% !important;
+  animation: kore-progress-indeterminate 1.5s ease-in-out infinite;
+}
+
+@keyframes kore-progress-indeterminate {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   :root {
@@ -190,5 +224,10 @@
 
   .kore-toast {
     transition: none !important;
+  }
+
+  .kore-progress-animated,
+  .kore-progress-indeterminate {
+    animation: none !important;
   }
 }
