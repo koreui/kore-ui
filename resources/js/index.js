@@ -16,6 +16,8 @@ import KoreDropdown from './ui/dropdown.js';
 import KoreAccordion from './ui/accordion.js';
 import KoreTab from './ui/tab.js';
 import KoreStepper from './ui/stepper.js';
+import KoreStats from './ui/stats.js';
+import KoreClipboard from './ui/clipboard.js';
 import KoreTheme from './theme.js';
 
 document.addEventListener('alpine:init', () => {
@@ -37,5 +39,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('KoreAccordion', KoreAccordion);
     Alpine.data('KoreTab', KoreTab);
     Alpine.data('KoreStepper', KoreStepper);
+    Alpine.data('KoreStats', KoreStats);
+    Alpine.data('KoreClipboard', KoreClipboard);
     Alpine.store('koreTheme', KoreTheme);
 });

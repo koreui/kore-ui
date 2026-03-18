@@ -174,6 +174,22 @@ return [
             'variant' => 'horizontal',
             'linear' => false,
         ],
+        'skeleton' => [
+            'animation' => 'shimmer',  // shimmer|pulse|none
+        ],
+        'chip' => [
+            'variant' => 'soft',
+        ],
+        'timeline' => [
+            'variant' => 'left',
+        ],
+        'stats' => [
+            'variant' => 'default',
+            'animated' => true,
+        ],
+        'clipboard' => [
+            'variant' => 'input',
+        ],
     ],
 
     /*

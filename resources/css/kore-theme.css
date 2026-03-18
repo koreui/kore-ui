@@ -211,6 +211,84 @@
   100% { transform: translateX(200%); }
 }
 
+/* Skeleton shimmer */
+@keyframes kore-skeleton-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.kore-skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(1 0 0 / 0.08) 20%,
+    oklch(1 0 0 / 0.15) 50%,
+    oklch(1 0 0 / 0.08) 80%,
+    transparent 100%
+  );
+  animation: kore-skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.dark .kore-skeleton-shimmer::after,
+[data-theme="dark"] .kore-skeleton-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(1 0 0 / 0.04) 20%,
+    oklch(1 0 0 / 0.08) 50%,
+    oklch(1 0 0 / 0.04) 80%,
+    transparent 100%
+  );
+}
+
+/* Timeline — right variant */
+.kore-timeline-right > .kore-timeline-item {
+  flex-direction: row-reverse;
+}
+.kore-timeline-right > .kore-timeline-item .kore-timeline-content {
+  text-align: right;
+}
+.kore-timeline-right > .kore-timeline-item .kore-timeline-connector {
+  left: auto;
+  right: 15px;
+}
+
+/* Timeline — alternate variant: marker always centered, content alternates sides */
+.kore-timeline-alternate > .kore-timeline-item .kore-timeline-spacer {
+  display: block;
+}
+
+/* Connector line centered */
+.kore-timeline-alternate > .kore-timeline-item .kore-timeline-connector {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Marker centered */
+.kore-timeline-alternate > .kore-timeline-item .kore-timeline-marker {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Even items: content goes to the left via order swap */
+.kore-timeline-alternate > .kore-timeline-item:nth-child(even) .kore-timeline-content {
+  order: -1;
+  text-align: right;
+}
+
+/* Even items: spacer goes to the right */
+.kore-timeline-alternate > .kore-timeline-item:nth-child(even) .kore-timeline-spacer {
+  order: 1;
+}
+
+/* Hide connector on last item */
+.kore-timeline-item:last-child > .kore-timeline-connector {
+  display: none;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   :root {
@@ -228,6 +306,10 @@
 
   .kore-progress-animated,
   .kore-progress-indeterminate {
+    animation: none !important;
+  }
+
+  .kore-skeleton-shimmer::after {
     animation: none !important;
   }
 }
