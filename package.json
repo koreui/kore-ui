@@ -3,5 +3,9 @@
     "version": "0.1.0",
     "description": "Frontend assets for koreUi - Laravel UI component library",
     "main": "resources/js/index.js",
-    "license": "MIT"
+    "license": "MIT",
+    "dependencies": {
+        "@alpinejs/collapse": "^3.15.8",
+        "@floating-ui/dom": "^1.7.6"
+    }
 }

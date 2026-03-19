@@ -3,14 +3,17 @@
 namespace KoreUi\DataTable\Concerns;
 
 use Illuminate\Database\Eloquent\Builder;
+use Livewire\Attributes\Locked;
 
 trait WithSorting
 {
     public array $sorts = [];
 
-    protected ?string $defaultSortColumn = null;
+    #[Locked]
+    public ?string $defaultSortColumn = null;
 
-    protected string $defaultSortDirection = 'asc';
+    #[Locked]
+    public string $defaultSortDirection = 'asc';
 
     public function sortBy(string $column): void
     {

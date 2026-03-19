@@ -11,4 +11,8 @@ class TestUser extends Model
     protected $guarded = [];
 
     public $timestamps = false;
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 }

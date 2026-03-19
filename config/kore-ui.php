@@ -264,13 +264,19 @@ return [
         'density'          => 'normal',      // compact|normal|relaxed
         'pagination_type'  => 'standard',    // standard|simple|cursor
         'search_debounce'  => 300,
+        'filter_layout'    => 'popover',     // popover|slide-down|inline|drawer
         'empty_text'       => 'No se encontraron resultados',
         'empty_icon'       => 'inbox',
         'translations'     => [
-            'search'     => 'Buscar...',
-            'per_page'   => 'Por página',
-            'showing'    => 'Mostrando :from a :to de :total resultados',
-            'no_results' => 'No se encontraron resultados',
+            'search'        => 'Buscar...',
+            'per_page'      => 'Por página',
+            'showing'       => 'Mostrando :from a :to de :total resultados',
+            'no_results'    => 'No se encontraron resultados',
+            'filters'       => 'Filtros',
+            'actions'       => 'Acciones',
+            'selected'      => 'seleccionado(s)',
+            'clear_filters' => 'Limpiar filtros',
+            'apply'         => 'Aplicar',
         ],
     ],
 

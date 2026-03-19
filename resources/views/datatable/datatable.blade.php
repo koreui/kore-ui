@@ -1,12 +1,23 @@
 <div
-    x-data="KoreDataTable({ density: '{{ $density }}' })"
+    x-data="KoreDataTable({ density: '{{ $density }}', rowIds: {{ Js::from($rowIds ?? []) }}, slideDownOpen: {{ ($filtersExpanded ?? false) ? 'true' : 'false' }} })"
     class="rounded-kore-lg border border-kore-border bg-kore-surface overflow-hidden"
 >
-    {{-- Toolbar: search + per page --}}
+    {{-- Toolbar: search + filters + per page + bulk actions --}}
     @include('kore::datatable.toolbar', [
         'searchDebounce' => $searchDebounce,
         'perPageOptions' => $perPageOptions,
         'translations'   => $translations,
+        'filterDefs'     => $filterDefs ?? [],
+        'filterCount'    => $filterCount ?? 0,
+        'filterLayout'   => $filterLayout ?? 'popover',
+        'filtersExpanded' => $filtersExpanded ?? false,
+        'bulkActions'    => $bulkActions ?? [],
+    ])
+
+    {{-- Filter pills --}}
+    @include('kore::datatable.filter-pills', [
+        'activeFilters' => $activeFilters ?? [],
+        'translations'  => $translations,
     ])
 
     {{-- Table --}}
@@ -20,6 +31,18 @@
             {{-- Header --}}
             <thead class="bg-kore-muted/50">
                 <tr>
+                    @if($selectionEnabled ?? false)
+                        <th class="w-10 text-center" :class="headerDensityClasses">
+                            <input
+                                type="checkbox"
+                                x-bind:checked="isAllSelected"
+                                x-bind:indeterminate="isIndeterminate"
+                                x-on:change="toggleAll()"
+                                class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
+                            />
+                        </th>
+                    @endif
+
                     @foreach($columns as $column)
                         <th
                             class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} font-semibold text-kore-muted-fg uppercase tracking-wider whitespace-nowrap"
@@ -58,7 +81,24 @@
             {{-- Body --}}
             <tbody class="divide-y divide-kore-border">
                 @forelse($rows as $row)
-                    <tr class="hover:bg-kore-muted/40 transition-colors">
+                    <tr
+                        class="hover:bg-kore-muted/40 transition-colors"
+                        @if($selectionEnabled ?? false)
+                            x-bind:class="isSelected('{{ data_get($row, $primaryKey ?? 'id') }}') ? 'bg-kore-primary/5' : ''"
+                        @endif
+                    >
+                        @if($selectionEnabled ?? false)
+                            <td class="w-10 text-center" :class="densityClasses">
+                                <input
+                                    type="checkbox"
+                                    value="{{ data_get($row, $primaryKey ?? 'id') }}"
+                                    x-bind:checked="isSelected('{{ data_get($row, $primaryKey ?? 'id') }}')"
+                                    x-on:change="toggleRow('{{ data_get($row, $primaryKey ?? 'id') }}')"
+                                    class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
+                                />
+                            </td>
+                        @endif
+
                         @foreach($columns as $column)
                             <td
                                 class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} text-kore-fg {{ $column->isWrap() ? '' : 'whitespace-nowrap' }}"
@@ -74,7 +114,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ count($columns) }}">
+                        <td colspan="{{ count($columns) + (($selectionEnabled ?? false) ? 1 : 0) }}">
                             <x-kore::empty-state
                                 :title="$emptyText"
                                 :icon="$emptyIcon"

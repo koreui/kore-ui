@@ -19,22 +19,22 @@ it('renders with alpine data', function () {
 
 it('renders top position by default', function () {
     $view = $this->blade('<x-kore::tooltip text="Info"><span>?</span></x-kore::tooltip>');
-    $view->assertSee("position: 'top'", false);
+    $view->assertSee("placement: 'top'", false);
 });
 
 it('renders bottom position', function () {
     $view = $this->blade('<x-kore::tooltip text="Info" position="bottom"><span>?</span></x-kore::tooltip>');
-    $view->assertSee("position: 'bottom'", false);
+    $view->assertSee("placement: 'bottom'", false);
 });
 
 it('renders left position', function () {
     $view = $this->blade('<x-kore::tooltip text="Info" position="left"><span>?</span></x-kore::tooltip>');
-    $view->assertSee("position: 'left'", false);
+    $view->assertSee("placement: 'left'", false);
 });
 
 it('renders right position', function () {
     $view = $this->blade('<x-kore::tooltip text="Info" position="right"><span>?</span></x-kore::tooltip>');
-    $view->assertSee("position: 'right'", false);
+    $view->assertSee("placement: 'right'", false);
 });
 
 it('renders with custom delay', function () {

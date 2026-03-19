@@ -1,3 +1,5 @@
+import { startFloating, stopFloating } from '../utils/floating.js';
+
 export default (config) => ({
     value: null,
     open: false,
@@ -27,7 +29,7 @@ export default (config) => ({
     },
 
     destroy() {
-        this._removeGlobalListeners();
+        this._cleanup();
     },
 
     // Dropdown
@@ -39,15 +41,27 @@ export default (config) => ({
         this.open = true;
         this.customHex = this.value || '';
         this.$nextTick(() => {
-            if (!config.inline) this.positionDropdown();
-            this._addGlobalListeners();
+            if (!config.inline) {
+                this._floatingCleanup = startFloating(this.$refs.trigger, this.$refs.dropdown, {
+                    placement: 'bottom-start',
+                    offset: 4,
+                    sameWidth: true,
+                });
+            }
+            this._addClickAwayListener();
         });
     },
 
     close() {
         if (!this.open) return;
         this.open = false;
-        this._removeGlobalListeners();
+        this._cleanup();
+    },
+
+    _cleanup() {
+        stopFloating(this._floatingCleanup);
+        this._floatingCleanup = null;
+        this._removeClickAwayListener();
     },
 
     selectColor(hex) {
@@ -93,58 +107,6 @@ export default (config) => ({
         this.$refs.hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
     },
 
-    // Positioning — same pattern as select.js and time-picker.js
-    positionDropdown() {
-        const trigger = this.$refs.trigger;
-        const dropdown = this.$refs.dropdown;
-        if (!trigger || !dropdown) return;
-
-        const rect = trigger.getBoundingClientRect();
-        const dropdownHeight = dropdown.offsetHeight || 300;
-        const spaceBelow = window.innerHeight - rect.bottom;
-        const spaceAbove = rect.top;
-        const openAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
-
-        dropdown.style.position = 'fixed';
-        dropdown.style.left = rect.left + 'px';
-        dropdown.style.width = rect.width + 'px';
-
-        if (openAbove) {
-            dropdown.style.top = 'auto';
-            dropdown.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
-        } else {
-            dropdown.style.top = (rect.bottom + 4) + 'px';
-            dropdown.style.bottom = 'auto';
-        }
-    },
-
-    _addGlobalListeners() {
-        this._removeGlobalListeners();
-
-        this._boundScroll = () => this._onScroll();
-        this._boundResize = () => this._onResize();
-        this._boundMousedown = (e) => this._onMousedown(e);
-
-        window.addEventListener('scroll', this._boundScroll, { capture: true, passive: true });
-        window.addEventListener('resize', this._boundResize, { passive: true });
-        document.addEventListener('mousedown', this._boundMousedown);
-    },
-
-    _removeGlobalListeners() {
-        if (this._boundScroll) {
-            window.removeEventListener('scroll', this._boundScroll, { capture: true });
-            this._boundScroll = null;
-        }
-        if (this._boundResize) {
-            window.removeEventListener('resize', this._boundResize);
-            this._boundResize = null;
-        }
-        if (this._boundMousedown) {
-            document.removeEventListener('mousedown', this._boundMousedown);
-            this._boundMousedown = null;
-        }
-    },
-
     _onMousedown(e) {
         if (!this.open) return;
         if (this.$refs.trigger?.contains(e.target)) return;
@@ -152,13 +114,16 @@ export default (config) => ({
         this.close();
     },
 
-    _onScroll() {
-        if (!this.open) return;
-        this.positionDropdown();
+    _addClickAwayListener() {
+        this._removeClickAwayListener();
+        this._boundMousedown = (e) => this._onMousedown(e);
+        document.addEventListener('mousedown', this._boundMousedown);
     },
 
-    _onResize() {
-        if (!this.open) return;
-        this.positionDropdown();
+    _removeClickAwayListener() {
+        if (this._boundMousedown) {
+            document.removeEventListener('mousedown', this._boundMousedown);
+            this._boundMousedown = null;
+        }
     },
 });

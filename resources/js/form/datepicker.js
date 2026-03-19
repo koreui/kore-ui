@@ -1,3 +1,5 @@
+import { startFloating, stopFloating } from '../utils/floating.js';
+
 export default (config) => ({
     open: false,
     currentView: 'date',
@@ -81,7 +83,7 @@ export default (config) => ({
     },
 
     destroy() {
-        this._removeGlobalListeners();
+        this._cleanup();
         if (this._boundResponsive) {
             window.removeEventListener('resize', this._boundResponsive);
             this._boundResponsive = null;
@@ -99,8 +101,11 @@ export default (config) => ({
         this.currentView = 'date';
         this.buildCalendar();
         this.$nextTick(() => {
-            this.positionDropdown();
-            this._addGlobalListeners();
+            this._floatingCleanup = startFloating(this.$refs.trigger, this.$refs.dropdown, {
+                placement: 'bottom-start',
+                offset: 4,
+            });
+            this._addClickAwayListener();
         });
     },
 
@@ -108,45 +113,17 @@ export default (config) => ({
         if (!this.open) return;
         this.open = false;
         this.currentView = 'date';
-        this._removeGlobalListeners();
+        this._cleanup();
         // When closing with withTime, ensure final value is synced
         if (config.withTime && this.selected) {
             this.syncModel();
         }
     },
 
-    positionDropdown() {
-        const trigger = this.$refs.trigger;
-        const dropdown = this.$refs.dropdown;
-        if (!trigger || !dropdown) return;
-
-        const rect = trigger.getBoundingClientRect();
-        const dropdownHeight = dropdown.offsetHeight || 320;
-        const dropdownWidth = dropdown.offsetWidth || 280;
-        const spaceBelow = window.innerHeight - rect.bottom;
-        const spaceAbove = rect.top;
-        const openAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
-
-        dropdown.style.position = 'fixed';
-        dropdown.style.left = Math.min(rect.left, window.innerWidth - dropdownWidth - 8) + 'px';
-
-        if (openAbove) {
-            dropdown.style.top = 'auto';
-            dropdown.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
-        } else {
-            dropdown.style.top = (rect.bottom + 4) + 'px';
-            dropdown.style.bottom = 'auto';
-        }
-    },
-
-    _onScroll() {
-        if (!this.open) return;
-        this.positionDropdown();
-    },
-
-    _onResize() {
-        if (!this.open) return;
-        this.positionDropdown();
+    _cleanup() {
+        stopFloating(this._floatingCleanup);
+        this._floatingCleanup = null;
+        this._removeClickAwayListener();
     },
 
     _onMousedown(e) {
@@ -156,25 +133,13 @@ export default (config) => ({
         this.close();
     },
 
-    _addGlobalListeners() {
-        this._removeGlobalListeners();
-        this._boundScroll = () => this._onScroll();
-        this._boundResize = () => this._onResize();
+    _addClickAwayListener() {
+        this._removeClickAwayListener();
         this._boundMousedown = (e) => this._onMousedown(e);
-        window.addEventListener('scroll', this._boundScroll, { capture: true, passive: true });
-        window.addEventListener('resize', this._boundResize, { passive: true });
         document.addEventListener('mousedown', this._boundMousedown);
     },
 
-    _removeGlobalListeners() {
-        if (this._boundScroll) {
-            window.removeEventListener('scroll', this._boundScroll, { capture: true });
-            this._boundScroll = null;
-        }
-        if (this._boundResize) {
-            window.removeEventListener('resize', this._boundResize);
-            this._boundResize = null;
-        }
+    _removeClickAwayListener() {
         if (this._boundMousedown) {
             document.removeEventListener('mousedown', this._boundMousedown);
             this._boundMousedown = null;

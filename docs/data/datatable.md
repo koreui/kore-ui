@@ -358,6 +358,295 @@ class ProductsTable extends KoreDataTable
 
 ---
 
+## Filtros
+
+El DataTable soporta filtros reutilizando los componentes form de kore-ui. Los filtros se definen en el metodo `filters()`.
+
+### Definir filtros
+
+```php
+use KoreUi\DataTable\Filters\SelectFilter;
+use KoreUi\DataTable\Filters\TextFilter;
+use KoreUi\DataTable\Filters\BooleanFilter;
+
+public function filters(): array
+{
+    return [
+        TextFilter::make('Nombre', 'name')
+            ->placeholder('Buscar por nombre...'),
+
+        SelectFilter::make('Ciudad', 'city')
+            ->options($cities)
+            ->optionLabel('label')
+            ->optionValue('value')
+            ->placeholder('Todas las ciudades')
+            ->searchable(),
+
+        BooleanFilter::make('Activo', 'is_active')
+            ->trueLabel('Activos')
+            ->falseLabel('Inactivos'),
+    ];
+}
+```
+
+### Tipos de filtro
+
+| Filtro | SQL generado | Componente UI |
+|---|---|---|
+| `TextFilter` | `WHERE col LIKE %val%` | `<x-kore::input>` |
+| `SelectFilter` | `WHERE col = val` | `<x-kore::select>` |
+| `MultiSelectFilter` | `WHERE col IN (...)` | `<x-kore::select multiple>` |
+| `BooleanFilter` | `WHERE col = bool` | `<x-kore::select>` (Todos/Si/No) |
+| `NumberFilter` | `WHERE col {op} val` | `<x-kore::number>` |
+| `NumberRangeFilter` | `WHERE col >= min AND col <= max` | Dos `<x-kore::number>` |
+| `DateFilter` | `whereDate(col, val)` | `<x-kore::datepicker>` |
+| `DateRangeFilter` | `whereDate BETWEEN` | `<x-kore::datepicker mode="range">` |
+
+### Filter API (metodos comunes)
+
+Todos los filtros heredan de `Filter` y comparten estos metodos fluidos:
+
+| Metodo | Descripcion |
+|---|---|
+| `make(label, column)` | Crea el filtro. Si se omite `column`, se genera desde label en snake_case |
+| `key(string)` | Key unico para el array `$filters` (default: column name) |
+| `default(mixed)` | Valor por defecto al montar el componente |
+| `placeholder(string)` | Texto placeholder en el input |
+| `position(int)` | Orden de aparicion (menor = primero) |
+| `hidden(bool)` | Oculta el filtro de la UI |
+| `hiddenIf(Closure)` | Oculta condicionalmente |
+| `pill(Closure)` | Callback para texto del pill: `fn($value) => "Label: $value"` |
+| `callback(Closure)` | Logica de query personalizada: `fn(Builder $query, $value) => ...` |
+
+### SelectFilter API
+
+| Metodo | Descripcion |
+|---|---|
+| `options(array)` | Array de opciones |
+| `optionLabel(string)` | Key para el label de cada opcion |
+| `optionValue(string)` | Key para el value de cada opcion |
+| `searchable(bool)` | Habilita busqueda en el dropdown |
+
+### MultiSelectFilter API
+
+Mismos metodos que `SelectFilter`, mas:
+
+| Metodo | Descripcion |
+|---|---|
+| `max(int)` | Maximo de opciones seleccionables |
+
+### NumberFilter API
+
+| Metodo | Descripcion |
+|---|---|
+| `operator(string)` | Operador SQL: `=`, `>=`, `<=`, `>`, `<` |
+| `min(int)` | Valor minimo |
+| `max(int)` | Valor maximo |
+| `step(int)` | Incremento |
+
+### Key personalizado
+
+Cuando multiples filtros apuntan a la misma columna, usa `key()` para evitar conflictos:
+
+```php
+NumberFilter::make('Edad minima', 'age')
+    ->key('min_age')
+    ->operator('>='),
+
+NumberRangeFilter::make('Rango edad', 'age')
+    ->key('age_range'),
+```
+
+### Query personalizada
+
+```php
+SelectFilter::make('Estado', 'status')
+    ->callback(function (Builder $query, $value) {
+        $query->where('status', $value)
+              ->where('verified', true);
+    }),
+```
+
+---
+
+## Layouts de filtro
+
+Cuatro layouts disponibles para mostrar los filtros. Se configuran en `configure()`.
+
+### Popover (default)
+
+Filtros en un dropdown flotante desde el boton "Filtros".
+
+```php
+public function configure(): void
+{
+    $this->setFilterLayout('popover');
+}
+```
+
+### Slide Down
+
+Panel que se despliega debajo del toolbar con transicion suave. Opcionalmente expandido por defecto.
+
+```php
+public function configure(): void
+{
+    $this->setFilterLayout('slide-down');
+    $this->setFiltersExpanded(true); // abierto por defecto
+}
+```
+
+### Inline
+
+Filtros siempre visibles en fila debajo del toolbar. Sin boton ni toggle. Ideal para pocos filtros.
+
+```php
+public function configure(): void
+{
+    $this->setFilterLayout('inline');
+}
+```
+
+### Drawer
+
+Panel lateral deslizable desde la derecha. Ideal cuando hay muchos filtros.
+
+```php
+public function configure(): void
+{
+    $this->setFilterLayout('drawer');
+}
+```
+
+### Configuracion global
+
+```php
+// config/kore-ui.php
+'datatable' => [
+    'filter_layout' => 'popover', // popover | slide-down | inline | drawer
+],
+```
+
+---
+
+## Filter pills
+
+Cuando hay filtros activos, se muestran automaticamente como pills debajo del toolbar:
+
+- Cada pill muestra el texto del filtro (personalizable con `->pill(fn)`)
+- Boton X para quitar filtro individual (`resetFilter('key')`)
+- Link "Limpiar filtros" para quitar todos (`resetAllFilters()`)
+
+---
+
+## Seleccion de filas
+
+La seleccion de filas se habilita automaticamente cuando hay bulk actions definidas. Los checkboxes aparecen en la primera columna.
+
+### Configurar
+
+```php
+public function configure(): void
+{
+    $this->setPrimaryKey('uuid');       // default: 'id'
+    $this->setSelectionEnabled(false);  // deshabilita checkboxes
+}
+```
+
+### Comportamiento
+
+- **Checkbox header** — Selecciona/deselecciona todos los registros de la pagina actual
+- **Estado indeterminado** — El checkbox header muestra estado indeterminado si hay seleccion parcial
+- **Persistencia entre paginas** — La seleccion se mantiene al cambiar de pagina (gestionado por Alpine)
+- **Clear automatico** — Al ejecutar una bulk action, la seleccion se limpia automaticamente
+
+---
+
+## Bulk Actions
+
+Acciones masivas sobre las filas seleccionadas. Se muestran en un dropdown cuando hay filas seleccionadas.
+
+### Definir acciones
+
+```php
+use KoreUi\DataTable\Actions\BulkAction;
+
+public function bulkActions(): array
+{
+    return [
+        BulkAction::make('activate', 'Activar seleccionados')
+            ->icon('check-circle')
+            ->color('success'),
+
+        BulkAction::make('delete', 'Eliminar seleccionados')
+            ->icon('trash-2')
+            ->color('destructive')
+            ->confirm(
+                '¿Eliminar :count registro(s)?',
+                'Esta accion no se puede deshacer.'
+            )
+            ->separator(),
+    ];
+}
+```
+
+### Implementar la accion
+
+El metodo debe coincidir con el identificador del `BulkAction::make()`:
+
+```php
+public function activate(array $ids): void
+{
+    User::whereIn('id', $ids)->update(['is_active' => true]);
+    $this->toast()->success(count($ids) . ' usuario(s) activados.')->send();
+}
+
+public function delete(array $ids): void
+{
+    User::whereIn('id', $ids)->delete();
+    $this->toast()->success(count($ids) . ' usuario(s) eliminados.')->send();
+}
+```
+
+### BulkAction API
+
+| Metodo | Descripcion |
+|---|---|
+| `make(id, label)` | Crea la accion con identificador y etiqueta |
+| `icon(string)` | Icono Lucide para el dropdown |
+| `color(string)` | Color semantico: `primary`, `success`, `warning`, `destructive` |
+| `confirm(msg, desc)` | Muestra dialogo de confirmacion. Soporta `:count` placeholder |
+| `separator()` | Agrega separador visual antes de la accion |
+| `hidden(bool\|Closure)` | Oculta la accion |
+| `hiddenWhenEmpty()` | Oculta cuando no hay seleccion |
+
+---
+
+## Notas tecnicas
+
+### Propiedades #[Locked]
+
+Las propiedades de configuracion (`$filterLayout`, `$filtersExpanded`, `$defaultSortColumn`, `$defaultSortDirection`) usan el atributo `#[Locked]` de Livewire. Esto las hace:
+
+- **Persistentes** — Se incluyen en el snapshot de Livewire y sobreviven entre requests
+- **Seguras** — No pueden ser modificadas desde el frontend (JavaScript)
+
+Esto es necesario porque `configure()` solo se ejecuta en `mount()` (primer request). Sin `#[Locked]`, las propiedades `protected` se resetearian a sus valores default en cada request subsecuente.
+
+### wire:ignore en layouts de filtro
+
+Todos los layouts de filtro usan `wire:ignore` en el contenedor que envuelve los inputs de filtro. Esto previene que el morph de Livewire re-procese los componentes Alpine.js internos (como `<x-kore::select>`), lo cual causaria un loop infinito de requests.
+
+La sincronizacion funciona asi:
+- **Usuario → Livewire**: Alpine dispara eventos `input` en los hidden inputs → `wire:model.live` envia el update
+- **Livewire → Alpine**: `$wire.$watch()` en los componentes Alpine detecta cambios y actualiza el estado local
+
+### Boton slide-down y filter count
+
+El boton del layout slide-down usa la variable Blade `$filterCount` en vez de `$wire.getActiveFilterCount()` para mostrar el badge de filtros activos. Esto evita llamadas al servidor desde Alpine que causarian loops de re-render. El conteo se actualiza correctamente porque Livewire re-renderiza el template completo en cada request.
+
+---
+
 ## Alpine.js Plugin
 
 El plugin `KoreDataTable` se registra automaticamente y provee:
@@ -365,6 +654,9 @@ El plugin `KoreDataTable` se registra automaticamente y provee:
 - `density` — Estado reactivo de densidad
 - `densityClasses` — Clases CSS computadas para celdas
 - `headerDensityClasses` — Clases CSS computadas para headers
+- `slideDownOpen` — Estado del panel slide-down (inicializado desde `$filtersExpanded`)
+- `selected` / `selectedCount` / `hasSelection` — Estado de seleccion de filas
+- `toggleRow(id)` / `toggleAll()` / `clearSelection()` — Metodos de seleccion
 - Atajo `/` para focus en el buscador
 
 No necesitas importar ni registrar nada manualmente.

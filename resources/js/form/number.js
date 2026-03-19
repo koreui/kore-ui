@@ -74,22 +74,30 @@ export default (config) => ({
     },
 
     increment() {
-        let val = this.raw ?? 0;
-        let next = Math.round((val + (config.step ?? 1)) * 1e10) / 1e10;
-        if (config.max === undefined || config.max === null || next <= config.max) {
-            this.raw = next;
-            this.formatted = this._format(next);
+        let val = this.raw;
+        if (val === null || val === undefined) {
+            val = config.min ?? 0;
+        } else {
+            val = Math.round((val + (config.step ?? 1)) * 1e10) / 1e10;
+        }
+        if (config.max === undefined || config.max === null || val <= config.max) {
+            this.raw = val;
+            this.formatted = this._format(val);
             this.$refs.input.value = this.formatted;
             this._sync();
         }
     },
 
     decrement() {
-        let val = this.raw ?? 0;
-        let next = Math.round((val - (config.step ?? 1)) * 1e10) / 1e10;
-        if (config.min === undefined || config.min === null || next >= config.min) {
-            this.raw = next;
-            this.formatted = this._format(next);
+        let val = this.raw;
+        if (val === null || val === undefined) {
+            val = config.min ?? 0;
+        } else {
+            val = Math.round((val - (config.step ?? 1)) * 1e10) / 1e10;
+        }
+        if (config.min === undefined || config.min === null || val >= config.min) {
+            this.raw = val;
+            this.formatted = this._format(val);
             this.$refs.input.value = this.formatted;
             this._sync();
         }

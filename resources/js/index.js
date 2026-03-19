@@ -1,3 +1,4 @@
+import collapse from '@alpinejs/collapse';
 import KoreOverlay from './overlay.js';
 import KoreFeedback from './feedback.js';
 import KoreSelect from './form/select.js';
@@ -22,10 +23,12 @@ import KoreSpeedDial from './ui/speed-dial.js';
 import KoreSplitter from './ui/splitter.js';
 import KoreCarousel from './ui/carousel.js';
 import KoreTree from './ui/tree.js';
+import KoreTooltip from './ui/tooltip.js';
 import KoreDataTable from './datatable.js';
 import KoreTheme from './theme.js';
 
 document.addEventListener('alpine:init', () => {
+    Alpine.plugin(collapse);
     Alpine.data('KoreOverlay', KoreOverlay);
     Alpine.data('KoreFeedback', KoreFeedback);
     Alpine.data('KoreSelect', KoreSelect);
@@ -50,6 +53,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('KoreSplitter', KoreSplitter);
     Alpine.data('KoreCarousel', KoreCarousel);
     Alpine.data('KoreTree', KoreTree);
+    Alpine.data('KoreTooltip', KoreTooltip);
     Alpine.data('KoreDataTable', KoreDataTable);
     Alpine.store('koreTheme', KoreTheme);
 });

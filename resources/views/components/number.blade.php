@@ -165,12 +165,29 @@
         x-data="{
             holdInterval: null,
             holdTimeout: null,
+            init() {
+                let input = this.$refs.input;
+                if (input && this.$wire) {
+                    let modelName = input.getAttribute('wire:model.live')
+                        || input.getAttribute('wire:model.blur')
+                        || input.getAttribute('wire:model.defer')
+                        || input.getAttribute('wire:model');
+                    if (modelName) {
+                        this.$wire.$watch(modelName, (val) => {
+                            let current = input.value;
+                            let newVal = (val === null || val === undefined || val === '') ? '' : String(val);
+                            if (current !== newVal) input.value = newVal;
+                        });
+                    }
+                }
+            },
             increment() {
                 let input = $refs.input;
-                let val = parseFloat(input.value) || 0;
                 let step = {{ $step }};
+                let min = {{ $min !== null ? $min : '0' }};
                 let max = {{ $max !== null ? $max : 'Infinity' }};
-                let next = Math.round((val + step) * 1e10) / 1e10;
+                let val = parseFloat(input.value);
+                let next = isNaN(val) ? min : Math.round((val + step) * 1e10) / 1e10;
                 if (next <= max) {
                     input.value = next;
                     input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -178,10 +195,10 @@
             },
             decrement() {
                 let input = $refs.input;
-                let val = parseFloat(input.value) || 0;
                 let step = {{ $step }};
                 let min = {{ $min !== null ? $min : '-Infinity' }};
-                let next = Math.round((val - step) * 1e10) / 1e10;
+                let val = parseFloat(input.value);
+                let next = isNaN(val) ? min : Math.round((val - step) * 1e10) / 1e10;
                 if (next >= min) {
                     input.value = next;
                     input.dispatchEvent(new Event('input', { bubbles: true }));

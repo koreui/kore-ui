@@ -13,6 +13,9 @@ abstract class KoreDataTable extends Component
     use Concerns\WithSorting;
     use Concerns\WithSearch;
     use Concerns\WithPagination;
+    use Concerns\WithFiltering;
+    use Concerns\WithSelection;
+    use Concerns\WithBulkActions;
 
     public int $perPage = 25;
 
@@ -35,6 +38,22 @@ abstract class KoreDataTable extends Component
     abstract public function columns(): array;
 
     /**
+     * Define the filters for the DataTable.
+     */
+    public function filters(): array
+    {
+        return [];
+    }
+
+    /**
+     * Define bulk actions for the DataTable.
+     */
+    public function bulkActions(): array
+    {
+        return [];
+    }
+
+    /**
      * Override in subclass to customize configuration.
      */
     public function configure(): void
@@ -53,6 +72,7 @@ abstract class KoreDataTable extends Component
     {
         $query = $this->query();
         $query = $this->applySearch($query);
+        $query = $this->applyFilters($query);
         $query = $this->applySorts($query);
         $query = $this->applyEagerLoading($query);
 
@@ -131,17 +151,33 @@ abstract class KoreDataTable extends Component
     {
         $rows = $this->getRows();
         $columns = $this->resolveColumns();
+        $selectionEnabled = $this->isSelectionEnabled();
+        $rowIds = $selectionEnabled ? $this->getRowIds($rows) : [];
+
+        // Keep Alpine rowIds in sync (x-data is not re-evaluated during morph)
+        if ($selectionEnabled) {
+            $this->dispatch('kore:datatable-rows-updated', rowIds: $rowIds);
+        }
 
         return view('kore::datatable.datatable', [
-            'rows'         => $rows,
-            'columns'      => $columns,
-            'density'      => $this->getDensity(),
-            'emptyText'    => $this->getEmptyText(),
-            'emptyIcon'    => $this->getEmptyIcon(),
-            'showingText'  => $this->getShowingText($rows),
-            'searchDebounce' => $this->getSearchDebounce(),
-            'perPageOptions' => $this->getPerPageOptions(),
-            'translations' => config('kore-ui.datatable.translations', []),
+            'rows'             => $rows,
+            'columns'          => $columns,
+            'density'          => $this->getDensity(),
+            'emptyText'        => $this->getEmptyText(),
+            'emptyIcon'        => $this->getEmptyIcon(),
+            'showingText'      => $this->getShowingText($rows),
+            'searchDebounce'   => $this->getSearchDebounce(),
+            'perPageOptions'   => $this->getPerPageOptions(),
+            'translations'     => config('kore-ui.datatable.translations', []),
+            'filterDefs'       => $this->resolveFilters(),
+            'activeFilters'    => $this->getActiveFilters(),
+            'filterCount'      => $this->getActiveFilterCount(),
+            'filterLayout'     => $this->getFilterLayout(),
+            'filtersExpanded'  => $this->getFiltersExpanded(),
+            'bulkActions'      => $this->resolveBulkActions(),
+            'selectionEnabled' => $selectionEnabled,
+            'primaryKey'       => $this->getPrimaryKey(),
+            'rowIds'           => $rowIds,
         ]);
     }
 }
