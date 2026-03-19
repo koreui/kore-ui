@@ -3,6 +3,7 @@
 namespace KoreUi\DataTable\Actions;
 
 use Closure;
+use KoreUi\DataTable\Support\UrlSanitizer;
 
 class RowAction
 {
@@ -178,13 +179,15 @@ class RowAction
     public function getUrl(mixed $row): ?string
     {
         if ($this->urlCallback !== null) {
-            return ($this->urlCallback)($row);
+            return UrlSanitizer::sanitize(($this->urlCallback)($row));
         }
 
         if ($this->urlPattern !== null) {
-            return preg_replace_callback('/\{(\w+(?:\.\w+)*)\}/', function ($matches) use ($row) {
+            $url = preg_replace_callback('/\{(\w+(?:\.\w+)*)\}/', function ($matches) use ($row) {
                 return data_get($row, $matches[1], $matches[0]);
             }, $this->urlPattern);
+
+            return UrlSanitizer::sanitize($url);
         }
 
         return null;

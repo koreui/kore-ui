@@ -1,3 +1,15 @@
+@php
+    $densityClass = match($density ?? 'normal') {
+        'compact'  => 'px-3 py-1 text-sm',
+        'relaxed'  => 'px-4 py-4 text-base',
+        default    => 'px-4 py-2.5 text-sm',
+    };
+    $headerDensityClass = match($density ?? 'normal') {
+        'compact'  => 'px-3 py-1.5 text-xs',
+        'relaxed'  => 'px-4 py-3 text-sm',
+        default    => 'px-4 py-2 text-xs',
+    };
+@endphp
 <div
     x-data="KoreDataTable({ density: '{{ $density }}', rowIds: {{ Js::from($rowIds ?? []) }}, slideDownOpen: {{ ($filtersExpanded ?? false) ? 'true' : 'false' }}, responsiveMode: '{{ $responsiveMode ?? 'scroll' }}', responsiveBreakpoint: {{ $responsiveBreakpoint ?? 768 }} })"
     class="rounded-kore-lg border border-kore-border bg-kore-surface overflow-hidden"
@@ -13,6 +25,7 @@
     @include('kore::datatable.toolbar', [
         'searchDebounce'      => $searchDebounce,
         'perPageOptions'      => $perPageOptions,
+        'perPage'             => $perPage,
         'translations'        => $translations,
         'filterDefs'          => $filterDefs ?? [],
         'filterCount'         => $filterCount ?? 0,
@@ -45,7 +58,7 @@
                 <thead class="bg-kore-muted/50">
                     <tr>
                         @foreach($columns as $column)
-                            <th class="text-left" :class="headerDensityClasses">
+                            <th class="text-left {{ $headerDensityClass }}" :class="headerDensityClasses">
                                 <div class="h-3 w-20 bg-kore-muted rounded animate-pulse"></div>
                             </th>
                         @endforeach
@@ -55,7 +68,7 @@
                     @for($i = 0; $i < min($this->perPage, 10); $i++)
                         <tr>
                             @foreach($columns as $column)
-                                <td :class="densityClasses">
+                                <td class="{{ $densityClass }}" :class="densityClasses">
                                     <x-kore::skeleton class="h-4 w-full" />
                                 </td>
                             @endforeach
@@ -147,7 +160,7 @@
                 <thead class="bg-kore-muted/50">
                     <tr>
                         @if($selectionEnabled ?? false)
-                            <th class="w-10 text-center" :class="headerDensityClasses">
+                            <th class="w-10 text-center {{ $headerDensityClass }}" :class="headerDensityClasses">
                                 <input
                                     type="checkbox"
                                     x-bind:checked="isAllSelected"
@@ -189,7 +202,7 @@
                                 }
                             @endphp
                             <th
-                                class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} font-semibold text-kore-muted-fg uppercase tracking-wider whitespace-nowrap {{ $pinnedClasses }}"
+                                class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} font-semibold text-kore-muted-fg uppercase tracking-wider whitespace-nowrap {{ $pinnedClasses }} {{ $headerDensityClass }}"
                                 :class="headerDensityClasses"
                                 style="{{ $pinnedStyle }}{{ $widthStyle }}"
                             >
@@ -237,7 +250,7 @@
                                 }"
                             >
                                 @if($selectionEnabled ?? false)
-                                    <td class="w-10 text-center" :class="densityClasses">
+                                    <td class="w-10 text-center {{ $densityClass }}" :class="densityClasses">
                                         <input
                                             type="checkbox"
                                             value="{{ $rowId }}"
@@ -276,7 +289,7 @@
                                         $showClickable = !$isEditableCell && $column->isClickable();
                                     @endphp
                                     <td
-                                        class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} text-kore-fg {{ $column->isWrap() ? '' : 'whitespace-nowrap' }} {{ $isEditableCell ? 'cursor-pointer' : '' }} {{ $pinnedClasses }} relative"
+                                        class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} text-kore-fg {{ $column->isWrap() ? '' : 'whitespace-nowrap' }} {{ $isEditableCell ? 'cursor-pointer' : '' }} {{ $pinnedClasses }} relative {{ $densityClass }}"
                                         :class="densityClasses"
                                         @if($pinnedStyle) style="{{ $pinnedStyle }}" @endif
                                     >
@@ -285,6 +298,7 @@
                                             <div
                                                 x-data="{ value: {{ $column->getValue($row) ? 'true' : 'false' }} }"
                                                 data-boolean-toggle
+                                                wire:key="bool-{{ $rowId }}-{{ $column->getField() }}-{{ $column->getValue($row) ? '1' : '0' }}"
                                             >
                                                 <button
                                                     type="button"
@@ -441,7 +455,7 @@
                     <tfoot>
                         <tr class="bg-kore-muted/30 border-t border-kore-border">
                             @if($selectionEnabled ?? false)
-                                <td class="w-10" :class="densityClasses"></td>
+                                <td class="w-10 {{ $densityClass }}" :class="densityClasses"></td>
                             @endif
 
                             @foreach($columns as $colIdx => $column)
@@ -457,15 +471,15 @@
                                         } elseif ($pinnedSide === 'right' && isset($pinnedRightOffsets[$colIdx])) {
                                             $pinnedStyle = "position: sticky; right: {$pinnedRightOffsets[$colIdx]}px; z-index: 1;";
                                         }
-                                        $pinnedClasses = 'bg-kore-muted/30';
+                                        $pinnedClasses = 'bg-kore-muted';
                                     }
                                 @endphp
                                 <td
-                                    class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} font-semibold text-kore-fg {{ $pinnedClasses }}"
+                                    class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} font-semibold text-kore-fg {{ $pinnedClasses }} {{ $densityClass }}"
                                     :class="densityClasses"
                                     @if($pinnedStyle) style="{{ $pinnedStyle }}" @endif
                                 >
-                                    @if(isset($aggregations[$column->getField()]))
+                                    @if($column->hasAggregation() && isset($aggregations[$column->getField()]))
                                         @php $agg = $aggregations[$column->getField()]; @endphp
                                         @if($agg['label'])
                                             <span class="text-kore-muted-fg text-xs font-normal">{{ $agg['label'] }}:</span>

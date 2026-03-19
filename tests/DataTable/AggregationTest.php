@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use KoreUi\DataTable\Columns\Column;
 use KoreUi\DataTable\Columns\NumberColumn;
@@ -112,4 +113,46 @@ it('supports custom footer callback', function () {
 
     expect($column->hasAggregation())->toBeTrue()
         ->and($column->getFooterCallback())->not->toBeNull();
+});
+
+it('batches multiple standard aggregations into a single SQL query', function () {
+    $component = Livewire::test(TestAggregationTable::class);
+    $columns = $component->instance()->resolveColumns();
+
+    // Start logging after component mount/render to isolate the explicit call
+    DB::enableQueryLog();
+    $component->instance()->getAggregations($columns);
+    $queries = DB::getQueryLog();
+    DB::disableQueryLog();
+
+    $batchQueries = collect($queries)->filter(
+        fn ($q) => str_contains($q['query'], 'kore_agg_')
+    );
+
+    expect($batchQueries)->toHaveCount(1);
+});
+
+it('custom footer callback still uses its own query', function () {
+    $column = Column::make('Age', 'age')
+        ->footer(fn ($query) => $query->count() . ' registros');
+
+    expect($column->getFooterCallback())->not->toBeNull()
+        ->and($column->getAggregationType())->toBeNull();
+});
+
+it('mixed standard and callback aggregations return correct values', function () {
+    $component = Livewire::test(TestAggregationTable::class);
+    $columns = $component->instance()->resolveColumns();
+
+    $callbackColumn = Column::make('Info', 'name')
+        ->footer(fn ($query) => $query->count() . ' filas')
+        ->footerLabel('Info');
+
+    $allColumns = array_merge($columns, [$callbackColumn]);
+    $aggregations = $component->instance()->getAggregations($allColumns);
+
+    expect($aggregations)->toHaveKey('age')
+        ->and($aggregations)->toHaveKey('salary')
+        ->and($aggregations)->toHaveKey('name')
+        ->and($aggregations['name']['value'])->toContain('filas');
 });

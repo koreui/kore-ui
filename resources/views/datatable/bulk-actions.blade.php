@@ -4,7 +4,7 @@
 @endphp
 
 @if(count($bulkActions) > 0)
-    <div x-show="hasSelection" x-cloak class="flex items-center gap-2">
+    <div x-show="hasSelection" x-cloak wire:ignore.self class="flex items-center gap-2">
         <span class="text-sm text-kore-muted-fg" x-text="selectedCount + ' {{ $translations['selected'] ?? 'seleccionado(s)' }}'"></span>
 
         <x-kore::dropdown width="240">

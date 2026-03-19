@@ -1,6 +1,7 @@
 @php
     $searchDebounce = $searchDebounce ?? 300;
     $perPageOptions = $perPageOptions ?? [];
+    $perPage = $perPage ?? null;
     $translations = $translations ?? [];
     $filterDefs = $filterDefs ?? [];
     $filterCount = $filterCount ?? 0;
@@ -111,7 +112,7 @@
                     class="bg-kore-bg text-kore-fg border border-kore-input rounded-kore-md text-sm py-1 px-2 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary"
                 >
                     @foreach($perPageOptions as $option)
-                        <option value="{{ $option }}">{{ $option }}</option>
+                        <option value="{{ $option }}" @selected(($perPage ?? null) == $option)>{{ $option }}</option>
                     @endforeach
                 </select>
             </div>

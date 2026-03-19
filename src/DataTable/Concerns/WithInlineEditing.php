@@ -2,6 +2,7 @@
 
 namespace KoreUi\DataTable\Concerns;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use KoreUi\DataTable\Columns\Column;
 use KoreUi\DataTable\Events\RowUpdated;
@@ -36,19 +37,22 @@ trait WithInlineEditing
             }
         }
 
-        // Capture old value before update
-        $model = $this->query()->getModel();
+        $model      = $this->query()->getModel();
         $primaryKey = $this->getPrimaryKey();
-        $oldValue = $model::where($primaryKey, $rowId)->value($field);
+        $callback   = $column->getEditableCallback();
 
-        // Execute callback or direct update
-        $callback = $column->getEditableCallback();
+        $oldValue = DB::transaction(function () use ($model, $primaryKey, $rowId, $field, $value, $callback) {
+            $record = $model::where($primaryKey, $rowId)->lockForUpdate()->first();
+            $old    = data_get($record, $field);
 
-        if ($callback) {
-            $callback($rowId, $field, $value);
-        } else {
-            $model::where($primaryKey, $rowId)->update([$field => $value]);
-        }
+            if ($callback) {
+                $callback($rowId, $field, $value);
+            } else {
+                $record?->update([$field => $value]);
+            }
+
+            return $old;
+        });
 
         event(new RowUpdated(static::class, $rowId, $field, $value, $oldValue));
 

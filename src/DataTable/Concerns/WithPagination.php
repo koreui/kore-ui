@@ -13,6 +13,10 @@ trait WithPagination
 
     public function updatedPerPage(): void
     {
+        if (!in_array($this->perPage, $this->getPerPageOptions())) {
+            $this->perPage = $this->getPerPageOptions()[0];
+        }
+
         $this->resetPage();
     }
 

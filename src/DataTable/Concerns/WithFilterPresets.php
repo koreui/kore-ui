@@ -30,6 +30,11 @@ trait WithFilterPresets
 
     public function applyPreset(string $identifier): void
     {
+        if ($this->activePreset === $identifier) {
+            $this->clearPreset();
+            return;
+        }
+
         $preset = $this->findPreset($identifier);
 
         if (! $preset) {

@@ -48,10 +48,23 @@ trait WithSearch
 
                     if (str_contains($field, '.')) {
                         [$relation, $relationField] = $this->parseRelationField($field);
+
+                        if (! preg_match('/^[a-zA-Z0-9_.]+$/', $relation)) {
+                            continue;
+                        }
+
+                        if (! preg_match('/^[a-zA-Z0-9_]+$/', $relationField)) {
+                            continue;
+                        }
+
                         $query->orWhereHas($relation, function (Builder $q) use ($relationField, $term) {
                             $q->where($relationField, 'like', "%{$term}%");
                         });
                     } else {
+                        if (! preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
+                            continue;
+                        }
+
                         $query->orWhere($field, 'like', "%{$term}%");
                     }
                 }

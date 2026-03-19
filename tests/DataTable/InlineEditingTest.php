@@ -1,8 +1,10 @@
 <?php
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
 use KoreUi\DataTable\Columns\BooleanColumn;
 use KoreUi\DataTable\Columns\Column;
+use KoreUi\DataTable\Events\RowUpdated;
 use KoreUi\Tests\DataTable\Fixtures\TestEditableTable;
 use KoreUi\Tests\DataTable\Fixtures\TestUser;
 use Livewire\Livewire;
@@ -110,4 +112,33 @@ it('supports editable callback', function () {
 it('renders editable cells with data attributes', function () {
     Livewire::test(TestEditableTable::class)
         ->assertSee('data-row-id');
+});
+
+it('fires RowUpdated with correct old and new values', function () {
+    Event::fake([RowUpdated::class]);
+
+    Livewire::test(TestEditableTable::class)
+        ->call('updateCell', 1, 'name', 'Alice Updated');
+
+    Event::assertDispatched(RowUpdated::class, function (RowUpdated $event) {
+        return $event->oldValue === 'Alice'
+            && $event->value   === 'Alice Updated';
+    });
+});
+
+it('captures db value at time of update as oldValue', function () {
+    Event::fake([RowUpdated::class]);
+
+    // Primera actualización
+    Livewire::test(TestEditableTable::class)
+        ->call('updateCell', 1, 'name', 'First Update');
+
+    // Segunda actualización: oldValue debe ser 'First Update', no 'Alice'
+    Livewire::test(TestEditableTable::class)
+        ->call('updateCell', 1, 'name', 'Second Update');
+
+    Event::assertDispatched(RowUpdated::class, function (RowUpdated $event) {
+        return $event->oldValue === 'First Update'
+            && $event->value   === 'Second Update';
+    });
 });

@@ -3,6 +3,7 @@
 namespace KoreUi\DataTable\Columns;
 
 use Closure;
+use KoreUi\DataTable\Support\UrlSanitizer;
 
 class Column
 {
@@ -133,10 +134,10 @@ class Column
     public function getClickableUrl(mixed $row): ?string
     {
         if ($this->clickableCallback !== null) {
-            return ($this->clickableCallback)($row);
+            return UrlSanitizer::sanitize(($this->clickableCallback)($row));
         }
 
-        return $this->clickableUrl;
+        return UrlSanitizer::sanitize($this->clickableUrl);
     }
 
     public function isClickableNewTab(): bool

@@ -92,3 +92,21 @@ it('returns null URL when neither pattern nor callback set', function () {
 
     expect($action->getUrl(['id' => 1]))->toBeNull();
 });
+
+it('blocks javascript: URL in RowAction url callback', function () {
+    $action = RowAction::make('evil', 'Evil')
+        ->url(fn ($row) => "javascript:alert('XSS')");
+    expect($action->getUrl([]))->toBeNull();
+});
+
+it('blocks javascript: URL in RowAction urlPattern', function () {
+    $action = RowAction::make('evil', 'Evil')
+        ->urlPattern("javascript:alert('{id}')");
+    expect($action->getUrl(['id' => 1]))->toBeNull();
+});
+
+it('allows relative urlPattern in RowAction', function () {
+    $action = RowAction::make('view', 'Ver')
+        ->urlPattern('/users/{id}');
+    expect($action->getUrl(['id' => 42]))->toBe('/users/42');
+});

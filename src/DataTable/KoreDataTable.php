@@ -151,25 +151,25 @@ abstract class KoreDataTable extends Component
     /**
      * Compute aggregation values for columns that have them.
      * Runs on the full filtered dataset (not paginated).
+     * Standard aggregations are batched into a single SQL query to avoid N+1.
      */
     public function getAggregations(array $columns): array
     {
         $aggregations = [];
+        $standardColumns = [];
 
         foreach ($columns as $column) {
             if (! $column->hasAggregation()) {
                 continue;
             }
 
-            $field = $column->getField();
-
-            // Custom footer callback
+            // Custom callback: needs its own query (arbitrary logic)
             if ($column->getFooterCallback() !== null) {
                 $query = $this->query();
                 $query = $this->applySearch($query);
                 $query = $this->applyFilters($query);
 
-                $aggregations[$field] = [
+                $aggregations[$column->getField()] = [
                     'value' => ($column->getFooterCallback())($query),
                     'label' => $column->getFooterLabel(),
                 ];
@@ -177,23 +177,57 @@ abstract class KoreDataTable extends Component
                 continue;
             }
 
-            $type = $column->getAggregationType();
+            $standardColumns[] = $column;
+        }
 
-            $query = $this->query();
-            $query = $this->applySearch($query);
-            $query = $this->applyFilters($query);
+        // Batch: 1 query for all standard aggregations
+        if (! empty($standardColumns)) {
+            $aggregations = array_merge($aggregations, $this->batchStandardAggregations($standardColumns));
+        }
 
-            $value = match ($type) {
-                'sum'   => $query->sum($field),
-                'avg'   => round((float) $query->avg($field), $column->getAggregationDecimals()),
-                'count' => $query->count(),
-                'min'   => $query->min($field),
-                'max'   => $query->max($field),
-                default => null,
+        return $aggregations;
+    }
+
+    /**
+     * Consolidates all standard (non-callback) aggregations into a single SQL query.
+     */
+    private function batchStandardAggregations(array $columns): array
+    {
+        $baseQuery = $this->query();
+        $baseQuery = $this->applySearch($baseQuery);
+        $baseQuery = $this->applyFilters($baseQuery);
+
+        $selects = [];
+
+        foreach ($columns as $index => $column) {
+            $field = $column->getField();
+            $alias = 'kore_agg_' . $index;
+
+            $selects[] = match ($column->getAggregationType()) {
+                'sum'   => "SUM({$field}) as {$alias}",
+                'avg'   => "AVG({$field}) as {$alias}",
+                'count' => "COUNT(*) as {$alias}",
+                'min'   => "MIN({$field}) as {$alias}",
+                'max'   => "MAX({$field}) as {$alias}",
+                default => "NULL as {$alias}",
             };
+        }
 
-            $aggregations[$field] = [
-                'value' => $column->formatAggregationValue($value),
+        // select([]) clears previous columns; selectRaw adds only the aggregates
+        $result = $baseQuery->select([])->selectRaw(implode(', ', $selects))->first();
+
+        $aggregations = [];
+
+        foreach ($columns as $index => $column) {
+            $alias = 'kore_agg_' . $index;
+            $raw = $result?->{$alias};
+
+            if ($column->getAggregationType() === 'avg') {
+                $raw = round((float) $raw, $column->getAggregationDecimals());
+            }
+
+            $aggregations[$column->getField()] = [
+                'value' => $column->formatAggregationValue($raw),
                 'label' => $column->getFooterLabel(),
             ];
         }

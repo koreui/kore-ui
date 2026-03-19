@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Schema;
+use KoreUi\Tests\DataTable\Fixtures\TestSearchTable;
 use KoreUi\Tests\DataTable\Fixtures\TestTable;
 use KoreUi\Tests\DataTable\Fixtures\TestUser;
 use Livewire\Livewire;
@@ -122,4 +123,22 @@ it('renders search input', function () {
 it('renders per page select', function () {
     Livewire::test(TestTable::class)
         ->assertSeeHtml('wire:model.live="perPage"');
+});
+
+it('searches in relation fields with dot notation', function () {
+    // Columns with invalid relation/field parts are silently skipped before orWhereHas is called.
+    // The valid 'name' column still produces correct results.
+    expect(fn () => Livewire::test(TestSearchTable::class)
+        ->set('search', 'Alice')
+        ->assertSee('Alice')
+    )->not->toThrow(Exception::class);
+});
+
+it('skips columns with invalid relation field names', function () {
+    // Invalid simple fields and invalid dot-notation parts are silently skipped.
+    // Only the valid 'name' column is searched, so 'Bob' must not appear when searching 'Alice'.
+    Livewire::test(TestSearchTable::class)
+        ->set('search', 'Alice')
+        ->assertSee('Alice')
+        ->assertDontSee('Bob');
 });

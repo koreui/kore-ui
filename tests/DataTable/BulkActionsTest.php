@@ -62,6 +62,7 @@ it('executes bulk action with confirm dispatches confirm event', function () {
 
 it('confirmBulkAction executes the action', function () {
     Livewire::test(TestBulkTable::class)
+        ->set('pendingBulkIdentifier', 'delete')
         ->call('confirmBulkAction', 'delete', ['1', '2'])
         ->assertDispatched('kore:datatable-clear-selection');
 
@@ -94,6 +95,7 @@ it('does not render checkboxes when no bulk actions', function () {
 
 it('bulk action delete removes records', function () {
     Livewire::test(TestBulkTable::class)
+        ->set('pendingBulkIdentifier', 'delete')
         ->call('confirmBulkAction', 'delete', ['1', '3']);
 
     expect(TestUser::count())->toBe(1)
@@ -133,4 +135,41 @@ it('dispatches clear selection event after action', function () {
     Livewire::test(TestBulkTable::class)
         ->call('executeBulkAction', 'activate', ['1', '2'])
         ->assertDispatched('kore:datatable-clear-selection');
+});
+
+it('clears selected even when bulk action throws', function () {
+    $component = Livewire::test(TestBulkTable::class);
+
+    try {
+        $component->call('executeBulkAction', 'crash', [1, 2]);
+    } catch (\Throwable) {
+        // excepción esperada
+    }
+
+    expect($component->instance()->getSelected())->toBe([]);
+});
+
+it('ignores confirm callback for superseded action', function () {
+    $component = Livewire::test(TestBulkTable::class);
+    $component->set('pendingBulkIdentifier', 'activate');
+
+    $component->call('confirmBulkAction', 'delete', [1]);
+
+    // El registro 1 no debe haberse eliminado
+    expect(TestUser::find(1))->not->toBeNull();
+});
+
+it('prevents double execution after first confirm', function () {
+    $component = Livewire::test(TestBulkTable::class);
+
+    // Primera confirmación legítima
+    $component->call('executeBulkAction', 'delete', [1]);  // pending='delete'
+    $component->call('confirmBulkAction', 'delete', [1]);  // ejecuta, pending=''
+
+    // Segunda confirmación duplicada: pending='' → guard la rechaza
+    TestUser::insert(['id' => 99, 'name' => 'Ghost', 'email' => 'g@test.com', 'city' => null, 'is_active' => true, 'age' => 20]);
+    $component->call('confirmBulkAction', 'delete', [99]);
+
+    // El registro 99 NO debe haberse borrado
+    expect(TestUser::find(99))->not->toBeNull();
 });

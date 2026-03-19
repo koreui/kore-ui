@@ -427,3 +427,21 @@ it('all column types support collapseOnMobile', function () {
         expect($col->isCollapsedOnMobile())->toBeTrue();
     }
 });
+
+it('blocks javascript: URL in LinkColumn url callback', function () {
+    $column = LinkColumn::make('Link', 'field')
+        ->url(fn ($row) => "javascript:alert('XSS')");
+    expect($column->getUrl([]))->toBeNull();
+});
+
+it('blocks javascript: URL in LinkColumn urlPattern', function () {
+    $column = LinkColumn::make('Link', 'field')
+        ->urlPattern("javascript:void({id})");
+    expect($column->getUrl(['id' => 1]))->toBeNull();
+});
+
+it('allows https URL in LinkColumn urlPattern', function () {
+    $column = LinkColumn::make('Link', 'field')
+        ->urlPattern('https://example.com/users/{id}');
+    expect($column->getUrl(['id' => 5]))->toBe('https://example.com/users/5');
+});

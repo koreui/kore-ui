@@ -46,6 +46,33 @@ it('is not clickable by default', function () {
     expect($column->isClickable())->toBeFalse();
 });
 
+it('blocks javascript: URL in clickable string', function () {
+    $column = Column::make('Link', 'field')->clickable("javascript:alert('XSS')");
+    expect($column->getClickableUrl(null))->toBeNull();
+});
+
+it('blocks javascript: URL returned by clickable callback', function () {
+    $column = Column::make('Link', 'field')
+        ->clickable(fn ($row) => "javascript:alert(1)");
+    expect($column->getClickableUrl(null))->toBeNull();
+});
+
+it('blocks data: URL in clickable', function () {
+    $column = Column::make('Link', 'field')
+        ->clickable('data:text/html,<script>alert(1)</script>');
+    expect($column->getClickableUrl(null))->toBeNull();
+});
+
+it('allows https URL in clickable', function () {
+    $column = Column::make('Link', 'field')->clickable('https://example.com');
+    expect($column->getClickableUrl(null))->toBe('https://example.com');
+});
+
+it('allows relative path in clickable', function () {
+    $column = Column::make('Link', 'field')->clickable('/users/42');
+    expect($column->getClickableUrl(null))->toBe('/users/42');
+});
+
 it('includes copyable and clickable in toArray', function () {
     $column = Column::make('Email', 'email')->copyable();
 

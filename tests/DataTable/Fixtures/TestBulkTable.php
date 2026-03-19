@@ -39,6 +39,9 @@ class TestBulkTable extends KoreDataTable
                 ->color('destructive')
                 ->confirm('¿Eliminar :count registro(s)?', 'Esta acción no se puede deshacer.')
                 ->separator(),
+
+            BulkAction::make('crash', 'Crash Test')
+                ->hidden(),
         ];
     }
 
@@ -54,5 +57,10 @@ class TestBulkTable extends KoreDataTable
         $this->deletedIds = $ids;
         TestUser::whereIn('id', $ids)->delete();
         $this->toast()->success('Eliminados correctamente')->send();
+    }
+
+    public function crash(array $ids): void
+    {
+        throw new \RuntimeException('intentional crash for testing');
     }
 }

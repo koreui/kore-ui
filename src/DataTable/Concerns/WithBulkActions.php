@@ -12,6 +12,8 @@ trait WithBulkActions
 
     private array $_selectedIds = [];
 
+    public string $pendingBulkIdentifier = '';
+
     /**
      * Entry point called from Alpine. Handles confirm flow or direct execution.
      */
@@ -26,6 +28,7 @@ trait WithBulkActions
         }
 
         if ($action->hasConfirm()) {
+            $this->pendingBulkIdentifier = $identifier;
             $count = count($selectedIds);
             $message = strtr($action->getConfirmMessage(), [':count' => $count]);
 
@@ -50,6 +53,10 @@ trait WithBulkActions
      */
     public function confirmBulkAction(string $identifier, array $selectedIds): void
     {
+        if ($this->pendingBulkIdentifier !== $identifier) {
+            return;
+        }
+
         $this->_selectedIds = $selectedIds;
         $this->runBulkAction($identifier, $selectedIds);
     }
@@ -59,13 +66,15 @@ trait WithBulkActions
      */
     protected function runBulkAction(string $identifier, array $selectedIds): void
     {
-        if (method_exists($this, $identifier)) {
-            $this->{$identifier}($selectedIds);
+        try {
+            if (method_exists($this, $identifier)) {
+                $this->{$identifier}($selectedIds);
+            }
+
+            event(new BulkActionExecuted(static::class, $identifier, $selectedIds, count($selectedIds)));
+        } finally {
+            $this->clearSelected();
         }
-
-        event(new BulkActionExecuted(static::class, $identifier, $selectedIds, count($selectedIds)));
-
-        $this->clearSelected();
     }
 
     public function getSelected(): array
@@ -75,7 +84,8 @@ trait WithBulkActions
 
     public function clearSelected(): void
     {
-        $this->_selectedIds = [];
+        $this->_selectedIds          = [];
+        $this->pendingBulkIdentifier = '';
         $this->dispatch('kore:datatable-clear-selection');
     }
 
