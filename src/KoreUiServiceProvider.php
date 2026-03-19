@@ -8,6 +8,7 @@ use KoreUi\Breadcrumbs\BreadcrumbManager;
 use KoreUi\Feedback\ConfirmDialog;
 use KoreUi\Feedback\FeedbackManager;
 use KoreUi\Overlay\OverlayManager;
+use KoreUi\Spotlight\SpotlightManager;
 use Livewire\Livewire;
 
 class KoreUiServiceProvider extends ServiceProvider
@@ -33,6 +34,7 @@ class KoreUiServiceProvider extends ServiceProvider
         Livewire::component('kore-overlay-manager', OverlayManager::class);
         Livewire::component('kore-feedback-manager', FeedbackManager::class);
         Livewire::component('kore-confirm-dialog', ConfirmDialog::class);
+        Livewire::component('kore-spotlight-manager', SpotlightManager::class);
 
         Blade::directive('koreThemeScript', function () {
             $nonce = config('kore-ui.theme.nonce');

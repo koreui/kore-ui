@@ -298,6 +298,53 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Spotlight (Command Palette)
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the Spotlight / command palette component.
+    | Activated with Cmd+K / Ctrl+K.
+    |
+    */
+    'spotlight' => [
+        // PHP provider classes that supply spotlight items
+        'providers' => [],
+
+        // Keyboard shortcut key combined with Cmd (Mac) or Ctrl (Windows/Linux)
+        'shortcut' => 'k',
+
+        // Placeholder text shown in the search input
+        'placeholder' => 'Buscar acciones, páginas...',
+
+        // Show provider items when input is empty (before typing)
+        'show_results_without_input' => true,
+
+        // Show recent history section when input is empty
+        'show_recent' => true,
+
+        // Number of recent items to show (from localStorage)
+        'recent_count' => 5,
+
+        // Maximum history entries persisted in localStorage
+        'max_history' => 10,
+
+        // Global remote search endpoint (optional, can be overridden per-component)
+        'search_url' => null,
+
+        // HTTP method for remote search requests
+        'search_method' => 'GET',
+
+        // Debounce delay in milliseconds for remote search
+        'debounce' => 300,
+
+        // Maximum total results to display (local + remote)
+        'max_results' => 50,
+
+        // z-index for the spotlight panel (above overlays z-50 and feedback z-60)
+        'z_index' => 'z-[70]',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Theme Defaults
     |--------------------------------------------------------------------------
     |
