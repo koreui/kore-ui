@@ -9,6 +9,8 @@ class Column
     use Concerns\HasSorting;
     use Concerns\HasSearch;
     use Concerns\HasVisibility;
+    use Concerns\HasAggregation;
+    use Concerns\HasEditing;
 
     protected string $label;
 
@@ -27,6 +29,14 @@ class Column
     protected mixed $default = null;
 
     protected ?Closure $formatCallback = null;
+
+    protected bool $copyable = false;
+
+    protected ?Closure $clickableCallback = null;
+
+    protected ?string $clickableUrl = null;
+
+    protected bool $clickableNewTab = false;
 
     public function __construct(string $label, string $field)
     {
@@ -88,6 +98,50 @@ class Column
         $this->formatCallback = $callback;
 
         return $this;
+    }
+
+    public function copyable(bool $copyable = true): static
+    {
+        $this->copyable = $copyable;
+
+        return $this;
+    }
+
+    public function isCopyable(): bool
+    {
+        return $this->copyable;
+    }
+
+    public function clickable(Closure|string|null $urlOrCallback = null, bool $newTab = false): static
+    {
+        if ($urlOrCallback instanceof Closure) {
+            $this->clickableCallback = $urlOrCallback;
+        } elseif (is_string($urlOrCallback)) {
+            $this->clickableUrl = $urlOrCallback;
+        }
+
+        $this->clickableNewTab = $newTab;
+
+        return $this;
+    }
+
+    public function isClickable(): bool
+    {
+        return $this->clickableCallback !== null || $this->clickableUrl !== null;
+    }
+
+    public function getClickableUrl(mixed $row): ?string
+    {
+        if ($this->clickableCallback !== null) {
+            return ($this->clickableCallback)($row);
+        }
+
+        return $this->clickableUrl;
+    }
+
+    public function isClickableNewTab(): bool
+    {
+        return $this->clickableNewTab;
     }
 
     public function getValue(mixed $row): mixed
@@ -159,6 +213,11 @@ class Column
             'html'       => $this->html,
             'width'      => $this->width,
             'minWidth'   => $this->minWidth,
+            'aggregation' => $this->aggregationType,
+            'editable'   => $this->isEditable(),
+            'copyable'   => $this->copyable,
+            'clickable'  => $this->isClickable(),
+            'pinned'     => $this->isPinned() ? $this->getPinnedSide() : null,
         ];
     }
 }

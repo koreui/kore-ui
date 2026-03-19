@@ -3,6 +3,7 @@
 namespace KoreUi\DataTable\Concerns;
 
 use Illuminate\Database\Eloquent\Builder;
+use KoreUi\DataTable\Events\FilterApplied;
 use KoreUi\DataTable\Filters\Filter;
 use Livewire\Attributes\Locked;
 
@@ -30,6 +31,13 @@ trait WithFiltering
     public function updatedFilters(): void
     {
         $this->resetPage();
+
+        // Deactivate preset when user changes filters manually
+        if (property_exists($this, 'activePreset')) {
+            $this->activePreset = null;
+        }
+
+        event(new FilterApplied(static::class, $this->filters, $this->search ?? ''));
     }
 
     /**

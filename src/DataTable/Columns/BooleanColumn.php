@@ -60,6 +60,17 @@ class BooleanColumn extends Column
         return 'boolean';
     }
 
+    public function editable(bool $editable = true): static
+    {
+        parent::editable($editable);
+
+        if ($editable) {
+            $this->editableComponent = 'toggle';
+        }
+
+        return $this;
+    }
+
     public function getComponentProps(): array
     {
         return array_filter([

@@ -268,6 +268,13 @@ return [
         'column_select'         => true,
         'responsive_mode'       => 'scroll',      // scroll|collapse|card
         'responsive_breakpoint' => 768,
+        'query_string'          => false,          // persist state in URL
+        'export'                => [
+            'enabled'    => false,
+            'formats'    => ['csv'],
+            'max_rows'   => 10000,
+        ],
+        'deferred_loading'      => false,
         'empty_text'            => 'No se encontraron resultados',
         'empty_icon'            => 'inbox',
         'translations'          => [
@@ -282,6 +289,10 @@ return [
             'apply'         => 'Aplicar',
             'columns'       => 'Columnas',
             'reset_columns' => 'Restablecer',
+            'sorted_by'     => 'Ordenado por',
+            'clear_sorts'   => 'Limpiar ordenamiento',
+            'export'        => 'Exportar',
+            'cancel'        => 'Cancelar',
         ],
     ],
 

@@ -11,6 +11,8 @@
     $allColumns = $allColumns ?? [];
     $deselectedColumns = $deselectedColumns ?? [];
     $isSlideDown = $filterLayout === 'slide-down';
+    $exportEnabled = $exportEnabled ?? false;
+    $exportFormats = $exportFormats ?? [];
 @endphp
 
 <div class="border-b border-kore-border">
@@ -40,7 +42,7 @@
             @endif
         </div>
 
-        {{-- Right: Bulk Actions + Column Select + Per Page --}}
+        {{-- Right: Bulk Actions + Export + Column Select + Per Page --}}
         <div class="flex items-center gap-3">
             {{-- Bulk Actions --}}
             @include('kore::datatable.bulk-actions', [
@@ -48,16 +50,60 @@
                 'translations' => $translations,
             ])
 
-            {{-- Column Select --}}
-            @if($columnSelectEnabled ?? false)
-                @include('kore::datatable.column-select', [
-                    'allColumns'        => $allColumns ?? [],
-                    'deselectedColumns' => $deselectedColumns ?? [],
-                    'translations'      => $translations,
-                ])
-            @endif
+            {{-- Export --}}
+                @if($exportEnabled)
+                    @if(count($exportFormats) === 1)
+                        <button
+                            type="button"
+                            wire:click="exportAs('{{ $exportFormats[0] }}')"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-kore-fg bg-kore-bg border border-kore-input rounded-kore-md hover:bg-kore-muted transition-colors"
+                        >
+                            <x-lucide-download class="size-4" />
+                            <span>{{ $translations['export'] ?? 'Exportar' }}</span>
+                        </button>
+                    @else
+                        <div x-data="{ open: false }" class="relative">
+                            <button
+                                type="button"
+                                x-on:click="open = !open"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-kore-fg bg-kore-bg border border-kore-input rounded-kore-md hover:bg-kore-muted transition-colors"
+                            >
+                                <x-lucide-download class="size-4" />
+                                <span>{{ $translations['export'] ?? 'Exportar' }}</span>
+                                <x-lucide-chevron-down class="size-3" />
+                            </button>
 
-            {{-- Per Page --}}
+                            <div
+                                x-show="open"
+                                x-on:click.outside="open = false"
+                                x-cloak
+                                class="absolute right-0 mt-1 w-36 bg-kore-surface border border-kore-border rounded-kore-md shadow-lg z-20 py-1"
+                            >
+                                @foreach($exportFormats as $format)
+                                    <button
+                                        type="button"
+                                        wire:click="exportAs('{{ $format }}')"
+                                        x-on:click="open = false"
+                                        class="w-full text-left px-3 py-1.5 text-sm text-kore-fg hover:bg-kore-muted transition-colors"
+                                    >
+                                        {{ strtoupper($format) }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                @endif
+
+                {{-- Column Select --}}
+                @if($columnSelectEnabled ?? false)
+                    @include('kore::datatable.column-select', [
+                        'allColumns'        => $allColumns ?? [],
+                        'deselectedColumns' => $deselectedColumns ?? [],
+                        'translations'      => $translations,
+                    ])
+                @endif
+
+                {{-- Per Page --}}
             <div class="flex items-center gap-2 text-sm text-kore-muted-fg">
                 <span>{{ $translations['per_page'] ?? 'Por página' }}</span>
                 <select

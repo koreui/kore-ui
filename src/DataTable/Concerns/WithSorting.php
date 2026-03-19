@@ -54,6 +54,42 @@ trait WithSorting
         return $this->sorts[$column] ?? null;
     }
 
+    public function removeSortBy(string $column): void
+    {
+        unset($this->sorts[$column]);
+    }
+
+    public function clearSorts(): void
+    {
+        $this->sorts = [];
+    }
+
+    public function getActiveSorts(): array
+    {
+        $activeSorts = array_filter($this->sorts, fn ($dir) => $dir !== null);
+
+        if (empty($activeSorts)) {
+            return [];
+        }
+
+        $columnsMap = collect($this->columns())
+            ->filter(fn ($col) => $col->isSortable())
+            ->mapWithKeys(fn ($col) => [$col->getSortField() => $col->getLabel()])
+            ->all();
+
+        $result = [];
+
+        foreach ($activeSorts as $field => $direction) {
+            $result[] = [
+                'field'     => $field,
+                'label'     => $columnsMap[$field] ?? $field,
+                'direction' => $direction,
+            ];
+        }
+
+        return $result;
+    }
+
     protected function applySorts(Builder $query): Builder
     {
         $activeSorts = array_filter($this->sorts, fn ($dir) => $dir !== null);

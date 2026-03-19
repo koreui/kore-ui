@@ -4,6 +4,7 @@ namespace KoreUi\DataTable\Concerns;
 
 use KoreUi\Core\Concerns\InteractsWithFeedback;
 use KoreUi\DataTable\Actions\BulkAction;
+use KoreUi\DataTable\Events\BulkActionExecuted;
 
 trait WithBulkActions
 {
@@ -61,6 +62,8 @@ trait WithBulkActions
         if (method_exists($this, $identifier)) {
             $this->{$identifier}($selectedIds);
         }
+
+        event(new BulkActionExecuted(static::class, $identifier, $selectedIds, count($selectedIds)));
 
         $this->clearSelected();
     }

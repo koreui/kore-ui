@@ -18,6 +18,11 @@ abstract class KoreDataTable extends Component
     use Concerns\WithBulkActions;
     use Concerns\WithColumnSelect;
     use Concerns\WithResponsive;
+    use Concerns\WithQueryString;
+    use Concerns\WithFilterPresets;
+    use Concerns\WithExport;
+    use Concerns\WithInlineEditing;
+    use Concerns\WithDeferredLoading;
 
     public int $perPage = 25;
 
@@ -67,9 +72,17 @@ abstract class KoreDataTable extends Component
     {
         $this->perPage = (int) config('kore-ui.datatable.per_page', 25);
         $this->density = config('kore-ui.datatable.density', 'normal');
+        $this->deferredLoading = (bool) config('kore-ui.datatable.deferred_loading', false);
         $this->mountWithColumnSelect();
         $this->mountWithResponsive();
         $this->configure();
+        $this->mountWithQueryString();
+        $this->mountWithFilterPresets();
+
+        // Deferred loading: mark data as loaded if not deferred
+        if (! $this->deferredLoading) {
+            $this->dataLoaded = true;
+        }
     }
 
     public function getRows()
@@ -128,6 +141,67 @@ abstract class KoreDataTable extends Component
     }
 
     /**
+     * Check if any column has aggregation defined.
+     */
+    public function hasAnyAggregation(): bool
+    {
+        return collect($this->columns())->contains(fn (Column $col) => $col->hasAggregation());
+    }
+
+    /**
+     * Compute aggregation values for columns that have them.
+     * Runs on the full filtered dataset (not paginated).
+     */
+    public function getAggregations(array $columns): array
+    {
+        $aggregations = [];
+
+        foreach ($columns as $column) {
+            if (! $column->hasAggregation()) {
+                continue;
+            }
+
+            $field = $column->getField();
+
+            // Custom footer callback
+            if ($column->getFooterCallback() !== null) {
+                $query = $this->query();
+                $query = $this->applySearch($query);
+                $query = $this->applyFilters($query);
+
+                $aggregations[$field] = [
+                    'value' => ($column->getFooterCallback())($query),
+                    'label' => $column->getFooterLabel(),
+                ];
+
+                continue;
+            }
+
+            $type = $column->getAggregationType();
+
+            $query = $this->query();
+            $query = $this->applySearch($query);
+            $query = $this->applyFilters($query);
+
+            $value = match ($type) {
+                'sum'   => $query->sum($field),
+                'avg'   => round((float) $query->avg($field), $column->getAggregationDecimals()),
+                'count' => $query->count(),
+                'min'   => $query->min($field),
+                'max'   => $query->max($field),
+                default => null,
+            };
+
+            $aggregations[$field] = [
+                'value' => $column->formatAggregationValue($value),
+                'label' => $column->getFooterLabel(),
+            ];
+        }
+
+        return $aggregations;
+    }
+
+    /**
      * Detect relations from dot-notation fields and eager load them.
      */
     protected function applyEagerLoading(Builder $query): Builder
@@ -154,10 +228,21 @@ abstract class KoreDataTable extends Component
 
     public function render()
     {
-        $rows = $this->getRows();
         $columns = $this->resolveColumns();
+
+        // Deferred loading: pass null rows until data is loaded
+        if ($this->isDeferredLoading() && ! $this->isDataLoaded()) {
+            $rows = null;
+        } else {
+            $rows = $this->getRows();
+        }
+
         $selectionEnabled = $this->isSelectionEnabled();
-        $rowIds = $selectionEnabled ? $this->getRowIds($rows) : [];
+        $rowIds = [];
+
+        if ($selectionEnabled && $rows !== null) {
+            $rowIds = $this->getRowIds($rows);
+        }
 
         // Keep Alpine rowIds in sync (x-data is not re-evaluated during morph)
         if ($selectionEnabled) {
@@ -173,7 +258,7 @@ abstract class KoreDataTable extends Component
             'density'             => $this->getDensity(),
             'emptyText'           => $this->getEmptyText(),
             'emptyIcon'           => $this->getEmptyIcon(),
-            'showingText'         => $this->getShowingText($rows),
+            'showingText'         => $rows !== null && method_exists($rows, 'total') ? $this->getShowingText($rows) : null,
             'searchDebounce'      => $this->getSearchDebounce(),
             'perPageOptions'      => $this->getPerPageOptions(),
             'translations'        => config('kore-ui.datatable.translations', []),
@@ -192,6 +277,19 @@ abstract class KoreDataTable extends Component
             'responsiveMode'      => $this->getResponsiveMode(),
             'responsiveBreakpoint' => $this->getResponsiveBreakpoint(),
             'collapsedColumns'    => $this->getCollapsedColumns(),
+            // Phase 4
+            'aggregations'        => $rows !== null && $this->hasAnyAggregation() ? $this->getAggregations($columns) : [],
+            'activeSorts'         => $this->getActiveSorts(),
+            'presets'             => $this->resolveFilterPresets(),
+            'activePreset'        => $this->activePreset,
+            'presetCounts'        => ! empty($this->filterPresets()) ? $this->getPresetCounts() : [],
+            'exportEnabled'       => $this->isExportEnabled(),
+            'exportFormats'       => $this->getExportFormats(),
+            'editableColumns'     => $this->getEditableColumnsMap(),
+            'hasEditing'          => $this->hasEditableColumns(),
+            // Phase 5
+            'deferredLoading'     => $this->isDeferredLoading(),
+            'dataLoaded'          => $this->isDataLoaded(),
         ]);
     }
 }

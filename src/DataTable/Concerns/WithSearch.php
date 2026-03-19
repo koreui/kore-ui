@@ -11,6 +11,11 @@ trait WithSearch
     public function updatedSearch(): void
     {
         $this->resetPage();
+
+        // Deactivate preset when user changes search manually
+        if (property_exists($this, 'activePreset')) {
+            $this->activePreset = null;
+        }
     }
 
     public function getSearchDebounce(): int

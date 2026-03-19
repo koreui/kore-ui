@@ -60,4 +60,25 @@ trait HasVisibility
 
         return $this->hidden;
     }
+
+    // --- Column Pinning ---
+
+    protected ?string $pinned = null;
+
+    public function pinned(?string $side = 'left'): static
+    {
+        $this->pinned = $side;
+
+        return $this;
+    }
+
+    public function isPinned(): bool
+    {
+        return $this->pinned !== null;
+    }
+
+    public function getPinnedSide(): ?string
+    {
+        return $this->pinned;
+    }
 }

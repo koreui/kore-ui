@@ -70,6 +70,17 @@ class NumberColumn extends Column
         return $this;
     }
 
+    public function editable(bool $editable = true): static
+    {
+        parent::editable($editable);
+
+        if ($editable) {
+            $this->editableInputType = 'number';
+        }
+
+        return $this;
+    }
+
     public function getValue(mixed $row): mixed
     {
         $value = data_get($row, $this->field, $this->default);
@@ -100,6 +111,32 @@ class NumberColumn extends Column
         $formatted = number_format($numericValue, $this->decimals, $this->decimalSeparator, $this->thousandsSeparator);
 
         return ($this->prefix ?? '') . $formatted . ($this->suffix ?? '');
+    }
+
+    public function formatAggregationValue(mixed $value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        $numericValue = (float) $value;
+
+        if ($this->currency && $this->locale) {
+            $formatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
+
+            return $formatter->formatCurrency($numericValue, $this->currency);
+        }
+
+        if ($this->locale) {
+            $formatter = new NumberFormatter($this->locale, NumberFormatter::DECIMAL);
+            $formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, $this->aggregationDecimals ?? $this->decimals);
+
+            return ($this->prefix ?? '').$formatter->format($numericValue).($this->suffix ?? '');
+        }
+
+        $formatted = number_format($numericValue, $this->aggregationDecimals ?? $this->decimals, $this->decimalSeparator, $this->thousandsSeparator);
+
+        return ($this->prefix ?? '').$formatted.($this->suffix ?? '');
     }
 
     public function getType(): string

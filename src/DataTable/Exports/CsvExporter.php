@@ -1,0 +1,76 @@
+<?php
+
+namespace KoreUi\DataTable\Exports;
+
+use Illuminate\Database\Eloquent\Builder;
+use KoreUi\DataTable\Exports\Contracts\Exporter;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+class CsvExporter implements Exporter
+{
+    protected string $delimiter = ',';
+
+    protected string $enclosure = '"';
+
+    protected bool $includeBom = true;
+
+    public function __construct(string $delimiter = ',', string $enclosure = '"', bool $includeBom = true)
+    {
+        $this->delimiter = $delimiter;
+        $this->enclosure = $enclosure;
+        $this->includeBom = $includeBom;
+    }
+
+    public function export(Builder $query, array $columns, string $fileName): StreamedResponse
+    {
+        return response()->streamDownload(function () use ($query, $columns) {
+            $handle = fopen('php://output', 'w');
+
+            // UTF-8 BOM for Excel compatibility
+            if ($this->includeBom) {
+                fwrite($handle, "\xEF\xBB\xBF");
+            }
+
+            // Header row
+            $headers = array_map(fn ($col) => $col->getLabel(), $columns);
+            fputcsv($handle, $headers, $this->delimiter, $this->enclosure);
+
+            // Data rows
+            $query->chunk(1000, function ($rows) use ($handle, $columns) {
+                foreach ($rows as $row) {
+                    $data = [];
+
+                    foreach ($columns as $column) {
+                        $value = $column->getValue($row);
+
+                        if (is_bool($value)) {
+                            $value = $value ? 'Sí' : 'No';
+                        } elseif (is_array($value)) {
+                            $value = implode(', ', $value);
+                        } elseif ($value === null) {
+                            $value = '';
+                        }
+
+                        $data[] = (string) $value;
+                    }
+
+                    fputcsv($handle, $data, $this->delimiter, $this->enclosure);
+                }
+            });
+
+            fclose($handle);
+        }, $fileName, [
+            'Content-Type' => $this->mimeType(),
+        ]);
+    }
+
+    public function extension(): string
+    {
+        return 'csv';
+    }
+
+    public function mimeType(): string
+    {
+        return 'text/csv; charset=UTF-8';
+    }
+}
