@@ -136,6 +136,16 @@ class Column
         return $this->html;
     }
 
+    public function getType(): string
+    {
+        return 'text';
+    }
+
+    public function getComponentProps(): array
+    {
+        return [];
+    }
+
     public function toArray(): array
     {
         return [

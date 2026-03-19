@@ -24,6 +24,34 @@ trait HasVisibility
         return $this;
     }
 
+    protected bool $collapseOnMobile = false;
+
+    protected bool $collapseOnTablet = false;
+
+    public function collapseOnMobile(bool $condition = true): static
+    {
+        $this->collapseOnMobile = $condition;
+
+        return $this;
+    }
+
+    public function collapseOnTablet(bool $condition = true): static
+    {
+        $this->collapseOnTablet = $condition;
+
+        return $this;
+    }
+
+    public function isCollapsedOnMobile(): bool
+    {
+        return $this->collapseOnMobile;
+    }
+
+    public function isCollapsedOnTablet(): bool
+    {
+        return $this->collapseOnTablet;
+    }
+
     public function isHidden(): bool
     {
         if ($this->hiddenCallback !== null) {

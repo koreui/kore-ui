@@ -7,6 +7,9 @@
     $filterLayout = $filterLayout ?? 'popover';
     $bulkActions = $bulkActions ?? [];
     $filtersExpanded = $filtersExpanded ?? false;
+    $columnSelectEnabled = $columnSelectEnabled ?? false;
+    $allColumns = $allColumns ?? [];
+    $deselectedColumns = $deselectedColumns ?? [];
     $isSlideDown = $filterLayout === 'slide-down';
 @endphp
 
@@ -37,13 +40,22 @@
             @endif
         </div>
 
-        {{-- Right: Bulk Actions + Per Page --}}
+        {{-- Right: Bulk Actions + Column Select + Per Page --}}
         <div class="flex items-center gap-3">
             {{-- Bulk Actions --}}
             @include('kore::datatable.bulk-actions', [
                 'bulkActions'  => $bulkActions,
                 'translations' => $translations,
             ])
+
+            {{-- Column Select --}}
+            @if($columnSelectEnabled ?? false)
+                @include('kore::datatable.column-select', [
+                    'allColumns'        => $allColumns ?? [],
+                    'deselectedColumns' => $deselectedColumns ?? [],
+                    'translations'      => $translations,
+                ])
+            @endif
 
             {{-- Per Page --}}
             <div class="flex items-center gap-2 text-sm text-kore-muted-fg">

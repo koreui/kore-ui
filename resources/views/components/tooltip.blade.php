@@ -38,7 +38,7 @@
             role="tooltip"
             class="z-[70] pointer-events-none max-w-xs"
         >
-            <div class="bg-kore-fg text-white rounded-kore-md text-xs px-2.5 py-1.5 font-medium">
+            <div class="bg-kore-fg text-kore-bg rounded-kore-md text-xs px-2.5 py-1.5 font-medium">
                 {{ $text }}
             </div>
         </div>

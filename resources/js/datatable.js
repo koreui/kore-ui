@@ -3,6 +3,10 @@ export default (config = {}) => ({
     selected: [],
     rowIds: config.rowIds || [],
     slideDownOpen: config.slideDownOpen ?? false,
+    responsiveMode: config.responsiveMode || 'scroll',
+    responsiveBreakpoint: config.responsiveBreakpoint || 768,
+    isMobileView: false,
+    expandedRows: [],
 
     get densityClasses() {
         return {
@@ -69,6 +73,25 @@ export default (config = {}) => ({
         this.selected = [];
     },
 
+    toggleExpand(id) {
+        const stringId = String(id);
+        const index = this.expandedRows.indexOf(stringId);
+
+        if (index === -1) {
+            this.expandedRows.push(stringId);
+        } else {
+            this.expandedRows.splice(index, 1);
+        }
+    },
+
+    isExpanded(id) {
+        return this.expandedRows.includes(String(id));
+    },
+
+    checkBreakpoint() {
+        this.isMobileView = window.innerWidth < this.responsiveBreakpoint;
+    },
+
     init() {
         this._onKeydown = (e) => {
             if (e.key === '/' && !this._isInputFocused()) {
@@ -81,6 +104,13 @@ export default (config = {}) => ({
         };
 
         document.addEventListener('keydown', this._onKeydown);
+
+        // Responsive: check breakpoint on init and resize
+        if (this.responsiveMode !== 'scroll') {
+            this.checkBreakpoint();
+            this._onResize = () => this.checkBreakpoint();
+            window.addEventListener('resize', this._onResize);
+        }
 
         if (this.$wire) {
             // Sync rowIds when Livewire re-renders (pagination, filters, sort)
@@ -98,6 +128,9 @@ export default (config = {}) => ({
     destroy() {
         if (this._onKeydown) {
             document.removeEventListener('keydown', this._onKeydown);
+        }
+        if (this._onResize) {
+            window.removeEventListener('resize', this._onResize);
         }
     },
 

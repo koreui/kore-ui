@@ -22,7 +22,8 @@ Menú desplegable con posicionamiento inteligente, navegación por teclado y tel
 | Prop | Tipo | Default | Descripción |
 |------|------|---------|-------------|
 | `position` | `string` | `config(bottom-start)` | Posición: `bottom-start`, `bottom-end`, `top-start`, `top-end` |
-| `width` | `string` | `config(auto)` | Ancho: `auto`, `sm`, `md`, `lg` |
+| `width` | `string` | `config(auto)` | Ancho: `auto`, `sm` (128px), `md` (192px), `lg` (256px), o valor numérico (ej. `"220"` → 220px). No incluir unidad `px` |
+| `max-height` | `string\|null` | `max-h-72` (288px) | Alto máximo con scroll. Acepta valor CSS (ej. `"70vh"`, `"300px"`) |
 | `persistent` | `bool` | `false` | No cierra al hacer click fuera |
 
 ## Props (Item)

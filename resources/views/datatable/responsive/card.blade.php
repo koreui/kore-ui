@@ -1,0 +1,81 @@
+@php
+    $primaryKey = $primaryKey ?? 'id';
+    $firstColumn = $columns[0] ?? null;
+    $actionColumn = collect($columns)->first(fn ($col) => $col->getType() === 'action');
+    $dataColumns = collect($columns)->reject(fn ($col) => $col === $firstColumn || $col->getType() === 'action')->values();
+@endphp
+
+<div class="divide-y divide-kore-border">
+    @forelse($rows as $row)
+        <div class="p-4 space-y-3">
+            {{-- Card header: first column as title + action menu --}}
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    @if($selectionEnabled)
+                        <input
+                            type="checkbox"
+                            value="{{ data_get($row, $primaryKey) }}"
+                            x-bind:checked="isSelected('{{ data_get($row, $primaryKey) }}')"
+                            x-on:change="toggleRow('{{ data_get($row, $primaryKey) }}')"
+                            class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
+                        />
+                    @endif
+
+                    @if($firstColumn)
+                        <div class="font-medium text-kore-fg">
+                            @if($firstColumn->getType() !== 'text')
+                                @include('kore::datatable.columns.' . $firstColumn->getType(), [
+                                    'column' => $firstColumn,
+                                    'row' => $row,
+                                    'value' => $firstColumn->getValue($row),
+                                    'primaryKey' => $primaryKey,
+                                ])
+                            @else
+                                {{ $firstColumn->getValue($row) }}
+                            @endif
+                        </div>
+                    @endif
+                </div>
+
+                @if($actionColumn)
+                    @include('kore::datatable.columns.action', [
+                        'column' => $actionColumn,
+                        'row' => $row,
+                        'value' => null,
+                        'primaryKey' => $primaryKey,
+                    ])
+                @endif
+            </div>
+
+            {{-- Card body: label:value pairs --}}
+            <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                @foreach($dataColumns as $col)
+                    <div>
+                        <dt class="text-kore-muted-fg text-xs">{{ $col->getLabel() }}</dt>
+                        <dd class="text-kore-fg mt-0.5">
+                            @if($col->getType() !== 'text')
+                                @include('kore::datatable.columns.' . $col->getType(), [
+                                    'column' => $col,
+                                    'row' => $row,
+                                    'value' => $col->getValue($row),
+                                    'primaryKey' => $primaryKey,
+                                ])
+                            @elseif($col->isHtml())
+                                {!! $col->getValue($row) !!}
+                            @else
+                                {{ $col->getValue($row) ?? '—' }}
+                            @endif
+                        </dd>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @empty
+        <div class="p-8">
+            <x-kore::empty-state
+                :title="$emptyText ?? 'No se encontraron resultados'"
+                :icon="$emptyIcon ?? 'inbox'"
+            />
+        </div>
+    @endforelse
+</div>

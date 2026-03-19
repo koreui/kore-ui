@@ -259,15 +259,18 @@ return [
     |
     */
     'datatable' => [
-        'per_page'         => 25,
-        'per_page_options' => [10, 25, 50, 100],
-        'density'          => 'normal',      // compact|normal|relaxed
-        'pagination_type'  => 'standard',    // standard|simple|cursor
-        'search_debounce'  => 300,
-        'filter_layout'    => 'popover',     // popover|slide-down|inline|drawer
-        'empty_text'       => 'No se encontraron resultados',
-        'empty_icon'       => 'inbox',
-        'translations'     => [
+        'per_page'              => 25,
+        'per_page_options'      => [10, 25, 50, 100],
+        'density'               => 'normal',      // compact|normal|relaxed
+        'pagination_type'       => 'standard',    // standard|simple|cursor
+        'search_debounce'       => 300,
+        'filter_layout'         => 'popover',     // popover|slide-down|inline|drawer
+        'column_select'         => true,
+        'responsive_mode'       => 'scroll',      // scroll|collapse|card
+        'responsive_breakpoint' => 768,
+        'empty_text'            => 'No se encontraron resultados',
+        'empty_icon'            => 'inbox',
+        'translations'          => [
             'search'        => 'Buscar...',
             'per_page'      => 'Por página',
             'showing'       => 'Mostrando :from a :to de :total resultados',
@@ -277,6 +280,8 @@ return [
             'selected'      => 'seleccionado(s)',
             'clear_filters' => 'Limpiar filtros',
             'apply'         => 'Aplicar',
+            'columns'       => 'Columnas',
+            'reset_columns' => 'Restablecer',
         ],
     ],
 

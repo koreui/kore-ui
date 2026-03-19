@@ -1,17 +1,20 @@
 <div
-    x-data="KoreDataTable({ density: '{{ $density }}', rowIds: {{ Js::from($rowIds ?? []) }}, slideDownOpen: {{ ($filtersExpanded ?? false) ? 'true' : 'false' }} })"
+    x-data="KoreDataTable({ density: '{{ $density }}', rowIds: {{ Js::from($rowIds ?? []) }}, slideDownOpen: {{ ($filtersExpanded ?? false) ? 'true' : 'false' }}, responsiveMode: '{{ $responsiveMode ?? 'scroll' }}', responsiveBreakpoint: {{ $responsiveBreakpoint ?? 768 }} })"
     class="rounded-kore-lg border border-kore-border bg-kore-surface overflow-hidden"
 >
     {{-- Toolbar: search + filters + per page + bulk actions --}}
     @include('kore::datatable.toolbar', [
-        'searchDebounce' => $searchDebounce,
-        'perPageOptions' => $perPageOptions,
-        'translations'   => $translations,
-        'filterDefs'     => $filterDefs ?? [],
-        'filterCount'    => $filterCount ?? 0,
-        'filterLayout'   => $filterLayout ?? 'popover',
-        'filtersExpanded' => $filtersExpanded ?? false,
-        'bulkActions'    => $bulkActions ?? [],
+        'searchDebounce'      => $searchDebounce,
+        'perPageOptions'      => $perPageOptions,
+        'translations'        => $translations,
+        'filterDefs'          => $filterDefs ?? [],
+        'filterCount'         => $filterCount ?? 0,
+        'filterLayout'        => $filterLayout ?? 'popover',
+        'filtersExpanded'     => $filtersExpanded ?? false,
+        'bulkActions'         => $bulkActions ?? [],
+        'columnSelectEnabled' => $columnSelectEnabled ?? false,
+        'allColumns'          => $allColumns ?? [],
+        'deselectedColumns'   => $deselectedColumns ?? [],
     ])
 
     {{-- Filter pills --}}
@@ -27,7 +30,32 @@
             <x-kore::loading size="md" />
         </div>
 
-        <table class="min-w-full divide-y divide-kore-border">
+        {{-- Card mode (responsive) --}}
+        @if(($responsiveMode ?? 'scroll') === 'card')
+            <div x-show="isMobileView" x-cloak>
+                @include('kore::datatable.responsive.card', [
+                    'columns' => $columns,
+                    'rows' => $rows,
+                    'selectionEnabled' => $selectionEnabled ?? false,
+                    'primaryKey' => $primaryKey ?? 'id',
+                ])
+            </div>
+        @endif
+
+        {{-- Collapse mode (responsive) --}}
+        @if(($responsiveMode ?? 'scroll') === 'collapse')
+            <div x-show="isMobileView" x-cloak>
+                @include('kore::datatable.responsive.collapse', [
+                    'columns' => $columns,
+                    'collapsedColumns' => $collapsedColumns ?? [],
+                    'rows' => $rows,
+                    'selectionEnabled' => $selectionEnabled ?? false,
+                    'primaryKey' => $primaryKey ?? 'id',
+                ])
+            </div>
+        @endif
+
+        <table @if(($responsiveMode ?? 'scroll') !== 'scroll') x-show="!isMobileView" @endif class="min-w-full divide-y divide-kore-border">
             {{-- Header --}}
             <thead class="bg-kore-muted/50">
                 <tr>
@@ -104,7 +132,14 @@
                                 class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} text-kore-fg {{ $column->isWrap() ? '' : 'whitespace-nowrap' }}"
                                 :class="densityClasses"
                             >
-                                @if($column->isHtml())
+                                @if($column->getType() !== 'text')
+                                    @include('kore::datatable.columns.' . $column->getType(), [
+                                        'column' => $column,
+                                        'row' => $row,
+                                        'value' => $column->getValue($row),
+                                        'primaryKey' => $primaryKey ?? 'id',
+                                    ])
+                                @elseif($column->isHtml())
                                     {!! $column->getValue($row) !!}
                                 @else
                                     {{ $column->getValue($row) }}
