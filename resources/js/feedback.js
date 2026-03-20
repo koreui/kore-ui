@@ -46,18 +46,25 @@ export default function KoreFeedback(flash = null, config = {}) {
                 () => window.removeEventListener('kore-toast-resolve', onBrowserResolve),
             );
 
-            // Recover flashed toast from session (full page load)
+            // Recover flashed toast from session (full page load or SPA navigation)
             if (flash) {
                 this.$nextTick(() => this.add(flash));
             }
 
-            // SPA navigation (wire:navigate) — re-check flash
-            document.addEventListener('livewire:navigated', () => {
-                const newFlash = this.$wire?.get('flash');
-                if (newFlash) {
-                    this.add(newFlash);
+            // SPA navigation (wire:navigate) — re-check flash after each navigation.
+            // Skip the first event when flash was already handled above during init()
+            // to avoid processing the same flash twice (double toast bug).
+            let skipNext = !!flash;
+            const onNavigated = () => {
+                if (skipNext) {
+                    skipNext = false;
+                    return;
                 }
-            });
+                const newFlash = this.$wire?.get('flash');
+                if (newFlash) this.add(newFlash);
+            };
+            document.addEventListener('livewire:navigated', onNavigated);
+            this.listeners.push(() => document.removeEventListener('livewire:navigated', onNavigated));
         },
 
         destroy() {
