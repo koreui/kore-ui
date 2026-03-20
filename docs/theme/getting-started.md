@@ -91,4 +91,6 @@ Page load
 
 ### wire:navigate compatibility
 
-The store is idempotent — on re-init it reads `localStorage` and reaches the same state. `wire:navigate` destroys and recreates Alpine, but the source of truth (`localStorage`) persists across navigations.
+With Livewire 4, `wire:navigate` performs soft navigation by morphing the DOM — Alpine **is not** destroyed or recreated between navigations. However, the morph can strip the `.dark` class and `data-theme` attribute from `<html>`.
+
+The store handles this automatically: during `init()` it registers a `livewire:navigated` listener that re-applies the theme to `<html>` after each navigation. No extra configuration is required.

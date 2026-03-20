@@ -15,6 +15,9 @@ export default {
         this._mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         this._resolve();
         this._listen();
+
+        // Re-apply after wire:navigate morphs <html> (strips .dark / data-theme)
+        document.addEventListener('livewire:navigated', () => this._apply());
     },
 
     setMode(mode) {
