@@ -15,6 +15,9 @@ trait WithSorting
     #[Locked]
     public string $defaultSortDirection = 'asc';
 
+    #[Locked]
+    public array $defaultSorts = [];
+
     public function sortBy(string $column): void
     {
         $sortableFields = collect($this->columns())
@@ -45,6 +48,14 @@ trait WithSorting
     {
         $this->defaultSortColumn = $column;
         $this->defaultSortDirection = $direction;
+        $this->defaultSorts = [$column => $direction];
+
+        return $this;
+    }
+
+    public function addDefaultSort(string $column, string $direction = 'asc'): static
+    {
+        $this->defaultSorts[$column] = $direction;
 
         return $this;
     }
@@ -94,8 +105,12 @@ trait WithSorting
     {
         $activeSorts = array_filter($this->sorts, fn ($dir) => $dir !== null);
 
-        if (empty($activeSorts) && $this->defaultSortColumn) {
-            $activeSorts = [$this->defaultSortColumn => $this->defaultSortDirection];
+        if (empty($activeSorts)) {
+            $activeSorts = $this->defaultSorts ?: (
+                $this->defaultSortColumn
+                    ? [$this->defaultSortColumn => $this->defaultSortDirection]
+                    : []
+            );
         }
 
         foreach ($activeSorts as $column => $direction) {

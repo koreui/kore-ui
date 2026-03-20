@@ -4,6 +4,7 @@ namespace KoreUi\DataTable;
 
 use Illuminate\Database\Eloquent\Builder;
 use KoreUi\DataTable\Columns\Column;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination as LivewireWithPagination;
 
@@ -32,7 +33,8 @@ abstract class KoreDataTable extends Component
 
     protected ?string $emptyIcon = null;
 
-    protected array $tableSlots = [];
+    #[Locked]
+    public array $tableSlots = [];
 
     /**
      * Return the base query for the DataTable.

@@ -1,7 +1,7 @@
 <li class="flex items-center {{ $s['gap'] }}">
     @if ($item->current || $item->url === null)
         <span
-            class="flex items-center {{ $s['gap'] }} {{ $s['text'] }} text-kore-foreground font-medium"
+            class="flex items-center {{ $s['gap'] }} {{ $s['text'] }} text-kore-fg font-medium"
             @if ($item->current) aria-current="page" @endif
             @if ($item->tooltip) x-data x-tooltip="{{ $item->tooltip }}" @endif
         >
@@ -13,7 +13,7 @@
     @else
         <a
             href="{{ $item->url }}"
-            class="flex items-center {{ $s['gap'] }} {{ $s['text'] }} text-kore-muted-foreground hover:text-kore-foreground transition-colors"
+            class="flex items-center {{ $s['gap'] }} {{ $s['text'] }} text-kore-muted-fg hover:text-kore-fg transition-colors"
             @if ($item->tooltip) x-data x-tooltip="{{ $item->tooltip }}" @endif
         >
             @if ($item->icon)

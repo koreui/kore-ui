@@ -110,7 +110,7 @@
                 <span>{{ $translations['per_page'] ?? 'Por página' }}</span>
                 <select
                     wire:model.live="perPage"
-                    class="bg-kore-bg text-kore-fg border border-kore-input rounded-kore-md text-sm py-1 px-2 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary"
+                    class="bg-kore-bg text-kore-fg border border-kore-input rounded-kore-md text-sm py-1 pl-2 pr-7 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary"
                 >
                     @foreach($perPageOptions as $option)
                         <option value="{{ $option }}" @selected(($perPage ?? null) == $option)>{{ $option }}</option>

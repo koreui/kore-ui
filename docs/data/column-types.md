@@ -357,7 +357,7 @@ RowAction::make('id', 'Label')
 |--------|-------------|
 | `make(id, label)` | Identificador unico y texto visible |
 | `icon(string)` | Icono Lucide |
-| `color(string)` | Color semantico (default: `null`) |
+| `color(string)` | Color del boton/item (ver tabla de colores abajo). Default: `'primary'` |
 | `urlPattern(string)` | Patron URL con `{field}` interpolado |
 | `url(Closure)` | Callback `fn($row) => string` para URL dinamica |
 | `openInNewTab(bool)` | Agrega `target="_blank"` |
@@ -371,6 +371,44 @@ RowAction::make('id', 'Label')
 > **`dispatch` vs `wireMethod`** — Usa `dispatch` / `openOverlay` para acciones client-side (abrir modales, paneles) sin parpadeo en la tabla. Usa `wireMethod` cuando necesitas lógica en el servidor (eliminar, actualizar estado, etc.).
 >
 > `wireMethod`, `dispatch`, `openOverlay` y `url`/`urlPattern` son mutuamente excluyentes — solo uno aplica por acción.
+
+### Colores en RowAction
+
+`color()` acepta cuatro formatos distintos:
+
+| Formato | Ejemplo | Resultado |
+|---------|---------|-----------|
+| Token semantico kore | `'destructive'` | Clase `text-kore-destructive` |
+| Escala Tailwind v4 | `'red-500'` | `color: var(--color-red-500)` |
+| Valor CSS directo | `'#ef4444'` `'oklch(0.6 0.2 29)'` | `color: <valor>` inline |
+| Token CSS custom | `'brand-danger'` | `color: var(--brand-danger)` |
+
+**Tokens semanticos disponibles:**
+
+| Token | Uso tipico |
+|-------|-----------|
+| `primary` (default) | Acciones principales (ver, editar) |
+| `destructive` | Eliminar, revocar |
+| `success` | Aprobar, activar |
+| `warning` | Archivar, pausar |
+| `info` | Informacion, detalles |
+| `muted` | Acciones secundarias, desactivadas visualmente |
+
+```php
+// Semantico
+RowAction::make('delete', 'Eliminar')->color('destructive');
+
+// Escala Tailwind v4
+RowAction::make('flag', 'Marcar')->color('orange-500');
+
+// Hex / oklch
+RowAction::make('special', 'Especial')->color('#7c3aed');
+
+// Token CSS propio (definido en tu CSS)
+RowAction::make('custom', 'Custom')->color('brand-accent');
+```
+
+> **Dropdown vs inline** — En modo dropdown, `primary` mantiene el color neutro del menu (`text-kore-fg`). Cualquier otro color se aplica via inline style sobre el item. En modo inline, todos los colores aplican sobre el boton.
 
 ---
 

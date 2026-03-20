@@ -83,7 +83,7 @@
                 <button
                     x-show="!expanded"
                     x-on:click="expanded = true"
-                    class="flex items-center text-kore-muted-foreground hover:text-kore-foreground hover:bg-kore-muted rounded px-1 transition-colors"
+                    class="flex items-center text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded px-1 transition-colors"
                     aria-label="Mostrar breadcrumbs ocultos"
                 >
                     <x-lucide-ellipsis class="{{ $s['icon'] }}" />

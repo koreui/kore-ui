@@ -142,6 +142,22 @@ public function configure(): void
 }
 ```
 
+### Sort por defecto con tiebreaker
+
+Cuando varios registros comparten el mismo valor en la columna de sort, el orden entre ellos es no determinístico a nivel SQL. Usa `addDefaultSort()` para agregar una columna secundaria que rompa los empates:
+
+```php
+public function configure(): void
+{
+    $this->setDefaultSort('estatus', 'desc')
+         ->addDefaultSort('id', 'asc');
+}
+```
+
+Esto genera `ORDER BY estatus DESC, id ASC`. Pueden encadenarse múltiples `addDefaultSort()`.
+
+> El sort secundario solo aplica cuando no hay sort manual activo. Si el usuario hace clic en una columna para ordenar, toma control completo. Al quitar el sort manual, vuelve al default completo (incluyendo el tiebreaker).
+
 ### Sort con campo personalizado
 
 ```php
@@ -678,12 +694,25 @@ Todas las vistas inyectadas reciben:
 
 ### Propiedades #[Locked]
 
-Las propiedades de configuracion (`$filterLayout`, `$filtersExpanded`, `$defaultSortColumn`, `$defaultSortDirection`) usan el atributo `#[Locked]` de Livewire. Esto las hace:
+Las propiedades de configuracion usan el atributo `#[Locked]` de Livewire:
+
+| Propiedad | Qué guarda |
+|-----------|-----------|
+| `$defaultSortColumn` | Columna del sort primario por defecto |
+| `$defaultSortDirection` | Dirección del sort primario por defecto |
+| `$defaultSorts` | Array completo de sorts por defecto (incluyendo tiebreakers) |
+| `$tableSlots` | Vistas Blade inyectadas via `setSlot()` |
+| `$filterLayout` | Modo de layout de filtros |
+| `$filtersExpanded` | Estado inicial del panel de filtros |
+
+`#[Locked]` tiene dos efectos:
 
 - **Persistentes** — Se incluyen en el snapshot de Livewire y sobreviven entre requests
 - **Seguras** — No pueden ser modificadas desde el frontend (JavaScript)
 
-Esto es necesario porque `configure()` solo se ejecuta en `mount()` (primer request). Sin `#[Locked]`, las propiedades `protected` se resetearian a sus valores default en cada request subsecuente.
+Esto es necesario porque `configure()` solo se ejecuta en `mount()` (primer request). Una propiedad `protected` se resetea a `[]` / `null` en cada request subsecuente — el slot o el sort secundario desaparecen al paginar, reordenar o filtrar. Con `#[Locked] public`, el valor se serializa en el snapshot y se restaura automáticamente.
+
+> **Regla:** cualquier valor que se configure en `configure()` y deba persistir entre interacciones debe declararse como `#[Locked] public`, no `protected`.
 
 ### wire:ignore en layouts de filtro
 
