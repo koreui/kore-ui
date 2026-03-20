@@ -622,6 +622,58 @@ public function delete(array $ids): void
 
 ---
 
+## Slots (vistas inyectables)
+
+`setSlot()` permite inyectar una vista Blade en puntos predefinidos del layout del DataTable. Se llama desde `configure()`.
+
+```php
+public function configure(): void
+{
+    $this->setSlot('before-toolbar', 'livewire.users.table.header');
+
+    // Con parámetros extra
+    $this->setSlot('toolbar-right-end', 'livewire.users.table.actions', [
+        'createRoute' => route('users.create'),
+    ]);
+}
+```
+
+### Áreas disponibles
+
+| Área | Posición |
+|------|----------|
+| `before-toolbar` | Encima del toolbar completo |
+| `after-toolbar` | Debajo del toolbar, antes de los filter pills |
+| `toolbar-right-end` | Extremo derecho del toolbar, después del selector per-page |
+| `after-table` | Después de la paginación |
+
+### Variables disponibles en la vista inyectada
+
+Todas las vistas inyectadas reciben:
+
+- `$component` — La instancia del DataTable (acceso a propiedades públicas como `$search`, `$filters`, etc.)
+- Cualquier variable extra pasada como tercer argumento a `setSlot()`
+
+```blade
+{{-- livewire/users/table/header.blade.php --}}
+<div class="flex items-center justify-between px-4 py-3 border-b border-kore-border">
+    <h2 class="text-lg font-semibold text-kore-fg">Usuarios</h2>
+    <a href="{{ route('users.create') }}" class="...">
+        Nuevo usuario
+    </a>
+</div>
+```
+
+```blade
+{{-- livewire/users/table/actions.blade.php --}}
+<a href="{{ $createRoute }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm ...">
+    <x-lucide-plus class="size-4" />
+    Nuevo
+</a>
+```
+
+---
+
 ## Notas tecnicas
 
 ### Propiedades #[Locked]

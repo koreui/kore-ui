@@ -14,6 +14,7 @@
     $isSlideDown = $filterLayout === 'slide-down';
     $exportEnabled = $exportEnabled ?? false;
     $exportFormats = $exportFormats ?? [];
+    $koreSlots = $koreSlots ?? [];
 @endphp
 
 <div class="border-b border-kore-border">
@@ -116,6 +117,11 @@
                     @endforeach
                 </select>
             </div>
+
+            {{-- Slot: toolbar-right-end --}}
+            @if($slot = ($koreSlots['toolbar-right-end'] ?? null))
+                @include($slot['view'], array_merge(['component' => $this], $slot['params']))
+            @endif
         </div>
     </div>
 

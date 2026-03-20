@@ -309,6 +309,11 @@ ActionColumn::make()
             ->icon('pencil')
             ->wireMethod('editUser'),
 
+        // Sin round-trip al servidor — no causa parpadeo en la tabla
+        RowAction::make('configure', 'Configurar')
+            ->icon('settings-2')
+            ->openOverlay('overlays.edit-user', fn ($row) => ['userId' => $row->id]),
+
         RowAction::make('delete', 'Eliminar')
             ->icon('trash')
             ->color('destructive')
@@ -339,9 +344,11 @@ RowAction::make('id', 'Label')
     ->color('primary')
     ->urlPattern('/users/{id}/edit')
     ->url(fn ($row) => route('users.edit', $row))
+    ->openInNewTab()
+    ->dispatch('openModal', fn ($row) => ['component' => 'modals.edit', 'arguments' => ['id' => $row->id]])
+    ->openOverlay('overlays.edit-user', fn ($row) => ['userId' => $row->id])
     ->wireMethod('editUser')
     ->confirm('¿Estas seguro?', 'Descripcion opcional')
-    ->openInNewTab()
     ->hidden(fn ($row) => $row->role === 'admin')
     ->separator();
 ```
@@ -353,13 +360,17 @@ RowAction::make('id', 'Label')
 | `color(string)` | Color semantico (default: `null`) |
 | `urlPattern(string)` | Patron URL con `{field}` interpolado |
 | `url(Closure)` | Callback `fn($row) => string` para URL dinamica |
-| `wireMethod(string)` | Metodo Livewire a ejecutar (recibe el primary key como argumento) |
-| `confirm(string, string)` | Dialogo de confirmacion antes de ejecutar |
 | `openInNewTab(bool)` | Agrega `target="_blank"` |
+| `dispatch(event, array\|Closure)` | Dispara un CustomEvent en el browser sin round-trip al servidor. La Closure recibe `$row` |
+| `openOverlay(name, array\|Closure)` | Shorthand de `dispatch('kore:open', ...)` para abrir un overlay de kore-ui. La Closure recibe `$row` |
+| `wireMethod(string)` | Metodo Livewire a ejecutar (recibe el primary key como argumento). Causa re-render |
+| `confirm(string, string)` | Dialogo de confirmacion antes de ejecutar `wireMethod` |
 | `hidden(Closure)` | Callback `fn($row) => bool` para ocultar por fila |
 | `separator()` | Agrega separador visual antes de la accion en el dropdown |
 
-> `wireMethod` y `url`/`urlPattern` son mutuamente excluyentes. Si se define `wireMethod`, se ejecuta como `$wire.call(method, id)`.
+> **`dispatch` vs `wireMethod`** — Usa `dispatch` / `openOverlay` para acciones client-side (abrir modales, paneles) sin parpadeo en la tabla. Usa `wireMethod` cuando necesitas lógica en el servidor (eliminar, actualizar estado, etc.).
+>
+> `wireMethod`, `dispatch`, `openOverlay` y `url`/`urlPattern` son mutuamente excluyentes — solo uno aplica por acción.
 
 ---
 

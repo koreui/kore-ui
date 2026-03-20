@@ -32,6 +32,8 @@ abstract class KoreDataTable extends Component
 
     protected ?string $emptyIcon = null;
 
+    protected array $tableSlots = [];
+
     /**
      * Return the base query for the DataTable.
      */
@@ -66,6 +68,25 @@ abstract class KoreDataTable extends Component
     public function configure(): void
     {
         //
+    }
+
+    /**
+     * Inject a Blade view into a predefined slot area of the DataTable layout.
+     *
+     * Available areas: before-toolbar, after-toolbar, toolbar-right-end, after-table.
+     *
+     * The injected view receives $component (the DataTable instance) plus any $params.
+     */
+    public function setSlot(string $area, string $view, array $params = []): static
+    {
+        $this->tableSlots[$area] = compact('view', 'params');
+
+        return $this;
+    }
+
+    public function getTableSlots(): array
+    {
+        return $this->tableSlots;
     }
 
     public function mount(): void

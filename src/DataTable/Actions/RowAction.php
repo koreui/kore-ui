@@ -21,6 +21,10 @@ class RowAction
 
     protected ?string $wireMethod = null;
 
+    protected ?string $dispatchEvent = null;
+
+    protected array|Closure|null $dispatchParams = null;
+
     protected ?string $confirmMessage = null;
 
     protected ?string $confirmDescription = null;
@@ -77,6 +81,37 @@ class RowAction
         $this->wireMethod = $method;
 
         return $this;
+    }
+
+    /**
+     * Dispatch a browser CustomEvent on click (no server round-trip).
+     * $params can be a static array or a Closure receiving the row.
+     */
+    public function dispatch(string $event, array|Closure $params = []): static
+    {
+        $this->dispatchEvent = $event;
+        $this->dispatchParams = $params;
+
+        return $this;
+    }
+
+    /**
+     * Shorthand for opening a kore-ui overlay (dispatches 'kore:open').
+     * $arguments can be a static array or a Closure receiving the row.
+     */
+    public function openOverlay(string $name, array|Closure $arguments = []): static
+    {
+        if ($arguments instanceof Closure) {
+            return $this->dispatch('kore:open', fn ($row) => [
+                'name'      => $name,
+                'arguments' => ($arguments)($row),
+            ]);
+        }
+
+        return $this->dispatch('kore:open', [
+            'name'      => $name,
+            'arguments' => $arguments,
+        ]);
     }
 
     public function confirm(string $message, ?string $description = null): static
@@ -137,6 +172,25 @@ class RowAction
         return $this->wireMethod;
     }
 
+    public function hasDispatch(): bool
+    {
+        return $this->dispatchEvent !== null;
+    }
+
+    public function getDispatchEvent(): ?string
+    {
+        return $this->dispatchEvent;
+    }
+
+    public function getDispatchParams(mixed $row): array
+    {
+        if ($this->dispatchParams instanceof Closure) {
+            return ($this->dispatchParams)($row);
+        }
+
+        return $this->dispatchParams ?? [];
+    }
+
     public function hasConfirm(): bool
     {
         return $this->confirmMessage !== null;
@@ -150,6 +204,38 @@ class RowAction
     public function getConfirmDescription(): ?string
     {
         return $this->confirmDescription;
+    }
+
+    /**
+     * Build the kore:open payload for the kore-confirm-dialog component.
+     * This lets the Blade pre-render the full payload so the confirm dialog
+     * opens client-side with no server round-trip.
+     */
+    public function buildKoreConfirmPayload(mixed $row, string $componentId, string $primaryKey): array
+    {
+        return [
+            'name'      => 'kore-confirm-dialog',
+            'arguments' => [
+                'title'       => $this->confirmMessage,
+                'description' => $this->confirmDescription,
+                'type'        => 'question',
+                'confirmText' => config('kore-ui.feedback.confirm.confirm_text', 'Confirmar'),
+                'cancelText'  => config('kore-ui.feedback.confirm.cancel_text', 'Cancelar'),
+                'onConfirm'   => [
+                    'method' => $this->wireMethod,
+                    'params' => [data_get($row, $primaryKey)],
+                ],
+                'onCancel'  => [],
+                'callerRef' => $componentId,
+            ],
+            'overlayAttributes' => [
+                'type'              => 'confirm',
+                'size'              => config('kore-ui.feedback.confirm.size', 'md'),
+                'closesOnClickAway' => config('kore-ui.feedback.confirm.closes_on_click_away', false),
+                'closesOnEscape'    => config('kore-ui.feedback.confirm.closes_on_escape', true),
+                'destroysOnClose'   => true,
+            ],
+        ];
     }
 
     public function hasSeparator(): bool

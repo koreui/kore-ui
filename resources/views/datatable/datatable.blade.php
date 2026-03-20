@@ -1,4 +1,5 @@
 @php
+    $koreSlots = $this->getTableSlots();
     $densityClass = match($density ?? 'normal') {
         'compact'  => 'px-3 py-1 text-sm',
         'relaxed'  => 'px-4 py-4 text-base',
@@ -14,6 +15,11 @@
     x-data="KoreDataTable({ density: '{{ $density }}', rowIds: {{ Js::from($rowIds ?? []) }}, slideDownOpen: {{ ($filtersExpanded ?? false) ? 'true' : 'false' }}, responsiveMode: '{{ $responsiveMode ?? 'scroll' }}', responsiveBreakpoint: {{ $responsiveBreakpoint ?? 768 }} })"
     class="rounded-kore-lg border border-kore-border bg-kore-surface overflow-hidden"
 >
+    {{-- Slot: before-toolbar --}}
+    @if($slot = ($koreSlots['before-toolbar'] ?? null))
+        @include($slot['view'], array_merge(['component' => $this], $slot['params']))
+    @endif
+
     {{-- Filter Presets --}}
     @include('kore::datatable.filter-presets', [
         'presets'      => $presets ?? [],
@@ -23,6 +29,7 @@
 
     {{-- Toolbar: search + filters + per page + bulk actions + export --}}
     @include('kore::datatable.toolbar', [
+        'koreSlots'           => $koreSlots,
         'searchDebounce'      => $searchDebounce,
         'perPageOptions'      => $perPageOptions,
         'perPage'             => $perPage,
@@ -38,6 +45,11 @@
         'exportEnabled'       => $exportEnabled ?? false,
         'exportFormats'       => $exportFormats ?? [],
     ])
+
+    {{-- Slot: after-toolbar --}}
+    @if($slot = ($koreSlots['after-toolbar'] ?? null))
+        @include($slot['view'], array_merge(['component' => $this], $slot['params']))
+    @endif
 
     {{-- Filter pills --}}
     @include('kore::datatable.filter-pills', [
@@ -500,6 +512,11 @@
                 'paginator'   => $rows,
                 'showingText' => $showingText,
             ])
+        @endif
+
+        {{-- Slot: after-table --}}
+        @if($slot = ($koreSlots['after-table'] ?? null))
+            @include($slot['view'], array_merge(['component' => $this], $slot['params']))
         @endif
     @endif
 </div>

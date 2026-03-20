@@ -25,12 +25,18 @@
                         :href="$action->getUrl($row)"
                         @if($action->opensInNewTab()) target="_blank" rel="noopener noreferrer" @endif
                     />
+                @elseif($action->hasDispatch())
+                    <x-kore::dropdown.item
+                        :icon="$action->getIcon()"
+                        :label="$action->getLabel()"
+                        x-on:click="window.dispatchEvent(new CustomEvent('{{ $action->getDispatchEvent() }}', { detail: {{ Js::from($action->getDispatchParams($row)) }}, bubbles: true }))"
+                    />
                 @elseif($action->getWireMethod())
                     @if($action->hasConfirm())
                         <x-kore::dropdown.item
                             :icon="$action->getIcon()"
                             :label="$action->getLabel()"
-                            x-on:click="if(confirm('{{ $action->getConfirmMessage() }}')) { $wire.call('{{ $action->getWireMethod() }}', '{{ data_get($row, $primaryKey ?? 'id') }}') }"
+                            x-on:click="window.dispatchEvent(new CustomEvent('kore:open', { detail: {{ Js::from($action->buildKoreConfirmPayload($row, $this->getId(), $primaryKey ?? 'id')) }}, bubbles: true }))"
                         />
                     @else
                         <x-kore::dropdown.item
@@ -68,11 +74,24 @@
                             <span class="text-sm">{{ $action->getLabel() }}</span>
                         @endif
                     </a>
+                @elseif($action->hasDispatch())
+                    <button
+                        type="button"
+                        x-on:click="window.dispatchEvent(new CustomEvent('{{ $action->getDispatchEvent() }}', { detail: {{ Js::from($action->getDispatchParams($row)) }}, bubbles: true }))"
+                        class="p-1.5 rounded-kore-md transition-colors {{ $btnColorClass }}"
+                        title="{{ $action->getLabel() }}"
+                    >
+                        @if($action->getIcon())
+                            <x-dynamic-component :component="'lucide-' . $action->getIcon()" class="size-4" />
+                        @else
+                            <span class="text-sm">{{ $action->getLabel() }}</span>
+                        @endif
+                    </button>
                 @elseif($action->getWireMethod())
                     <button
                         type="button"
                         @if($action->hasConfirm())
-                            x-on:click="if(confirm('{{ $action->getConfirmMessage() }}')) { $wire.call('{{ $action->getWireMethod() }}', '{{ data_get($row, $primaryKey ?? 'id') }}') }"
+                            x-on:click="window.dispatchEvent(new CustomEvent('kore:open', { detail: {{ Js::from($action->buildKoreConfirmPayload($row, $this->getId(), $primaryKey ?? 'id')) }}, bubbles: true }))"
                         @else
                             wire:click="{{ $action->getWireMethod() }}('{{ data_get($row, $primaryKey ?? 'id') }}')"
                         @endif
