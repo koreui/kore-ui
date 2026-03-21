@@ -168,7 +168,7 @@ export default (config) => ({
     },
 
     _toISOString(date) {
-        if (!date) return '';
+        if (!date) return null;
         const y = date.getFullYear();
         const m = String(date.getMonth() + 1).padStart(2, '0');
         const d = String(date.getDate()).padStart(2, '0');
@@ -176,7 +176,7 @@ export default (config) => ({
     },
 
     _toDateTimeString(date) {
-        if (!date) return '';
+        if (!date) return null;
         const iso = this._toISOString(date);
         let h = this.hours;
         let min = this.minutes;
@@ -663,35 +663,36 @@ export default (config) => ({
         if (!this.$refs.hiddenInput) return;
 
         const isArrayMode = config.mode === 'range' || config.mode === 'multiple';
+        const modelName = Array.from(this.$refs.hiddenInput.attributes)
+            .find(a => a.name.startsWith('wire:model'))?.value ?? null;
 
-        if (isArrayMode && this.$wire) {
-            const modelName = this.$refs.hiddenInput.getAttribute('wire:model.live')
-                || this.$refs.hiddenInput.getAttribute('wire:model.blur')
-                || this.$refs.hiddenInput.getAttribute('wire:model.defer')
-                || this.$refs.hiddenInput.getAttribute('wire:model');
-            if (modelName) {
-                if (config.mode === 'range') {
-                    this.$wire.$set(modelName, [
-                        this._toISOString(this.rangeStart),
-                        this._toISOString(this.rangeEnd),
-                    ]);
-                } else {
-                    this.$wire.$set(modelName, this.selectedMultiple.map(d => this._toISOString(d)));
-                }
-                return;
+        if (isArrayMode && this.$wire && modelName) {
+            if (config.mode === 'range') {
+                this.$wire.$set(modelName, [
+                    this._toISOString(this.rangeStart),
+                    this._toISOString(this.rangeEnd),
+                ]);
+            } else {
+                this.$wire.$set(modelName, this.selectedMultiple.map(d => this._toISOString(d)));
             }
+            return;
         }
 
-        let val = '';
+        let val;
         if (config.mode === 'range') {
-            val = [this._toISOString(this.rangeStart), this._toISOString(this.rangeEnd)].filter(Boolean).join(',');
+            val = [this._toISOString(this.rangeStart), this._toISOString(this.rangeEnd)].filter(Boolean).join(',') || null;
         } else if (config.mode === 'multiple') {
-            val = this.selectedMultiple.map(d => this._toISOString(d)).join(',');
+            val = this.selectedMultiple.map(d => this._toISOString(d)).join(',') || null;
         } else {
             val = config.withTime ? this._toDateTimeString(this.selected) : this._toISOString(this.selected);
         }
 
-        this.$refs.hiddenInput.value = val;
+        if (val === null && this.$wire && modelName) {
+            this.$wire.$set(modelName, null);
+            return;
+        }
+
+        this.$refs.hiddenInput.value = val ?? '';
         this.$refs.hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
     },
 

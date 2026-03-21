@@ -43,10 +43,11 @@
         default => 'size-4.5',
     };
 
-    $thumbTranslate = match($size) {
-        'sm' => 'translate-x-4',
-        'lg' => 'translate-x-7',
-        default => 'translate-x-5',
+    // Full class string so Tailwind v4 scanner picks them up
+    $thumbCheckedClass = match($size) {
+        'sm' => 'peer-checked:translate-x-4',
+        'lg' => 'peer-checked:translate-x-7',
+        default => 'peer-checked:translate-x-5',
     };
 
     $labelSize = match($size) {
@@ -62,66 +63,47 @@
     };
 @endphp
 
-<div
-    class="kore-toggle"
-    x-data="{ on: false }"
-    x-init="on = $refs.checkbox.checked; $watch('on', v => { $refs.checkbox.checked = v; $refs.checkbox.dispatchEvent(new Event('change', { bubbles: true })) })"
->
+<div class="kore-toggle">
     <div class="flex items-start gap-3 {{ $labelPosition === 'left' ? 'flex-row-reverse justify-end' : '' }}">
-        {{-- Hidden checkbox for wire:model --}}
-        <input
-            type="checkbox"
-            x-ref="checkbox"
-            x-on:change="on = $refs.checkbox.checked"
-            {{ $attributes->merge([
-                'id' => $fieldId,
-                'name' => $name,
-                'disabled' => $disabled,
-            ])->except(['label', 'description', 'size', 'label-position', 'on-label', 'off-label', 'error', 'show-error']) }}
-            class="sr-only"
-        />
 
-        {{-- Toggle switch --}}
-        <button
-            type="button"
-            role="switch"
-            x-bind:aria-checked="on.toString()"
-            x-on:click="if (!{{ $disabled ? 'true' : 'false' }}) on = !on"
-            class="{{ $trackSize }} relative inline-flex shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-kore-ring focus:ring-offset-2 {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
-            x-bind:class="on ? 'bg-kore-primary' : 'bg-kore-muted'"
+        {{-- Visual track: label wraps the native checkbox --}}
+        <label
+            class="{{ $trackSize }} relative inline-flex shrink-0 rounded-full border-2 border-transparent
+                   bg-kore-muted has-[:checked]:bg-kore-primary
+                   transition-colors duration-200 ease-in-out
+                   focus-within:ring-2 focus-within:ring-kore-ring focus-within:ring-offset-2
+                   {{ $disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer' }}"
         >
-            <span class="sr-only">{{ $label }}</span>
+            <input
+                type="checkbox"
+                {{ $attributes->merge([
+                    'id' => $fieldId,
+                    'name' => $name,
+                    'disabled' => $disabled,
+                    'class' => 'sr-only peer',
+                ])->except(['label', 'description', 'size', 'label-position', 'on-label', 'off-label', 'error', 'show-error']) }}
+            />
 
             {{-- On/off labels inside track --}}
             @if($onLabel || $offLabel)
-                <span
-                    class="absolute inset-0 flex items-center {{ $onOffSize }} font-medium text-kore-primary-fg"
-                    x-show="on"
-                >
+                <span class="absolute inset-0 hidden peer-checked:flex items-center {{ $onOffSize }} font-medium text-kore-primary-fg">
                     <span class="ml-1.5">{{ $onLabel }}</span>
                 </span>
-                <span
-                    class="absolute inset-0 flex items-center justify-end {{ $onOffSize }} font-medium text-kore-muted-fg"
-                    x-show="!on"
-                >
+                <span class="absolute inset-0 flex peer-checked:hidden items-center justify-end {{ $onOffSize }} font-medium text-kore-muted-fg">
                     <span class="mr-1.5">{{ $offLabel }}</span>
                 </span>
             @endif
 
             {{-- Thumb --}}
-            <span
-                class="{{ $thumbSize }} pointer-events-none inline-block transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
-                x-bind:class="on ? '{{ $thumbTranslate }}' : 'translate-x-0'"
-            ></span>
-        </button>
+            <span class="{{ $thumbSize }} {{ $thumbCheckedClass }} pointer-events-none inline-block transform rounded-full bg-white shadow-sm ring-0 translate-x-0 transition duration-200 ease-in-out"></span>
+        </label>
 
         @if($label || $description)
             <div class="select-none">
                 @if($label)
                     <label
                         for="{{ $fieldId }}"
-                        class="{{ $labelSize }} font-medium text-kore-fg cursor-pointer {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
-                        x-on:click="if (!{{ $disabled ? 'true' : 'false' }}) on = !on"
+                        class="{{ $labelSize }} font-medium text-kore-fg {{ $disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer' }}"
                     >
                         {{ $label }}
                     </label>

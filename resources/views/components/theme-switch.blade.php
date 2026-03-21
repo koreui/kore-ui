@@ -145,7 +145,7 @@
             x-transition:leave="transition ease-in duration-75"
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
-            class="fixed z-[9999] w-40 rounded-kore-lg border border-kore-border bg-kore-bg p-1 shadow-lg"
+            class="fixed z-[9999] w-40 rounded-kore-lg border border-kore-border bg-kore-bg text-kore-fg p-1 shadow-lg"
             x-bind:style="'top:' + position.top + ';left:' + position.left"
             role="menu"
         >

@@ -132,7 +132,7 @@
                 x-transition:leave-start="opacity-100 scale-100"
                 x-transition:leave-end="opacity-0 scale-95"
                 x-on:mousedown.stop
-                class="fixed z-[9999] rounded-kore-lg border border-kore-border bg-kore-bg shadow-lg p-4"
+                class="fixed z-[9999] rounded-kore-lg border border-kore-border bg-kore-bg text-kore-fg shadow-lg p-4"
                 role="dialog"
                 aria-label="Choose time"
             >

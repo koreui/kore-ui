@@ -228,7 +228,7 @@
                 x-transition:leave-start="opacity-100 scale-100"
                 x-transition:leave-end="opacity-0 scale-95"
                 x-on:mousedown.stop
-                class="fixed z-[9999] rounded-kore-md border border-kore-border bg-kore-surface shadow-lg"
+                class="fixed z-[9999] rounded-kore-md border border-kore-border bg-kore-surface text-kore-fg shadow-lg overflow-hidden"
                 role="listbox"
             >
                 @if($searchable)
@@ -255,7 +255,7 @@
                 {{-- Options list --}}
                 <ul
                     x-show="!loading"
-                    class="max-h-60 overflow-auto py-1"
+                    class="max-h-60 overflow-auto"
                     role="listbox"
                 >
                     <template x-if="filteredOptions.length === 0 && !loading && !showCreateOption">
