@@ -29,6 +29,8 @@ export default function KoreOverlay() {
                     );
                 })
             );
+
+            this._setupTeleportGuard();
         },
 
         destroy() {
@@ -36,6 +38,67 @@ export default function KoreOverlay() {
                 if (typeof cleanup === 'function') cleanup();
             });
             this.listeners = [];
+            this._teardownTeleportGuard();
+        },
+
+        // --- Teleport inert guard ---
+        // x-trap.inert marks every new body child as inert via a MutationObserver.
+        // Components that use x-teleport="body" get caught by that observer even
+        // though they are semantically part of the overlay content.
+        // This guard watches for [data-kore-teleport] elements being added to body
+        // and counters the inert marking with a per-element attribute observer.
+
+        _setupTeleportGuard() {
+            this._teleportObserver = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType !== Node.ELEMENT_NODE) return;
+                        if (!node.hasAttribute('data-kore-teleport')) return;
+
+                        const guard = new MutationObserver(() => {
+                            node.removeAttribute('inert');
+                        });
+                        guard.observe(node, { attributes: true, attributeFilter: ['inert'] });
+                        node._koreInertGuard = guard;
+                    });
+
+                    mutation.removedNodes.forEach((node) => {
+                        if (node._koreInertGuard) {
+                            node._koreInertGuard.disconnect();
+                            delete node._koreInertGuard;
+                        }
+                    });
+                });
+            });
+
+            this._teleportObserver.observe(document.body, { childList: true });
+
+            // focus-trap's checkFocusIn handler (capture phase) snaps focus back
+            // to the overlay whenever focus moves to an element outside the trap —
+            // including elements teleported to <body> via x-teleport. This guard is
+            // registered during page init (before any overlay opens), so it fires
+            // *before* focus-trap's own capture listener and can stop propagation,
+            // allowing the teleported element to keep focus.
+            this._focusinGuard = (event) => {
+                let el = event.target;
+                while (el) {
+                    if (el.hasAttribute && el.hasAttribute('data-kore-teleport')) {
+                        event.stopImmediatePropagation();
+                        return;
+                    }
+                    el = el.parentElement;
+                }
+            };
+            document.addEventListener('focusin', this._focusinGuard, true);
+        },
+
+        _teardownTeleportGuard() {
+            this._teleportObserver?.disconnect();
+            this._teleportObserver = null;
+            if (this._focusinGuard) {
+                document.removeEventListener('focusin', this._focusinGuard, true);
+                this._focusinGuard = null;
+            }
         },
 
         activate(id, skip = false) {

@@ -25,6 +25,7 @@
         {{-- Backdrop --}}
         <template x-teleport="body">
             <div
+                data-kore-teleport
                 x-show="filtersOpen"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0"
@@ -41,6 +42,7 @@
         {{-- Drawer panel --}}
         <template x-teleport="body">
             <div
+                data-kore-teleport
                 x-show="filtersOpen"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="translate-x-full"

@@ -203,6 +203,7 @@
         @else
             <template x-teleport="body">
                 <div
+                    data-kore-teleport
                     x-ref="dropdown"
                     x-show="open"
                     x-cloak

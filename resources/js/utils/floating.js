@@ -32,21 +32,29 @@ export function startFloating(reference, floating, opts = {}) {
     const gap = opts.offset ?? 4;
     const middleware = [offset(gap), flip(), shift({ padding: 8 })];
 
-    // Apply width
-    if (opts.sameWidth) {
-        floating.style.width = reference.getBoundingClientRect().width + 'px';
-    } else if (opts.fixedWidth) {
+    floating.style.position = 'fixed';
+    // Keep the panel invisible until coordinates are calculated so it never
+    // flashes at an incorrect position (e.g. top-left corner of the viewport).
+    floating.style.visibility = 'hidden';
+
+    if (opts.fixedWidth) {
         floating.style.width = opts.fixedWidth + 'px';
     }
 
-    floating.style.position = 'fixed';
-
+    let positioned = false;
     const update = () => {
+        if (opts.sameWidth) {
+            floating.style.width = reference.getBoundingClientRect().width + 'px';
+        }
         computePosition(reference, floating, { placement, middleware, strategy: 'fixed' }).then(({ x, y }) => {
             floating.style.left = x + 'px';
             floating.style.top = y + 'px';
             floating.style.bottom = 'auto';
             floating.style.right = 'auto';
+            if (!positioned) {
+                floating.style.visibility = '';
+                positioned = true;
+            }
         });
     };
 

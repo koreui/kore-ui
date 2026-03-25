@@ -26,6 +26,7 @@
 
     <template x-teleport="body">
         <div
+            data-kore-teleport
             x-ref="tooltip"
             x-show="show"
             x-transition:enter="transition ease-out duration-150"

@@ -22,7 +22,7 @@
     ></div>
 
     {{-- Overlay container --}}
-    <div class="fixed inset-0 overflow-y-auto overflow-x-hidden">
+    <div class="fixed inset-0 overflow-y-auto overflow-x-hidden pointer-events-none">
         <div
             class="flex"
             x-bind:class="positionClasses"
@@ -44,7 +44,7 @@
                     x-transition:leave-end="{{ $anim['leave']['to'] }}"
                     x-trap.inert="show && current === '{{ $id }}'"
                     :style="getSwipeStyle()"
-                    class="relative w-full transform bg-kore-surface text-kore-surface-fg shadow-xl transition-all {{ $containerClass }} {{ $sizeClass }}"
+                    class="pointer-events-auto relative w-full transform bg-kore-surface text-kore-surface-fg shadow-xl transition-all {{ $containerClass }} {{ $sizeClass }}"
                     role="dialog"
                     aria-modal="true"
                     wire:key="{{ $id }}"

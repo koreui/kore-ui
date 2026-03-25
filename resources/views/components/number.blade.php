@@ -25,7 +25,12 @@
     $isCurrency = $mode === 'currency';
     $currency = $currency ?? config('kore-ui.form.number.currency', 'USD');
     $locale = $locale ?? config('kore-ui.form.number.locale', null);
-    $precision = $precision ?? config('kore-ui.form.number.precision', 2);
+    // Auto-derive precision=0 from an integer step when not explicitly set.
+    // :step="1" → blocks decimals; :step="0.5" → uses config default.
+    // An explicit :precision prop always wins.
+    $isIntegerStep = is_numeric($step) && fmod((float) $step, 1) === 0.0;
+    $precision = $precision ?? ($isIntegerStep ? 0 : config('kore-ui.form.number.precision', 2));
+    $blockDecimals = (int) $precision === 0;
 
     $name = $name ?? $attributes->whereStartsWith('wire:model')->first();
 
@@ -138,10 +143,11 @@
             x-on:focus="_onFocus($event)"
             x-on:blur="_onBlur()"
             x-on:input="_onInput($event)"
+            x-on:keydown="_onKeydown($event)"
             @if($disabled) disabled @endif
             @if($readonly) readonly @endif
             autocomplete="off"
-            inputmode="decimal"
+            inputmode="{{ $blockDecimals ? 'numeric' : 'decimal' }}"
         />
 
         @if($controls)
@@ -215,6 +221,10 @@
                 clearInterval(this.holdInterval);
                 this.holdTimeout = null;
                 this.holdInterval = null;
+            },
+            _onKeydown(e) {
+                const blocked = {{ $blockDecimals ? "['e','E','.',',']" : "['e','E']" }};
+                if (blocked.includes(e.key)) e.preventDefault();
             }
         }"
         class="flex items-stretch {{ $controls ? 'inline-flex' : '' }}"
@@ -237,6 +247,7 @@
         <input
             type="number"
             x-ref="input"
+            x-on:keydown="_onKeydown($event)"
             {{ $attributes->merge([
                 'id' => $fieldId,
                 'name' => $name,

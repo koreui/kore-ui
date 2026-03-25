@@ -218,6 +218,7 @@
             {{-- Dropdown panel (teleported to body to escape overflow:hidden) --}}
             <template x-teleport="body">
             <div
+                data-kore-teleport
                 x-ref="dropdown"
                 x-show="open"
                 x-cloak

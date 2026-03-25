@@ -10,6 +10,10 @@ export default (config) => ({
         this._formatter = this._createFormatter();
         this._syncFromInput();
         this._watchWire();
+        // Livewire populates the hidden input after Alpine's init — catch it on next tick
+        if (!this.$refs.hiddenInput?.value) {
+            this.$nextTick(() => this._syncFromInput());
+        }
     },
 
     _createFormatter() {
@@ -71,6 +75,13 @@ export default (config) => ({
 
     _onInput(e) {
         // Allow free typing, format on blur
+    },
+
+    _onKeydown(e) {
+        // Block scientific notation always; block decimal separators when precision is 0.
+        const blocked = ['e', 'E'];
+        if (config.precision === 0) blocked.push('.', ',');
+        if (blocked.includes(e.key)) e.preventDefault();
     },
 
     increment() {

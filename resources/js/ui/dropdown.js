@@ -34,6 +34,13 @@ export default (config) => ({
     openDropdown() {
         this.open = true;
         this.highlighted = -1;
+        // Pre-apply position:fixed + visibility:hidden before $nextTick so the
+        // panel never exists in normal document flow when Alpine makes it visible.
+        // This prevents the ~17px scrollbar layout shift on h-screen layouts.
+        if (this.$refs.dropdown) {
+            this.$refs.dropdown.style.position = 'fixed';
+            this.$refs.dropdown.style.visibility = 'hidden';
+        }
         this.$nextTick(() => {
             const numericWidth = Number(config.width);
             const widthMap = { sm: 128, md: 192, lg: 256 };
