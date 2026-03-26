@@ -148,7 +148,7 @@ class OverlayDefaults
     public static function typeContainerClasses(): array
     {
         return [
-            'modal' => 'my-auto rounded-kore-lg max-h-[90dvh] overflow-y-auto',
+            'modal' => 'my-auto rounded-kore-lg',
             'drawer' => 'h-full overflow-y-auto',
             'confirm' => 'my-auto rounded-kore-lg',
             'bottom-sheet' => 'rounded-t-kore-xl max-h-[80dvh] overflow-y-auto',

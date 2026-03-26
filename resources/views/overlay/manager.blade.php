@@ -24,7 +24,7 @@
     {{-- Overlay container --}}
     <div class="fixed inset-0 overflow-y-auto overflow-x-hidden pointer-events-none">
         <div
-            class="flex"
+            class="flex h-full"
             x-bind:class="positionClasses"
         >
             @forelse($overlays as $id => $overlay)

@@ -272,9 +272,11 @@ export default function KoreOverlay() {
                 return 'h-full items-stretch';
             }
 
-            // modal, confirm — min-h-dvh allows scroll when content is taller than viewport.
-            // items-center centers the panel vertically within the viewport.
-            return 'min-h-dvh items-center justify-center p-4 text-center sm:py-8';
+            // modal, confirm — h-full (base in blade) gives a definite height.
+            // Vertical centering via my-auto on each panel (OverlayDefaults).
+            // items-start prevents stretch; my-auto safely centres small modals
+            // and top-aligns tall ones so the header stays reachable.
+            return 'min-h-dvh items-start justify-center p-4 text-center sm:py-8';
         },
 
         // --- Bottom-sheet swipe-to-close ---
