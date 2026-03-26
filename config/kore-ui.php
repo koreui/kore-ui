@@ -218,6 +218,10 @@ return [
             'num_visible' => 1,
             'gap' => 16,
         ],
+        'icon' => [
+            'prefix' => 'lucide',
+            'size' => null,
+        ],
     ],
 
     /*
