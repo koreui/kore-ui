@@ -87,14 +87,15 @@
                         :icon="$action->getIcon()"
                         :label="$action->getLabel()"
                         :href="$action->getUrl($row)"
-                        @if($dropdownStyle) style="{{ $dropdownStyle }}" @endif
-                        @if($action->opensInNewTab()) target="_blank" rel="noopener noreferrer" @endif
+                        :style="$dropdownStyle ?: null"
+                        :target="$action->opensInNewTab() ? '_blank' : null"
+                        :rel="$action->opensInNewTab() ? 'noopener noreferrer' : null"
                     />
                 @elseif($action->hasDispatch())
                     <x-kore::dropdown.item
                         :icon="$action->getIcon()"
                         :label="$action->getLabel()"
-                        @if($dropdownStyle) style="{{ $dropdownStyle }}" @endif
+                        :style="$dropdownStyle ?: null"
                         x-on:click="window.dispatchEvent(new CustomEvent('{{ $action->getDispatchEvent() }}', { detail: {{ Js::from($action->getDispatchParams($row)) }}, bubbles: true }))"
                     />
                 @elseif($action->getWireMethod())
@@ -102,14 +103,14 @@
                         <x-kore::dropdown.item
                             :icon="$action->getIcon()"
                             :label="$action->getLabel()"
-                            @if($dropdownStyle) style="{{ $dropdownStyle }}" @endif
+                            :style="$dropdownStyle ?: null"
                             x-on:click="window.dispatchEvent(new CustomEvent('kore:open', { detail: {{ Js::from($action->buildKoreConfirmPayload($row, $this->getId(), $primaryKey ?? 'id')) }}, bubbles: true }))"
                         />
                     @else
                         <x-kore::dropdown.item
                             :icon="$action->getIcon()"
                             :label="$action->getLabel()"
-                            @if($dropdownStyle) style="{{ $dropdownStyle }}" @endif
+                            :style="$dropdownStyle ?: null"
                             wire:click="{{ $action->getWireMethod() }}('{{ data_get($row, $primaryKey ?? 'id') }}')"
                         />
                     @endif
