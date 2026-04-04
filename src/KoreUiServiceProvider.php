@@ -3,6 +3,7 @@
 namespace KoreUi;
 
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use KoreUi\Breadcrumbs\BreadcrumbManager;
 use KoreUi\Feedback\ConfirmDialog;
@@ -35,6 +36,17 @@ class KoreUiServiceProvider extends ServiceProvider
         Livewire::component('kore-feedback-manager', FeedbackManager::class);
         Livewire::component('kore-confirm-dialog', ConfirmDialog::class);
         Livewire::component('kore-spotlight-manager', SpotlightManager::class);
+
+        Route::get('/vendor/kore-ui/kore-ui.js', function () {
+            return response()->file(__DIR__.'/../dist/kore-ui.js', [
+                'Content-Type' => 'application/javascript; charset=utf-8',
+                'Cache-Control' => 'public, max-age=31536000, immutable',
+            ]);
+        })->name('kore-ui.scripts');
+
+        Blade::directive('koreScripts', function () {
+            return "<?php echo '<script src=\"'.route('kore-ui.scripts').'\">'.'</script>'; ?>";
+        });
 
         Blade::directive('koreThemeScript', function () {
             $nonce = config('kore-ui.theme.nonce');
