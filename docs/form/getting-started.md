@@ -17,9 +17,9 @@ The kore-ui form components provide **10 anonymous Blade components** with Alpin
 
 ## Prerequisites
 
-1. The `kore-ui` package installed.
-2. CSS and JS imports configured (same as overlay/feedback setup).
-3. Alpine.js available globally (included via kore-ui JS).
+1. The `kore-ui` package installed and set up — see [Getting Started](../getting-started.md).
+2. `@koreScripts` directive in your layout (provides all form Alpine.js plugins).
+3. CSS configured — `kore-theme.css` imported and Tailwind sources registered.
 
 ## Usage
 

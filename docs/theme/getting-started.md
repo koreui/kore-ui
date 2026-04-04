@@ -11,9 +11,9 @@ The kore-ui theme system provides a **theme switch component** and an **Alpine s
 
 ## Prerequisites
 
-1. The `kore-ui` package installed.
+1. The `kore-ui` package installed and set up — see [Getting Started](../getting-started.md).
 2. CSS tokens configured — `kore-theme.css` already defines `.dark, [data-theme="dark"]` variants.
-3. Alpine.js available globally (included via kore-ui JS).
+3. `@koreScripts` directive in your layout (provides Alpine.js plugins including the theme store).
 
 ## Setup
 
