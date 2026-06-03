@@ -48,6 +48,7 @@ export default (config = {}) => ({
     density: config.density || 'normal',
     selected: [],
     selectAllMatching: false,
+    lastSelectedIndex: null,
     rowIds: config.rowIds || [],
     totalRows: config.totalRows || 0,
     slideDownOpen: config.slideDownOpen ?? false,
@@ -85,7 +86,7 @@ export default (config = {}) => ({
         return this.rowIds[this.activeRow];
     },
 
-    toggleRow(id) {
+    toggleRow(id, event = null) {
         // Manually toggling a row exits "select all matching" mode and falls
         // back to an explicit selection of the current page.
         if (this.selectAllMatching) {
@@ -94,13 +95,29 @@ export default (config = {}) => ({
         }
 
         const stringId = String(id);
-        const index = this.selected.indexOf(stringId);
+        const index = this.rowIds.indexOf(stringId);
 
-        if (index === -1) {
+        // Shift-click selects the contiguous range from the last toggled row.
+        if (event && event.shiftKey && this.lastSelectedIndex !== null && index !== -1) {
+            const [from, to] = [this.lastSelectedIndex, index].sort((a, b) => a - b);
+            for (let i = from; i <= to; i++) {
+                const rid = this.rowIds[i];
+                if (rid !== undefined && !this.selected.includes(rid)) {
+                    this.selected.push(rid);
+                }
+            }
+            this.lastSelectedIndex = index;
+            return;
+        }
+
+        const selectedIndex = this.selected.indexOf(stringId);
+        if (selectedIndex === -1) {
             this.selected.push(stringId);
         } else {
-            this.selected.splice(index, 1);
+            this.selected.splice(selectedIndex, 1);
         }
+
+        if (index !== -1) this.lastSelectedIndex = index;
     },
 
     toggleAll() {
@@ -200,7 +217,7 @@ export default (config = {}) => ({
 
     // --- Copyable ---
 
-    async copyToClipboard(text) {
+    async copyToClipboard(text, key = null) {
         try {
             if (navigator.clipboard && window.isSecureContext) {
                 await navigator.clipboard.writeText(text);
@@ -215,8 +232,11 @@ export default (config = {}) => ({
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
             }
-            this.copyFeedback = text;
-            setTimeout(() => { this.copyFeedback = null; }, 2000);
+            // Track feedback by a unique key (rowId+field) so cells sharing the
+            // same value don't all light up the "copied" check.
+            this.copyFeedback = key ?? text;
+            clearTimeout(this._copyTimer);
+            this._copyTimer = setTimeout(() => { this.copyFeedback = null; }, 2000);
         } catch (e) {
             // silent
         }
@@ -300,7 +320,10 @@ export default (config = {}) => ({
     // --- Responsive ---
 
     checkBreakpoint() {
-        this.isMobileView = window.innerWidth < this.responsiveBreakpoint;
+        // Compare against the container width (not the viewport) so a datatable
+        // inside a narrow panel collapses even on a wide screen.
+        const width = this.$root ? this.$root.clientWidth : window.innerWidth;
+        this.isMobileView = width < this.responsiveBreakpoint;
     },
 
     // --- Lifecycle ---
@@ -381,23 +404,26 @@ export default (config = {}) => ({
 
         document.addEventListener('keydown', this._onKeydown);
 
-        // Breakpoint check + pinned-column offset recalculation on resize,
-        // throttled to one pass per animation frame to avoid layout thrashing.
         if (this.responsiveMode !== 'scroll') {
             this.checkBreakpoint();
         }
 
-        let resizeScheduled = false;
-        this._onResize = () => {
-            if (resizeScheduled) return;
-            resizeScheduled = true;
-            requestAnimationFrame(() => {
-                resizeScheduled = false;
-                if (this.responsiveMode !== 'scroll') this.checkBreakpoint();
-                recalcPinnedOffsets(this.$root);
+        // A single ResizeObserver on the root drives both the responsive
+        // breakpoint (container-based) and pinned-offset recalculation,
+        // throttled to one pass per animation frame to avoid layout thrashing.
+        if (typeof ResizeObserver !== 'undefined') {
+            let scheduled = false;
+            this._resizeObserver = new ResizeObserver(() => {
+                if (scheduled) return;
+                scheduled = true;
+                requestAnimationFrame(() => {
+                    scheduled = false;
+                    if (this.responsiveMode !== 'scroll') this.checkBreakpoint();
+                    recalcPinnedOffsets(this.$root);
+                });
             });
-        };
-        window.addEventListener('resize', this._onResize);
+            this._resizeObserver.observe(this.$root);
+        }
 
         // Pinned columns: correct offsets after first paint and after morphs.
         this.$nextTick(() => recalcPinnedOffsets(this.$root));
@@ -410,6 +436,7 @@ export default (config = {}) => ({
                 this.activeRow = -1;
                 this.activeCell = -1;
                 this.keyboardMode = false;
+                this.lastSelectedIndex = null;
                 this.$nextTick(() => recalcPinnedOffsets(this.$root));
             });
 
@@ -423,9 +450,10 @@ export default (config = {}) => ({
         if (this._onKeydown) {
             document.removeEventListener('keydown', this._onKeydown);
         }
-        if (this._onResize) {
-            window.removeEventListener('resize', this._onResize);
+        if (this._resizeObserver) {
+            this._resizeObserver.disconnect();
         }
+        clearTimeout(this._copyTimer);
     },
 
     _isInputFocused() {

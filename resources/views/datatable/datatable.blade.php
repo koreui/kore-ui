@@ -134,6 +134,7 @@
             $hasPinnedColumns = !empty($pinnedLeftOffsets) || !empty($pinnedRightOffsets);
         @endphp
 
+        {{-- z-index scale: body 0 · pinned cells 1 · sticky thead 20 · loading overlay 30 · teleported dropdowns 50 · drawer 60 --}}
         <div
             data-table-wrapper
             class="relative overflow-x-auto"
@@ -200,10 +201,10 @@
                                     }
                                     $pinnedClasses = 'bg-kore-muted';
                                     if ($colIdx === $lastPinnedLeft) {
-                                        $pinnedClasses .= ' after:absolute after:top-0 after:right-0 after:bottom-0 after:w-px after:bg-kore-border after:shadow-[2px_0_4px_rgba(0,0,0,0.1)]';
+                                        $pinnedClasses .= ' after:absolute after:top-0 after:right-0 after:bottom-0 after:w-px after:bg-kore-border after:shadow-[2px_0_4px_var(--kore-pin-shadow)]';
                                     }
                                     if ($colIdx === $firstPinnedRight) {
-                                        $pinnedClasses .= ' before:absolute before:top-0 before:left-0 before:bottom-0 before:w-px before:bg-kore-border before:shadow-[-2px_0_4px_rgba(0,0,0,0.1)]';
+                                        $pinnedClasses .= ' before:absolute before:top-0 before:left-0 before:bottom-0 before:w-px before:bg-kore-border before:shadow-[-2px_0_4px_var(--kore-pin-shadow)]';
                                     }
                                 }
 
@@ -218,9 +219,16 @@
                                     $widthStyle .= "max-width: {$column->getMaxWidth()}px;";
                                 }
                                 $truncateClass = $column->getMaxWidth() ? 'truncate' : 'whitespace-nowrap';
+                                $ariaSort = null;
+                                if ($column->isSortable()) {
+                                    $d = $this->getSortDirection($column->getSortField());
+                                    $ariaSort = $d === 'asc' ? 'ascending' : ($d === 'desc' ? 'descending' : 'none');
+                                }
                             @endphp
                             <th
+                                scope="col"
                                 @if($isPinned) data-pinned="{{ $pinnedSide }}" data-col-index="{{ $colIdx }}" @endif
+                                @if($ariaSort) aria-sort="{{ $ariaSort }}" @endif
                                 class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} font-semibold text-kore-muted-fg uppercase tracking-wider {{ $truncateClass }} {{ $pinnedClasses }} {{ $headerDensityClass }}"
                                 :class="headerDensityClasses"
                                 style="{{ $pinnedStyle }}{{ $widthStyle }}"
@@ -240,6 +248,7 @@
                                     <button
                                         type="button"
                                         wire:click="sortBy('{{ $column->getSortField() }}')"
+                                        aria-label="Ordenar por {{ $column->getLabel() }}"
                                         class="inline-flex items-center gap-1 group hover:text-kore-fg transition-colors"
                                     >
                                         <span>{{ $column->getLabel() }}</span>
@@ -260,6 +269,7 @@
                             @php $rowId = data_get($row, $primaryKey ?? 'id'); @endphp
                             <tr
                                 data-row-id="{{ $rowId }}"
+                                @if($selectionEnabled ?? false) x-bind:aria-selected="isSelected('{{ $rowId }}')" @endif
                                 class="hover:bg-kore-muted/40 transition-colors"
                                 x-bind:class="{
                                     @if($selectionEnabled ?? false)
@@ -275,7 +285,7 @@
                                             aria-label="Seleccionar fila"
                                             value="{{ $rowId }}"
                                             x-bind:checked="isSelected('{{ $rowId }}')"
-                                            x-on:change="toggleRow('{{ $rowId }}')"
+                                            x-on:click="toggleRow('{{ $rowId }}', $event)"
                                             class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
                                         />
                                     </td>
@@ -297,10 +307,10 @@
                                             }
                                             $pinnedClasses = 'bg-kore-surface';
                                             if ($colIdx === $lastPinnedLeft) {
-                                                $pinnedClasses .= ' after:absolute after:top-0 after:right-0 after:bottom-0 after:w-px after:bg-kore-border after:shadow-[2px_0_4px_rgba(0,0,0,0.1)]';
+                                                $pinnedClasses .= ' after:absolute after:top-0 after:right-0 after:bottom-0 after:w-px after:bg-kore-border after:shadow-[2px_0_4px_var(--kore-pin-shadow)]';
                                             }
                                             if ($colIdx === $firstPinnedRight) {
-                                                $pinnedClasses .= ' before:absolute before:top-0 before:left-0 before:bottom-0 before:w-px before:bg-kore-border before:shadow-[-2px_0_4px_rgba(0,0,0,0.1)]';
+                                                $pinnedClasses .= ' before:absolute before:top-0 before:left-0 before:bottom-0 before:w-px before:bg-kore-border before:shadow-[-2px_0_4px_var(--kore-pin-shadow)]';
                                             }
                                         }
 
@@ -325,6 +335,7 @@
                                             <div
                                                 x-data="{ value: {{ $column->getValue($row) ? 'true' : 'false' }} }"
                                                 data-boolean-toggle
+                                                @kore:datatable-edit-error.window="if ($event.detail.rowId == '{{ $rowId }}' && $event.detail.field === '{{ $column->getField() }}') value = !value"
                                                 wire:key="bool-{{ $rowId }}-{{ $column->getField() }}-{{ $column->getValue($row) ? '1' : '0' }}"
                                             >
                                                 <button
@@ -411,7 +422,7 @@
                                             @php $cellValue = $column->getValue($row); @endphp
                                             <button
                                                 type="button"
-                                                x-on:click="copyToClipboard('{{ e(is_string($cellValue) ? $cellValue : '') }}')"
+                                                x-on:click="copyToClipboard('{{ e(is_string($cellValue) ? $cellValue : '') }}', '{{ $rowId }}-{{ $column->getField() }}')"
                                                 class="inline-flex items-center gap-1 group hover:text-kore-primary transition-colors"
                                             >
                                                 @if($column->getType() !== 'text')
@@ -426,8 +437,8 @@
                                                 @else
                                                     {{ $cellValue }}
                                                 @endif
-                                                <x-lucide-copy class="size-3 text-kore-muted-fg opacity-0 group-hover:opacity-100 transition-opacity shrink-0" x-show="copyFeedback !== '{{ e(is_string($cellValue) ? $cellValue : '') }}'" />
-                                                <x-lucide-check class="size-3 text-kore-success shrink-0" x-show="copyFeedback === '{{ e(is_string($cellValue) ? $cellValue : '') }}'" x-cloak />
+                                                <x-lucide-copy class="size-3 text-kore-muted-fg opacity-0 group-hover:opacity-100 transition-opacity shrink-0" x-show="copyFeedback !== '{{ $rowId }}-{{ $column->getField() }}'" />
+                                                <x-lucide-check class="size-3 text-kore-success shrink-0" x-show="copyFeedback === '{{ $rowId }}-{{ $column->getField() }}'" x-cloak />
                                             </button>
                                         @elseif($showClickable)
                                             {{-- Clickable cell --}}
@@ -499,11 +510,17 @@
                                             $pinnedStyle = "position: sticky; right: {$pinnedRightOffsets[$colIdx]}px; z-index: 1;";
                                         }
                                         $pinnedClasses = 'bg-kore-muted';
+                                        if ($colIdx === $lastPinnedLeft) {
+                                            $pinnedClasses .= ' after:absolute after:top-0 after:right-0 after:bottom-0 after:w-px after:bg-kore-border after:shadow-[2px_0_4px_var(--kore-pin-shadow)]';
+                                        }
+                                        if ($colIdx === $firstPinnedRight) {
+                                            $pinnedClasses .= ' before:absolute before:top-0 before:left-0 before:bottom-0 before:w-px before:bg-kore-border before:shadow-[-2px_0_4px_var(--kore-pin-shadow)]';
+                                        }
                                     }
                                 @endphp
                                 <td
                                     @if($isPinned) data-pinned="{{ $pinnedSide }}" data-col-index="{{ $colIdx }}" @endif
-                                    class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} font-semibold text-kore-fg {{ $pinnedClasses }} {{ $densityClass }}"
+                                    class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} font-semibold text-kore-fg relative {{ $pinnedClasses }} {{ $densityClass }}"
                                     :class="densityClasses"
                                     @if($pinnedStyle) style="{{ $pinnedStyle }}" @endif
                                 >

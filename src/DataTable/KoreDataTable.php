@@ -226,12 +226,18 @@ abstract class KoreDataTable extends Component
             $field = $column->getField();
             $alias = 'kore_agg_' . $index;
 
+            // Validate + quote the column so relations/reserved words/unexpected
+            // values can't break or inject into the raw aggregate expression.
+            $wrapped = preg_match('/^[a-zA-Z0-9_]+$/', $field)
+                ? $baseQuery->getQuery()->getGrammar()->wrap($field)
+                : null;
+
             $selects[] = match ($column->getAggregationType()) {
-                'sum'   => "SUM({$field}) as {$alias}",
-                'avg'   => "AVG({$field}) as {$alias}",
+                'sum'   => $wrapped ? "SUM({$wrapped}) as {$alias}" : "NULL as {$alias}",
+                'avg'   => $wrapped ? "AVG({$wrapped}) as {$alias}" : "NULL as {$alias}",
                 'count' => "COUNT(*) as {$alias}",
-                'min'   => "MIN({$field}) as {$alias}",
-                'max'   => "MAX({$field}) as {$alias}",
+                'min'   => $wrapped ? "MIN({$wrapped}) as {$alias}" : "NULL as {$alias}",
+                'max'   => $wrapped ? "MAX({$wrapped}) as {$alias}" : "NULL as {$alias}",
                 default => "NULL as {$alias}",
             };
         }
@@ -246,7 +252,8 @@ abstract class KoreDataTable extends Component
             $raw = $result?->{$alias};
 
             if ($column->getAggregationType() === 'avg') {
-                $raw = round((float) $raw, $column->getAggregationDecimals());
+                // Preserve null (empty dataset) instead of coercing to 0.0.
+                $raw = $raw !== null ? round((float) $raw, $column->getAggregationDecimals()) : null;
             }
 
             $aggregations[$column->getField()] = [

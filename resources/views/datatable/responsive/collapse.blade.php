@@ -27,6 +27,8 @@
 
             @foreach($visibleColumns as $column)
                 <th
+                    scope="col"
+                    @if($column->isSortable()) aria-sort="{{ $this->getSortDirection($column->getSortField()) === 'asc' ? 'ascending' : ($this->getSortDirection($column->getSortField()) === 'desc' ? 'descending' : 'none') }}" @endif
                     class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} font-semibold text-kore-muted-fg uppercase tracking-wider whitespace-nowrap"
                     :class="headerDensityClasses"
                 >
@@ -45,6 +47,7 @@
                         <button
                             type="button"
                             wire:click="sortBy('{{ $column->getSortField() }}')"
+                            aria-label="Ordenar por {{ $column->getLabel() }}"
                             class="inline-flex items-center gap-1 group hover:text-kore-fg transition-colors"
                         >
                             <span>{{ $column->getLabel() }}</span>

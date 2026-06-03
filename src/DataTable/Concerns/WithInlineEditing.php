@@ -17,6 +17,10 @@ trait WithInlineEditing
             return;
         }
 
+        // Coerce the client value to the column's declared type before
+        // validating/saving (boolean toggles, numeric inputs, …).
+        $value = $this->coerceEditableValue($column, $value);
+
         // Validate if rules exist
         $rules = $column->getEditableRules();
 
@@ -27,11 +31,12 @@ trait WithInlineEditing
             );
 
             if ($validator->fails()) {
-                $this->dispatch('kore:datatable-edit-error', [
-                    'rowId' => $rowId,
-                    'field' => $field,
-                    'error' => $validator->errors()->first($field),
-                ]);
+                $this->dispatch(
+                    'kore:datatable-edit-error',
+                    rowId: $rowId,
+                    field: $field,
+                    error: $validator->errors()->first($field),
+                );
 
                 return;
             }
@@ -65,14 +70,15 @@ trait WithInlineEditing
         });
 
         if (! $result['found']) {
-            $this->dispatch('kore:datatable-edit-error', [
-                'rowId' => $rowId,
-                'field' => $field,
-                'error' => config(
+            $this->dispatch(
+                'kore:datatable-edit-error',
+                rowId: $rowId,
+                field: $field,
+                error: config(
                     'kore-ui.datatable.translations.edit_unauthorized',
                     'No se pudo actualizar el registro.'
                 ),
-            ]);
+            );
 
             return;
         }
@@ -84,10 +90,20 @@ trait WithInlineEditing
             $this->invalidatePresetCounts();
         }
 
-        $this->dispatch('kore:datatable-edit-success', [
-            'rowId' => $rowId,
-            'field' => $field,
-        ]);
+        $this->dispatch('kore:datatable-edit-success', rowId: $rowId, field: $field);
+    }
+
+    /**
+     * Coerce a client-provided value to the column's declared type so the right
+     * scalar reaches validation and persistence.
+     */
+    protected function coerceEditableValue(Column $column, mixed $value): mixed
+    {
+        return match ($column->getType()) {
+            'boolean' => filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool) $value,
+            'number'  => is_numeric($value) ? $value + 0 : $value,
+            default   => $value,
+        };
     }
 
     public function hasEditableColumns(): bool

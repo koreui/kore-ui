@@ -109,6 +109,12 @@ trait WithSorting
         }
 
         foreach ($activeSorts as $column => $direction) {
+            // Relation (dot-notation) sorts cannot be applied with a plain
+            // orderBy (no JOIN) — skip them to avoid invalid SQL.
+            if (str_contains($column, '.')) {
+                continue;
+            }
+
             $query->orderBy($column, $this->normalizeSortDirection($direction));
         }
 
