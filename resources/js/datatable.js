@@ -28,8 +28,26 @@ function recalcPinnedOffsets(root) {
     });
 }
 
+// Selection checkboxes are plain inputs (no wire:model), so Livewire's morph
+// updates their `checked`/`indeterminate` ATTRIBUTES but not the live DOM
+// PROPERTIES. A header/row element reused across a morph would keep its stale
+// visual state (e.g. the "select all" box staying checked on page 2 even though
+// that page has no selected rows). Re-assert the server truth from
+// data-checked / data-indeterminate after every morph. `indeterminate` has no
+// HTML attribute at all, so this is the only way to drive it.
+function syncSelectionCheckboxes(root) {
+    if (!root) return;
+    root.querySelectorAll('input[type="checkbox"][data-checked]').forEach(cb => {
+        cb.checked = cb.dataset.checked === '1';
+    });
+    root.querySelectorAll('input[type="checkbox"][data-indeterminate]').forEach(cb => {
+        cb.indeterminate = cb.dataset.indeterminate === '1';
+    });
+}
+
 // Register a single global Livewire hook (not one per component) so pinned
-// offsets are recomputed after every morph, since PHP re-applies fixed offsets.
+// offsets and indeterminate checkboxes are recomputed after every morph, since
+// PHP re-applies fixed offsets and indeterminate can't be server-rendered.
 let pinnedMorphHookRegistered = false;
 function ensurePinnedMorphHook() {
     if (pinnedMorphHookRegistered) return;
@@ -43,7 +61,10 @@ function ensurePinnedMorphHook() {
             document.querySelectorAll('[data-kore-datatable]').forEach(root => {
                 const related = !el || root === el ||
                     (typeof el.contains === 'function' && (root.contains(el) || el.contains(root)));
-                if (related) recalcPinnedOffsets(root);
+                if (related) {
+                    recalcPinnedOffsets(root);
+                    syncSelectionCheckboxes(root);
+                }
             });
         } catch (e) {
             // pinning recalculation must never interfere with morphs
@@ -53,8 +74,10 @@ function ensurePinnedMorphHook() {
 
 export default (config = {}) => ({
     density: config.density || 'normal',
-    selected: [],
-    selectAllMatching: false,
+    // Selection state lives server-side (public $selected / $selectAllMatching
+    // on the Livewire component) so it survives morphs and pagination. The only
+    // selection bit kept on the client is lastSelectedIndex, used to compute the
+    // shift-click range from the visible rowIds.
     lastSelectedIndex: null,
     rowIds: config.rowIds || [],
     totalRows: config.totalRows || 0,
@@ -93,108 +116,31 @@ export default (config = {}) => ({
         return this.rowIds[this.activeRow];
     },
 
-    toggleRow(id, event = null) {
-        // Manually toggling a row exits "select all matching" mode and falls
-        // back to an explicit selection of the current page.
-        if (this.selectAllMatching) {
-            this.selectAllMatching = false;
-            this.selected = [...this.rowIds];
-        }
+    // --- Selection (server-driven) ---
 
+    // Row checkbox click. A normal click toggles a single row server-side; the
+    // native checkbox flips instantly for optimistic feedback and the morph
+    // confirms it. Shift-click selects the contiguous range from the last
+    // toggled row — computed here from the visible rowIds and sent to the
+    // server in a single selectRange() call.
+    onRowCheckboxClick(id, event) {
         const stringId = String(id);
         const index = this.rowIds.indexOf(stringId);
 
-        // Shift-click selects the contiguous range from the last toggled row.
         if (event && event.shiftKey && this.lastSelectedIndex !== null && index !== -1) {
+            event.preventDefault();
             const [from, to] = [this.lastSelectedIndex, index].sort((a, b) => a - b);
+            const range = [];
             for (let i = from; i <= to; i++) {
-                const rid = this.rowIds[i];
-                if (rid !== undefined && !this.selected.includes(rid)) {
-                    this.selected.push(rid);
-                }
+                if (this.rowIds[i] !== undefined) range.push(this.rowIds[i]);
             }
             this.lastSelectedIndex = index;
+            this.$wire.selectRange(range);
             return;
-        }
-
-        const selectedIndex = this.selected.indexOf(stringId);
-        if (selectedIndex === -1) {
-            this.selected.push(stringId);
-        } else {
-            this.selected.splice(selectedIndex, 1);
         }
 
         if (index !== -1) this.lastSelectedIndex = index;
-    },
-
-    toggleAll() {
-        if (this.selectAllMatching) {
-            this.clearSelection();
-            return;
-        }
-
-        if (this.isAllSelected) {
-            this.selected = this.selected.filter(id => !this.rowIds.includes(id));
-        } else {
-            const newIds = this.rowIds.filter(id => !this.selected.includes(id));
-            this.selected.push(...newIds);
-        }
-    },
-
-    isSelected(id) {
-        return this.selectAllMatching || this.selected.includes(String(id));
-    },
-
-    get isAllSelected() {
-        if (this.selectAllMatching) return true;
-        if (this.rowIds.length === 0) return false;
-        return this.rowIds.every(id => this.selected.includes(id));
-    },
-
-    get isIndeterminate() {
-        if (this.selectAllMatching || this.rowIds.length === 0) return false;
-        const someSelected = this.rowIds.some(id => this.selected.includes(id));
-        return someSelected && !this.isAllSelected;
-    },
-
-    get selectedCount() {
-        return this.selected.length;
-    },
-
-    get hasSelection() {
-        return this.selected.length > 0 || this.selectAllMatching;
-    },
-
-    // True when the selection includes rows that are not on the current page.
-    get hasOffPageSelection() {
-        return this.selected.some(id => !this.rowIds.includes(String(id)));
-    },
-
-    // Offer "select all matching" once the whole page is selected and more
-    // rows match the current filters beyond this page.
-    get canSelectAllMatching() {
-        return !this.selectAllMatching
-            && this.isAllSelected
-            && this.totalRows > this.selectedCount;
-    },
-
-    enableSelectAllMatching() {
-        this.selectAllMatching = true;
-    },
-
-    // Dispatch a bulk action. In "all matching" mode the backend resolves the
-    // ids from the filtered query instead of the client-provided list.
-    runBulk(identifier) {
-        if (this.selectAllMatching) {
-            this.$wire.executeBulkActionMatching(identifier);
-        } else {
-            this.$wire.executeBulkAction(identifier, this.selected);
-        }
-    },
-
-    clearSelection() {
-        this.selected = [];
-        this.selectAllMatching = false;
+        this.$wire.toggleRow(stringId);
     },
 
     toggleExpand(id) {
@@ -309,7 +255,9 @@ export default (config = {}) => ({
         if (this.activeRow < 0) return;
         const rowId = this.activeRowId;
         if (rowId) {
-            this.toggleRow(rowId);
+            const index = this.rowIds.indexOf(String(rowId));
+            if (index !== -1) this.lastSelectedIndex = index;
+            this.$wire.toggleRow(String(rowId));
         }
     },
 
@@ -403,7 +351,7 @@ export default (config = {}) => ({
                 case 'a':
                     if (e.ctrlKey || e.metaKey) {
                         e.preventDefault();
-                        this.toggleAll();
+                        this.$wire.toggleSelectAll();
                     }
                     break;
             }
@@ -447,8 +395,10 @@ export default (config = {}) => ({
                 this.$nextTick(() => recalcPinnedOffsets(this.$root));
             });
 
+            // Selection is cleared server-side after a bulk action; only the
+            // client-side shift anchor needs resetting here.
             this.$wire.on('kore:datatable-clear-selection', () => {
-                this.clearSelection();
+                this.lastSelectedIndex = null;
             });
         }
     },

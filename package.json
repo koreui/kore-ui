@@ -1,6 +1,6 @@
 {
     "name": "kore-ui",
-    "version": "0.1.0",
+    "version": "1.2.0",
     "description": "Frontend assets for koreUi - Laravel UI component library",
     "main": "resources/js/index.js",
     "license": "MIT",

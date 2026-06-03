@@ -59,6 +59,25 @@ trait WithBulkActions
     }
 
     /**
+     * UI entry point from the view. Resolves the IDs from server-side selection
+     * state: the live $selected list, or every row matching the current filters
+     * when in "select all matching" mode (resolved securely server-side, never
+     * trusting a client-provided list).
+     */
+    public function runBulk(string $identifier): void
+    {
+        if (! $this->hasSelection()) {
+            return;
+        }
+
+        if ($this->selectAllMatching) {
+            $this->executeBulkActionMatching($identifier);
+        } else {
+            $this->executeBulkAction($identifier, $this->selected);
+        }
+    }
+
+    /**
      * Primary keys of every row matching the current search/filters.
      *
      * @return array<int, string>
@@ -119,6 +138,7 @@ trait WithBulkActions
     {
         $this->_selectedIds          = [];
         $this->pendingBulkIdentifier = '';
+        $this->clearSelection();
         $this->dispatch('kore:datatable-clear-selection');
     }
 

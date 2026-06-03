@@ -17,9 +17,11 @@
                     <input
                         type="checkbox"
                         aria-label="Seleccionar todo"
-                        x-bind:checked="isAllSelected"
-                        x-bind:indeterminate="isIndeterminate"
-                        x-on:change="toggleAll()"
+                        @checked($this->isPageFullySelected($rowIds ?? []))
+                        data-checked="{{ $this->isPageFullySelected($rowIds ?? []) ? '1' : '0' }}"
+                        data-indeterminate="{{ $this->isPagePartiallySelected($rowIds ?? []) ? '1' : '0' }}"
+                        x-init="$el.indeterminate = $el.dataset.indeterminate === '1'"
+                        wire:click="toggleSelectAll"
                         class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
                     />
                 </th>
@@ -63,12 +65,13 @@
 
     <tbody class="divide-y divide-kore-border">
         @forelse($rows as $row)
-            @php $rowId = data_get($row, $primaryKey); @endphp
+            @php
+                $rowId = data_get($row, $primaryKey);
+                $rowSelected = ($selectionEnabled ?? false) && $this->isRowSelected($rowId);
+            @endphp
             <tr
-                class="hover:bg-kore-muted/40 transition-colors"
-                @if($selectionEnabled)
-                    x-bind:class="isSelected('{{ $rowId }}') ? 'bg-kore-primary/5' : ''"
-                @endif
+                @if($selectionEnabled) wire:key="row-{{ $rowId }}" @endif
+                class="hover:bg-kore-muted/40 transition-colors {{ $rowSelected ? 'bg-kore-primary/5' : '' }}"
             >
                 @if(count($collapsedCols) > 0)
                     <td class="w-10 text-center" :class="densityClasses">
@@ -91,8 +94,9 @@
                             type="checkbox"
                             aria-label="Seleccionar fila"
                             value="{{ $rowId }}"
-                            x-bind:checked="isSelected('{{ $rowId }}')"
-                            x-on:change="toggleRow('{{ $rowId }}')"
+                            @checked($rowSelected)
+                            data-checked="{{ $rowSelected ? '1' : '0' }}"
+                            x-on:click="onRowCheckboxClick('{{ $rowId }}', $event)"
                             class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
                         />
                     </td>

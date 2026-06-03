@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Schema;
 use KoreUi\DataTable\Presets\FilterPreset;
+use KoreUi\Tests\DataTable\Fixtures\TestDefaultPresetTable;
 use KoreUi\Tests\DataTable\Fixtures\TestPresetsTable;
 use KoreUi\Tests\DataTable\Fixtures\TestUser;
 use Livewire\Livewire;
@@ -148,4 +149,23 @@ it('renders preset tabs in view', function () {
         ->assertSee('Inactivos')
         ->assertSee('Madrid')
         ->assertDontSee('Oculto');
+});
+
+it('a default preset keeps the ?page from the URL on mount', function () {
+    // Regression: applying the default preset used to call resetPage() during
+    // mount(), which pre-initialized the paginator and disabled the ?page URL
+    // binding. Need > 1 page at the default perPage (25) so page 2 is valid.
+    TestUser::insert(collect(range(1, 30))->map(fn ($i) => [
+        'name'      => "User {$i}",
+        'email'     => "u{$i}@test.com",
+        'city'      => 'Madrid',
+        'is_active' => true,
+        'age'       => 20,
+    ])->all());
+
+    $component = Livewire::withQueryParams(['page' => 2])
+        ->test(TestDefaultPresetTable::class);
+
+    expect($component->instance()->activePreset)->toBe('all')
+        ->and($component->instance()->getPage())->toBe(2);
 });

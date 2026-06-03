@@ -34,17 +34,24 @@ trait WithQueryString
      */
     public function queryString(): array
     {
+        // perPage always persists in the URL so it stays consistent with `page`
+        // (which Livewire's pagination persists by default). Without this, a
+        // reload restored the page but reset perPage, landing on an out-of-range
+        // page ("no results"). search/sorts/filters remain opt-in.
+        $queryString = [
+            'perPage' => ['except' => (int) config('kore-ui.datatable.per_page', 25), 'as' => 'per_page'],
+        ];
+
         $enabled = $this->queryStringEnabled ?? (bool) config('kore-ui.datatable.query_string', false);
 
         if (! $enabled) {
-            return [];
+            return $queryString;
         }
 
-        return [
+        return array_merge($queryString, [
             'search'  => ['except' => '', 'as' => 'q'],
             'sorts'   => ['except' => [], 'as' => 'sort'],
             'filters' => ['except' => [], 'as' => 'filter'],
-            'perPage' => ['except' => (int) config('kore-ui.datatable.per_page', 25), 'as' => 'per_page'],
-        ];
+        ]);
     }
 }

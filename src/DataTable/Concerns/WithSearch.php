@@ -12,6 +12,12 @@ trait WithSearch
     {
         $this->resetPage();
 
+        // Changing the data universe invalidates "select all matching" (its
+        // scope changed); explicit row IDs are kept.
+        if (property_exists($this, 'selectAllMatching')) {
+            $this->selectAllMatching = false;
+        }
+
         // Deactivate preset when user changes search manually
         if (property_exists($this, 'activePreset')) {
             $this->activePreset = null;

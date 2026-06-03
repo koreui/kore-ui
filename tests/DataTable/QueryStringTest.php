@@ -43,15 +43,34 @@ it('returns query string mapping when enabled', function () {
         ->and($qs)->toHaveKey('perPage');
 });
 
-it('returns empty query string when disabled', function () {
+it('persists perPage but nothing else when disabled', function () {
     $component = Livewire::test(TestTable::class);
     $qs = $component->instance()->queryString();
 
-    expect($qs)->toBe([]);
+    // perPage always persists in the URL (consistency with `page`); search,
+    // sorts and filters remain opt-in via queryString.
+    expect($qs)->toHaveKey('perPage')
+        ->and($qs)->not->toHaveKey('search')
+        ->and($qs)->not->toHaveKey('filters')
+        ->and($qs)->not->toHaveKey('sorts');
 });
 
 it('disabled by default', function () {
     $component = Livewire::test(TestTable::class);
 
     expect($component->instance()->isQueryStringEnabled())->toBeFalse();
+});
+
+it('reads perPage from the per_page URL parameter on load', function () {
+    // mount() must not overwrite the value BaseUrl restored from ?per_page.
+    Livewire::withQueryParams(['per_page' => 10])
+        ->test(TestTable::class)
+        ->assertSet('perPage', 10);
+});
+
+it('coerces an out-of-range perPage from the URL to an allowed value', function () {
+    // 999 isn't among the allowed options → fall back to the first one.
+    Livewire::withQueryParams(['per_page' => 999])
+        ->test(TestTable::class)
+        ->assertSet('perPage', 10);
 });

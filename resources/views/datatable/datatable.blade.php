@@ -45,6 +45,8 @@
         'deselectedColumns'   => $deselectedColumns ?? [],
         'exportEnabled'       => $exportEnabled ?? false,
         'exportFormats'       => $exportFormats ?? [],
+        'rowIds'              => $rowIds ?? [],
+        'total'               => $total ?? 0,
     ])
 
     {{-- Slot: after-toolbar --}}
@@ -155,6 +157,7 @@
                         'rows' => $rows,
                         'selectionEnabled' => $selectionEnabled ?? false,
                         'primaryKey' => $primaryKey ?? 'id',
+                        'rowIds' => $rowIds ?? [],
                     ])
                 </div>
             @endif
@@ -168,6 +171,7 @@
                         'rows' => $rows,
                         'selectionEnabled' => $selectionEnabled ?? false,
                         'primaryKey' => $primaryKey ?? 'id',
+                        'rowIds' => $rowIds ?? [],
                     ])
                 </div>
             @endif
@@ -181,9 +185,11 @@
                                 <input
                                     type="checkbox"
                                     aria-label="Seleccionar todo"
-                                    x-bind:checked="isAllSelected"
-                                    x-bind:indeterminate="isIndeterminate"
-                                    x-on:change="toggleAll()"
+                                    @checked($this->isPageFullySelected($rowIds ?? []))
+                                    data-checked="{{ $this->isPageFullySelected($rowIds ?? []) ? '1' : '0' }}"
+                                    data-indeterminate="{{ $this->isPagePartiallySelected($rowIds ?? []) ? '1' : '0' }}"
+                                    x-init="$el.indeterminate = $el.dataset.indeterminate === '1'"
+                                    wire:click="toggleSelectAll"
                                     class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
                                 />
                             </th>
@@ -269,15 +275,16 @@
                 <tbody class="divide-y divide-kore-border">
                     @if($rows !== null)
                         @forelse($rows as $row)
-                            @php $rowId = data_get($row, $primaryKey ?? 'id'); @endphp
+                            @php
+                                $rowId = data_get($row, $primaryKey ?? 'id');
+                                $rowSelected = ($selectionEnabled ?? false) && $this->isRowSelected($rowId);
+                            @endphp
                             <tr
+                                wire:key="row-{{ $rowId }}"
                                 data-row-id="{{ $rowId }}"
-                                @if($selectionEnabled ?? false) x-bind:aria-selected="isSelected('{{ $rowId }}')" @endif
-                                class="hover:bg-kore-muted/40 transition-colors"
+                                @if($rowSelected) aria-selected="true" @endif
+                                class="hover:bg-kore-muted/40 transition-colors {{ $rowSelected ? 'bg-kore-primary/5' : '' }}"
                                 x-bind:class="{
-                                    @if($selectionEnabled ?? false)
-                                        'bg-kore-primary/5': isSelected('{{ $rowId }}'),
-                                    @endif
                                     'ring-2 ring-inset ring-kore-primary/50 bg-kore-primary/5': keyboardMode && activeRowId === '{{ $rowId }}'
                                 }"
                             >
@@ -287,8 +294,9 @@
                                             type="checkbox"
                                             aria-label="Seleccionar fila"
                                             value="{{ $rowId }}"
-                                            x-bind:checked="isSelected('{{ $rowId }}')"
-                                            x-on:click="toggleRow('{{ $rowId }}', $event)"
+                                            @checked($rowSelected)
+                                            data-checked="{{ $rowSelected ? '1' : '0' }}"
+                                            x-on:click="onRowCheckboxClick('{{ $rowId }}', $event)"
                                             class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
                                         />
                                     </td>

@@ -90,7 +90,7 @@ it('selection is disabled when no bulk actions', function () {
 
 it('does not render checkboxes when no bulk actions', function () {
     Livewire::test(TestTable::class)
-        ->assertDontSeeHtml('x-on:change="toggleAll()"');
+        ->assertDontSeeHtml('wire:click="toggleSelectAll"');
 });
 
 it('bulk action delete removes records', function () {
@@ -121,6 +121,7 @@ it('confirm message supports :count placeholder', function () {
 
 it('renders bulk actions dropdown', function () {
     Livewire::test(TestBulkTable::class)
+        ->set('selected', ['1'])
         ->assertSee('Activar')
         ->assertSee('Eliminar');
 });

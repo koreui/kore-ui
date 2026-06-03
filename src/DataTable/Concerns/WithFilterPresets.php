@@ -34,7 +34,11 @@ trait WithFilterPresets
     {
         foreach ($this->filterPresets() as $preset) {
             if ($preset->isDefault()) {
-                $this->applyPreset($preset->getIdentifier());
+                // Apply the default preset WITHOUT resetPage(): a ?page coming
+                // from the URL must be respected, and resetPage() here would
+                // pre-initialize the paginator, making Livewire skip the ?page
+                // URL binding (so page would stop persisting for this table).
+                $this->applyPresetState($preset->getIdentifier());
                 break;
             }
         }
@@ -47,13 +51,31 @@ trait WithFilterPresets
             return;
         }
 
-        $preset = $this->findPreset($identifier);
-
-        if (! $preset) {
+        if (! $this->applyPresetState($identifier)) {
             return;
         }
 
-        // Always reset state first, then apply preset values
+        $this->resetPage();
+
+        if (property_exists($this, 'selectAllMatching')) {
+            $this->selectAllMatching = false;
+        }
+    }
+
+    /**
+     * Apply a preset's filters/sorts/search/perPage. Returns false if the preset
+     * doesn't exist. Does NOT reset the page — the caller decides, because
+     * resetPage() during mount() pre-initializes the paginator and makes
+     * Livewire skip registering the ?page URL binding.
+     */
+    protected function applyPresetState(string $identifier): bool
+    {
+        $preset = $this->findPreset($identifier);
+
+        if (! $preset) {
+            return false;
+        }
+
         $this->filters = $preset->getFilters();
         $this->sorts = $preset->getSorts();
         $this->search = $preset->getSearch() ?? '';
@@ -63,7 +85,8 @@ trait WithFilterPresets
         }
 
         $this->activePreset = $identifier;
-        $this->resetPage();
+
+        return true;
     }
 
     public function clearPreset(): void
@@ -73,6 +96,10 @@ trait WithFilterPresets
         $this->sorts = [];
         $this->search = '';
         $this->resetPage();
+
+        if (property_exists($this, 'selectAllMatching')) {
+            $this->selectAllMatching = false;
+        }
     }
 
     /**

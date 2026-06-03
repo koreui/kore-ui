@@ -15,6 +15,8 @@
     $exportEnabled = $exportEnabled ?? false;
     $exportFormats = $exportFormats ?? [];
     $koreSlots = $koreSlots ?? [];
+    $rowIds = $rowIds ?? [];
+    $total = $total ?? 0;
 @endphp
 
 <div class="border-b border-kore-border">
@@ -44,14 +46,8 @@
             @endif
         </div>
 
-        {{-- Right: Bulk Actions + Export + Column Select + Per Page --}}
+        {{-- Right: Export + Column Select + Per Page --}}
         <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto sm:justify-end">
-            {{-- Bulk Actions --}}
-            @include('kore::datatable.bulk-actions', [
-                'bulkActions'  => $bulkActions,
-                'translations' => $translations,
-            ])
-
             {{-- Export --}}
                 @if($exportEnabled)
                     @if(count($exportFormats) === 1)
@@ -119,6 +115,15 @@
             @endif
         </div>
     </div>
+
+    {{-- Bulk actions: its own full-width row so showing/hiding it never reflows
+         the search/filters/export/per-page controls above. --}}
+    @include('kore::datatable.bulk-actions', [
+        'bulkActions'  => $bulkActions,
+        'translations' => $translations,
+        'rowIds'       => $rowIds,
+        'total'        => $total,
+    ])
 
     {{-- Slide-down panel (below toolbar row) --}}
     @if($isSlideDown && count($filterDefs) > 0)

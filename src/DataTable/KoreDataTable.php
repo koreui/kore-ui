@@ -100,7 +100,18 @@ abstract class KoreDataTable extends Component
 
     public function mount(): void
     {
-        $this->perPage = (int) config('kore-ui.datatable.per_page', 25);
+        // Respect a perPage restored from the URL (?per_page=); only fall back
+        // to the configured default when it isn't present. Otherwise this would
+        // overwrite the value BaseUrl already restored from the query string,
+        // so the table ignored ?per_page on reload.
+        if (! request()->filled('per_page')) {
+            $this->perPage = (int) config('kore-ui.datatable.per_page', 25);
+        }
+
+        // A URL-provided perPage is untrusted: coerce it to an allowed option
+        // so e.g. ?per_page=999999 can't load the entire table at once.
+        $this->normalizePerPage();
+
         $this->density = config('kore-ui.datatable.density', 'normal');
         $this->deferredLoading = (bool) config('kore-ui.datatable.deferred_loading', false);
         $this->mountWithColumnSelect();
@@ -117,13 +128,31 @@ abstract class KoreDataTable extends Component
 
     public function getRows()
     {
+        $rows = $this->applyPagination($this->buildRowsQuery());
+
+        // Clamp: if the requested page is past the last one (perPage grew,
+        // filters shrank the set, rows were deleted, or a stale ?page= from the
+        // URL) jump to the last valid page instead of an empty "no results"
+        // screen. Only length-aware paginators expose total()/lastPage().
+        if (method_exists($rows, 'lastPage')
+            && $rows->total() > 0
+            && $rows->currentPage() > $rows->lastPage()
+        ) {
+            $this->setPage($rows->lastPage());
+            $rows = $this->applyPagination($this->buildRowsQuery());
+        }
+
+        return $rows;
+    }
+
+    protected function buildRowsQuery(): Builder
+    {
         $query = $this->query();
         $query = $this->applySearch($query);
         $query = $this->applyFilters($query);
         $query = $this->applySorts($query);
-        $query = $this->applyEagerLoading($query);
 
-        return $this->applyPagination($query);
+        return $this->applyEagerLoading($query);
     }
 
     /**
@@ -322,14 +351,18 @@ abstract class KoreDataTable extends Component
 
         $selectionEnabled = $this->isSelectionEnabled();
         $rowIds = [];
+        $total = 0;
 
         if ($selectionEnabled && $rows !== null) {
             $rowIds = $this->getRowIds($rows);
         }
 
-        // Keep Alpine rowIds + total in sync (x-data is not re-evaluated during morph)
         if ($selectionEnabled) {
             $total = ($rows !== null && method_exists($rows, 'total')) ? $rows->total() : count($rowIds);
+
+            // Keep Alpine rowIds in sync for keyboard-nav and shift-range
+            // (x-data is not re-evaluated during morph). The selection state
+            // itself is now server-side and persists via the snapshot.
             $this->dispatch('kore:datatable-rows-updated', rowIds: $rowIds, total: $total);
         }
 
@@ -356,6 +389,7 @@ abstract class KoreDataTable extends Component
             'selectionEnabled'    => $selectionEnabled,
             'primaryKey'          => $this->getPrimaryKey(),
             'rowIds'              => $rowIds,
+            'total'               => $total,
             'columnSelectEnabled' => $columnSelectEnabled,
             'allColumns'          => $allColumns,
             'deselectedColumns'   => $this->deselectedColumns,

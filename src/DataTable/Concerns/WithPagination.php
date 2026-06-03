@@ -13,15 +13,24 @@ trait WithPagination
 
     public function updatedPerPage(): void
     {
+        $this->normalizePerPage();
+        $this->resetPage();
+    }
+
+    /**
+     * Coerce perPage to an allowed value. Needed both when the user changes the
+     * select and when perPage is restored from the URL (?per_page=), where an
+     * arbitrary/out-of-range value could otherwise load far too many rows.
+     */
+    public function normalizePerPage(): void
+    {
         $options = $this->getPerPageOptions();
 
         if (empty($options)) {
             $this->perPage = 25;
-        } elseif (! in_array($this->perPage, $options)) {
+        } elseif (! in_array($this->perPage, $options, true)) {
             $this->perPage = $options[0];
         }
-
-        $this->resetPage();
     }
 
     public function getPerPageOptions(): array

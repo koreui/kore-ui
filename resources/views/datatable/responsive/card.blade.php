@@ -16,8 +16,9 @@
                             type="checkbox"
                             aria-label="Seleccionar fila"
                             value="{{ data_get($row, $primaryKey) }}"
-                            x-bind:checked="isSelected('{{ data_get($row, $primaryKey) }}')"
-                            x-on:change="toggleRow('{{ data_get($row, $primaryKey) }}')"
+                            @checked($this->isRowSelected(data_get($row, $primaryKey)))
+                            data-checked="{{ $this->isRowSelected(data_get($row, $primaryKey)) ? '1' : '0' }}"
+                            x-on:click="onRowCheckboxClick('{{ data_get($row, $primaryKey) }}', $event)"
                             class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
                         />
                     @endif

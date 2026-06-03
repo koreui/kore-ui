@@ -1,36 +1,38 @@
 @php
     $bulkActions = $bulkActions ?? [];
     $translations = $translations ?? [];
+    $rowIds = $rowIds ?? [];
+    $total = $total ?? 0;
 @endphp
 
-@if(count($bulkActions) > 0)
-    <div x-show="hasSelection" x-cloak wire:ignore.self class="flex flex-wrap items-center gap-2">
+@if(count($bulkActions) > 0 && $this->hasSelection())
+    <div class="flex flex-wrap items-center gap-2 px-4 py-2 border-t border-kore-border bg-kore-primary/5">
         <span class="text-sm text-kore-muted-fg">
-            <span x-text="(selectAllMatching ? totalRows : selectedCount) + ' {{ $translations['selected'] ?? 'seleccionado(s)' }}'"></span>
-            <template x-if="!selectAllMatching && hasOffPageSelection">
+            <span>{{ $this->selectAllMatching ? $total : count($this->selected) }} {{ $translations['selected'] ?? 'seleccionado(s)' }}</span>
+            @if(! $this->selectAllMatching && $this->hasOffPageSelection($rowIds))
                 <span class="text-kore-muted-fg/70">{{ $translations['incl_other_pages'] ?? '(incl. otras páginas)' }}</span>
-            </template>
+            @endif
         </span>
 
         {{-- Select all rows matching the current filters --}}
-        <template x-if="canSelectAllMatching">
+        @if($this->canSelectAllMatching($rowIds, $total))
             <button
                 type="button"
-                x-on:click="enableSelectAllMatching()"
+                wire:click="enableSelectAllMatching"
                 class="text-sm font-medium text-kore-primary hover:underline"
             >
-                {{ $translations['select_all_matching'] ?? 'Seleccionar los' }} <span x-text="totalRows"></span>
+                {{ $translations['select_all_matching'] ?? 'Seleccionar los' }} {{ $total }}
             </button>
-        </template>
-        <template x-if="selectAllMatching">
+        @endif
+        @if($this->selectAllMatching)
             <button
                 type="button"
-                x-on:click="clearSelection()"
+                wire:click="clearSelection"
                 class="text-sm font-medium text-kore-primary hover:underline"
             >
                 {{ $translations['clear_selection'] ?? 'Limpiar selección' }}
             </button>
-        </template>
+        @endif
 
         <x-kore::dropdown width="240">
             <x-slot:trigger>
@@ -50,7 +52,8 @@
 
                 <button
                     type="button"
-                    x-on:click="runBulk('{{ $action->getIdentifier() }}'); close()"
+                    wire:click="runBulk('{{ $action->getIdentifier() }}')"
+                    x-on:click="close()"
                     class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left transition-colors text-kore-fg hover:bg-kore-muted focus:bg-kore-muted focus:outline-none"
                     role="menuitem"
                 >

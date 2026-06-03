@@ -32,6 +32,12 @@ trait WithFiltering
     {
         $this->resetPage();
 
+        // Changing the data universe invalidates "select all matching" (its
+        // scope changed); explicit row IDs are kept.
+        if (property_exists($this, 'selectAllMatching')) {
+            $this->selectAllMatching = false;
+        }
+
         // Deactivate preset when user changes filters manually
         if (property_exists($this, 'activePreset')) {
             $this->activePreset = null;
@@ -63,6 +69,10 @@ trait WithFiltering
     {
         $this->filters = [];
         $this->resetPage();
+
+        if (property_exists($this, 'selectAllMatching')) {
+            $this->selectAllMatching = false;
+        }
     }
 
     /**
