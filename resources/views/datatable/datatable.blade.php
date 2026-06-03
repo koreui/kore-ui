@@ -139,8 +139,9 @@
             data-table-wrapper
             class="relative overflow-x-auto"
         >
-            {{-- Loading overlay (z-30 keeps it above the sticky header; .delay avoids flicker on fast requests) --}}
-            <div wire:loading.delay.flex class="absolute inset-0 z-30 items-center justify-center bg-kore-surface/80 backdrop-blur-[1px]">
+            {{-- Loading overlay: `flex` is a fixed class (centers the spinner); wire:loading.delay
+                 toggles display:none ↔ flex and avoids flicker on fast requests. z-30 keeps it above the sticky header. --}}
+            <div wire:loading.delay class="absolute inset-0 z-30 flex items-center justify-center bg-kore-surface/80 backdrop-blur-[1px]">
                 <x-kore::loading size="md" />
             </div>
 
