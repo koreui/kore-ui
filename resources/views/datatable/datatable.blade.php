@@ -314,9 +314,13 @@
                                             }
                                         }
 
-                                        // Copyable/clickable only when NOT editable
-                                        $showCopyable = !$isEditableCell && $column->isCopyable();
-                                        $showClickable = !$isEditableCell && $column->isClickable();
+                                        // Copyable/clickable only when NOT editable. Columns that render
+                                        // their own interactive markup (e.g. ColorColumn's own copy button)
+                                        // must NOT be wrapped in the generic copy/link <button> — nested
+                                        // <button>s break the DOM and the inner Alpine scope.
+                                        $selfRendering = in_array($column->getType(), ['color', 'component', 'action'], true);
+                                        $showCopyable = !$isEditableCell && !$selfRendering && $column->isCopyable();
+                                        $showClickable = !$isEditableCell && !$selfRendering && $column->isClickable();
 
                                         // maxWidth → truncate with ellipsis (full value exposed via title)
                                         $cellWidthStyle = $column->getMaxWidth() ? "max-width: {$column->getMaxWidth()}px;" : '';
