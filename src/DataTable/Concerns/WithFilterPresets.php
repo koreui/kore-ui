@@ -3,10 +3,22 @@
 namespace KoreUi\DataTable\Concerns;
 
 use KoreUi\DataTable\Presets\FilterPreset;
+use Livewire\Attributes\Locked;
 
 trait WithFilterPresets
 {
     public ?string $activePreset = null;
+
+    /**
+     * Cached preset counts. Computed once per component lifetime instead of on
+     * every render/morph, and invalidated when the data changes (bulk actions,
+     * inline edits). #[Locked] so the client cannot tamper with the values.
+     */
+    #[Locked]
+    public array $presetCountsCache = [];
+
+    #[Locked]
+    public bool $presetCountsLoaded = false;
 
     /**
      * Override in subclass to define filter presets.
@@ -78,6 +90,10 @@ trait WithFilterPresets
 
     public function getPresetCounts(): array
     {
+        if ($this->presetCountsLoaded) {
+            return $this->presetCountsCache;
+        }
+
         $counts = [];
 
         foreach ($this->filterPresets() as $preset) {
@@ -86,7 +102,20 @@ trait WithFilterPresets
             }
         }
 
+        $this->presetCountsCache = $counts;
+        $this->presetCountsLoaded = true;
+
         return $counts;
+    }
+
+    /**
+     * Force preset counts to be recomputed on the next render. Call after any
+     * operation that mutates the underlying data.
+     */
+    public function invalidatePresetCounts(): void
+    {
+        $this->presetCountsCache = [];
+        $this->presetCountsLoaded = false;
     }
 
     public function findPreset(string $identifier): ?FilterPreset

@@ -21,9 +21,9 @@ class CsvExporter implements Exporter
         $this->includeBom = $includeBom;
     }
 
-    public function export(Builder $query, array $columns, string $fileName): StreamedResponse
+    public function export(Builder $query, array $columns, string $fileName, int $maxRows = 0): StreamedResponse
     {
-        return response()->streamDownload(function () use ($query, $columns) {
+        return response()->streamDownload(function () use ($query, $columns, $maxRows) {
             $handle = fopen('php://output', 'w');
 
             // UTF-8 BOM for Excel compatibility
@@ -35,9 +35,15 @@ class CsvExporter implements Exporter
             $headers = array_map(fn ($col) => $col->getLabel(), $columns);
             fputcsv($handle, $headers, $this->delimiter, $this->enclosure);
 
-            // Data rows
-            $query->chunk(1000, function ($rows) use ($handle, $columns) {
+            // Data rows. A counter enforces the cap because chunk()'s forPage()
+            // overrides any ->limit() set on the query before chunking.
+            $written = 0;
+            $query->chunk(1000, function ($rows) use ($handle, $columns, $maxRows, &$written) {
                 foreach ($rows as $row) {
+                    if ($maxRows > 0 && $written >= $maxRows) {
+                        return false;
+                    }
+
                     $data = [];
 
                     foreach ($columns as $column) {
@@ -55,6 +61,7 @@ class CsvExporter implements Exporter
                     }
 
                     fputcsv($handle, $data, $this->delimiter, $this->enclosure);
+                    $written++;
                 }
             });
 

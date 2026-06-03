@@ -21,6 +21,8 @@ class Column
 
     protected ?int $minWidth = null;
 
+    protected ?int $maxWidth = null;
+
     protected string $align = 'left';
 
     protected bool $wrap = true;
@@ -62,6 +64,17 @@ class Column
     public function minWidth(int $minWidth): static
     {
         $this->minWidth = $minWidth;
+
+        return $this;
+    }
+
+    /**
+     * Cap the column width and truncate overflowing content with an ellipsis
+     * (the full value is exposed via the cell's title attribute).
+     */
+    public function maxWidth(int $maxWidth): static
+    {
+        $this->maxWidth = $maxWidth;
 
         return $this;
     }
@@ -176,6 +189,11 @@ class Column
         return $this->minWidth;
     }
 
+    public function getMaxWidth(): ?int
+    {
+        return $this->maxWidth;
+    }
+
     public function getAlign(): string
     {
         return $this->align;
@@ -214,6 +232,7 @@ class Column
             'html'       => $this->html,
             'width'      => $this->width,
             'minWidth'   => $this->minWidth,
+            'maxWidth'   => $this->maxWidth,
             'aggregation' => $this->aggregationType,
             'editable'   => $this->isEditable(),
             'copyable'   => $this->copyable,

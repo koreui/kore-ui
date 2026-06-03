@@ -1,7 +1,55 @@
+// --- Column pinning: measure real widths and apply cumulative sticky offsets ---
+// PHP sets initial offsets assuming a fixed width; this corrects them against
+// the actual rendered widths so multiple pinned columns line up exactly.
+function recalcPinnedOffsets(root) {
+    if (!root) return;
+    const tables = Array.from(root.querySelectorAll('table'));
+    const table = tables.find(t => t.querySelector('[data-pinned]'));
+    if (!table || table.getBoundingClientRect().width === 0) return;
+
+    const headerCells = Array.from(table.querySelectorAll('thead th[data-pinned]'));
+
+    let leftOffset = 0;
+    headerCells.filter(th => th.dataset.pinned === 'left').forEach(th => {
+        const idx = th.dataset.colIndex;
+        const width = th.getBoundingClientRect().width;
+        table.querySelectorAll(`[data-col-index="${idx}"][data-pinned="left"]`)
+            .forEach(cell => { cell.style.left = leftOffset + 'px'; });
+        leftOffset += width;
+    });
+
+    let rightOffset = 0;
+    headerCells.filter(th => th.dataset.pinned === 'right').reverse().forEach(th => {
+        const idx = th.dataset.colIndex;
+        const width = th.getBoundingClientRect().width;
+        table.querySelectorAll(`[data-col-index="${idx}"][data-pinned="right"]`)
+            .forEach(cell => { cell.style.right = rightOffset + 'px'; });
+        rightOffset += width;
+    });
+}
+
+// Register a single global Livewire hook (not one per component) so pinned
+// offsets are recomputed after every morph, since PHP re-applies fixed offsets.
+let pinnedMorphHookRegistered = false;
+function ensurePinnedMorphHook() {
+    if (pinnedMorphHookRegistered) return;
+    if (typeof window === 'undefined' || !window.Livewire || !window.Livewire.hook) return;
+    pinnedMorphHookRegistered = true;
+    window.Livewire.hook('morphed', ({ el }) => {
+        document.querySelectorAll('[data-kore-datatable]').forEach(root => {
+            if (root === el || root.contains(el) || el.contains(root)) {
+                recalcPinnedOffsets(root);
+            }
+        });
+    });
+}
+
 export default (config = {}) => ({
     density: config.density || 'normal',
     selected: [],
+    selectAllMatching: false,
     rowIds: config.rowIds || [],
+    totalRows: config.totalRows || 0,
     slideDownOpen: config.slideDownOpen ?? false,
     responsiveMode: config.responsiveMode || 'scroll',
     responsiveBreakpoint: config.responsiveBreakpoint || 768,
@@ -38,6 +86,13 @@ export default (config = {}) => ({
     },
 
     toggleRow(id) {
+        // Manually toggling a row exits "select all matching" mode and falls
+        // back to an explicit selection of the current page.
+        if (this.selectAllMatching) {
+            this.selectAllMatching = false;
+            this.selected = [...this.rowIds];
+        }
+
         const stringId = String(id);
         const index = this.selected.indexOf(stringId);
 
@@ -49,6 +104,11 @@ export default (config = {}) => ({
     },
 
     toggleAll() {
+        if (this.selectAllMatching) {
+            this.clearSelection();
+            return;
+        }
+
         if (this.isAllSelected) {
             this.selected = this.selected.filter(id => !this.rowIds.includes(id));
         } else {
@@ -58,16 +118,17 @@ export default (config = {}) => ({
     },
 
     isSelected(id) {
-        return this.selected.includes(String(id));
+        return this.selectAllMatching || this.selected.includes(String(id));
     },
 
     get isAllSelected() {
+        if (this.selectAllMatching) return true;
         if (this.rowIds.length === 0) return false;
         return this.rowIds.every(id => this.selected.includes(id));
     },
 
     get isIndeterminate() {
-        if (this.rowIds.length === 0) return false;
+        if (this.selectAllMatching || this.rowIds.length === 0) return false;
         const someSelected = this.rowIds.some(id => this.selected.includes(id));
         return someSelected && !this.isAllSelected;
     },
@@ -77,11 +138,39 @@ export default (config = {}) => ({
     },
 
     get hasSelection() {
-        return this.selected.length > 0;
+        return this.selected.length > 0 || this.selectAllMatching;
+    },
+
+    // True when the selection includes rows that are not on the current page.
+    get hasOffPageSelection() {
+        return this.selected.some(id => !this.rowIds.includes(String(id)));
+    },
+
+    // Offer "select all matching" once the whole page is selected and more
+    // rows match the current filters beyond this page.
+    get canSelectAllMatching() {
+        return !this.selectAllMatching
+            && this.isAllSelected
+            && this.totalRows > this.selectedCount;
+    },
+
+    enableSelectAllMatching() {
+        this.selectAllMatching = true;
+    },
+
+    // Dispatch a bulk action. In "all matching" mode the backend resolves the
+    // ids from the filtered query instead of the client-provided list.
+    runBulk(identifier) {
+        if (this.selectAllMatching) {
+            this.$wire.executeBulkActionMatching(identifier);
+        } else {
+            this.$wire.executeBulkAction(identifier, this.selected);
+        }
     },
 
     clearSelection() {
         this.selected = [];
+        this.selectAllMatching = false;
     },
 
     toggleExpand(id) {
@@ -217,6 +306,10 @@ export default (config = {}) => ({
     // --- Lifecycle ---
 
     init() {
+        // Normalize ids to strings once so every selection comparison is
+        // type-consistent regardless of the model's key type.
+        this.rowIds = (this.rowIds || []).map(String);
+
         this._onKeydown = (e) => {
             // Skip keyboard nav when any input is focused
             if (this._isInputFocused()) {
@@ -288,29 +381,36 @@ export default (config = {}) => ({
 
         document.addEventListener('keydown', this._onKeydown);
 
-        // Responsive: check breakpoint on init and resize.
-        // Throttle to one check per animation frame to avoid layout thrashing
-        // while the window is being dragged.
+        // Breakpoint check + pinned-column offset recalculation on resize,
+        // throttled to one pass per animation frame to avoid layout thrashing.
         if (this.responsiveMode !== 'scroll') {
             this.checkBreakpoint();
-            let resizeScheduled = false;
-            this._onResize = () => {
-                if (resizeScheduled) return;
-                resizeScheduled = true;
-                requestAnimationFrame(() => {
-                    resizeScheduled = false;
-                    this.checkBreakpoint();
-                });
-            };
-            window.addEventListener('resize', this._onResize);
         }
 
+        let resizeScheduled = false;
+        this._onResize = () => {
+            if (resizeScheduled) return;
+            resizeScheduled = true;
+            requestAnimationFrame(() => {
+                resizeScheduled = false;
+                if (this.responsiveMode !== 'scroll') this.checkBreakpoint();
+                recalcPinnedOffsets(this.$root);
+            });
+        };
+        window.addEventListener('resize', this._onResize);
+
+        // Pinned columns: correct offsets after first paint and after morphs.
+        this.$nextTick(() => recalcPinnedOffsets(this.$root));
+        ensurePinnedMorphHook();
+
         if (this.$wire) {
-            this.$wire.on('kore:datatable-rows-updated', ({ rowIds }) => {
-                this.rowIds = rowIds;
+            this.$wire.on('kore:datatable-rows-updated', ({ rowIds, total }) => {
+                this.rowIds = (rowIds || []).map(String);
+                if (typeof total !== 'undefined') this.totalRows = total;
                 this.activeRow = -1;
                 this.activeCell = -1;
                 this.keyboardMode = false;
+                this.$nextTick(() => recalcPinnedOffsets(this.$root));
             });
 
             this.$wire.on('kore:datatable-clear-selection', () => {

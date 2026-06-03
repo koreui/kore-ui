@@ -12,7 +12,8 @@
     };
 @endphp
 <div
-    x-data="KoreDataTable({ density: '{{ $density }}', rowIds: {{ Js::from($rowIds ?? []) }}, slideDownOpen: {{ ($filtersExpanded ?? false) ? 'true' : 'false' }}, responsiveMode: '{{ $responsiveMode ?? 'scroll' }}', responsiveBreakpoint: {{ $responsiveBreakpoint ?? 768 }} })"
+    data-kore-datatable
+    x-data="KoreDataTable({ density: '{{ $density }}', rowIds: {{ Js::from($rowIds ?? []) }}, slideDownOpen: {{ ($filtersExpanded ?? false) ? 'true' : 'false' }}, responsiveMode: '{{ $responsiveMode ?? 'scroll' }}', responsiveBreakpoint: {{ $responsiveBreakpoint ?? 768 }}, totalRows: {{ (int) ((($selectionEnabled ?? false) && ($rows ?? null) !== null && method_exists($rows, 'total')) ? $rows->total() : 0) }} })"
     class="rounded-kore-lg border border-kore-border bg-kore-surface overflow-hidden"
 >
     {{-- Slot: before-toolbar --}}
@@ -213,9 +214,14 @@
                                 if ($column->getMinWidth()) {
                                     $widthStyle .= "min-width: {$column->getMinWidth()}px;";
                                 }
+                                if ($column->getMaxWidth()) {
+                                    $widthStyle .= "max-width: {$column->getMaxWidth()}px;";
+                                }
+                                $truncateClass = $column->getMaxWidth() ? 'truncate' : 'whitespace-nowrap';
                             @endphp
                             <th
-                                class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} font-semibold text-kore-muted-fg uppercase tracking-wider whitespace-nowrap {{ $pinnedClasses }} {{ $headerDensityClass }}"
+                                @if($isPinned) data-pinned="{{ $pinnedSide }}" data-col-index="{{ $colIdx }}" @endif
+                                class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} font-semibold text-kore-muted-fg uppercase tracking-wider {{ $truncateClass }} {{ $pinnedClasses }} {{ $headerDensityClass }}"
                                 :class="headerDensityClasses"
                                 style="{{ $pinnedStyle }}{{ $widthStyle }}"
                             >
@@ -301,11 +307,18 @@
                                         // Copyable/clickable only when NOT editable
                                         $showCopyable = !$isEditableCell && $column->isCopyable();
                                         $showClickable = !$isEditableCell && $column->isClickable();
+
+                                        // maxWidth → truncate with ellipsis (full value exposed via title)
+                                        $cellWidthStyle = $column->getMaxWidth() ? "max-width: {$column->getMaxWidth()}px;" : '';
+                                        $cellTruncate = $column->getMaxWidth() ? 'truncate' : ($column->isWrap() ? '' : 'whitespace-nowrap');
+                                        $cellTitle = ($column->getMaxWidth() && $column->getType() === 'text' && ! $column->isHtml()) ? (string) $column->getValue($row) : null;
                                     @endphp
                                     <td
-                                        class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} text-kore-fg {{ $column->isWrap() ? '' : 'whitespace-nowrap' }} {{ $isEditableCell ? 'cursor-pointer' : '' }} {{ $pinnedClasses }} relative {{ $densityClass }}"
+                                        @if($isPinned) data-pinned="{{ $pinnedSide }}" data-col-index="{{ $colIdx }}" @endif
+                                        @if($cellTitle !== null) title="{{ $cellTitle }}" @endif
+                                        class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} text-kore-fg {{ $cellTruncate }} {{ $isEditableCell ? 'cursor-pointer' : '' }} {{ $pinnedClasses }} relative {{ $densityClass }}"
                                         :class="densityClasses"
-                                        @if($pinnedStyle) style="{{ $pinnedStyle }}" @endif
+                                        @if($pinnedStyle || $cellWidthStyle) style="{{ $pinnedStyle }}{{ $cellWidthStyle }}" @endif
                                     >
                                         @if($column->getType() === 'boolean' && $column->isEditable())
                                             {{-- Boolean editable: toggle with local state --}}
@@ -489,6 +502,7 @@
                                     }
                                 @endphp
                                 <td
+                                    @if($isPinned) data-pinned="{{ $pinnedSide }}" data-col-index="{{ $colIdx }}" @endif
                                     class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} font-semibold text-kore-fg {{ $pinnedClasses }} {{ $densityClass }}"
                                     :class="densityClasses"
                                     @if($pinnedStyle) style="{{ $pinnedStyle }}" @endif

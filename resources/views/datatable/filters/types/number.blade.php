@@ -5,5 +5,5 @@
     :min="$props['min']"
     :max="$props['max']"
     :step="$props['step']"
-    wire:model.live="filters.{{ $filter->getKey() }}"
+    wire:model.live.debounce.500ms="filters.{{ $filter->getKey() }}"
 />

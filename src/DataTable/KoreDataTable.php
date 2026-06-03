@@ -301,9 +301,10 @@ abstract class KoreDataTable extends Component
             $rowIds = $this->getRowIds($rows);
         }
 
-        // Keep Alpine rowIds in sync (x-data is not re-evaluated during morph)
+        // Keep Alpine rowIds + total in sync (x-data is not re-evaluated during morph)
         if ($selectionEnabled) {
-            $this->dispatch('kore:datatable-rows-updated', rowIds: $rowIds);
+            $total = ($rows !== null && method_exists($rows, 'total')) ? $rows->total() : count($rowIds);
+            $this->dispatch('kore:datatable-rows-updated', rowIds: $rowIds, total: $total);
         }
 
         $columnSelectEnabled = $this->isColumnSelectEnabled();

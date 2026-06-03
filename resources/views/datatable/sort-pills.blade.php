@@ -4,7 +4,7 @@
 @endphp
 
 @if(count($activeSorts) > 0)
-    <div class="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-kore-border bg-kore-muted/30">
+    <div class="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-kore-border bg-kore-muted/30 max-h-28 overflow-y-auto">
         <span class="text-xs text-kore-muted-fg font-medium">
             {{ $translations['sorted_by'] ?? 'Ordenado por' }}:
         </span>

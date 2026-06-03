@@ -4,8 +4,33 @@
 @endphp
 
 @if(count($bulkActions) > 0)
-    <div x-show="hasSelection" x-cloak wire:ignore.self class="flex items-center gap-2">
-        <span class="text-sm text-kore-muted-fg" x-text="selectedCount + ' {{ $translations['selected'] ?? 'seleccionado(s)' }}'"></span>
+    <div x-show="hasSelection" x-cloak wire:ignore.self class="flex flex-wrap items-center gap-2">
+        <span class="text-sm text-kore-muted-fg">
+            <span x-text="(selectAllMatching ? totalRows : selectedCount) + ' {{ $translations['selected'] ?? 'seleccionado(s)' }}'"></span>
+            <template x-if="!selectAllMatching && hasOffPageSelection">
+                <span class="text-kore-muted-fg/70">{{ $translations['incl_other_pages'] ?? '(incl. otras páginas)' }}</span>
+            </template>
+        </span>
+
+        {{-- Select all rows matching the current filters --}}
+        <template x-if="canSelectAllMatching">
+            <button
+                type="button"
+                x-on:click="enableSelectAllMatching()"
+                class="text-sm font-medium text-kore-primary hover:underline"
+            >
+                {{ $translations['select_all_matching'] ?? 'Seleccionar los' }} <span x-text="totalRows"></span>
+            </button>
+        </template>
+        <template x-if="selectAllMatching">
+            <button
+                type="button"
+                x-on:click="clearSelection()"
+                class="text-sm font-medium text-kore-primary hover:underline"
+            >
+                {{ $translations['clear_selection'] ?? 'Limpiar selección' }}
+            </button>
+        </template>
 
         <x-kore::dropdown width="240">
             <x-slot:trigger>
@@ -25,7 +50,7 @@
 
                 <button
                     type="button"
-                    x-on:click="$wire.executeBulkAction('{{ $action->getIdentifier() }}', selected); close()"
+                    x-on:click="runBulk('{{ $action->getIdentifier() }}'); close()"
                     class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left transition-colors text-kore-fg hover:bg-kore-muted focus:bg-kore-muted focus:outline-none"
                     role="menuitem"
                 >

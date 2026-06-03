@@ -77,8 +77,6 @@ trait WithExport
         $primaryKey = method_exists($this, 'getPrimaryKey') ? $this->getPrimaryKey() : 'id';
         $query = $query->orderBy($query->getModel()->qualifyColumn($primaryKey));
 
-        $query = $query->limit($this->exportMaxRows);
-
         $columns = $this->getExportColumns();
 
         $exporter = $this->resolveExporter($format);
@@ -86,7 +84,8 @@ trait WithExport
         $fileName = $this->exportFileName
             ?? class_basename($this) . '_' . now()->format('Y-m-d_His') . '.' . $exporter->extension();
 
-        return $exporter->export($query, $columns, $fileName);
+        // maxRows is enforced inside the exporter: chunk() ignores ->limit().
+        return $exporter->export($query, $columns, $fileName, $this->exportMaxRows);
     }
 
     protected function getExportColumns(): array

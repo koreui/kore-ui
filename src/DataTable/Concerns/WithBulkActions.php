@@ -49,6 +49,34 @@ trait WithBulkActions
     }
 
     /**
+     * Execute a bulk action against EVERY row matching the current search/filters
+     * (the "select all matching" mode), resolving ids server-side instead of
+     * trusting the client-provided list.
+     */
+    public function executeBulkActionMatching(string $identifier): void
+    {
+        $this->executeBulkAction($identifier, $this->getAllMatchingIds());
+    }
+
+    /**
+     * Primary keys of every row matching the current search/filters.
+     *
+     * @return array<int, string>
+     */
+    protected function getAllMatchingIds(): array
+    {
+        $query = $this->query();
+        $query = $this->applySearch($query);
+        $query = $this->applyFilters($query);
+
+        $primaryKey = $this->getPrimaryKey();
+
+        return $query->pluck($query->getModel()->qualifyColumn($primaryKey))
+            ->map(fn ($id) => (string) $id)
+            ->all();
+    }
+
+    /**
      * Called after user confirms the dialog.
      */
     public function confirmBulkAction(string $identifier, array $selectedIds): void
@@ -74,6 +102,11 @@ trait WithBulkActions
             event(new BulkActionExecuted(static::class, $identifier, $selectedIds, count($selectedIds)));
         } finally {
             $this->clearSelected();
+
+            // Bulk actions may change row counts → refresh preset badges.
+            if (method_exists($this, 'invalidatePresetCounts')) {
+                $this->invalidatePresetCounts();
+            }
         }
     }
 

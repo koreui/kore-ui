@@ -79,6 +79,11 @@ trait WithInlineEditing
 
         event(new RowUpdated(static::class, $rowId, $field, $value, $result['old']));
 
+        // An edit may move a row in/out of a preset → refresh preset badges.
+        if (method_exists($this, 'invalidatePresetCounts')) {
+            $this->invalidatePresetCounts();
+        }
+
         $this->dispatch('kore:datatable-edit-success', [
             'rowId' => $rowId,
             'field' => $field,
