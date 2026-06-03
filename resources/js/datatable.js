@@ -35,12 +35,19 @@ function ensurePinnedMorphHook() {
     if (pinnedMorphHookRegistered) return;
     if (typeof window === 'undefined' || !window.Livewire || !window.Livewire.hook) return;
     pinnedMorphHookRegistered = true;
-    window.Livewire.hook('morphed', ({ el }) => {
-        document.querySelectorAll('[data-kore-datatable]').forEach(root => {
-            if (root === el || root.contains(el) || el.contains(root)) {
-                recalcPinnedOffsets(root);
-            }
-        });
+    // Wrapped defensively: a throw here would break Livewire's morph cycle and
+    // freeze wire:loading. el may be undefined depending on the Livewire build.
+    window.Livewire.hook('morphed', (payload) => {
+        try {
+            const el = payload && payload.el;
+            document.querySelectorAll('[data-kore-datatable]').forEach(root => {
+                const related = !el || root === el ||
+                    (typeof el.contains === 'function' && (root.contains(el) || el.contains(root)));
+                if (related) recalcPinnedOffsets(root);
+            });
+        } catch (e) {
+            // pinning recalculation must never interfere with morphs
+        }
     });
 }
 
