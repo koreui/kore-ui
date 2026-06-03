@@ -20,13 +20,7 @@ trait WithSorting
 
     public function sortBy(string $column): void
     {
-        $sortableFields = collect($this->columns())
-            ->filter(fn ($col) => $col->isSortable())
-            ->map(fn ($col) => $col->getSortField())
-            ->values()
-            ->all();
-
-        if (! in_array($column, $sortableFields)) {
+        if (! in_array($column, $this->getSortableFields(), true)) {
             return;
         }
 
@@ -77,7 +71,7 @@ trait WithSorting
 
     public function getActiveSorts(): array
     {
-        $activeSorts = array_filter($this->sorts, fn ($dir) => $dir !== null);
+        $activeSorts = $this->getValidatedSorts();
 
         if (empty($activeSorts)) {
             return [];
@@ -103,9 +97,10 @@ trait WithSorting
 
     protected function applySorts(Builder $query): Builder
     {
-        $activeSorts = array_filter($this->sorts, fn ($dir) => $dir !== null);
+        $activeSorts = $this->getValidatedSorts();
 
         if (empty($activeSorts)) {
+            // Defaults are developer-controlled (#[Locked]) and trusted as-is.
             $activeSorts = $this->defaultSorts ?: (
                 $this->defaultSortColumn
                     ? [$this->defaultSortColumn => $this->defaultSortDirection]
@@ -114,9 +109,45 @@ trait WithSorting
         }
 
         foreach ($activeSorts as $column => $direction) {
-            $query->orderBy($column, $direction);
+            $query->orderBy($column, $this->normalizeSortDirection($direction));
         }
 
         return $query;
+    }
+
+    /**
+     * Filter the client-hydrated $sorts against the sortable-column whitelist.
+     *
+     * $sorts is a public property and can be tampered with from the browser,
+     * so it must never reach the query builder unvalidated (prevents ordering
+     * by arbitrary/unindexed columns and bypassing the declared whitelist).
+     */
+    protected function getValidatedSorts(): array
+    {
+        $sortableFields = $this->getSortableFields();
+
+        return collect($this->sorts)
+            ->filter(fn ($dir, $column) => $dir !== null && in_array($column, $sortableFields, true))
+            ->all();
+    }
+
+    /**
+     * The list of fields that columns have declared as sortable.
+     */
+    protected function getSortableFields(): array
+    {
+        return collect($this->columns())
+            ->filter(fn ($col) => $col->isSortable())
+            ->map(fn ($col) => $col->getSortField())
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Coerce any direction to a safe SQL keyword.
+     */
+    protected function normalizeSortDirection(mixed $direction): string
+    {
+        return strtolower((string) $direction) === 'desc' ? 'desc' : 'asc';
     }
 }

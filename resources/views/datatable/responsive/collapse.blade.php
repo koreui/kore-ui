@@ -16,6 +16,7 @@
                 <th class="w-10 text-center" :class="headerDensityClasses">
                     <input
                         type="checkbox"
+                        aria-label="Seleccionar todo"
                         x-bind:checked="isAllSelected"
                         x-bind:indeterminate="isIndeterminate"
                         x-on:change="toggleAll()"
@@ -85,6 +86,7 @@
                     <td class="w-10 text-center" :class="densityClasses">
                         <input
                             type="checkbox"
+                            aria-label="Seleccionar fila"
                             value="{{ $rowId }}"
                             x-bind:checked="isSelected('{{ $rowId }}')"
                             x-on:change="toggleRow('{{ $rowId }}')"

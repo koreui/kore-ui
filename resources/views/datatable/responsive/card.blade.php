@@ -14,6 +14,7 @@
                     @if($selectionEnabled)
                         <input
                             type="checkbox"
+                            aria-label="Seleccionar fila"
                             value="{{ data_get($row, $primaryKey) }}"
                             x-bind:checked="isSelected('{{ data_get($row, $primaryKey) }}')"
                             x-on:change="toggleRow('{{ data_get($row, $primaryKey) }}')"

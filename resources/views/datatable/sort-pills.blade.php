@@ -20,6 +20,7 @@
                 <button
                     type="button"
                     wire:click="removeSortBy('{{ $sort['field'] }}')"
+                    aria-label="Quitar orden {{ $sort['label'] }}"
                     class="ml-0.5 inline-flex items-center justify-center size-3.5 rounded-full hover:bg-kore-info/20 transition-colors"
                 >
                     <x-lucide-x class="size-2.5" />

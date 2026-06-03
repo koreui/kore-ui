@@ -137,8 +137,8 @@
             data-table-wrapper
             class="relative overflow-x-auto"
         >
-            {{-- Loading overlay --}}
-            <div wire:loading.flex class="absolute inset-0 z-10 items-center justify-center bg-kore-surface/80 backdrop-blur-[1px]">
+            {{-- Loading overlay (z-30 keeps it above the sticky header; .delay avoids flicker on fast requests) --}}
+            <div wire:loading.delay.flex class="absolute inset-0 z-30 items-center justify-center bg-kore-surface/80 backdrop-blur-[1px]">
                 <x-kore::loading size="md" />
             </div>
 
@@ -168,13 +168,14 @@
             @endif
 
             <table @if(($responsiveMode ?? 'scroll') !== 'scroll') x-show="!isMobileView" @endif class="min-w-full divide-y divide-kore-border">
-                {{-- Header --}}
-                <thead class="bg-kore-muted/50">
+                {{-- Header (sticky: stays visible on vertical scroll; opaque bg so rows don't bleed through) --}}
+                <thead class="bg-kore-muted sticky top-0 z-20">
                     <tr>
                         @if($selectionEnabled ?? false)
                             <th class="w-10 text-center {{ $headerDensityClass }}" :class="headerDensityClasses">
                                 <input
                                     type="checkbox"
+                                    aria-label="Seleccionar todo"
                                     x-bind:checked="isAllSelected"
                                     x-bind:indeterminate="isIndeterminate"
                                     x-on:change="toggleAll()"
@@ -265,6 +266,7 @@
                                     <td class="w-10 text-center {{ $densityClass }}" :class="densityClasses">
                                         <input
                                             type="checkbox"
+                                            aria-label="Seleccionar fila"
                                             value="{{ $rowId }}"
                                             x-bind:checked="isSelected('{{ $rowId }}')"
                                             x-on:change="toggleRow('{{ $rowId }}')"

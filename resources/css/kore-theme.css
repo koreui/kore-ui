@@ -92,6 +92,15 @@
   }
 }
 
+/* Hide scrollbars while keeping the element scrollable (e.g. preset/pill rails) */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Toast progress bar animation */
 @keyframes kore-toast-countdown {
   from { transform: scaleX(1); }

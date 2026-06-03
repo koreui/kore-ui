@@ -11,6 +11,7 @@
                 <button
                     type="button"
                     wire:click="resetFilter('{{ $filter['key'] }}')"
+                    aria-label="Quitar filtro {{ $filter['pill'] }}"
                     class="ml-0.5 inline-flex items-center justify-center size-3.5 rounded-full hover:bg-kore-primary/20 transition-colors"
                 >
                     <x-lucide-x class="size-2.5" />

@@ -37,7 +37,13 @@ trait WithSearch
             return $query;
         }
 
-        $query->where(function (Builder $query) use ($columns, $term) {
+        // Escape LIKE wildcards so a literal "%" or "_" is matched as text
+        // instead of acting as a wildcard (which forces a full table scan).
+        // The ESCAPE character is set explicitly in whereLike() so behaviour is
+        // identical across MySQL/PostgreSQL/SQLite. Callbacks get the raw term.
+        $pattern = '%' . addcslashes($term, '%_\\') . '%';
+
+        $query->where(function (Builder $query) use ($columns, $term, $pattern) {
             foreach ($columns as $column) {
                 $callback = $column->getSearchCallback();
 
@@ -57,21 +63,36 @@ trait WithSearch
                             continue;
                         }
 
-                        $query->orWhereHas($relation, function (Builder $q) use ($relationField, $term) {
-                            $q->where($relationField, 'like', "%{$term}%");
+                        $query->orWhereHas($relation, function (Builder $q) use ($relationField, $pattern) {
+                            $this->whereLike($q, $relationField, $pattern);
                         });
                     } else {
                         if (! preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
                             continue;
                         }
 
-                        $query->orWhere($field, 'like', "%{$term}%");
+                        $this->whereLike($query, $field, $pattern, true);
                     }
                 }
             }
         });
 
         return $query;
+    }
+
+    /**
+     * Add a LIKE clause with an explicit ESCAPE character so escaped wildcards
+     * behave consistently across database drivers. $field must already be
+     * validated against /^[a-zA-Z0-9_]+$/ by the caller.
+     */
+    protected function whereLike(Builder $query, string $field, string $pattern, bool $or = false): void
+    {
+        $column = $query->getQuery()->getGrammar()->wrap($field);
+        $sql    = "{$column} LIKE ? ESCAPE '\\'";
+
+        $or
+            ? $query->orWhereRaw($sql, [$pattern])
+            : $query->whereRaw($sql, [$pattern]);
     }
 
     protected function parseRelationField(string $field): array

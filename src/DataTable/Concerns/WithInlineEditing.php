@@ -37,24 +37,47 @@ trait WithInlineEditing
             }
         }
 
-        $model      = $this->query()->getModel();
         $primaryKey = $this->getPrimaryKey();
         $callback   = $column->getEditableCallback();
 
-        $oldValue = DB::transaction(function () use ($model, $primaryKey, $rowId, $field, $value, $callback) {
-            $record = $model::where($primaryKey, $rowId)->lockForUpdate()->first();
-            $old    = data_get($record, $field);
+        $result = DB::transaction(function () use ($primaryKey, $rowId, $field, $value, $callback) {
+            // Resolve through query() so row-level scopes/authorization apply.
+            // Using the model statically would let any client edit records
+            // outside the table's authorized dataset (IDOR).
+            $record = $this->query()
+                ->where($primaryKey, $rowId)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $record) {
+                return ['found' => false, 'old' => null];
+            }
+
+            $old = data_get($record, $field);
 
             if ($callback) {
                 $callback($rowId, $field, $value);
             } else {
-                $record?->update([$field => $value]);
+                $record->update([$field => $value]);
             }
 
-            return $old;
+            return ['found' => true, 'old' => $old];
         });
 
-        event(new RowUpdated(static::class, $rowId, $field, $value, $oldValue));
+        if (! $result['found']) {
+            $this->dispatch('kore:datatable-edit-error', [
+                'rowId' => $rowId,
+                'field' => $field,
+                'error' => config(
+                    'kore-ui.datatable.translations.edit_unauthorized',
+                    'No se pudo actualizar el registro.'
+                ),
+            ]);
+
+            return;
+        }
+
+        event(new RowUpdated(static::class, $rowId, $field, $value, $result['old']));
 
         $this->dispatch('kore:datatable-edit-success', [
             'rowId' => $rowId,

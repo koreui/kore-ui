@@ -288,10 +288,20 @@ export default (config = {}) => ({
 
         document.addEventListener('keydown', this._onKeydown);
 
-        // Responsive: check breakpoint on init and resize
+        // Responsive: check breakpoint on init and resize.
+        // Throttle to one check per animation frame to avoid layout thrashing
+        // while the window is being dragged.
         if (this.responsiveMode !== 'scroll') {
             this.checkBreakpoint();
-            this._onResize = () => this.checkBreakpoint();
+            let resizeScheduled = false;
+            this._onResize = () => {
+                if (resizeScheduled) return;
+                resizeScheduled = true;
+                requestAnimationFrame(() => {
+                    resizeScheduled = false;
+                    this.checkBreakpoint();
+                });
+            };
             window.addEventListener('resize', this._onResize);
         }
 

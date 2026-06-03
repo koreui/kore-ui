@@ -70,6 +70,13 @@ trait WithExport
         $query = $this->applySearch($query);
         $query = $this->applyFilters($query);
         $query = $this->applySorts($query);
+
+        // chunk() pages the result set; without a deterministic, unique order a
+        // non-unique sort column can skip or duplicate rows across pages. Append
+        // the primary key as a stable tiebreaker.
+        $primaryKey = method_exists($this, 'getPrimaryKey') ? $this->getPrimaryKey() : 'id';
+        $query = $query->orderBy($query->getModel()->qualifyColumn($primaryKey));
+
         $query = $query->limit($this->exportMaxRows);
 
         $columns = $this->getExportColumns();

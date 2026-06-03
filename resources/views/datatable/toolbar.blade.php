@@ -45,7 +45,7 @@
         </div>
 
         {{-- Right: Bulk Actions + Export + Column Select + Per Page --}}
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto sm:justify-end">
             {{-- Bulk Actions --}}
             @include('kore::datatable.bulk-actions', [
                 'bulkActions'  => $bulkActions,

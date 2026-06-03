@@ -51,7 +51,7 @@ class CsvExporter implements Exporter
                             $value = '';
                         }
 
-                        $data[] = (string) $value;
+                        $data[] = $this->neutralizeFormula((string) $value);
                     }
 
                     fputcsv($handle, $data, $this->delimiter, $this->enclosure);
@@ -62,6 +62,20 @@ class CsvExporter implements Exporter
         }, $fileName, [
             'Content-Type' => $this->mimeType(),
         ]);
+    }
+
+    /**
+     * Prevent CSV/formula injection: values beginning with a formula trigger
+     * (= + - @ TAB CR) are executed by Excel/LibreOffice/Sheets when opened.
+     * Prefixing with a single quote forces them to be read as plain text.
+     */
+    protected function neutralizeFormula(string $value): string
+    {
+        if ($value !== '' && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+            return "'" . $value;
+        }
+
+        return $value;
     }
 
     public function extension(): string

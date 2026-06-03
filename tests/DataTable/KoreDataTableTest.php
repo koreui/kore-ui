@@ -104,8 +104,16 @@ it('shows empty state when search has no results', function () {
 
 it('changes per page', function () {
     Livewire::test(TestTable::class)
-        ->set('perPage', 2)
-        ->assertSet('perPage', 2);
+        ->set('perPage', 50)
+        ->assertSet('perPage', 50);
+});
+
+it('clamps an out-of-whitelist per page to the first option', function () {
+    // perPage is a public (client-hydratable) property; an out-of-range value
+    // is coerced to a safe option to avoid paginate(99999) memory blow-ups.
+    Livewire::test(TestTable::class)
+        ->set('perPage', 99999)
+        ->assertSet('perPage', 10);
 });
 
 it('renders sort indicators for sortable columns', function () {
