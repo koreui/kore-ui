@@ -29,6 +29,13 @@ abstract class KoreDataTable extends Component
 
     protected string $density = 'normal';
 
+    /**
+     * Max height (px) for the scrollable table region. When set, the table
+     * scrolls internally and the header becomes sticky within it (a sticky
+     * header cannot work while the wrapper relies on page scroll + overflow-x).
+     */
+    protected ?int $maxHeight = null;
+
     protected ?string $emptyText = null;
 
     protected ?string $emptyIcon = null;
@@ -136,6 +143,18 @@ abstract class KoreDataTable extends Component
     public function getDensity(): string
     {
         return $this->density;
+    }
+
+    public function getMaxHeight(): ?int
+    {
+        return $this->maxHeight;
+    }
+
+    public function setMaxHeight(?int $px): static
+    {
+        $this->maxHeight = $px;
+
+        return $this;
     }
 
     public function getEmptyText(): string
@@ -321,6 +340,7 @@ abstract class KoreDataTable extends Component
             'rows'                => $rows,
             'columns'             => $columns,
             'density'             => $this->getDensity(),
+            'maxHeight'           => $this->getMaxHeight(),
             'emptyText'           => $this->getEmptyText(),
             'emptyIcon'           => $this->getEmptyIcon(),
             'showingText'         => $rows !== null && method_exists($rows, 'total') ? $this->getShowingText($rows) : null,

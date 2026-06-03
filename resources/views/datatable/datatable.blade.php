@@ -135,9 +135,11 @@
         @endphp
 
         {{-- z-index scale: body 0 · pinned cells 1 · sticky thead 20 · loading overlay 30 · teleported dropdowns 50 · drawer 60 --}}
+        {{-- maxHeight → scroll vertical interno para que el header sticky funcione (overflow-x rompe el sticky relativo al viewport) --}}
         <div
             data-table-wrapper
-            class="relative overflow-x-auto"
+            class="relative {{ ($maxHeight ?? null) ? 'overflow-auto' : 'overflow-x-auto' }}"
+            @if($maxHeight ?? null) style="max-height: {{ $maxHeight }}px" @endif
         >
             {{-- Loading overlay: `flex` is a fixed class (centers the spinner); wire:loading.delay
                  toggles display:none ↔ flex and avoids flicker on fast requests. z-30 keeps it above the sticky header. --}}
