@@ -147,12 +147,43 @@ abstract class KoreDataTable extends Component
 
     protected function buildRowsQuery(): Builder
     {
-        $query = $this->query();
-        $query = $this->applySearch($query);
-        $query = $this->applyFilters($query);
-        $query = $this->applySorts($query);
+        return $this->applyEagerLoading(
+            $this->applySorts($this->baseFilteredQuery())
+        );
+    }
 
-        return $this->applyEagerLoading($query);
+    /**
+     * Base query with search + active filters applied, but WITHOUT sorting,
+     * eager loading or pagination. This is the single definition of "the
+     * current filtered set", shared by the rows, aggregations, export and
+     * "select all matching" so they can never drift out of sync.
+     */
+    protected function baseFilteredQuery(): Builder
+    {
+        return $this->applyFilters($this->applySearch($this->query()));
+    }
+
+    /**
+     * Reset pagination/selection after the data universe changes. Always jumps
+     * back to page 1 and drops "select all matching" (its scope just changed).
+     * When $deactivatePreset is true it also clears the active preset — used
+     * when the user edits search/filters by hand; the preset-driven flows
+     * (applyPreset/clearPreset) manage $activePreset themselves and pass false.
+     *
+     * The property_exists guards keep this safe if a table opts out of the
+     * selection/preset traits.
+     */
+    protected function resetDataScope(bool $deactivatePreset = false): void
+    {
+        $this->resetPage();
+
+        if (property_exists($this, 'selectAllMatching')) {
+            $this->selectAllMatching = false;
+        }
+
+        if ($deactivatePreset && property_exists($this, 'activePreset')) {
+            $this->activePreset = null;
+        }
     }
 
     /**
@@ -236,12 +267,8 @@ abstract class KoreDataTable extends Component
 
             // Custom callback: needs its own query (arbitrary logic)
             if ($column->getFooterCallback() !== null) {
-                $query = $this->query();
-                $query = $this->applySearch($query);
-                $query = $this->applyFilters($query);
-
                 $aggregations[$column->getField()] = [
-                    'value' => ($column->getFooterCallback())($query),
+                    'value' => ($column->getFooterCallback())($this->baseFilteredQuery()),
                     'label' => $column->getFooterLabel(),
                 ];
 
@@ -264,9 +291,7 @@ abstract class KoreDataTable extends Component
      */
     private function batchStandardAggregations(array $columns): array
     {
-        $baseQuery = $this->query();
-        $baseQuery = $this->applySearch($baseQuery);
-        $baseQuery = $this->applyFilters($baseQuery);
+        $baseQuery = $this->baseFilteredQuery();
 
         $selects = [];
 

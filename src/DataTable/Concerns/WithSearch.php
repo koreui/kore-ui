@@ -10,18 +10,9 @@ trait WithSearch
 
     public function updatedSearch(): void
     {
-        $this->resetPage();
-
-        // Changing the data universe invalidates "select all matching" (its
-        // scope changed); explicit row IDs are kept.
-        if (property_exists($this, 'selectAllMatching')) {
-            $this->selectAllMatching = false;
-        }
-
-        // Deactivate preset when user changes search manually
-        if (property_exists($this, 'activePreset')) {
-            $this->activePreset = null;
-        }
+        // Editing search by hand changes the data universe: reset page +
+        // "select all matching", and drop any active preset.
+        $this->resetDataScope(deactivatePreset: true);
     }
 
     public function getSearchDebounce(): int

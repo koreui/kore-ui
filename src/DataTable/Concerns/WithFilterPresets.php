@@ -55,11 +55,8 @@ trait WithFilterPresets
             return;
         }
 
-        $this->resetPage();
-
-        if (property_exists($this, 'selectAllMatching')) {
-            $this->selectAllMatching = false;
-        }
+        // applyPresetState() already set $activePreset, so don't clear it here.
+        $this->resetDataScope();
     }
 
     /**
@@ -95,11 +92,7 @@ trait WithFilterPresets
         $this->filters = [];
         $this->sorts = [];
         $this->search = '';
-        $this->resetPage();
-
-        if (property_exists($this, 'selectAllMatching')) {
-            $this->selectAllMatching = false;
-        }
+        $this->resetDataScope();
     }
 
     /**

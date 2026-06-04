@@ -66,10 +66,7 @@ trait WithExport
 
     public function exportAs(string $format = 'csv'): StreamedResponse
     {
-        $query = $this->query();
-        $query = $this->applySearch($query);
-        $query = $this->applyFilters($query);
-        $query = $this->applySorts($query);
+        $query = $this->applySorts($this->baseFilteredQuery());
 
         // chunk() pages the result set; without a deterministic, unique order a
         // non-unique sort column can skip or duplicate rows across pages. Append

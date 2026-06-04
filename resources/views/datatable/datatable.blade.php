@@ -134,6 +134,32 @@
             }
 
             $hasPinnedColumns = !empty($pinnedLeftOffsets) || !empty($pinnedRightOffsets);
+
+            // Per-column sticky style + edge shadow, computed ONCE. The header,
+            // body and footer differ only in background color (muted vs surface),
+            // so they prepend that themselves; everything else is shared here.
+            // (A pinned column lives on a single side, so a cell is never both the
+            // last-left and first-right — the shadow assignment can't collide.)
+            $pinnedMeta = [];
+            foreach ($columns as $idx => $col) {
+                if (! $col->isPinned()) {
+                    continue;
+                }
+                $side = $col->getPinnedSide();
+                $style = '';
+                if ($side === 'left' && isset($pinnedLeftOffsets[$idx])) {
+                    $style = "position: sticky; left: {$pinnedLeftOffsets[$idx]}px; z-index: 1;";
+                } elseif ($side === 'right' && isset($pinnedRightOffsets[$idx])) {
+                    $style = "position: sticky; right: {$pinnedRightOffsets[$idx]}px; z-index: 1;";
+                }
+                $shadow = '';
+                if ($idx === $lastPinnedLeft) {
+                    $shadow = 'after:absolute after:top-0 after:right-0 after:bottom-0 after:w-px after:bg-kore-border after:shadow-[2px_0_4px_var(--kore-pin-shadow)]';
+                } elseif ($idx === $firstPinnedRight) {
+                    $shadow = 'before:absolute before:top-0 before:left-0 before:bottom-0 before:w-px before:bg-kore-border before:shadow-[-2px_0_4px_var(--kore-pin-shadow)]';
+                }
+                $pinnedMeta[$idx] = ['side' => $side, 'style' => $style, 'shadow' => $shadow];
+            }
         @endphp
 
         {{-- z-index scale: body 0 · pinned cells 1 · sticky thead 20 · loading overlay 30 · teleported dropdowns 50 · drawer 60 --}}
@@ -199,23 +225,8 @@
                             @php
                                 $isPinned = $column->isPinned();
                                 $pinnedSide = $column->getPinnedSide();
-                                $pinnedStyle = '';
-                                $pinnedClasses = '';
-
-                                if ($isPinned) {
-                                    if ($pinnedSide === 'left' && isset($pinnedLeftOffsets[$colIdx])) {
-                                        $pinnedStyle = "position: sticky; left: {$pinnedLeftOffsets[$colIdx]}px; z-index: 1;";
-                                    } elseif ($pinnedSide === 'right' && isset($pinnedRightOffsets[$colIdx])) {
-                                        $pinnedStyle = "position: sticky; right: {$pinnedRightOffsets[$colIdx]}px; z-index: 1;";
-                                    }
-                                    $pinnedClasses = 'bg-kore-muted';
-                                    if ($colIdx === $lastPinnedLeft) {
-                                        $pinnedClasses .= ' after:absolute after:top-0 after:right-0 after:bottom-0 after:w-px after:bg-kore-border after:shadow-[2px_0_4px_var(--kore-pin-shadow)]';
-                                    }
-                                    if ($colIdx === $firstPinnedRight) {
-                                        $pinnedClasses .= ' before:absolute before:top-0 before:left-0 before:bottom-0 before:w-px before:bg-kore-border before:shadow-[-2px_0_4px_var(--kore-pin-shadow)]';
-                                    }
-                                }
+                                $pinnedStyle = $pinnedMeta[$colIdx]['style'] ?? '';
+                                $pinnedClasses = $isPinned ? trim('bg-kore-muted ' . ($pinnedMeta[$colIdx]['shadow'] ?? '')) : '';
 
                                 $widthStyle = '';
                                 if ($column->getWidth()) {
@@ -307,23 +318,8 @@
                                         $isEditableCell = $column->isEditable() && $column->getType() !== 'boolean';
                                         $isPinned = $column->isPinned();
                                         $pinnedSide = $column->getPinnedSide();
-                                        $pinnedStyle = '';
-                                        $pinnedClasses = '';
-
-                                        if ($isPinned) {
-                                            if ($pinnedSide === 'left' && isset($pinnedLeftOffsets[$colIdx])) {
-                                                $pinnedStyle = "position: sticky; left: {$pinnedLeftOffsets[$colIdx]}px; z-index: 1;";
-                                            } elseif ($pinnedSide === 'right' && isset($pinnedRightOffsets[$colIdx])) {
-                                                $pinnedStyle = "position: sticky; right: {$pinnedRightOffsets[$colIdx]}px; z-index: 1;";
-                                            }
-                                            $pinnedClasses = 'bg-kore-surface';
-                                            if ($colIdx === $lastPinnedLeft) {
-                                                $pinnedClasses .= ' after:absolute after:top-0 after:right-0 after:bottom-0 after:w-px after:bg-kore-border after:shadow-[2px_0_4px_var(--kore-pin-shadow)]';
-                                            }
-                                            if ($colIdx === $firstPinnedRight) {
-                                                $pinnedClasses .= ' before:absolute before:top-0 before:left-0 before:bottom-0 before:w-px before:bg-kore-border before:shadow-[-2px_0_4px_var(--kore-pin-shadow)]';
-                                            }
-                                        }
+                                        $pinnedStyle = $pinnedMeta[$colIdx]['style'] ?? '';
+                                        $pinnedClasses = $isPinned ? trim('bg-kore-surface ' . ($pinnedMeta[$colIdx]['shadow'] ?? '')) : '';
 
                                         // Copyable/clickable only when NOT editable. Columns that render
                                         // their own interactive markup (e.g. ColorColumn's own copy button)
@@ -515,23 +511,8 @@
                                 @php
                                     $isPinned = $column->isPinned();
                                     $pinnedSide = $column->getPinnedSide();
-                                    $pinnedStyle = '';
-                                    $pinnedClasses = '';
-
-                                    if ($isPinned) {
-                                        if ($pinnedSide === 'left' && isset($pinnedLeftOffsets[$colIdx])) {
-                                            $pinnedStyle = "position: sticky; left: {$pinnedLeftOffsets[$colIdx]}px; z-index: 1;";
-                                        } elseif ($pinnedSide === 'right' && isset($pinnedRightOffsets[$colIdx])) {
-                                            $pinnedStyle = "position: sticky; right: {$pinnedRightOffsets[$colIdx]}px; z-index: 1;";
-                                        }
-                                        $pinnedClasses = 'bg-kore-muted';
-                                        if ($colIdx === $lastPinnedLeft) {
-                                            $pinnedClasses .= ' after:absolute after:top-0 after:right-0 after:bottom-0 after:w-px after:bg-kore-border after:shadow-[2px_0_4px_var(--kore-pin-shadow)]';
-                                        }
-                                        if ($colIdx === $firstPinnedRight) {
-                                            $pinnedClasses .= ' before:absolute before:top-0 before:left-0 before:bottom-0 before:w-px before:bg-kore-border before:shadow-[-2px_0_4px_var(--kore-pin-shadow)]';
-                                        }
-                                    }
+                                    $pinnedStyle = $pinnedMeta[$colIdx]['style'] ?? '';
+                                    $pinnedClasses = $isPinned ? trim('bg-kore-muted ' . ($pinnedMeta[$colIdx]['shadow'] ?? '')) : '';
                                 @endphp
                                 <td
                                     @if($isPinned) data-pinned="{{ $pinnedSide }}" data-col-index="{{ $colIdx }}" @endif
