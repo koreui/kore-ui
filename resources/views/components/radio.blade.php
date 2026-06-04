@@ -29,6 +29,9 @@
 
     $fieldId = $attributes->get('id', ($name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid()) . '-' . ($value ?? ''));
 
+    // Associate the error/description with the control (WCAG 3.3.1 / 4.1.2).
+    $describedBy = $hasError ? $fieldId . '-error' : ($description ? $fieldId . '-description' : null);
+
     $radioSize = match($size) {
         'sm' => 'size-3.5',
         'lg' => 'size-5',
@@ -62,6 +65,8 @@
                 'name' => $name,
                 'value' => $value,
                 'disabled' => $disabled,
+                'aria-invalid' => $hasError ? 'true' : null,
+                'aria-describedby' => $describedBy,
                 'class' => $radioClasses,
             ])->except(['label', 'description', 'size', 'error', 'show-error']) }}
         />
@@ -74,13 +79,13 @@
                     </label>
                 @endif
                 @if($description)
-                    <p class="text-xs text-kore-muted-fg mt-0.5 {{ $disabled ? 'opacity-50' : '' }}">{{ $description }}</p>
+                    <p @if($fieldId) id="{{ $fieldId }}-description" @endif class="text-xs text-kore-muted-fg mt-0.5 {{ $disabled ? 'opacity-50' : '' }}">{{ $description }}</p>
                 @endif
             </div>
         @endif
     </div>
 
     @if($hasError && $errorMessage)
-        <p class="mt-1 text-sm text-kore-destructive" role="alert">{{ $errorMessage }}</p>
+        <p @if($fieldId) id="{{ $fieldId }}-error" @endif class="mt-1 text-sm text-kore-destructive" role="alert">{{ $errorMessage }}</p>
     @endif
 </div>

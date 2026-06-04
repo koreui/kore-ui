@@ -80,3 +80,43 @@ it('maskable exposes aria-invalid and links the error via aria-describedby', fun
         ->assertSee('aria-describedby="kore-phone-error"', false)
         ->assertSee('id="kore-phone-error"', false);
 });
+
+it('checkbox exposes aria-invalid and links the error via aria-describedby', function () {
+    $view = $this->blade('<x-kore::checkbox label="Accept" name="terms" error="Required" />');
+
+    $view->assertSee('aria-invalid="true"', false)
+        ->assertSee('aria-describedby="kore-terms-error"', false)
+        ->assertSee('id="kore-terms-error"', false);
+});
+
+it('checkbox links its description via aria-describedby when there is no error', function () {
+    $view = $this->blade('<x-kore::checkbox label="Accept" name="terms" description="You agree to the rules" />');
+
+    $view->assertSee('aria-describedby="kore-terms-description"', false)
+        ->assertSee('id="kore-terms-description"', false);
+});
+
+it('toggle exposes aria-invalid and links the error via aria-describedby', function () {
+    $view = $this->blade('<x-kore::toggle label="Notify" name="notify" error="Required" />');
+
+    $view->assertSee('aria-invalid="true"', false)
+        ->assertSee('aria-describedby="kore-notify-error"', false)
+        ->assertSee('id="kore-notify-error"', false);
+});
+
+it('radio exposes aria-invalid and links the error via aria-describedby', function () {
+    $view = $this->blade('<x-kore::radio label="Option A" name="choice" value="a" error="Required" />');
+
+    $view->assertSee('aria-invalid="true"', false)
+        ->assertSee('aria-describedby="kore-choice-a-error"', false)
+        ->assertSee('id="kore-choice-a-error"', false);
+});
+
+it('radio-group associates its error with the radiogroup via aria-describedby', function () {
+    $view = $this->blade('<x-kore::radio-group label="Pick one" name="plan" error="Choose a plan"><span>options</span></x-kore::radio-group>');
+
+    $view->assertSee('role="radiogroup"', false)
+        ->assertSee('aria-invalid="true"', false)
+        ->assertSee('aria-describedby="kore-plan-error"', false)
+        ->assertSee('id="kore-plan-error"', false);
+});

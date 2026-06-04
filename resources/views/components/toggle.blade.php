@@ -31,6 +31,9 @@
 
     $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
 
+    // Associate the error/description with the control (WCAG 3.3.1 / 4.1.2).
+    $describedBy = $hasError ? $fieldId . '-error' : ($description ? $fieldId . '-description' : null);
+
     $trackSize = match($size) {
         'sm' => 'h-5 w-9',
         'lg' => 'h-7 w-14',
@@ -85,6 +88,8 @@
                     'name' => $name,
                     'role' => 'switch',
                     'disabled' => $disabled,
+                    'aria-invalid' => $hasError ? 'true' : null,
+                    'aria-describedby' => $describedBy,
                     'class' => 'sr-only peer',
                 ])->except(['label', 'description', 'size', 'label-position', 'on-label', 'off-label', 'error', 'show-error']) }}
             />
@@ -118,13 +123,13 @@
                     </label>
                 @endif
                 @if($description)
-                    <p class="text-xs text-kore-muted-fg mt-0.5 {{ $disabled ? 'opacity-50' : '' }}">{{ $description }}</p>
+                    <p @if($fieldId) id="{{ $fieldId }}-description" @endif class="text-xs text-kore-muted-fg mt-0.5 {{ $disabled ? 'opacity-50' : '' }}">{{ $description }}</p>
                 @endif
             </div>
         @endif
     </div>
 
     @if($hasError && $errorMessage)
-        <p class="mt-1 text-sm text-kore-destructive" role="alert">{{ $errorMessage }}</p>
+        <p @if($fieldId) id="{{ $fieldId }}-error" @endif class="mt-1 text-sm text-kore-destructive" role="alert">{{ $errorMessage }}</p>
     @endif
 </div>
