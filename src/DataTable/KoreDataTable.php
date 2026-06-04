@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Builder;
 use KoreUi\DataTable\Columns\Column;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
-use Livewire\WithPagination as LivewireWithPagination;
 
 abstract class KoreDataTable extends Component
 {
-    use LivewireWithPagination;
+    // Livewire's WithPagination is pulled in (and wrapped) by Concerns\WithPagination
+    // so pagination page keys can be namespaced per table; see that trait.
     use Concerns\WithSorting;
     use Concerns\WithSearch;
     use Concerns\WithPagination;
@@ -100,11 +100,11 @@ abstract class KoreDataTable extends Component
 
     public function mount(): void
     {
-        // Respect a perPage restored from the URL (?per_page=); only fall back
-        // to the configured default when it isn't present. Otherwise this would
-        // overwrite the value BaseUrl already restored from the query string,
-        // so the table ignored ?per_page on reload.
-        if (! request()->filled('per_page')) {
+        // Respect a perPage restored from the URL (?per_page= / ?{table}_per_page=);
+        // only fall back to the configured default when it isn't present. Otherwise
+        // this would overwrite the value BaseUrl already restored from the query
+        // string, so the table ignored the URL value on reload.
+        if (! request()->filled($this->urlKey('per_page'))) {
             $this->perPage = (int) config('kore-ui.datatable.per_page', 25);
         }
 

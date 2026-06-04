@@ -75,6 +75,7 @@ class UsersTable extends KoreDataTable
 | Propiedad | Tipo | Default | Descripcion |
 |---|---|---|---|
 | `$perPage` | `int` | `config(25)` | Registros por pagina |
+| `$tableName` | `string` | `''` | Identificador para aislar los parametros de URL cuando hay varias tablas en la misma pagina (ver [Persistencia en URL](#persistencia-en-url-y-multiples-tablas)) |
 | `$search` | `string` | `''` | Termino de busqueda |
 | `$sorts` | `array` | `[]` | Columnas ordenadas `['field' => 'asc\|desc']` |
 | `$density` | `string` | `config(normal)` | Densidad visual |
@@ -239,6 +240,55 @@ La vista de paginacion del DataTable incluye:
 - Numeros de pagina con ellipsis para rangos largos
 - Texto "Mostrando X a Y de Z resultados"
 - Estilos con tokens kore (primary para pagina activa)
+
+---
+
+## Persistencia en URL y multiples tablas
+
+### Que se persiste en la URL
+
+| Parametro | Cuando |
+|---|---|
+| `page` | Siempre |
+| `per_page` | Siempre |
+| `q` (busqueda) | Solo con query string activo |
+| `sort` | Solo con query string activo |
+| `filter` | Solo con query string activo |
+
+`page` y `per_page` se mantienen siempre para que al recargar la pagina sigas en la misma pagina y con el mismo numero de registros. La busqueda, el orden y los filtros se persisten unicamente si activas el query string:
+
+```php
+public function configure(): void
+{
+    $this->setQueryStringEnabled();   // o config('kore-ui.datatable.query_string')
+}
+```
+
+### Varias tablas en la misma pagina (`table-name`)
+
+Si colocas dos o mas DataTables en una misma vista, **por defecto compartirian los mismos parametros de URL** (`page`, `per_page`, `q`, ...), por lo que paginar o filtrar una afectaria a la otra. Para aislarlas, asigna a cada una un identificador unico con `table-name`. Todos sus parametros de URL quedan prefijados (`users_page`, `orders_page`, ...):
+
+```blade
+<livewire:users-table  table-name="users" />
+<livewire:orders-table table-name="orders" />
+```
+
+```
+?users_page=2&users_per_page=10&orders_page=1&orders_q=ana
+```
+
+Tambien puedes fijarlo a nivel de subclase (util si esa tabla casi siempre convive con otras):
+
+```php
+class UsersTable extends KoreDataTable
+{
+    public string $tableName = 'users';
+}
+```
+
+Con **una sola tabla** no necesitas `table-name`: los parametros quedan sin prefijo (`page`, `per_page`, ...) y las URLs siguen limpias.
+
+> El prefijo se sanea a un slug seguro para URL: `table-name="Ventas 2024"` produce `ventas_2024_page`, etc.
 
 ---
 
@@ -573,7 +623,9 @@ public function configure(): void
 
 - **Checkbox header** — Selecciona/deselecciona todos los registros de la pagina actual
 - **Estado indeterminado** — El checkbox header muestra estado indeterminado si hay seleccion parcial
-- **Persistencia entre paginas** — La seleccion se mantiene al cambiar de pagina (gestionado por Alpine)
+- **Persistencia entre paginas** — La seleccion vive en el servidor (snapshot Livewire), por lo que se mantiene al paginar, ordenar y al cambiar `per_page`. Cada tabla tiene su propia seleccion independiente.
+- **Seleccionar todo lo que coincide** — Cuando la pagina esta completa aparece "Seleccionar los N" para actuar sobre todos los registros que cumplen la busqueda/filtros, no solo los visibles.
+- **Shift-click** — Click con Shift selecciona un rango de filas contiguas.
 - **Clear automatico** — Al ejecutar una bulk action, la seleccion se limpia automaticamente
 
 ---
