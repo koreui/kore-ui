@@ -20,6 +20,10 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
+          # sqlite is required by the DataTable tests (testbench builds an
+          # in-memory SQLite schema); declare extensions explicitly so the job
+          # never depends on the runner's defaults.
+          extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite3, pdo_sqlite, bcmath
           coverage: none
 
       - name: Install Composer dependencies
