@@ -7,7 +7,7 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
-## [Unreleased]
+## [1.3.0] — 2026-06-04
 
 ### Security
 
@@ -21,6 +21,20 @@ Endurecimiento de los 6 hallazgos P0 de la auditoría exhaustiva (cliente→serv
 - **ColorColumn** — el valor de celda se escapa con `@js()` en el handler de copiado (XSS almacenado) y se valida como color CSS antes de inyectarlo en `style` (inyección CSS).
 - **UrlSanitizer** — rechaza URLs scheme-relative (`//host`, open-redirect) y elimina caracteres de control que disfrazan esquemas peligrosos (`java\tscript:`).
 - **DataTable** — `tableName` ahora es `#[Locked]`.
+
+### Added
+
+- **Accesibilidad de formularios** — todos los controles (`input`, `textarea`, `password`, `number`, `maskable`, `checkbox`, `radio`, `toggle`, `radio-group`) exponen `aria-invalid` y asocian su error/hint/descripción al control vía `aria-describedby` con ids deterministas (WCAG 3.3.1 / 4.1.2).
+- **Token `--kore-warning-text`** — tono accesible (AA) para `warning` usado como texto en variantes soft/outline de `badge`, `chip` y `alert`.
+- **Red de tests JS (Vitest)** — `tests/js/` con scripts `test:js` / `test:js:watch` y primer test de la lógica de `number.js`.
+- **CI (GitHub Actions)** — Pest en matriz PHP 8.2–8.4, Vitest y build de assets en cada push/PR.
+
+### Fixed
+
+- **Dark mode** — `ring-offset-kore-bg` en los componentes con foco visible (elimina el halo blanco del anillo de foco en modo oscuro).
+- **Rendimiento** — `loading="lazy"` + `decoding="async"` en `ImageColumn` y avatares.
+- **i18n** — registrada la clave `datatable.translations.edit_unauthorized` (estaba leída pero ausente del config).
+- **Docs** — prefijo de componente corregido a `x-kore::` (dos puntos) en documentación y CHANGELOG.
 
 ---
 
@@ -127,4 +141,5 @@ Primera versión pre-release de kore-ui. Incluye el sistema base completo con ov
 
 ---
 
-[0.1.0]: https://github.com/kore-ui/kore-ui/releases/tag/v0.1.0
+[1.3.0]: https://github.com/koreui/kore-ui/releases/tag/v1.3.0
+[0.1.0]: https://github.com/koreui/kore-ui/releases/tag/v0.1.0
