@@ -81,7 +81,7 @@
         {{-- FAB Button --}}
         <button type="button"
                 x-on:click="toggle()"
-                class="inline-flex items-center justify-center rounded-full shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:ring-offset-2 {{ $fabSize }} {{ $colorClasses }}"
+                class="inline-flex items-center justify-center rounded-full shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:ring-offset-2 ring-offset-kore-bg {{ $fabSize }} {{ $colorClasses }}"
                 :aria-expanded="open"
                 aria-haspopup="true"
                 aria-label="Speed dial menu">

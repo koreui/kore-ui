@@ -66,7 +66,7 @@
                     'opacity-50 cursor-not-allowed': tab.disabled,
                 }"
                 @class([
-                    'relative flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-1',
+                    'relative flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-1 ring-offset-kore-bg',
                     'rounded-kore-md' => $variant === 'pill' || $variant === 'enclosed',
                 ])
             >

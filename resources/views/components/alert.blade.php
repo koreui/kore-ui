@@ -28,13 +28,13 @@
         },
         'outline' => match($type) {
             'success' => 'border border-kore-success text-kore-success bg-transparent',
-            'warning' => 'border border-kore-warning text-kore-warning bg-transparent',
+            'warning' => 'border border-kore-warning text-kore-warning-text bg-transparent',
             'destructive' => 'border border-kore-destructive text-kore-destructive bg-transparent',
             default => 'border border-kore-info text-kore-info bg-transparent',
         },
         default => match($type) {
             'success' => 'bg-kore-success/10 text-kore-success border border-kore-success/20',
-            'warning' => 'bg-kore-warning/10 text-kore-warning border border-kore-warning/20',
+            'warning' => 'bg-kore-warning/10 text-kore-warning-text border border-kore-warning/20',
             'destructive' => 'bg-kore-destructive/10 text-kore-destructive border border-kore-destructive/20',
             default => 'bg-kore-info/10 text-kore-info border border-kore-info/20',
         },

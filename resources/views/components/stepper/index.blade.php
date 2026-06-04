@@ -27,7 +27,7 @@
                     <div class="flex flex-col items-center shrink-0">
                         <button
                             type="button"
-                            class="relative flex items-center justify-center size-8 rounded-full border-2 text-sm font-semibold transition-all shrink-0 focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2 outline-none"
+                            class="relative flex items-center justify-center size-8 rounded-full border-2 text-sm font-semibold transition-all shrink-0 focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2 ring-offset-kore-bg outline-none"
                             x-on:click="select(step.id)"
                             x-bind:disabled="step.disabled"
                             x-bind:class="{
@@ -95,7 +95,7 @@
                         {{-- Circle --}}
                         <button
                             type="button"
-                            class="relative flex items-center justify-center size-8 rounded-full border-2 text-sm font-semibold transition-all shrink-0 mx-2 focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2 outline-none"
+                            class="relative flex items-center justify-center size-8 rounded-full border-2 text-sm font-semibold transition-all shrink-0 mx-2 focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2 ring-offset-kore-bg outline-none"
                             x-on:click="select(step.id)"
                             x-bind:disabled="step.disabled"
                             x-bind:class="{

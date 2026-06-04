@@ -74,7 +74,7 @@
             class="{{ $trackSize }} relative inline-flex shrink-0 rounded-full border-2 border-transparent
                    bg-kore-muted has-[:checked]:bg-kore-primary
                    transition-colors duration-200 ease-in-out
-                   focus-within:ring-2 focus-within:ring-kore-ring focus-within:ring-offset-2
+                   focus-within:ring-2 focus-within:ring-kore-ring focus-within:ring-offset-2 ring-offset-kore-bg
                    {{ $disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer' }}"
         >
             {{-- role="switch" exposes this as a switch to assistive tech; the

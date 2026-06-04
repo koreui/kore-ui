@@ -60,7 +60,7 @@
         x-on:click="$store.koreTheme.setMode($store.koreTheme.isDark ? 'light' : 'dark')"
         aria-label="Toggle dark mode"
         {{ $attributes->class([
-            'kore-theme-switch relative inline-flex shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2',
+            'kore-theme-switch relative inline-flex shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2 ring-offset-kore-bg',
             $trackSize,
         ]) }}
         x-bind:class="$store.koreTheme.isDark ? 'bg-kore-primary' : 'bg-kore-muted'"

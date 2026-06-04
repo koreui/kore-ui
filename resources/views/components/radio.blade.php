@@ -50,7 +50,7 @@
         'rounded-full border appearance-none cursor-pointer',
         'transition-colors duration-150',
         'checked:border-[5px] checked:border-kore-primary',
-        'focus:outline-none focus:ring-2 focus:ring-kore-ring focus:ring-offset-2',
+        'focus:outline-none focus:ring-2 focus:ring-kore-ring focus:ring-offset-2 ring-offset-kore-bg',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         $hasError ? 'border-kore-destructive' : 'border-kore-input',
     ])->filter()->implode(' ');

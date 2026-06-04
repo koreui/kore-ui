@@ -78,7 +78,7 @@
         default => 'size-4',
     };
 
-    $baseClasses = 'inline-flex items-center justify-center font-medium rounded-kore-md transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
+    $baseClasses = 'inline-flex items-center justify-center font-medium rounded-kore-md transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2 ring-offset-kore-bg disabled:opacity-50 disabled:pointer-events-none';
 @endphp
 
 <{{ $tag }}
