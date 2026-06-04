@@ -2,7 +2,7 @@
 
 Sistema de visualizacion de datos con dos niveles:
 
-1. **Table** (`<x-kore:table>`) — Componente Blade estatico para tablas simples con arrays/collections.
+1. **Table** (`<x-kore::table>`) — Componente Blade estatico para tablas simples con arrays/collections.
 2. **DataTable** (`KoreDataTable`) — Clase abstracta Livewire con sorting, search, paginacion y eager loading automatico.
 
 ---
@@ -15,8 +15,8 @@ Ambos componentes se registran automaticamente con el ServiceProvider. No se req
 
 | Escenario | Componente |
 |---|---|
-| Lista corta de datos sin interaccion | `<x-kore:table>` |
-| Datos estaticos desde un array o collection | `<x-kore:table>` |
+| Lista corta de datos sin interaccion | `<x-kore::table>` |
+| Datos estaticos desde un array o collection | `<x-kore::table>` |
 | Tabla con sorting, search y paginacion | `KoreDataTable` |
 | Datos desde Eloquent con relaciones | `KoreDataTable` |
 

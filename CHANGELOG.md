@@ -52,63 +52,63 @@ Primera versión pre-release de kore-ui. Incluye el sistema base completo con ov
 - `kore-theme.css` con tokens semánticos en OKLCH (`--kore-primary`, `--kore-bg`, etc.)
 - Dark mode automático vía `.dark` / `[data-theme="dark"]`
 - Tokens de radio (`--kore-radius-sm/md/lg/xl`)
-- `<x-kore:theme-switch>` — Selector light/dark/system
+- `<x-kore::theme-switch>` — Selector light/dark/system
 - Alpine store `koreTheme` con detección de preferencia del sistema
 - Anti-FOUC integrado
 
 #### Componentes de Formulario (18)
-- `<x-kore:input>` — Input con íconos, prefix/suffix, clearable, tamaños
-- `<x-kore:textarea>` — Multi-línea con rows configurables
-- `<x-kore:select>` — Native o custom con búsqueda, async, creatable, multi-select
-- `<x-kore:checkbox>` — Con manejo de errores
-- `<x-kore:radio>` — Con radio groups
-- `<x-kore:toggle>` — Switch component
-- `<x-kore:password>` — Con toggle de visibilidad e indicador de fortaleza
-- `<x-kore:number>` — Input numérico con soporte de moneda (USD configurable)
-- `<x-kore:datepicker>` — Calendario completo con rangos, time, presets, formato/locale
-- `<x-kore:time-picker>` — Selector de hora
-- `<x-kore:upload>` — Drag & drop, progreso, validación, retry, auto-upload
-- `<x-kore:range>` — Slider con track/thumb sizing
-- `<x-kore:rating>` — Estrellas/íconos configurables, clearable
-- `<x-kore:tag-input>` — Entrada multi-valor con tags
-- `<x-kore:color-picker>` — Grid de colores personalizable
-- `<x-kore:maskable>` — Input con máscara
-- `<x-kore:input-otp>` — Input de código OTP
-- `<x-kore:field>` — Wrapper para label, hint y mensajes de error
-- `<x-kore:float-label>` — Label animado en focus
+- `<x-kore::input>` — Input con íconos, prefix/suffix, clearable, tamaños
+- `<x-kore::textarea>` — Multi-línea con rows configurables
+- `<x-kore::select>` — Native o custom con búsqueda, async, creatable, multi-select
+- `<x-kore::checkbox>` — Con manejo de errores
+- `<x-kore::radio>` — Con radio groups
+- `<x-kore::toggle>` — Switch component
+- `<x-kore::password>` — Con toggle de visibilidad e indicador de fortaleza
+- `<x-kore::number>` — Input numérico con soporte de moneda (USD configurable)
+- `<x-kore::datepicker>` — Calendario completo con rangos, time, presets, formato/locale
+- `<x-kore::time-picker>` — Selector de hora
+- `<x-kore::upload>` — Drag & drop, progreso, validación, retry, auto-upload
+- `<x-kore::range>` — Slider con track/thumb sizing
+- `<x-kore::rating>` — Estrellas/íconos configurables, clearable
+- `<x-kore::tag-input>` — Entrada multi-valor con tags
+- `<x-kore::color-picker>` — Grid de colores personalizable
+- `<x-kore::maskable>` — Input con máscara
+- `<x-kore::input-otp>` — Input de código OTP
+- `<x-kore::field>` — Wrapper para label, hint y mensajes de error
+- `<x-kore::float-label>` — Label animado en focus
 
 #### Componentes UI (20+)
-- `<x-kore:button>` — Tamaños (sm/md/lg), variantes (solid/outline/ghost/soft/link), colores, íconos
-- `<x-kore:button-group>` — Agrupación de botones
-- `<x-kore:alert>` — Notificaciones con ícono y título
-- `<x-kore:badge>` — Indicadores de estado con variantes
-- `<x-kore:card>` — Con imagen, colapsable, bordered/shadowed
-- `<x-kore:dropdown>` — Menú popup con posicionamiento y modo persistente
-- `<x-kore:tooltip>` — Tooltips con posicionamiento
-- `<x-kore:avatar>` — Con fallback
-- `<x-kore:avatar-group>` — Múltiples avatars agrupados
-- `<x-kore:loading>` — Spinner de carga
-- `<x-kore:page-loading>` — Overlay de carga full-page con blur
-- `<x-kore:accordion>` — Secciones expandibles con variantes
-- `<x-kore:divider>` — Separador visual
-- `<x-kore:progress>` — Barra de progreso lineal
-- `<x-kore:progress-circle>` — Progreso circular
-- `<x-kore:stepper>` — Indicador de pasos (horizontal/vertical)
-- `<x-kore:tab>` — Interfaz de pestañas (line/block)
-- `<x-kore:toolbar>` — Contenedor de herramientas
-- `<x-kore:skeleton>` — Placeholder con shimmer/pulse
-- `<x-kore:empty-state>` — Estado vacío
-- `<x-kore:chip>` — Componente compacto
-- `<x-kore:timeline>` — Línea temporal con variantes
-- `<x-kore:stats>` — Estadísticas con animación
-- `<x-kore:clipboard>` — Copy-to-clipboard
-- `<x-kore:kbd>` — Tecla de teclado
-- `<x-kore:boolean>` — Indicador true/false con íconos configurables
-- `<x-kore:speed-dial>` — FAB menu flotante
-- `<x-kore:splitter>` — Layout redimensionable (horizontal/vertical)
-- `<x-kore:carousel>` — Carrusel con autoplay, navegación, indicadores
-- `<x-kore:tree>` — Árbol jerárquico con selección y filtrado
-- `<x-kore:breadcrumbs>` — Migas de pan con JSON-LD, separadores configurables
+- `<x-kore::button>` — Tamaños (sm/md/lg), variantes (solid/outline/ghost/soft/link), colores, íconos
+- `<x-kore::button-group>` — Agrupación de botones
+- `<x-kore::alert>` — Notificaciones con ícono y título
+- `<x-kore::badge>` — Indicadores de estado con variantes
+- `<x-kore::card>` — Con imagen, colapsable, bordered/shadowed
+- `<x-kore::dropdown>` — Menú popup con posicionamiento y modo persistente
+- `<x-kore::tooltip>` — Tooltips con posicionamiento
+- `<x-kore::avatar>` — Con fallback
+- `<x-kore::avatar-group>` — Múltiples avatars agrupados
+- `<x-kore::loading>` — Spinner de carga
+- `<x-kore::page-loading>` — Overlay de carga full-page con blur
+- `<x-kore::accordion>` — Secciones expandibles con variantes
+- `<x-kore::divider>` — Separador visual
+- `<x-kore::progress>` — Barra de progreso lineal
+- `<x-kore::progress-circle>` — Progreso circular
+- `<x-kore::stepper>` — Indicador de pasos (horizontal/vertical)
+- `<x-kore::tab>` — Interfaz de pestañas (line/block)
+- `<x-kore::toolbar>` — Contenedor de herramientas
+- `<x-kore::skeleton>` — Placeholder con shimmer/pulse
+- `<x-kore::empty-state>` — Estado vacío
+- `<x-kore::chip>` — Componente compacto
+- `<x-kore::timeline>` — Línea temporal con variantes
+- `<x-kore::stats>` — Estadísticas con animación
+- `<x-kore::clipboard>` — Copy-to-clipboard
+- `<x-kore::kbd>` — Tecla de teclado
+- `<x-kore::boolean>` — Indicador true/false con íconos configurables
+- `<x-kore::speed-dial>` — FAB menu flotante
+- `<x-kore::splitter>` — Layout redimensionable (horizontal/vertical)
+- `<x-kore::carousel>` — Carrusel con autoplay, navegación, indicadores
+- `<x-kore::tree>` — Árbol jerárquico con selección y filtrado
+- `<x-kore::breadcrumbs>` — Migas de pan con JSON-LD, separadores configurables
 
 #### Configuración
 - `config/kore-ui.php` publicable con secciones: overlay, feedback, form, ui, breadcrumbs, theme
@@ -117,7 +117,7 @@ Primera versión pre-release de kore-ui. Incluye el sistema base completo con ov
 
 #### Infraestructura
 - Service Provider con auto-discovery de Laravel
-- Componentes anónimos con prefijo `kore:` (`<x-kore:*>`)
+- Componentes anónimos con namespace `kore` (`<x-kore::*>`)
 - Plugins Alpine registrados automáticamente via `alpine:init`
 - Tests con Pest 3 + Orchestra Testbench 10
 

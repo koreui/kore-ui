@@ -343,7 +343,7 @@ Presionar `/` enfoca automaticamente el buscador (solo cuando no hay un input en
 
 ## Loading state
 
-Mientras se procesan requests de Livewire, se muestra un overlay con `<x-kore:loading>` sobre la tabla automaticamente.
+Mientras se procesan requests de Livewire, se muestra un overlay con `<x-kore::loading>` sobre la tabla automaticamente.
 
 ---
 
