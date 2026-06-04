@@ -84,9 +84,7 @@ trait WithBulkActions
      */
     protected function getAllMatchingIds(): array
     {
-        $query = $this->query();
-        $query = $this->applySearch($query);
-        $query = $this->applyFilters($query);
+        $query = $this->baseFilteredQuery();
 
         $primaryKey = $this->getPrimaryKey();
 

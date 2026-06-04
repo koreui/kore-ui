@@ -30,18 +30,9 @@ trait WithFiltering
 
     public function updatedFilters(): void
     {
-        $this->resetPage();
-
-        // Changing the data universe invalidates "select all matching" (its
-        // scope changed); explicit row IDs are kept.
-        if (property_exists($this, 'selectAllMatching')) {
-            $this->selectAllMatching = false;
-        }
-
-        // Deactivate preset when user changes filters manually
-        if (property_exists($this, 'activePreset')) {
-            $this->activePreset = null;
-        }
+        // Editing filters by hand changes the data universe: reset page +
+        // "select all matching", and drop any active preset.
+        $this->resetDataScope(deactivatePreset: true);
 
         event(new FilterApplied(static::class, $this->filters, $this->search ?? ''));
     }
@@ -68,11 +59,7 @@ trait WithFiltering
     public function resetAllFilters(): void
     {
         $this->filters = [];
-        $this->resetPage();
-
-        if (property_exists($this, 'selectAllMatching')) {
-            $this->selectAllMatching = false;
-        }
+        $this->resetDataScope();
     }
 
     /**

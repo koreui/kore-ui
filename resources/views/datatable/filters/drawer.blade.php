@@ -69,14 +69,7 @@
 
                 {{-- Filters --}}
                 <div class="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-                    @foreach($filterDefs as $filter)
-                        <div>
-                            <label class="block text-xs font-medium text-kore-muted-fg mb-1.5">
-                                {{ $filter->getLabel() }}
-                            </label>
-                            @include('kore::datatable.filters.types.' . $filter->getType(), ['filter' => $filter])
-                        </div>
-                    @endforeach
+                    @include('kore::datatable.filters.fields', ['filterDefs' => $filterDefs])
                 </div>
 
                 {{-- Footer --}}
