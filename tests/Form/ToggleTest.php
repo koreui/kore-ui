@@ -47,3 +47,23 @@ it('renders hidden checkbox for wire:model', function () {
     $view->assertSee('wire:model="active"', false)
         ->assertSee('type="checkbox"', false);
 });
+
+it('does not render aria-checked', function () {
+    // role="switch" on a native checkbox takes its state from the `checked`
+    // attribute; ARIA in HTML forbids aria-checked here. Guard the decision.
+    $view = $this->blade('<x-kore::toggle label="Active" name="active" />');
+
+    $view->assertDontSee('aria-checked', false);
+});
+
+it('marks on/off labels as decorative so they do not pollute the accessible name', function () {
+    $view = $this->blade('<x-kore::toggle label="Status" name="status" on-label="On" off-label="Off" />');
+
+    $view->assertSee('aria-hidden="true"', false);
+});
+
+it('forwards aria-label to the input', function () {
+    $view = $this->blade('<x-kore::toggle name="active" aria-label="Enable feature" />');
+
+    $view->assertSee('aria-label="Enable feature"', false);
+});

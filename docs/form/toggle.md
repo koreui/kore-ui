@@ -37,7 +37,13 @@ Text rendered inside the toggle track. Best with `lg` size:
 
 ## Implementation
 
-Uses a hidden `<input type="checkbox">` for `wire:model` compatibility. A `<button role="switch">` provides the visual toggle. Alpine syncs the button state with the hidden checkbox via `x-bind:checked` and event dispatching.
+A single native `<input type="checkbox" role="switch">` (visually hidden with `sr-only peer`) drives everything: it keeps full `wire:model` / form-submission compatibility, and the visual track + thumb react purely via CSS `peer-checked` — no Alpine or state-syncing required.
+
+## Accessibility
+
+- **State.** `role="switch"` turns the control into a switch. The on/off state is taken from the input's native `checked` attribute, which the browser exposes to assistive tech automatically. Per [ARIA in HTML](https://www.w3.org/TR/html-aria/#el-input-checkbox), `aria-checked` **must not** be added to a native checkbox — it would be redundant and could desync from `wire:model`. (Note: most modern browser/screen-reader pairs announce it as a "switch", but a few still fall back to "checkbox"; the on/off state is conveyed correctly either way.)
+- **Name.** Always give the toggle an accessible name: pass `label` (renders a `<label for>`), or, when there is no visible label, an `aria-label` (forwarded to the input via attribute merge). Without either, the switch has no accessible name (WCAG 4.1.2).
+- The `on-label` / `off-label` text inside the track is decorative (`aria-hidden`); it never contributes to the accessible name.
 
 | Size | Track | Thumb |
 |------|-------|-------|

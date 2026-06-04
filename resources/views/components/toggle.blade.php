@@ -74,22 +74,31 @@
                    focus-within:ring-2 focus-within:ring-kore-ring focus-within:ring-offset-2
                    {{ $disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer' }}"
         >
+            {{-- role="switch" exposes this as a switch to assistive tech; the
+                 on/off state is conveyed by the native checkbox `checked`
+                 attribute, so no manual aria-checked is needed (it would
+                 desync from wire:model). --}}
             <input
                 type="checkbox"
                 {{ $attributes->merge([
                     'id' => $fieldId,
                     'name' => $name,
+                    'role' => 'switch',
                     'disabled' => $disabled,
                     'class' => 'sr-only peer',
                 ])->except(['label', 'description', 'size', 'label-position', 'on-label', 'off-label', 'error', 'show-error']) }}
             />
 
-            {{-- On/off labels inside track --}}
+            {{-- On/off labels inside track. aria-hidden: these are decorative
+                 (the on/off state is already conveyed by the native checkbox).
+                 Without it, the track <label> wrapping the input would fold
+                 "On"/"Off" into the switch's accessible name, overriding the
+                 descriptive label and making the name change with state. --}}
             @if($onLabel || $offLabel)
-                <span class="absolute inset-0 hidden peer-checked:flex items-center {{ $onOffSize }} font-medium text-kore-primary-fg">
+                <span aria-hidden="true" class="absolute inset-0 hidden peer-checked:flex items-center {{ $onOffSize }} font-medium text-kore-primary-fg">
                     <span class="ml-1.5">{{ $onLabel }}</span>
                 </span>
-                <span class="absolute inset-0 flex peer-checked:hidden items-center justify-end {{ $onOffSize }} font-medium text-kore-muted-fg">
+                <span aria-hidden="true" class="absolute inset-0 flex peer-checked:hidden items-center justify-end {{ $onOffSize }} font-medium text-kore-muted-fg">
                     <span class="mr-1.5">{{ $offLabel }}</span>
                 </span>
             @endif
