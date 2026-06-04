@@ -17,7 +17,11 @@ trait WithQueryString
      * property in a subclass) and every URL key is prefixed with it
      * (e.g. `users_page`, `users_per_page`). Left empty, keys stay unprefixed
      * for backward-compatible, clean single-table URLs.
+     *
+     * #[Locked]: a fixed identifier set at mount (or by a subclass), never by the
+     * client — it namespaces query-string keys and must not be swappable at runtime.
      */
+    #[Locked]
     public string $tableName = '';
 
     public function setQueryStringEnabled(bool $enabled = true): static

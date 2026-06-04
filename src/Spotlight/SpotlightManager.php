@@ -4,6 +4,7 @@ namespace KoreUi\Spotlight;
 
 use Illuminate\Support\Collection;
 use KoreUi\Spotlight\Config\SpotlightDefaults;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class SpotlightManager extends Component
@@ -24,6 +25,14 @@ class SpotlightManager extends Component
 
     public int $maxResults = 50;
 
+    /**
+     * Provider class names (or container bindings). #[Locked] so the client can't
+     * swap them for an arbitrary class that getItems()/search() would then
+     * instantiate via app(). Seeded only from mount params / config.
+     *
+     * @var array<int, string>
+     */
+    #[Locked]
     public array $providers = [];
 
     public function mount(
@@ -49,14 +58,31 @@ class SpotlightManager extends Component
     }
 
     /**
+     * Resolve the configured providers to instances, skipping anything that is
+     * not a SpotlightProvider. Arbitrary class names are rejected *before* app()
+     * so a tampered/invalid entry can't instantiate an unrelated class; runtime
+     * container bindings (used in tests and custom registrations) are allowed.
+     *
+     * @return Collection<int, SpotlightProvider>
+     */
+    protected function resolveProviders(): Collection
+    {
+        return collect($this->providers)
+            ->filter(fn ($class) => is_string($class)
+                && (app()->bound($class) || is_subclass_of($class, SpotlightProvider::class)))
+            ->map(fn ($class) => app($class))
+            ->filter(fn ($provider) => $provider instanceof SpotlightProvider)
+            ->values();
+    }
+
+    /**
      * Resolve all providers and return their items as serialized arrays.
      *
      * @return array<array<string, mixed>>
      */
     public function getItems(): array
     {
-        return collect($this->providers)
-            ->map(fn ($class) => app($class))
+        return $this->resolveProviders()
             ->sortBy(fn (SpotlightProvider $p) => $p->priority())
             ->flatMap(fn (SpotlightProvider $p) => $p->toArray())
             ->take($this->maxResults)
@@ -76,8 +102,7 @@ class SpotlightManager extends Component
             return;
         }
 
-        $items = collect($this->providers)
-            ->map(fn ($class) => app($class))
+        $items = $this->resolveProviders()
             ->sortBy(fn (SpotlightProvider $p) => $p->priority())
             ->flatMap(function (SpotlightProvider $provider) use ($query) {
                 $results = $provider->search($query);
@@ -112,7 +137,8 @@ class SpotlightManager extends Component
 
         $url = $dependency['searchUrl'];
 
-        // If it looks like a route name (no slash), resolve it
+        // If it looks like a route name (no slash), resolve it server-side (safe:
+        // the host is our own app, the client only supplies the route name).
         if (! str_contains($url, '/') && ! str_starts_with($url, 'http')) {
             try {
                 $url = route($url, ['query' => $query]);
@@ -120,6 +146,14 @@ class SpotlightManager extends Component
                 $url = $url.'?query='.urlencode($query);
             }
         } else {
+            // Absolute/relative URL supplied by the client → guard against SSRF
+            // (cloud metadata, localhost services, private ranges) before any request.
+            if (! $this->isSafeRemoteUrl($url)) {
+                $this->dispatch('kore:spotlight-dependency-results', items: []);
+
+                return;
+            }
+
             $url .= (str_contains($url, '?') ? '&' : '?').'query='.urlencode($query);
         }
 
@@ -137,6 +171,55 @@ class SpotlightManager extends Component
         }
 
         $this->dispatch('kore:spotlight-dependency-results', items: $items);
+    }
+
+    /**
+     * SSRF guard for client-supplied remote search URLs. Only http(s) is allowed,
+     * and the resolved host must not fall in a private or reserved range
+     * (loopback, link-local metadata 169.254.x, RFC1918, etc.).
+     */
+    protected function isSafeRemoteUrl(string $url): bool
+    {
+        $parts = parse_url($url);
+
+        $scheme = strtolower($parts['scheme'] ?? '');
+        $host = $parts['host'] ?? '';
+
+        if (! in_array($scheme, ['http', 'https'], true) || $host === '') {
+            return false;
+        }
+
+        $ips = $this->resolveHostIps($host);
+
+        if ($ips === []) {
+            return false;
+        }
+
+        foreach ($ips as $ip) {
+            // NO_PRIV_RANGE + NO_RES_RANGE reject 10/8, 172.16/12, 192.168/16,
+            // 127/8, 169.254/16, ::1, fc00::/7, etc. A private/reserved IP fails
+            // the filter (returns false) → not safe.
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Resolve a host to its IP addresses. Literal IPs pass through unchanged;
+     * host names are resolved via DNS. Returns [] when resolution fails.
+     *
+     * @return array<int, string>
+     */
+    protected function resolveHostIps(string $host): array
+    {
+        if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+            return [$host];
+        }
+
+        return gethostbynamel($host) ?: [];
     }
 
     /**

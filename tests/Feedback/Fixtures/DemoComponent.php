@@ -11,6 +11,8 @@ class DemoComponent extends Component
 
     public string $message = '';
 
+    public bool $secretRun = false;
+
     public function sendToast(): void
     {
         $this->toast()->success('Test toast')->send();
@@ -26,6 +28,15 @@ class DemoComponent extends Component
     public function handleConfirm(int $id): void
     {
         $this->message = "Confirmed: {$id}";
+    }
+
+    /**
+     * Protected method that a forged kore:confirm-callback event must NOT be
+     * able to reach (simulates runBulkAction/getAllMatchingIds in a DataTable).
+     */
+    protected function secretAction(): void
+    {
+        $this->secretRun = true;
     }
 
     public function render()

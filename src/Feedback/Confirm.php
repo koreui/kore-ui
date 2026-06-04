@@ -118,6 +118,8 @@ class Confirm
         ];
 
         if ($this->component) {
+            $this->authorizeCallbacks();
+
             $this->component->dispatch('kore:open',
                 name: 'kore-confirm-dialog',
                 arguments: $arguments,
@@ -130,6 +132,28 @@ class Confirm
                 'arguments'        => $arguments,
                 'overlayAttributes' => $overlayAttributes,
             ]);
+        }
+    }
+
+    /**
+     * Authorize the onConfirm/onCancel methods on the caller component so that a
+     * later kore:confirm-callback event is allowed to invoke them. Written
+     * directly to the #[Locked] property (not via a public method, which the
+     * client could call) — this is the trusted server-side authorization path
+     * that makes the kore:confirm-callback listener safe against forged events.
+     */
+    protected function authorizeCallbacks(): void
+    {
+        if (! $this->component || ! property_exists($this->component, 'koreConfirmable')) {
+            return;
+        }
+
+        foreach ([$this->onConfirm, $this->onCancel] as $callback) {
+            $method = $callback['method'] ?? null;
+
+            if ($method && ! in_array($method, $this->component->koreConfirmable, true)) {
+                $this->component->koreConfirmable[] = $method;
+            }
         }
     }
 

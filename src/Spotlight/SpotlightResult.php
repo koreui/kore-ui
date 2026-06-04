@@ -2,6 +2,8 @@
 
 namespace KoreUi\Spotlight;
 
+use KoreUi\DataTable\Support\UrlSanitizer;
+
 class SpotlightResult
 {
     protected function __construct(
@@ -20,14 +22,23 @@ class SpotlightResult
      */
     public static function fromArray(array $data): static
     {
+        $actionType = $data['actionType'] ?? $data['action_type'] ?? null;
+        $actionTarget = $data['actionTarget'] ?? $data['action_target'] ?? null;
+
+        // Remote responses are untrusted: a 'url' target navigates client-side, so
+        // strip dangerous schemes (javascript:, data:, //host) before it reaches JS.
+        if ($actionType === 'url') {
+            $actionTarget = UrlSanitizer::sanitize($actionTarget);
+        }
+
         return new static(
             id: $data['id'] ?? \Illuminate\Support\Str::slug($data['name'] ?? ''),
             name: $data['name'] ?? '',
             description: $data['description'] ?? null,
             icon: $data['icon'] ?? null,
             group: $data['group'] ?? 'Resultados',
-            actionType: $data['actionType'] ?? $data['action_type'] ?? null,
-            actionTarget: $data['actionTarget'] ?? $data['action_target'] ?? null,
+            actionType: $actionType,
+            actionTarget: $actionTarget,
             actionParams: $data['actionParams'] ?? $data['action_params'] ?? [],
         );
     }

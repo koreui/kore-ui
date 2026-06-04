@@ -5,6 +5,7 @@ namespace KoreUi\Spotlight;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use KoreUi\DataTable\Support\UrlSanitizer;
 use KoreUi\Spotlight\Config\SpotlightDefaults;
 
 class SpotlightItem
@@ -101,8 +102,10 @@ class SpotlightItem
      */
     public function url(string $url, bool $newTab = false): static
     {
+        // 'url' targets navigate client-side (window.location.href / window.open);
+        // neutralize dangerous schemes (javascript:, data:, //host) at the source.
         $this->actionType = 'url';
-        $this->actionTarget = $url;
+        $this->actionTarget = UrlSanitizer::sanitize($url);
         $this->actionParams = ['newTab' => $newTab];
 
         return $this;

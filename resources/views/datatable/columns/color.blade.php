@@ -12,6 +12,15 @@
         'square' => 'rounded-none',
         default => 'rounded-kore-sm',
     };
+
+    // The swatch color goes straight into a `style` attribute, so only allow real
+    // CSS color tokens (hex, rgb/hsl functional notations, named colors) and drop
+    // anything else — otherwise a cell value could inject extra CSS declarations.
+    $rawColor = trim((string) $value);
+    $safeColor = preg_match(
+        '/^(#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})|(?:rgb|rgba|hsl|hsla)\(\s*[0-9.,%\/\s]+\)|[a-zA-Z]+)$/',
+        $rawColor
+    ) ? $rawColor : null;
 @endphp
 
 <div
@@ -22,7 +31,7 @@
 >
     <span
         class="inline-block border border-kore-border {{ $swatchSizeClass }} {{ $swatchShapeClass }}"
-        style="background-color: {{ $value }};"
+        @if($safeColor) style="background-color: {{ $safeColor }};" @endif
     ></span>
 
     @if($props['showLabel'] ?? true)
@@ -32,7 +41,7 @@
     @if($props['copyable'] ?? false)
         <button
             type="button"
-            x-on:click="navigator.clipboard.writeText('{{ $value }}'); copied = true; setTimeout(() => copied = false, 2000)"
+            x-on:click="navigator.clipboard.writeText(@js($value)); copied = true; setTimeout(() => copied = false, 2000)"
             class="p-0.5 rounded hover:bg-kore-muted transition-colors"
         >
             <template x-if="!copied">

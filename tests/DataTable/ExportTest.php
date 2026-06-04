@@ -82,3 +82,29 @@ it('supports setting max rows', function () {
     $response = $component->instance()->exportAs('csv');
     expect($response->getStatusCode())->toBe(200);
 });
+
+// S3 — exportAs() is a public Livewire method callable from the browser. The UI
+// only hides the export button when disabled; the method itself must refuse to
+// run (the button being hidden is not an authorization check).
+it('blocks exportAs when export is disabled (server-side guard)', function () {
+    $component = Livewire::test(TestExportTable::class);
+    $component->instance()->setExportEnabled(false);
+
+    try {
+        $component->instance()->exportAs('csv');
+        $this->fail('exportAs should be blocked when export is disabled');
+    } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+        expect($e->getStatusCode())->toBe(403);
+    }
+});
+
+it('rejects an unsupported export format instead of silently falling back to csv', function () {
+    $component = Livewire::test(TestExportTable::class);
+
+    try {
+        $component->instance()->exportAs('pdf');
+        $this->fail('exportAs should reject formats outside getExportFormats()');
+    } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+        expect($e->getStatusCode())->toBe(404);
+    }
+});

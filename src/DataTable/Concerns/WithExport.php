@@ -66,6 +66,13 @@ trait WithExport
 
     public function exportAs(string $format = 'csv'): StreamedResponse
     {
+        // exportAs() is a public Livewire method, reachable from the browser via
+        // $wire.exportAs(). Hiding the toolbar button is not an authorization
+        // check — enforce it here, and reject formats outside the configured set
+        // so an unknown format can't silently fall back to CSV.
+        abort_unless($this->isExportEnabled(), 403);
+        abort_unless(in_array($format, $this->getExportFormats(), true), 404);
+
         $query = $this->applySorts($this->baseFilteredQuery());
 
         // chunk() pages the result set; without a deterministic, unique order a
