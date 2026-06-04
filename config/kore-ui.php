@@ -297,6 +297,7 @@ return [
             'clear_sorts'   => 'Limpiar ordenamiento',
             'export'        => 'Exportar',
             'cancel'        => 'Cancelar',
+            'edit_unauthorized' => 'No se pudo actualizar el registro.',
         ],
     ],
 
