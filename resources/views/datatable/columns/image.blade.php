@@ -14,6 +14,8 @@
     <img
         src="{{ $value }}"
         @if($nameValue) alt="{{ $nameValue }}" @else alt="" @endif
+        loading="lazy"
+        decoding="async"
         @class([
             'object-cover',
             match($props['size'] ?? 'sm') {

@@ -77,6 +77,8 @@
         <img
             src="{{ $src }}"
             @if($name) alt="{{ $name }}" @else alt="" @endif
+            loading="lazy"
+            decoding="async"
             class="w-full h-full object-cover {{ $shapeClasses }}"
         />
     @elseif($initials)
