@@ -40,6 +40,9 @@
 
     $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
 
+    // Associate the field's hint/error with the control (WCAG 3.3.1 / 4.1.2).
+    $describedBy = $hasError ? $fieldId . '-error' : ($hint ? $fieldId . '-hint' : null);
+
     $sizeClasses = match($size) {
         'sm' => 'text-xs py-1.5 px-2.5',
         'lg' => 'text-base py-2.5 px-3.5',
@@ -132,6 +135,8 @@
             x-on:blur="_onBlur()"
             x-on:focus="_onFocus($event)"
             autocomplete="off"
+            @if($hasError) aria-invalid="true" @endif
+            @if($describedBy) aria-describedby="{{ $describedBy }}" @endif
         />
 
         @if($hasRightIcon)

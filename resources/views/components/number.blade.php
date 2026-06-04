@@ -49,6 +49,9 @@
 
     $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
 
+    // Associate the field's hint/error with the control (WCAG 3.3.1 / 4.1.2).
+    $describedBy = $hasError ? $fieldId . '-error' : ($hint ? $fieldId . '-hint' : null);
+
     $sizeClasses = match($size) {
         'sm' => 'text-xs py-1.5 px-2.5',
         'lg' => 'text-base py-2.5 px-3.5',
@@ -148,6 +151,8 @@
             @if($readonly) readonly @endif
             autocomplete="off"
             inputmode="{{ $blockDecimals ? 'numeric' : 'decimal' }}"
+            @if($hasError) aria-invalid="true" @endif
+            @if($describedBy) aria-describedby="{{ $describedBy }}" @endif
         />
 
         @if($controls)
@@ -255,6 +260,8 @@
                 'disabled' => $disabled,
                 'readonly' => $readonly,
                 'required' => $required,
+                'aria-invalid' => $hasError ? 'true' : null,
+                'aria-describedby' => $describedBy,
                 'class' => $inputClasses,
             ])->except(['label', 'hint', 'error', 'size', 'min', 'max', 'controls', 'mode', 'currency', 'locale', 'precision', 'prefix', 'suffix', 'show-error']) }}
             @if($min !== null) min="{{ $min }}" @endif

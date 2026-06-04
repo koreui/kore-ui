@@ -39,6 +39,9 @@
 
     $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
 
+    // Associate the field's hint/error with the control (WCAG 3.3.1 / 4.1.2).
+    $describedBy = $hasError ? $fieldId . '-error' : ($hint ? $fieldId . '-hint' : null);
+
     $sizeClasses = match($size) {
         'sm' => 'text-xs py-1.5 px-2.5',
         'lg' => 'text-base py-2.5 px-3.5',
@@ -87,6 +90,8 @@
                     'disabled' => $disabled,
                     'readonly' => $readonly,
                     'required' => $required,
+                    'aria-invalid' => $hasError ? 'true' : null,
+                    'aria-describedby' => $describedBy,
                     'autocomplete' => 'current-password',
                     'class' => $inputClasses,
                 ])->except(['label', 'hint', 'error', 'size', 'icon', 'toggleable', 'strength', 'min-length', 'show-rules', 'show-error']) }}
@@ -155,6 +160,8 @@
                 'disabled' => $disabled,
                 'readonly' => $readonly,
                 'required' => $required,
+                'aria-invalid' => $hasError ? 'true' : null,
+                'aria-describedby' => $describedBy,
                 'autocomplete' => 'current-password',
                 'class' => $inputClasses,
             ])->except(['label', 'hint', 'error', 'size', 'icon', 'toggleable', 'strength', 'min-length', 'show-rules', 'show-error']) }}

@@ -42,3 +42,41 @@ it('textarea links the hint via aria-describedby even with a maxLength counter',
     $view->assertSee('aria-describedby="kore-bio-hint"', false)
         ->assertSee('id="kore-bio-hint"', false);
 });
+
+it('password exposes aria-invalid and links the error via aria-describedby', function () {
+    $view = $this->blade('<x-kore::password label="Password" name="password" error="Too weak" />');
+
+    $view->assertSee('aria-invalid="true"', false)
+        ->assertSee('aria-describedby="kore-password-error"', false)
+        ->assertSee('id="kore-password-error"', false);
+});
+
+it('password links the hint via aria-describedby with the strength meter enabled', function () {
+    $view = $this->blade('<x-kore::password label="Password" name="password" hint="Min 8 chars" :strength="true" />');
+
+    $view->assertSee('aria-describedby="kore-password-hint"', false)
+        ->assertSee('id="kore-password-hint"', false);
+});
+
+it('number exposes aria-invalid and links the error via aria-describedby', function () {
+    $view = $this->blade('<x-kore::number label="Age" name="age" error="Out of range" />');
+
+    $view->assertSee('aria-invalid="true"', false)
+        ->assertSee('aria-describedby="kore-age-error"', false)
+        ->assertSee('id="kore-age-error"', false);
+});
+
+it('number currency mode links the error via aria-describedby on the visible input', function () {
+    $view = $this->blade('<x-kore::number label="Price" name="price" mode="currency" error="Invalid" />');
+
+    $view->assertSee('aria-invalid="true"', false)
+        ->assertSee('aria-describedby="kore-price-error"', false);
+});
+
+it('maskable exposes aria-invalid and links the error via aria-describedby', function () {
+    $view = $this->blade('<x-kore::maskable label="Phone" name="phone" mask="(###) ###-####" error="Invalid" />');
+
+    $view->assertSee('aria-invalid="true"', false)
+        ->assertSee('aria-describedby="kore-phone-error"', false)
+        ->assertSee('id="kore-phone-error"', false);
+});
