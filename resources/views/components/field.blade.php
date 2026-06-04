@@ -24,8 +24,8 @@
     {{ $slot }}
 
     @if($hasError && $errorMessage)
-        <p class="mt-1 text-sm text-kore-destructive" role="alert">{{ $errorMessage }}</p>
+        <p @if($fieldId) id="{{ $fieldId }}-error" @endif class="mt-1 text-sm text-kore-destructive" role="alert">{{ $errorMessage }}</p>
     @elseif($hint)
-        <p class="mt-1 text-sm text-kore-muted-fg">{{ $hint }}</p>
+        <p @if($fieldId) id="{{ $fieldId }}-hint" @endif class="mt-1 text-sm text-kore-muted-fg">{{ $hint }}</p>
     @endif
 </div>

@@ -34,6 +34,11 @@
 
     $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
 
+    // Associate the field's hint/error with the control for assistive tech
+    // (WCAG 3.3.1 / 4.1.2). The hint id is stable whether the hint is rendered by
+    // field.blade.php or by the maxLength counter block below.
+    $describedBy = $hasError ? $fieldId . '-error' : ($hint ? $fieldId . '-hint' : null);
+
     $sizeClasses = match($size) {
         'sm' => 'text-xs py-1.5 px-2.5',
         'lg' => 'text-base py-2.5 px-3.5',
@@ -90,6 +95,8 @@
                 'disabled' => $disabled,
                 'readonly' => $readonly,
                 'required' => $required,
+                'aria-invalid' => $hasError ? 'true' : null,
+                'aria-describedby' => $describedBy,
                 'class' => $textareaClasses,
             ])->except(['label', 'hint', 'error', 'size', 'auto-resize', 'max-length', 'show-error']) }}
             @if($maxLength)
@@ -107,7 +114,7 @@
         @if($maxLength)
             <div class="mt-1 flex justify-between items-center">
                 @if($hint && !$hasError)
-                    <p class="text-sm text-kore-muted-fg">{{ $hint }}</p>
+                    <p @if($fieldId) id="{{ $fieldId }}-hint" @endif class="text-sm text-kore-muted-fg">{{ $hint }}</p>
                 @else
                     <span></span>
                 @endif

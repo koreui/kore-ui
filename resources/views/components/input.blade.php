@@ -36,6 +36,10 @@
 
     $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
 
+    // Associate the field's hint/error (rendered with these ids in field.blade.php)
+    // with the control for assistive tech (WCAG 3.3.1 / 4.1.2).
+    $describedBy = $hasError ? $fieldId . '-error' : ($hint ? $fieldId . '-hint' : null);
+
     $sizeClasses = match($size) {
         'sm' => 'text-xs py-1.5 px-2.5',
         'lg' => 'text-base py-2.5 px-3.5',
@@ -118,6 +122,8 @@
                         'disabled' => $disabled,
                         'readonly' => $readonly,
                         'required' => $required,
+                        'aria-invalid' => $hasError ? 'true' : null,
+                        'aria-describedby' => $describedBy,
                         'class' => $inputBaseClasses . ' block w-full border-0 focus:outline-none focus:ring-0 ' . $sizeClasses . ' ' . $iconPaddingLeft . ' ' . $iconPaddingRight,
                     ])->except(['label', 'hint', 'error', 'size', 'icon', 'icon-right', 'prefix', 'suffix', 'clearable', 'show-error']) }}
                     @if($clearable)
@@ -172,6 +178,8 @@
                     'disabled' => $disabled,
                     'readonly' => $readonly,
                     'required' => $required,
+                    'aria-invalid' => $hasError ? 'true' : null,
+                    'aria-describedby' => $describedBy,
                     'class' => $inputBaseClasses . ' block w-full rounded-kore-md border ' . ($hasError ? 'border-kore-destructive focus:ring-kore-destructive/30 focus:border-kore-destructive' : 'border-kore-input') . ' focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary ' . $sizeClasses . ' ' . $iconPaddingLeft . ' ' . $iconPaddingRight,
                 ])->except(['label', 'hint', 'error', 'size', 'icon', 'icon-right', 'prefix', 'suffix', 'clearable', 'show-error']) }}
                 @if($clearable)
