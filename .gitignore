@@ -3,3 +3,10 @@ node_modules/
 composer.lock
 .phpunit.result.cache
 .phpunit.cache/
+
+# graphify — se versionan GRAPH_REPORT.md y graph.json; el resto es regenerable o estado local de máquina
+graphify-out/graph.html
+graphify-out/cache/
+graphify-out/cost.json
+graphify-out/manifest.json
+graphify-out/.graphify_*
