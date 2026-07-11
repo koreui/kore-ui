@@ -1,0 +1,5 @@
+# Dependencias y artefactos de build — no son código fuente autoral
+vendor/
+node_modules/
+dist/
+build/
