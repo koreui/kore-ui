@@ -133,6 +133,27 @@ it('renders per page select', function () {
         ->assertSeeHtml('wire:model.live="perPage"');
 });
 
+it('loading overlay uses the .flex modifier so the spinner stays centered', function () {
+    // Regression: without `.flex`, Livewire toggles the overlay to display:inline-block
+    // (its default), overriding the `flex` class and left-aligning the spinner.
+    Livewire::test(TestTable::class)
+        ->assertSeeHtml('wire:loading.delay.flex');
+});
+
+it('renders the loading overlay outside the scroll container', function () {
+    // Regression: an `absolute inset-0` INSIDE the overflow-x-auto wrapper scrolls along
+    // with the content, leaving the right-hand columns uncovered once the user scrolls.
+    // The overlay must be anchored to a non-scrolling parent, i.e. come before the wrapper.
+    $html = Livewire::test(TestTable::class)->html();
+
+    $overlay = strpos($html, 'wire:loading.delay.flex');
+    $scroller = strpos($html, 'data-table-wrapper');
+
+    expect($overlay)->not->toBeFalse()
+        ->and($scroller)->not->toBeFalse()
+        ->and($overlay)->toBeLessThan($scroller);
+});
+
 it('searches in relation fields with dot notation', function () {
     // Columns with invalid relation/field parts are silently skipped before orWhereHas is called.
     // The valid 'name' column still produces correct results.

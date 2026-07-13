@@ -98,6 +98,8 @@ export default function KoreFeedback(flash = null, config = {}) {
             // Initialize runtime props
             toast.count = 1;
             toast._visible = false;
+            toast._hovered = false;
+            toast._hoverTimer = null;
 
             this.toasts.push(toast);
         },
@@ -105,6 +107,8 @@ export default function KoreFeedback(flash = null, config = {}) {
         dismiss(id) {
             const toast = this.toasts.find(t => t.id === id);
             if (!toast) return;
+
+            clearTimeout(toast._hoverTimer);
 
             // Execute close hook if present
             if (toast.hooks?.close && toast.reference) {
@@ -139,7 +143,6 @@ export default function KoreFeedback(flash = null, config = {}) {
                 // Auto-expand if now has description
                 if (toast.description) {
                     toast.autoExpand = true;
-                    toast.expandable = true;
                 }
 
                 // Restart timer if auto-dismiss
@@ -178,6 +181,25 @@ export default function KoreFeedback(flash = null, config = {}) {
         resumeTimer(id) {
             const el = document.querySelector(`[data-toast-progress="${id}"]`);
             if (el) el.style.animationPlayState = 'running';
+        },
+
+        // --- Expand on hover ---
+
+        setHovered(toast, value) {
+            clearTimeout(toast._hoverTimer);
+
+            // Los delays evitan que pasar el cursor de largo abra y cierre el toast de golpe.
+            const delay = value ? this.config.expandDelay : this.config.collapseDelay;
+
+            toast._hoverTimer = setTimeout(() => {
+                toast._hovered = value;
+            }, delay);
+        },
+
+        isExpanded(toast) {
+            // El hover solo puede AÑADIR: nunca colapsa por debajo del estado de reposo
+            // (autoExpand), o rozar un toast con el cursor le borraría la descripción.
+            return this.hasContent(toast) && (toast._hovered || toast.autoExpand);
         },
 
         // --- Swipe ---

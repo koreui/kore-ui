@@ -145,15 +145,24 @@ When using `kore_toast()` or `Kore::toast()` outside Livewire, session flash is 
 
 ## Expand/Collapse
 
-Toasts with a description or actions auto-expand to show the content. On hover, any toast with content expands. Control this behavior:
+Toasts with a description or actions auto-expand to show the content. Hovering can only *add* content, never remove it: an auto-expanded toast stays open after the mouse leaves.
 
 ```php
-// Has description → auto-expands
+// Has description → auto-expands, and stays expanded
 $this->toast()->success('Title', 'Description text')->send();
 
-// Suppress auto-expand
+// Suppress auto-expand → starts collapsed, expands on hover, collapses on leave
 $this->toast()->success('Title', 'Long description...')->expanded(false)->send();
 ```
+
+Hover expansion is delayed so that moving the cursor across a toast doesn't snap it open and shut:
+
+| Config | Default | Effect |
+|---|---|---|
+| `feedback.toast.expand_delay` | `150` ms | Wait before expanding on hover |
+| `feedback.toast.collapse_delay` | `300` ms | Wait before collapsing on leave |
+
+These delays only apply to toasts started with `expanded(false)` — an auto-expanded toast has nothing to collapse back to.
 
 ## Swipe to Dismiss
 
@@ -188,7 +197,7 @@ The toast payload sent to Alpine:
     'dismissible' => true,
     'sole'        => false,
     'noGroup'     => false,
-    'expandable'  => false,
+    'expandable'  => false, // deprecated — removed in 2.0
     'autoExpand'  => false,
     'actions'     => [],
     'options'     => [],
@@ -196,3 +205,8 @@ The toast payload sent to Alpine:
     'reference'   => 'livewire-component-id',
 ]
 ```
+
+> **`expandable` is deprecated.** It duplicates what `description`, `actions` and `options`
+> already say, and the library no longer reads it — the front end derives the expanded state
+> with `isExpanded()`. It still ships so published templates that read it keep working, and it
+> will be removed in 2.0. If you have a published toast template, stop relying on it.

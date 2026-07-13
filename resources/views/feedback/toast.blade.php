@@ -11,10 +11,9 @@
     :style="swipeStyle(toast.id)"
     :role="toast.type === 'error' ? 'alert' : 'status'"
     :data-resolving="toast.resolving ?? false"
-    x-data="{ expanded: toast.autoExpand }"
     x-init="$nextTick(() => { toast._visible = true })"
-    @mouseenter="expanded = hasContent(toast); pauseTimer(toast.id)"
-    @mouseleave="expanded = false; resumeTimer(toast.id)"
+    @mouseenter="setHovered(toast, true); pauseTimer(toast.id)"
+    @mouseleave="setHovered(toast, false); resumeTimer(toast.id)"
     @pointerdown.self="startSwipe($event, toast)"
     @pointermove.self="moveSwipe($event, toast)"
     @pointerup.self="endSwipe($event, toast)"
@@ -66,8 +65,9 @@
         </template>
     </div>
 
-    {{-- Expandable body --}}
-    <div x-show="expanded" x-collapse class="overflow-hidden">
+    {{-- Expandable body. isExpanded() se evalúa en vivo para que resolve() —que activa
+         autoExpand al llegar una descripción— re-expanda el toast ya montado. --}}
+    <div x-show="isExpanded(toast)" x-collapse class="overflow-hidden">
         <div class="px-4 pb-4 pl-12">
             {{-- Description --}}
             <template x-if="toast.description">

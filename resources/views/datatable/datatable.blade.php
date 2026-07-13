@@ -163,17 +163,25 @@
         @endphp
 
         {{-- z-index scale: body 0 · pinned cells 1 · sticky thead 20 · loading overlay 30 · teleported dropdowns 50 · drawer 60 --}}
+        {{-- Ancla del overlay. Tiene que ser un padre SIN scroll: un `absolute inset-0` dentro
+             del contenedor scrolleable se desplaza junto al contenido, y en cuanto el usuario
+             hace scroll horizontal deja las columnas de la derecha sin tapar. --}}
+        <div class="relative">
+            {{-- Loading overlay: el modificador `.flex` es OBLIGATORIO — wire:loading aplica un
+                 display INLINE, por defecto inline-block, que pisaría la clase `flex` y dejaría
+                 el spinner arriba a la izquierda (items/justify-center no aplican sobre una caja
+                 no-flex). Con `.flex` alterna display:none ↔ flex; `.delay` evita el parpadeo en
+                 peticiones rápidas. z-30 lo mantiene por encima del thead sticky (z-20). --}}
+            <div wire:loading.delay.flex class="absolute inset-0 z-30 flex items-center justify-center bg-kore-surface/80 backdrop-blur-[1px]">
+                <x-kore::loading size="md" />
+            </div>
+
         {{-- maxHeight → scroll vertical interno para que el header sticky funcione (overflow-x rompe el sticky relativo al viewport) --}}
         <div
             data-table-wrapper
             class="relative {{ ($maxHeight ?? null) ? 'overflow-auto' : 'overflow-x-auto' }}"
             @if($maxHeight ?? null) style="max-height: {{ $maxHeight }}px" @endif
         >
-            {{-- Loading overlay: `flex` is a fixed class (centers the spinner); wire:loading.delay
-                 toggles display:none ↔ flex and avoids flicker on fast requests. z-30 keeps it above the sticky header. --}}
-            <div wire:loading.delay class="absolute inset-0 z-30 flex items-center justify-center bg-kore-surface/80 backdrop-blur-[1px]">
-                <x-kore::loading size="md" />
-            </div>
 
             {{-- Card mode (responsive) --}}
             @if(($responsiveMode ?? 'scroll') === 'card' && $rows !== null)
@@ -534,6 +542,7 @@
                 @endif
             </table>
         </div>
+        </div>{{-- /ancla del overlay --}}
 
         {{-- Pagination --}}
         @if($rows !== null && method_exists($rows, 'hasPages') && $rows->hasPages())

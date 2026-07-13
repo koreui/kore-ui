@@ -70,7 +70,6 @@ it('includes description in payload', function () {
     $data = $toast->success('Title', 'Description text')->toArray();
 
     expect($data['description'])->toBe('Description text')
-        ->and($data['expandable'])->toBeTrue()
         ->and($data['autoExpand'])->toBeTrue();
 });
 
@@ -199,4 +198,37 @@ it('includes component reference in payload when sent from Livewire', function (
     $data = $toast->success('Test')->toArray();
 
     expect($data['reference'])->not->toBeNull();
+});
+
+// --- Expand/collapse ---
+
+it('still ships the deprecated expandable key in the payload', function () {
+    // `expandable` duplica hasContent() y la librería ya no la lee: el front deriva el
+    // estado con isExpanded(). Se mantiene por compatibilidad con templates publicados
+    // que la consulten, y se elimina en 2.0. Este test existe para que no desaparezca
+    // por descuido en un minor.
+    $toast = new Toast;
+
+    expect($toast->success('Title', 'Desc')->toArray()['expandable'])->toBeTrue()
+        ->and((new Toast)->success('Solo título')->toArray()['expandable'])->toBeFalse();
+});
+
+it('keeps an auto-expanded toast open after the mouse leaves', function () {
+    // Regresión: `@mouseleave="expanded = false"` colapsaba el toast SIEMPRE, aunque
+    // autoExpand lo hubiera abierto por tener descripción. Rozarlo con el cursor
+    // borraba la descripción de forma permanente. El hover solo puede añadir:
+    // isExpanded() nunca colapsa por debajo del estado de reposo.
+    $html = view('kore::feedback.toast')->render();
+
+    expect($html)->toContain('x-show="isExpanded(toast)"')
+        ->and($html)->not->toContain('expanded = false');
+});
+
+it('routes hover through setHovered so the expand/collapse delays apply', function () {
+    // expand_delay y collapse_delay se publican en la config y se pasan al front; el
+    // hover tiene que pasar por setHovered() o serían configuración que miente.
+    $html = view('kore::feedback.toast')->render();
+
+    expect($html)->toContain('setHovered(toast, true)')
+        ->and($html)->toContain('setHovered(toast, false)');
 });

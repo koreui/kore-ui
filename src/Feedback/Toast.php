@@ -311,6 +311,8 @@ class Toast
             'dismissible' => $this->dismissible ?? config('kore-ui.feedback.toast.dismissible', true),
             'sole'        => $this->sole,
             'noGroup'     => $this->noGroup,
+            // @deprecated Se elimina en 2.0. Duplica hasContent() y ya no la lee nadie:
+            // el front deriva el estado con isExpanded(), que mira description/actions/options.
             'expandable'  => $hasContent,
             'autoExpand'  => $this->autoExpand ?? $hasContent,
             'actions'     => $this->actions,
