@@ -14,6 +14,8 @@ Release de correcciones. Dos bugs visibles y una pieza de configuración que lle
 ### Fixed
 
 - **DataTable — overlay de carga desalineado.** El overlay usaba `wire:loading.delay` sin modificador de display, así que Livewire le aplicaba `display:inline-block` en línea, pisando la clase `flex` y dejando el spinner arriba a la izquierda en vez de centrado. Ahora usa `wire:loading.delay.flex`.
+
+  > Esto **revierte** el cambio hecho en 1.2.0, que atribuía al modificador `.flex` un overlay que se quedaba visible para siempre. La causa real de aquel síntoma era el hook `morphed` de pinning, que al lanzar una excepción rompía el ciclo de morph y congelaba `wire:loading` — y se corrigió por separado en el mismo 1.2.0. El modificador `.flex` está documentado en Livewire y es la forma correcta de que un overlay `flex` no reciba `inline-block`.
 - **DataTable — overlay que no tapaba la tabla al hacer scroll.** El overlay vivía dentro del contenedor con `overflow-x-auto`, donde un `absolute inset-0` se desplaza junto al contenido: en cuanto había scroll horizontal, las columnas de la derecha quedaban al descubierto durante la carga. Ahora se ancla a un padre que no hace scroll.
 - **Toast — el hover borraba la descripción.** `@mouseleave` colapsaba el toast siempre, ignorando `autoExpand`. Bastaba con rozar un toast con el cursor para que perdiera su descripción de forma permanente. El hover ahora solo puede **añadir**: nunca colapsa por debajo del estado de reposo.
 - **Toast — un `loading` resuelto no se volvía a expandir.** `resolve()` activa `autoExpand` al llegar una descripción, pero el estado se copiaba una sola vez al montar el componente Alpine, así que el cambio nunca llegaba a la vista.
@@ -61,6 +63,73 @@ Endurecimiento de los 6 hallazgos P0 de la auditoría exhaustiva (cliente→serv
 - **Rendimiento** — `loading="lazy"` + `decoding="async"` en `ImageColumn` y avatares.
 - **i18n** — registrada la clave `datatable.translations.edit_unauthorized` (estaba leída pero ausente del config).
 - **Docs** — prefijo de componente corregido a `x-kore::` (dos puntos) en documentación y CHANGELOG.
+
+---
+
+## [1.2.0] — 2026-06-03
+
+Auditoría completa del DataTable en tres sprints (seguridad, escalabilidad y accesibilidad), más selección persistente entre páginas. Es el release que convierte el DataTable en un componente apto para producción con datasets grandes.
+
+### Security
+
+- **Ordenación arbitraria** — `sorts` se valida contra la whitelist de columnas ordenables y la dirección se normaliza en `applySorts()`. Antes se podía ordenar por columnas no expuestas, y una dirección inválida provocaba un 500.
+- **IDOR en edición inline** — `updateCell` resuelve el registro vía `query()->where()` en lugar del modelo estático, respetando los scopes del componente. Si el registro no cae dentro del scope, se emite `edit-error` en vez de editarlo.
+- **CSV injection** — `CsvExporter` neutraliza las celdas que empiezan por `=`, `+`, `-`, `@`, tab o retorno de carro.
+- **Comodines LIKE** — la búsqueda escapa `%` y `_` con cláusula `ESCAPE` explícita (compatible entre motores).
+
+### Added
+
+- **Selección server-side persistente entre páginas.** La selección pasa a ser estado del componente (`$selected`, `$selectAllMatching`) en vez de vivir solo en Alpine, donde se reiniciaba al paginar o al hacer morph. Incluye banner con el total ("N seleccionados, incl. otras páginas"), botón *seleccionar todo lo que coincide* y `executeBulkActionMatching()` / `getAllMatchingIds()`, que operan sobre la query filtrada en el backend.
+- **Selección por rango con shift-click.**
+- **Header sticky vía `maxHeight()`.** El `sticky` del `thead` no ancla dentro de un contenedor con `overflow-x`, porque scrollea con la página. `maxHeight` convierte el wrapper en una región de scroll interno (`overflow-auto` + `max-height`), que es donde el sticky sí funciona.
+- **`Column::maxWidth()`** — truncado con `title` en `th` y `td`.
+- **Persistencia de `perPage` en la URL**, validada contra las opciones permitidas y respetada en `mount()`.
+- **`docs/getting-started.md`** — guía de instalación que refleja el enfoque de `@koreScripts` (bundle precompilado, sin imports npm).
+- **`docs/data/hardening.md`** — documenta las garantías de seguridad y la API nueva de la auditoría.
+
+### Changed
+
+- **Cap real de filas en export.** El `Exporter` recibe `maxRows` y `CsvExporter` lo respeta con un contador: `chunk()` ignora `->limit()`, así que hasta ahora se exportaba el dataset entero pese al límite.
+- **`presetCounts` cacheado** (`#[Locked]`, invalidado tras bulk o edición inline). Antes se lanzaba un `COUNT` por preset **en cada render**.
+- **Offsets de columnas fijadas** recalculados en cliente midiendo anchos reales, con un único hook `morphed` global y `resize` con throttle.
+- **Responsividad por contenedor** — `ResizeObserver` sobre el root en lugar del viewport.
+- **Debounce de 500 ms** en los filtros `number` y `number-range`.
+- **Dropdown de export teleportado a `body`** (z-50), con la escala de z-index documentada.
+
+### Fixed
+
+- **Hook `morphed` de pinning** — envuelto en `try/catch` con validación de `el`. Una excepción ahí rompía el ciclo de morph de Livewire y dejaba `wire:loading` congelado, con el overlay de carga visible para siempre.
+- **Botón anidado en columnas con interacción propia** — `ColorColumn->copyable()` envolvía la celda en el botón genérico de copiar mientras `color.blade.php` renderiza su propio `<button>`, produciendo un `<button>` dentro de otro. HTML inválido que rompía el DOM y el scope de Alpine. Las columnas `color`, `component` y `action` quedan excluidas del wrapper genérico.
+- **Overlay de carga descentrado** — se sustituye el modificador `.flex` por la clase `flex` fija. *(Nota: este diagnóstico resultó ser incorrecto y se revirtió en 1.4.0; ver esa entrada.)*
+- **Agregaciones** — el campo se valida con regex y se envuelve con `wrap()` en el `selectRaw`; `AVG` sobre un dataset vacío preserva `null` en vez de devolver `0`.
+- **Ordenación con dot-notation** — se omiten esas columnas en lugar de generar SQL inválido.
+- **`Ctrl+A` secuestrado** — el listener de teclado se acota al hover/foco del datatable, en vez de capturarlo en toda la página.
+- **Guard de `per_page_options` vacío** en `updatedPerPage`.
+- **Orden determinista en export** — `orderBy(pk)` como tiebreaker antes de `chunk()`.
+
+### Accessibility
+
+- `scope="col"`, `aria-sort` dinámico y `aria-label` en los botones de orden (tabla, modo collapse y componente genérico).
+- `aria-selected` en las filas seleccionadas y `aria-label` en checkboxes (tabla, card y collapse) y en los botones de cierre de las pills.
+- `aria-label` en las flechas de paginación deshabilitadas.
+
+---
+
+## [1.1.0] — 2026-04-04
+
+### Added
+
+- **Pipeline de build y directiva `@koreScripts`.** Los plugins de Alpine se compilan en un bundle IIFE (`dist/kore-ui.js`) que se sirve desde una ruta de Laravel. `@koreScripts` inyecta el `<script>` que apunta a ella, así que instalar la librería ya no obliga a tocar la configuración de npm de la aplicación ni a importar desde `vendor/`.
+
+---
+
+## [1.0.0] — 2026-04-03
+
+Primera versión estable. El salto desde `0.2.5` marca la estabilización de la API pública: a partir de aquí el versionado sigue SemVer con garantías de compatibilidad. El único cambio de código respecto a `0.2.5` es el fix de abajo.
+
+### Fixed
+
+- **`dropdown.item` sin compilar en `ActionColumn`.** Blade no compila componentes `<x-kore::*>` que llevan directivas `@if` dentro de su etiqueta de apertura. Se sustituyen por expresiones ternarias (`:style`, `:target`, `:rel`) para que las acciones por fila se rendericen.
 
 ---
 
@@ -167,5 +236,9 @@ Primera versión pre-release de kore-ui. Incluye el sistema base completo con ov
 
 ---
 
+[1.4.0]: https://github.com/koreui/kore-ui/releases/tag/v1.4.0
 [1.3.0]: https://github.com/koreui/kore-ui/releases/tag/v1.3.0
+[1.2.0]: https://github.com/koreui/kore-ui/releases/tag/v1.2.0
+[1.1.0]: https://github.com/koreui/kore-ui/releases/tag/v1.1.0
+[1.0.0]: https://github.com/koreui/kore-ui/releases/tag/v1.0.0
 [0.1.0]: https://github.com/koreui/kore-ui/releases/tag/v0.1.0
