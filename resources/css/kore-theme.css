@@ -23,6 +23,14 @@
   --color-kore-ring: var(--kore-ring);
   --color-kore-surface: var(--kore-surface);
   --color-kore-surface-fg: var(--kore-surface-fg);
+  --color-kore-chart-1: var(--kore-chart-1);
+  --color-kore-chart-2: var(--kore-chart-2);
+  --color-kore-chart-3: var(--kore-chart-3);
+  --color-kore-chart-4: var(--kore-chart-4);
+  --color-kore-chart-5: var(--kore-chart-5);
+  --color-kore-chart-6: var(--kore-chart-6);
+  --color-kore-chart-7: var(--kore-chart-7);
+  --color-kore-chart-8: var(--kore-chart-8);
   --radius-kore-sm: var(--kore-radius-sm);
   --radius-kore-md: var(--kore-radius-md);
   --radius-kore-lg: var(--kore-radius-lg);
@@ -64,6 +72,34 @@
     --kore-surface: oklch(1 0 0);
     --kore-surface-fg: oklch(0.15 0 0);
     --kore-pin-shadow: rgb(0 0 0 / 0.10);
+
+    /* Paleta CATEGÓRICA de datos. No confundir con los tokens semánticos de arriba:
+       --kore-success significa "esto va bien". Si lo usas para la serie 2 de un gráfico,
+       le estás diciendo al lector que la serie 2 va bien. Los colores de estado están
+       reservados y no se reutilizan como "serie 4".
+
+       El ORDEN no es decorativo: es el mecanismo de seguridad frente al daltonismo. Se
+       derivó enumerando las 5.040 permutaciones posibles (con el azul de --kore-primary
+       fijo en el slot 1) y quedándose con la que maximiza el peor par ADYACENTE bajo
+       protanopia y deuteranopia. Peor par adyacente: ΔE 56.0 en claro, 49.2 en oscuro
+       (el mínimo exigible es 12). Los 8 pasan además la banda de luminosidad, el suelo
+       de croma y el contraste ≥ 3:1 contra su superficie.
+
+       Asignar SIEMPRE en orden, y nunca ciclar: la novena serie no existe, es "Otros".
+
+       ⚠️ En scatter/burbujas/small multiples cualquier par puede quedar adyacente, así
+       que hay que distinguir los 8 entre sí — y ahí la paleta solo aguanta 5 series
+       (blue, amber, teal, red, green). Con 6 o más, magenta y teal colapsan al mismo
+       color bajo deuteranopia (ΔE 2.4). */
+    --kore-chart-1: oklch(0.55 0.20 250);   /* azul    — el tono de --kore-primary */
+    --kore-chart-2: oklch(0.66 0.16 75);    /* ámbar */
+    --kore-chart-3: oklch(0.60 0.12 195);   /* teal */
+    --kore-chart-4: oklch(0.66 0.17 45);    /* naranja */
+    --kore-chart-5: oklch(0.62 0.20 345);   /* magenta */
+    --kore-chart-6: oklch(0.57 0.20 27);    /* rojo    — el tono de --kore-destructive */
+    --kore-chart-7: oklch(0.50 0.20 292);   /* violeta */
+    --kore-chart-8: oklch(0.55 0.14 150);   /* verde */
+
     --kore-radius-sm: 0.25rem;
     --kore-radius-md: 0.375rem;
     --kore-radius-lg: 0.5rem;
@@ -109,6 +145,19 @@
     --kore-surface: oklch(0.17 0 0);
     --kore-surface-fg: oklch(0.93 0 0);
     --kore-pin-shadow: rgb(0 0 0 / 0.55);
+
+    /* Los mismos 8 tonos, re-escalonados para la banda oscura (L 0.48–0.67). NO es la
+       paleta clara "aclarada": es una paleta SELECCIONADA y validada contra la superficie
+       oscura real (--kore-surface = oklch(0.17 0 0) = #0f0f0f). Los 8 pasan las cuatro
+       comprobaciones y el peor par adyacente da ΔE 49.2. */
+    --kore-chart-1: oklch(0.66 0.16 250);   /* azul */
+    --kore-chart-2: oklch(0.66 0.14 75);    /* ámbar */
+    --kore-chart-3: oklch(0.65 0.11 195);   /* teal */
+    --kore-chart-4: oklch(0.62 0.15 45);    /* naranja */
+    --kore-chart-5: oklch(0.66 0.17 345);   /* magenta */
+    --kore-chart-6: oklch(0.64 0.17 27);    /* rojo */
+    --kore-chart-7: oklch(0.63 0.17 292);   /* violeta */
+    --kore-chart-8: oklch(0.62 0.13 150);   /* verde */
   }
 }
 

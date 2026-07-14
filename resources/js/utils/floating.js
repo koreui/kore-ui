@@ -23,7 +23,48 @@ import { computePosition, flip, shift, offset, autoUpdate } from '@floating-ui/d
  *       this.open = false;
  *       stopFloating(this._floatingCleanup);
  *   }
+ *
+ * The reference may also be a VIRTUAL element (see `virtualReference` below): an object
+ * with `getBoundingClientRect()` instead of a DOM node. A chart tooltip does not hang off
+ * an element — it hangs off a data point, which is just a coordinate. Floating UI supports
+ * that natively, but nothing would ever tell us to reposition, because a moving cursor
+ * fires no scroll, resize or mutation. That is why the cleanup function returned here also
+ * carries an `.update()`: with a virtual reference, the caller drives the repositioning.
+ *
+ *   const point = virtualReference(this.$refs.plot);
+ *   const handle = startFloating(point, this.$refs.tooltip, { placement: 'top' });
+ *   // on every pointermove:
+ *   point.setPoint(clientX, clientY);
+ *   handle.update();
  */
+
+/**
+ * A reference that is a point, not an element.
+ *
+ * `contextElement` is not decoration: Floating UI uses it to find the scroll ancestors it
+ * has to listen to. Without it, a tooltip inside a scrollable panel would stay behind when
+ * the panel scrolls.
+ */
+export function virtualReference(contextElement = null) {
+    let rect = { x: 0, y: 0, width: 0, height: 0, top: 0, right: 0, bottom: 0, left: 0 };
+
+    return {
+        contextElement,
+        getBoundingClientRect: () => rect,
+
+        /** Anchor on a single viewport coordinate (a data point). */
+        setPoint(x, y) {
+            rect = { x, y, width: 0, height: 0, top: y, right: x, bottom: y, left: x };
+        },
+
+        /** Anchor on an area (a bar, a band of the x axis). */
+        setRect({ x, y, width = 0, height = 0 }) {
+            rect = { x, y, width, height, top: y, right: x + width, bottom: y + height, left: x };
+        },
+    };
+}
+
+const isDomNode = (value) => typeof value?.nodeType === 'number';
 
 export function startFloating(reference, floating, opts = {}) {
     if (!reference || !floating) return null;
@@ -62,10 +103,18 @@ export function startFloating(reference, floating, opts = {}) {
     const cleanup = autoUpdate(reference, floating, update, {
         ancestorScroll: true,
         ancestorResize: true,
-        elementResize: true,
-        layoutShift: true,
+        // A virtual reference has no box to observe. Floating UI copes (it unwraps to
+        // `contextElement`, which may be absent), but asking for a ResizeObserver on
+        // something that is not an element buys nothing.
+        elementResize: isDomNode(reference),
+        layoutShift: isDomNode(reference),
         animationFrame: false,
     });
+
+    // Expose update() on the cleanup function. It stays a function, so `stopFloating` and
+    // every existing caller keep working unchanged — but a caller with a virtual reference
+    // can now ask for a reposition when the point moves.
+    cleanup.update = update;
 
     return cleanup;
 }
