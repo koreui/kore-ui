@@ -2,6 +2,9 @@
 
 namespace KoreUi\Charts;
 
+use DateTimeImmutable;
+use DateTimeInterface;
+use DateTimeZone;
 use InvalidArgumentException;
 use KoreUi\Charts\Marks\Mark;
 
@@ -199,7 +202,16 @@ final class ChartFrame
         );
     }
 
-    /** @return list<string> */
+    /**
+     * Las etiquetas del eje X, una por fila.
+     *
+     * ⚠️ **El `(string)` de aquí es donde muere cualquier tipo que no sea una categoría.** Un
+     * `Carbon`, un `DateTime`, un entero: todo sale convertido en texto, y a partir de ahí el
+     * gráfico solo sabe colocarlo por su ORDINAL. Por eso `xRaw()` existe: la escala necesita
+     * el valor, no su nombre.
+     *
+     * @return list<string>
+     */
     public function categories(): array
     {
         if ($this->x === null) {
@@ -210,6 +222,119 @@ final class ChartFrame
             fn ($row) => (string) ($this->raw($row, $this->x) ?? ''),
             array_values($this->data),
         );
+    }
+
+    /**
+     * El X de cada fila, SIN convertir.
+     *
+     * Es lo que necesita una escala continua: la fecha, no su etiqueta.
+     *
+     * @return list<mixed>
+     */
+    public function xRaw(): array
+    {
+        if ($this->x === null) {
+            return array_keys(array_values($this->data));
+        }
+
+        return array_map(
+            fn ($row) => $this->raw($row, $this->x),
+            array_values($this->data),
+        );
+    }
+
+    /**
+     * El X de cada fila como fecha inmutable, o null si esa fila no la tiene.
+     *
+     * La zona horaria importa y no es cosmética: un pedido de las 23:30 en Madrid es de las
+     * 22:30 en UTC, o sea de **otro día**. Un gráfico diario que lea las fechas en UTC pone ese
+     * pedido en la barra de ayer. Por eso `timezone` es una prop del eje, y por eso la
+     * conversión se hace aquí, una vez, antes de que nadie mire el calendario.
+     *
+     * Sin `timezone`, se respeta la que traiga el dato. Eloquent las entrega en la zona de la
+     * aplicación, así que en el caso normal ya viene bien.
+     *
+     * @return list<DateTimeImmutable|null>
+     */
+    public function xDates(): array
+    {
+        $name = $this->axes['x']['timezone'] ?? null;
+        $zone = $name === null ? null : new DateTimeZone($name);
+
+        return array_map(
+            function ($value) use ($zone) {
+                if (! $value instanceof DateTimeInterface) {
+                    return null;
+                }
+
+                $date = DateTimeImmutable::createFromInterface($value);
+
+                return $zone === null ? $date : $date->setTimezone($zone);
+            },
+            $this->xRaw(),
+        );
+    }
+
+    /**
+     * De qué tipo es el eje X: `band`, `time` o `linear`.
+     *
+     * `auto` (el defecto) detecta fechas y solo fechas. **Nunca promociona a `linear` por su
+     * cuenta**, y eso es deliberado: unos años escritos como enteros (2022, 2023, 2024) son
+     * *categorías*, no una recta numérica, y colocarlos en una escala lineal cambiaría el
+     * gráfico de quien no ha pedido nada. `linear` hay que escribirlo.
+     */
+    public function xScaleType(): string
+    {
+        // Un donut no tiene ejes. `validate()` ya lo prohíbe, pero el Plot pregunta antes.
+        if ($this->hasDonut()) {
+            return 'band';
+        }
+
+        $requested = $this->axes['x']['scale'] ?? 'auto';
+
+        if (! in_array($requested, ['auto', 'band', 'time', 'linear'], true)) {
+            throw new InvalidArgumentException(
+                "koreUi: «{$requested}» no es una escala de eje X. Las que hay: auto, band, time, linear."
+            );
+        }
+
+        if ($requested === 'auto') {
+            return $this->looksTemporal() ? 'time' : 'band';
+        }
+
+        if ($requested === 'time' && ! $this->looksTemporal()) {
+            throw new InvalidArgumentException(
+                'koreUi: has pedido un eje X temporal, pero la columna «'.($this->x ?? '?').'» no trae fechas. '
+                .'Pasa objetos DateTime o Carbon, no cadenas ya formateadas: si le das el texto, el gráfico solo '
+                .'puede colocar los puntos por su orden, y los huecos del calendario desaparecen.'
+            );
+        }
+
+        return $requested;
+    }
+
+    /** Hay fechas, y todas las filas que tienen X la tienen. */
+    private function looksTemporal(): bool
+    {
+        if ($this->x === null || $this->data === []) {
+            return false;
+        }
+
+        $found = false;
+
+        foreach ($this->xRaw() as $value) {
+            if ($value === null) {
+                continue;
+            }
+
+            if (! $value instanceof DateTimeInterface) {
+                return false;
+            }
+
+            $found = true;
+        }
+
+        return $found;
     }
 
     /** Los apilados, agrupados por nombre de pila. @return array<string, list<Mark>> */

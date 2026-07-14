@@ -12,7 +12,7 @@ Gráficos de barras, líneas, áreas y donut. **Sin ninguna librería de JavaScr
 | `<x-kore::chart.bar>` | Barras. Con `stack` se apilan; sin él, se agrupan |
 | `<x-kore::chart.donut>` | Un donut (o una tarta, con `inner="0"`) |
 | `<x-kore::chart.axis-y>` | El eje Y: cuántos ticks y cómo se formatean |
-| `<x-kore::chart.axis-x>` | El eje X |
+| `<x-kore::chart.axis-x>` | El eje X: categorías, **fechas** o números. Ver [time-axis.md](time-axis.md) |
 | `<x-kore::chart.legend>` | La leyenda. Al pulsarla, oculta la serie |
 | `<x-kore::chart.tooltip>` | El tooltip y el crosshair |
 
@@ -39,6 +39,18 @@ $ventas = [
 ```
 
 **No hay tipos de gráfico.** No existe un `type="mixed"`: un gráfico de barras con una línea encima son dos marcas, una detrás de otra. El orden en que las escribes es el orden en que se pintan.
+
+## Si el eje X son fechas, pásale fechas
+
+```blade
+<x-kore::chart :data="$lecturas" x="medido_en">
+    <x-kore::chart.line y="temperatura" />
+</x-kore::chart>
+```
+
+Objetos `DateTime` o `Carbon`, **no cadenas ya formateadas**. La escala se detecta sola, y con ella cada punto cae donde le toca en el calendario en vez de donde le toca en el array.
+
+No es una mejora estética. Con las fechas como texto, un sensor que estuvo tres días caído se dibuja con sus lecturas pegadas una a otra: la caída **desaparece**, y el gráfico se ve perfectamente bien mientras miente. Ver [time-axis.md](time-axis.md).
 
 ## Cómo funciona (y por qué importa)
 
@@ -142,7 +154,8 @@ En `config/kore-ui.php`, sección `chart`:
     'height' => '16rem',        // longitud CSS. Con la prop `aspect`, se ignora
     'ticks' => 5,               // una PISTA, no un contrato (ver abajo)
     'bar_padding' => 0.2,       // hueco entre barras, como proporción de la banda
-    'max_x_labels' => 12,       // por encima, se saltan etiquetas
+    'max_x_labels' => 12,       // TOPE de etiquetas en un eje de CATEGORÍAS
+    'x_ticks' => 6,             // OBJETIVO de ticks en un eje CONTINUO (fechas o números)
     'table_max_rows' => 500,    // tope de la tabla accesible
     'donut_highlight' => true,  // al posarte en un arco, se enciende su fila de la leyenda
 
@@ -166,9 +179,7 @@ En `config/kore-ui.php`, sección `chart`:
 
 **El techo son unos 2.000 puntos por serie.** No lo pone el rendimiento del dibujo, lo pone el peso del HTML. Por encima, agrega o decima los datos en PHP.
 
-**El eje X es categórico.** Las fechas se pre-formatean en PHP y entran como categorías. Una escala temporal de verdad (con ticks que caen en fronteras de mes o de trimestre) es otro algoritmo entero, y no está en esta versión.
-
-**Ocultar una serie desde la leyenda no reescala los ejes.** La serie desaparece, pero el eje se queda como estaba.
+**Ocultar una serie desde la leyenda no reescala los ejes.** La serie desaparece, pero el eje se queda como estaba. (Con `:show="false"` en el servidor **sí** se reescala: la serie sale del dominio.)
 
 **No hay zoom, ni pan, ni streaming**, ni tipos exóticos (candlestick, treemap, heatmap, mapas).
 

@@ -17,6 +17,29 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 - **`Kore\Charts\`**: el motor de geometría, en PHP puro y sin depender de Blade ni de JavaScript. Sirve igual para un PDF, un email o un export.
 - **Paleta categórica `--kore-chart-1` … `--kore-chart-8`**, en claro y en oscuro.
 
+- **Eje X temporal.** Ver [docs/chart/time-axis.md](docs/chart/time-axis.md).
+
+  Pásale objetos `DateTime` o `Carbon` y la escala se detecta sola. **No es una feature estética: es una corrección de honestidad.** Hasta ahora había que pre-formatear la fecha en PHP, el gráfico la trataba como una categoría, y una categoría se coloca por su **ordinal en el array** — así que un sensor que estuvo tres días caído se dibujaba con sus lecturas pegadas una a otra. La caída desaparecía. El gráfico se veía perfectamente bien y mentía.
+
+  Y el eje X tenía el defecto que el eje Y ya no tiene: adelgazaba las etiquetas **saltando de N en N**, así que 90 días con 12 etiquetas daban los días 1, 9, 17, 25… — que es exactamente el «1.224» del que presume de haberse librado. Ahora los ticks caen en **fronteras de calendario**, con la tabla de `d3-time`, y hay un test de paridad contra un fixture generado con `d3-time` de verdad: **dan exactamente los mismos ticks que d3**.
+
+  **Aquí PHP no es un mal menor: es estrictamente mejor que JavaScript.** `DateTimeImmutable` hace aritmética de calendario, así que un día de 23 o de 25 horas le sale bien por construcción. d3 tiene que volver a truncar después de cada salto, porque en JavaScript una fecha *es* un número de milisegundos y sumarle un día son 86.400.000 ms — que en el cambio de hora te dejan a las 23:00. Y la zona horaria ya está en el servidor, así que no hace falta un adaptador de fechas: el de Chart.js pesa tanto que hace que su *tree-shaking* salga **más caro que su bundle completo**.
+
+  De propina, y casi inevitable: **el intervalo que elige los ticks es el mismo con el que hay que agrupar la consulta**. Es el `$__interval` de Grafana, en Eloquent, y no lo tiene nadie en Laravel:
+
+  ```php
+  $paso = TimeTicks::interval($desde, $hasta, count: 8);   // → «1 week»
+
+  Order::selectRaw('DATE_TRUNC(?, created_at) AS bucket, SUM(total)', [$paso->unit()])
+       ->groupBy('bucket');
+  ```
+
+- **Eje X lineal** (`scale="linear"`), para valores continuos. `auto` **nunca** lo elige por su cuenta: unos años escritos como enteros son categorías, no una recta numérica.
+
+- **Rampas de color secuencial (`--kore-seq-1…7`) y ordinal (`--kore-ord-1…7`)**, en claro y en oscuro. La secuencial codifica una **magnitud** (el valor de una celda); la ordinal solo codifica un **orden** (la etapa de un embudo, donde el valor ya lo dice la geometría). El color se **cuantiza**, jamás se interpola en PHP: el servidor reparte el valor en escalones y emite el número; el color lo pone el CSS. Así el gráfico sigue repintándose solo al cambiar de tema.
+
+- **Guardia de peso del bundle en CI** (`npm run size`). «El JavaScript es poco» es una promesa de la documentación, y una promesa que nadie mide deja de ser verdad sin que nadie se entere.
+
 #### El principio que ordena todo el módulo
 
 **El color nunca es un valor: es un token.** Las series se pintan con `var(--kore-chart-1)`, así que **al cambiar de tema el gráfico se repinta solo, sin ejecutar una sola línea de JavaScript**. Verificado en Chrome, Firefox y WebKit.
@@ -35,6 +58,12 @@ Y como el `<svg>` lo emite el servidor, **el morph de Livewire deja de ser una a
 - **La paleta no se cicla.** La novena serie no existe: repetir el color de la primera es peor que no pintarla. Si lo intentas, salta una excepción.
 
 ### Fixed
+
+- **El tooltip enseñaba los datos del render ANTERIOR después de un morph.** El morph de Livewire va en las dos direcciones y solo se atendía una: lo que escribe el cliente, el morph lo borra (y eso ya se reaplicaba); lo que escribe el servidor, Alpine no lo relee. El payload solo se leía en `init()`, y un morph **no reinicializa el `x-data`**. Así que cualquier `wire:model` que cambiara el dataset repintaba el `<path>` con los valores nuevos y dejaba el tooltip enseñando los viejos. Sin ningún error.
+
+- **La tabla accesible arrastraba scroll horizontal a toda la página.** `sr-only` esconde la caja con `width: 1px`, pero sobre una `<table>` **ese ancho se ignora**: el algoritmo de layout de tablas lo acota por abajo al `min-content`. Medido en un móvil de 375 px: la tabla ocupaba **321 px de ancho**. El `clip-path` sí aplicaba —así que no se veía y nadie se enteró— pero la caja seguía ocupando. Ahora el `sr-only` va en un `<div>`, que sí obedece.
+
+- **Las etiquetas del eje X se salían de la tarjeta.** Se anclaban por el borde la primera y la última, y eso funcionaba porque las únicas que se salían eran las de los extremos… en una escala de bandas. En una escala continua un tick puede caer en el **98,9 %** —ni centrado ni en el borde—, ahí ningún umbral salta, y media etiqueta se va fuera. Ahora el servidor emite **lo que mide** la etiqueta, en `ch` (no puede medir texto, pero sí contarlo), y el CSS la acota con un `clamp`: la centra sobre su tick si cabe y la apoya en el borde si no. Es exacto por construcción, no tiene umbrales que afinar, y de paso resuelve los dos casos que el anclaje trataba a mano.
 
 - **En una barra apilada se redondeaba cada tramo, no la columna.** La pila se veía como una torre de piezas sueltas en vez de como una barra partida en tramos. Ahora sólo lleva el redondeo la **punta** — y la punta es el último tramo **con valor**, no el último que declaraste: si a un mes le falta la serie de arriba, la punta pasa a ser la de debajo. Un `0` no cuenta (dibuja un tramo de altura sub-píxel, y redondearlo dejaría cuadrado el que sí se ve), y una barra negativa la redondea abajo, que es hacia donde crece.
 

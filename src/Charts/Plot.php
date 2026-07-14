@@ -5,6 +5,10 @@ namespace KoreUi\Charts;
 use KoreUi\Charts\Marks\Mark;
 use KoreUi\Charts\Scales\BandScale;
 use KoreUi\Charts\Scales\LinearScale;
+use KoreUi\Charts\Scales\LinearXScale;
+use KoreUi\Charts\Scales\TimeScale;
+use KoreUi\Charts\Scales\XScale;
+use KoreUi\Charts\Time\TimeFormat;
 
 /**
  * De un `ChartFrame` (qué se ha pedido) a la geometría (dónde va cada cosa).
@@ -23,7 +27,14 @@ final class Plot
 
     public readonly LinearScale $y;
 
-    public readonly BandScale $x;
+    /**
+     * El eje X.
+     *
+     * ⚠️ Hasta 1.6.0 esto era un `BandScale` **concreto**, y por tanto la posición de un punto
+     * era su ORDINAL en el array. Con categorías es lo correcto; con fechas es una mentira. Ver
+     * `KoreUi\Charts\Scales\XScale`.
+     */
+    public readonly XScale $x;
 
     /** @var list<string> */
     public readonly array $categories;
@@ -37,7 +48,7 @@ final class Plot
     /** @var list<array{value: float, label: string, pos: float}> */
     public readonly array $yTicks;
 
-    /** @var list<array{label: string, pos: float, index: int}> */
+    /** @var list<array{label: string, context: string|null, pos: float, edge: string|null}> */
     public readonly array $xTicks;
 
     public readonly float $zero;
@@ -48,14 +59,32 @@ final class Plot
         private readonly int $tickCount = 5,
         private readonly float $barPadding = 0.2,
         private readonly int $maxXLabels = 12,
+        ?TimeFormat $timeFormat = null,
+        private readonly ?int $xTickCount = null,
+        private readonly int $continuousXTicks = 6,
     ) {
         // Antes de calcular nada: una marca que no se va a pintar se avisa, no se descarta.
         $frame->validate();
 
-        $this->categories = $frame->categories();
         $marks = $frame->marks();
+        $type = $frame->xScaleType();
 
-        $values = array_map(fn (Mark $mark) => $frame->values($mark), $marks);
+        // El X crudo, y el orden en que hay que leer las filas.
+        //
+        // ⚠️ En una escala continua, el orden del array ES el orden de dibujado: `Path::line()`
+        // une los puntos tal como vienen. Una serie de fechas sin ordenar no dibuja una línea,
+        // dibuja un garabato que va y vuelve en el tiempo — y la búsqueda binaria del tooltip,
+        // que asume `xs` ascendente, devolvería cualquier cosa. Con categorías no aplica: ahí el
+        // orden en que las escribes ES el eje, y reordenarlo sería cambiarle el gráfico a quien
+        // no ha pedido nada.
+        $xRaw = $type === 'time' ? $frame->xDates() : $frame->xRaw();
+        $order = $this->rowOrder($type, $xRaw);
+
+        $xRaw = $this->reorder($xRaw, $order);
+        $values = array_map(
+            fn (Mark $mark) => $this->reorder($frame->values($mark), $order),
+            $marks,
+        );
 
         $this->domain = Domain::fromSeries(
             $this->stackedValues($frame, $values),
@@ -66,22 +95,118 @@ final class Plot
         $this->empty = $frame->isEmpty() || $this->domain->empty;
 
         $this->y = LinearScale::vertical($this->domain->toArray());
+        $this->x = $this->buildXScale($type, $xRaw, $timeFormat ?? new TimeFormat);
+
+        // Las etiquetas de fila (tooltip y tabla accesible). En un eje temporal salen de la
+        // escala, ya formateadas y enteras: «14 feb 2026», no «14» — un tooltip habla de un punto
+        // concreto y fuera de todo contexto.
+        $this->categories = $this->x instanceof TimeScale
+            ? array_map(fn (int $row) => $this->x->labelAt($row), array_keys($xRaw))
+            : $this->reorder($frame->categories(), $order);
+
+        $this->zero = $this->y->zero();
+
+        $this->yTicks = $this->buildYTicks();
+
+        // ⚠️ El número de ticks del eje X NO significa lo mismo en las dos escalas, y confundirlo
+        // sale caro:
+        //
+        //   - En una BANDA es un TOPE: hay N categorías y se pintan como mucho `maxXLabels`,
+        //     saltando el resto. Doce está bien: si sobran, se saltan más.
+        //   - En una escala CONTINUA es un OBJETIVO: pedir doce ticks para una semana da uno cada
+        //     doce horas, y se pisan unos con otros. Medido en un móvil: catorce etiquetas
+        //     solapadas en un gráfico de cinco puntos.
+        //
+        // Así que el defecto de una escala continua es más bajo, y a propósito. Cuando las
+        // etiquetas no caben, la respuesta de un gráfico que no puede medir texto es **pedir
+        // menos ticks**, nunca truncarlos ni rotarlos.
+        $this->xTicks = $this->x->ticks(
+            $this->xTickCount ?? ($this->x instanceof BandScale ? $this->maxXLabels : $this->continuousXTicks),
+        );
+
+        $this->series = $this->buildSeries($marks, $values);
+        $this->layers = $this->buildLayers();
+    }
+
+    /**
+     * En qué orden hay que leer las filas para que el eje X vaya de menos a más.
+     *
+     * Con categorías, la identidad: el orden que escribiste es el eje.
+     *
+     * @param  list<mixed>  $xRaw
+     * @return list<int>
+     */
+    private function rowOrder(string $type, array $xRaw): array
+    {
+        $order = array_keys($xRaw);
+
+        if ($type === 'band' || $order === []) {
+            return $order;
+        }
+
+        usort($order, function (int $a, int $b) use ($xRaw) {
+            $x = $xRaw[$a];
+            $y = $xRaw[$b];
+
+            // Una fila sin X no se puede colocar: al final, donde no estorba.
+            if ($x === null || $y === null) {
+                return ($x === null ? 1 : 0) <=> ($y === null ? 1 : 0);
+            }
+
+            return $x <=> $y;
+        });
+
+        return $order;
+    }
+
+    /**
+     * @template T
+     *
+     * @param  list<T>  $items
+     * @param  list<int>  $order
+     * @return list<T>
+     */
+    private function reorder(array $items, array $order): array
+    {
+        return array_map(fn (int $row) => $items[$row] ?? null, $order);
+    }
+
+    /**
+     * Qué escala rige el eje X.
+     *
+     * @param  list<mixed>  $xRaw
+     */
+    private function buildXScale(string $type, array $xRaw, TimeFormat $timeFormat): XScale
+    {
+        // El padding solo existe si hay barras: una línea no necesita hueco a los lados.
+        $padding = $this->frame->hasBars() ? $this->barPadding : 0.0;
+
+        $present = array_values(array_filter($xRaw, fn ($value) => $value !== null));
+
+        // Sin ni un valor de X no hay escala continua que construir. Se cae a bandas, que es lo
+        // que hace un gráfico vacío de todas formas.
+        if ($type !== 'band' && $present !== []) {
+            if ($type === 'time') {
+                return new TimeScale($xRaw, min($present), max($present), $padding, $timeFormat);
+            }
+
+            $numbers = array_map(fn ($value) => is_numeric($value) ? (float) $value : null, $xRaw);
+            $finite = array_values(array_filter($numbers, fn ($v) => $v !== null && is_finite($v)));
+
+            if ($finite !== []) {
+                return new LinearXScale($numbers, min($finite), max($finite), $padding, $this->format);
+            }
+        }
 
         // Con barras, el eje X son BANDAS y la línea se ancla al centro de la suya, o no
         // coincidiría con ellas. Sin barras, los puntos se reparten de borde a borde: si se
         // anclaran al centro de una banda imaginaria, media banda quedaría vacía a cada lado
         // y con 6 categorías se perdería el 16 % del ancho del gráfico.
-        $this->x = new BandScale(
-            $this->categories,
-            padding: $frame->hasBars() ? $barPadding : 0.0,
-            point: ! $frame->hasBars(),
+        return new BandScale(
+            array_map('strval', $xRaw),
+            padding: $padding,
+            point: ! $this->frame->hasBars(),
         );
-        $this->zero = $this->y->zero();
-
-        $this->yTicks = $this->buildYTicks();
-        $this->xTicks = $this->buildXTicks();
-        $this->series = $this->buildSeries($marks, $values);
-        $this->layers = $this->buildLayers();
     }
 
     /**
@@ -176,80 +301,11 @@ final class Plot
         $longest = 0.0;
 
         foreach ($this->yTicks as $tick) {
-            $width = 0.0;
-
-            foreach (preg_split('//u', $tick['label'], -1, PREG_SPLIT_NO_EMPTY) ?: [] as $char) {
-                $width += match (true) {
-                    // Con tabular-nums, toda cifra mide exactamente 1ch.
-                    ctype_digit($char) => 1.0,
-                    // Separadores y espacios (incluido el fino y el duro, que usa el formateo).
-                    in_array($char, ['.', ',', ' ', ' ', ' ', "'"], true) => 0.5,
-                    $char === '-' || $char === '−' || $char === '+' => 0.8,
-                    // Todo lo demás —moneda, %, la "M" de compacto, un sufijo cualquiera— se
-                    // estima por arriba: una "M" es más ancha que una cifra, y el "%" también.
-                    default => 1.3,
-                };
-            }
-
-            $longest = max($longest, $width);
+            $longest = max($longest, TextWidth::ch($tick['label']));
         }
 
         // El mínimo evita una canaleta ridícula cuando las etiquetas son de un solo dígito.
         return round(max($longest, 2.0), 2);
-    }
-
-    /**
-     * Las etiquetas del eje X, saltando de N en N cuando no caben.
-     *
-     * El servidor no puede medir texto, así que no puede saber si dos etiquetas colisionan.
-     * Lo que sí puede es no emitir más de las que caben razonablemente. Rotarlas NO es una
-     * opción: `transform: rotate()` no ocupa layout, la fila del grid no crecería y las
-     * etiquetas se saldrían de la caja.
-     *
-     * @return list<array{label: string, pos: float, index: int}>
-     */
-    private function buildXTicks(): array
-    {
-        $count = count($this->categories);
-
-        if ($count === 0) {
-            return [];
-        }
-
-        $stride = (int) max(1, ceil($count / max(1, $this->maxXLabels)));
-        $out = [];
-
-        foreach ($this->categories as $i => $label) {
-            if ($i % $stride !== 0 && $i !== $count - 1) {
-                continue;
-            }
-
-            $pos = round($this->x->centerAt($i), 2);
-
-            $out[] = [
-                'label' => $label,
-                'pos' => $pos,
-                'index' => $i,
-                // ¿La etiqueta se apoya en el BORDE del área de trazado?
-                //
-                // Con barras, el primer tick cae en el centro de la primera banda y tiene
-                // sitio de sobra a su izquierda: la etiqueta va centrada y ya está. Sin
-                // barras (una línea, un área), el primer punto cae en x=0, pegado al eje Y —
-                // y una etiqueta centrada ahí se mete media anchura debajo de la canaleta del
-                // eje Y: el eje X parece correrse.
-                //
-                // La distinción no es de CSS: **es del dato**. Aquí se sabe, así que aquí se
-                // decide. Y se decide por la POSICIÓN, no por «es el primero»: con el
-                // adelgazado de etiquetas, el último tick pintado no siempre cae en el 100.
-                'edge' => match (true) {
-                    $pos <= 0.01 => 'start',
-                    $pos >= 99.99 => 'end',
-                    default => null,
-                },
-            ];
-        }
-
-        return $out;
     }
 
     /**
@@ -270,9 +326,14 @@ final class Plot
 
             $points = [];
             foreach ($serieValues as $row => $value) {
-                $points[] = $value === null
+                $x = $this->x->positionAt($row);
+
+                // Un hueco es un hueco venga de donde venga: de que no haya valor, o de que la
+                // fila no traiga fecha. En los dos casos el trazo se parte; colocar la fila sin
+                // fecha en el 0 dibujaría un pico contra el eje Y que nunca existió.
+                $points[] = ($value === null || $x === null)
                     ? null
-                    : [round($this->x->centerAt($row), 2), round($this->y->at($value), 2)];
+                    : [round($x, 2), round($this->y->at($value), 2)];
             }
 
             $serie = [
@@ -365,11 +426,18 @@ final class Plot
         foreach ($groupKeys as $g => $key) {
             foreach ($groups[$key] as $markIndex) {
                 foreach ($values[$markIndex] as $row => $value) {
-                    if ($value === null) {
+                    $center = $this->x->positionAt($row);
+
+                    if ($value === null || $center === null) {
                         continue;   // un hueco no es una barra de altura cero
                     }
 
-                    $left = $this->x->at($this->categories[$row] ?? (string) $row) + $g * $slotWidth;
+                    // Desde el CENTRO del dato, no desde el borde de su banda: en una escala
+                    // continua no hay banda de la que salir. (Antes se buscaba la posición por
+                    // el TEXTO de la categoría, y `array_flip` se queda con la última ocurrencia:
+                    // dos filas con la misma etiqueta apilaban sus barras en el mismo sitio, sin
+                    // avisar. Ese bug muere aquí.)
+                    $left = $center - $bandwidth / 2 + $g * $slotWidth;
 
                     $base = $offsets[$key][$row] ?? 0.0;
                     $top = $this->y->at($base + $value);
@@ -462,7 +530,12 @@ final class Plot
     public function payload(): array
     {
         return [
-            'xs' => array_map(fn (int $i) => round($this->x->centerAt($i), 2), array_keys($this->categories)),
+            // Ascendente por construcción: las filas se ordenaron por X en el constructor. La
+            // búsqueda binaria del cliente depende de eso.
+            'xs' => array_map(
+                fn (int $row) => round($this->x->positionAt($row) ?? 0.0, 2),
+                array_keys($this->categories),
+            ),
             'labels' => $this->categories,
             'series' => array_values(array_map(fn (array $s) => [
                 'id' => $s['id'],

@@ -181,7 +181,9 @@ describe('accesibilidad', function () use ($data) {
             </x-kore::chart>
         BLADE);
 
-        $view->assertSee('<table class="sr-only">', false)
+        // El sr-only va en el <div>, no en la <table>: sobre una tabla, el `width: 1px` se ignora
+        // (el layout de tablas lo acota al min-content) y la caja arrastraba scroll horizontal.
+        $view->assertSee('<div class="sr-only">', false)
             ->assertSee('<caption>Ventas</caption>', false)
             ->assertSee('<th scope="col">Ingresos</th>', false)
             ->assertSee('<th scope="row">Ene</th>', false)
@@ -604,42 +606,73 @@ describe('la punta de una barra apilada', function () {
     });
 });
 
-describe('las etiquetas del borde del eje X', function () use ($data) {
-    it('con barras van TODAS centradas: el tick es el centro de la banda', function () use ($data) {
-        // Anclar la primera por su borde izquierdo la empuja media anchura a la derecha,
-        // encima de la siguiente. En un móvil se leía "EneFeb".
-        $view = $this->blade(<<<BLADE
-            <x-kore::chart :data="{$data}" x="mes"><x-kore::chart.bar y="ingresos" /></x-kore::chart>
-        BLADE);
-
-        $view->assertDontSee('data-edge', false);
-    });
-
-    it('sin barras, la primera y la última se anclan: el punto cae en el borde', function () use ($data) {
-        // Una línea empieza en x=0, pegada al eje Y. Centrar la etiqueta ahí le mete media
-        // anchura debajo de la canaleta del eje Y, y el eje X parece correrse.
+describe('las etiquetas del eje X no se salen de la tarjeta', function () use ($data) {
+    it('el servidor emite lo que MIDE la etiqueta, y el CSS la acota', function () use ($data) {
+        // El servidor no puede medir texto, pero sí contarlo. Con el ancho en `ch`, el CSS hace
+        //
+        //     left: clamp(0, kx% - ancho/2, 100% - ancho)
+        //
+        // — la centra sobre su tick si cabe, y la apoya en el borde si no. Exacto, sin umbrales.
         $view = $this->blade(<<<BLADE
             <x-kore::chart :data="{$data}" x="mes"><x-kore::chart.line y="ingresos" /></x-kore::chart>
         BLADE);
 
-        $view->assertSee('data-edge="start"', false)
-            ->assertSee('data-edge="end"', false);
+        $view->assertSee('--ktw:', false);
+
+        // El anclaje por borde ya no existe: era un parche que solo cubría los extremos.
+        $view->assertDontSee('data-edge', false);
     });
 
-    it('lo decide la POSICIÓN del tick, no su orden', function () {
-        // Con el adelgazado de etiquetas, el último tick pintado no siempre cae en el 100.
+    it('cada tick lleva SU ancho, no uno cualquiera', function () {
         $plot = new \KoreUi\Charts\Plot(
-            frame: tap(new \KoreUi\Charts\ChartFrame('c', array_map(
-                fn ($i) => ['m' => "M{$i}", 'v' => $i],
-                range(0, 19),
-            ), 'm'), fn ($f) => $f->add(new \KoreUi\Charts\Marks\LineMark('v'))),
-            maxXLabels: 4,
+            frame: tap(new \KoreUi\Charts\ChartFrame('c', [
+                ['m' => 'E', 'v' => 1],
+                ['m' => 'Septiembre', 'v' => 2],
+            ], 'm'), fn ($f) => $f->add(new \KoreUi\Charts\Marks\LineMark('v'))),
         );
 
-        $bordes = array_map(fn ($t) => $t['edge'], $plot->xTicks);
-
-        expect($bordes[0])->toBe('start');
-        expect(end($bordes))->toBe('end');
-        expect(array_slice($bordes, 1, -1))->each->toBeNull();
+        // «E» cae en el mínimo de 2ch; «Septiembre» son diez letras a 1,3ch de cota superior.
+        expect($plot->xTicks[0]['width'])->toBe(2.0);
+        expect($plot->xTicks[1]['width'])->toBe(13.0);
     });
+
+    it('la etiqueta más ancha del tick manda: la de arriba o la de contexto', function () {
+        // En un eje temporal, la etiqueta dice «14» (2 caracteres) y el contexto «feb. 2026»
+        // (mucho más ancho). Si la caja se dimensionara por la de arriba, el contexto se saldría.
+        $tz = new DateTimeZone('Europe/Madrid');
+        $filas = [];
+
+        for ($i = 0; $i < 20; $i++) {
+            $filas[] = ['t' => (new DateTimeImmutable('2026-01-10', $tz))->modify("+{$i} days"), 'v' => $i];
+        }
+
+        $plot = new \KoreUi\Charts\Plot(
+            frame: tap(new \KoreUi\Charts\ChartFrame('c', $filas, 't'),
+                fn ($f) => $f->add(new \KoreUi\Charts\Marks\LineMark('v'))),
+            timeFormat: new \KoreUi\Charts\Time\TimeFormat('es'),
+        );
+
+        $conContexto = array_values(array_filter($plot->xTicks, fn ($t) => $t['context'] !== null));
+
+        expect($conContexto)->not->toBeEmpty();
+
+        foreach ($conContexto as $tick) {
+            expect($tick['width'])->toBeGreaterThanOrEqual(\KoreUi\Charts\TextWidth::ch($tick['context']));
+        }
+    });
+});
+
+it('la tabla accesible no arrastra scroll horizontal a toda la página', function () use ($data) {
+    // `sr-only` esconde la caja con `width: 1px` + `overflow: hidden` + `clip-path`. Sobre una
+    // <table>, el `width: 1px` SE IGNORA: el algoritmo de layout de tablas acota el ancho por
+    // abajo al min-content. Medido en Brave, con un móvil de 375 px: la tabla ocupaba 321 px de
+    // ancho. El clip-path sí aplicaba —así que no se veía y nadie se enteró— pero la caja seguía
+    // ocupando, y con ella llegaba el scroll horizontal en toda la página.
+    $html = $this->blade(<<<BLADE
+        <x-kore::chart :data="{$data}" x="mes"><x-kore::chart.line y="ingresos" /></x-kore::chart>
+    BLADE)->__toString();
+
+    // El sr-only va en un <div>, que sí es una caja de bloque normal y sí obedece.
+    expect($html)->toContain('<div class="sr-only">');
+    expect($html)->not->toContain('<table class="sr-only">');
 });

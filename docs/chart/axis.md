@@ -24,8 +24,30 @@ Los ejes: cuántos ticks y cómo se escriben.
 
 | Prop | Tipo | Default | Descripción |
 |---|---|---|---|
-| `max-labels` | `int` | `12` | Cuántas etiquetas como mucho; el resto se saltan |
+| `scale` | `string` | `auto` | `auto`, `band` (categorías), `time` (fechas) o `linear` (números) |
+| `timezone` | `string` | la del dato | Con qué zona horaria se lee la fecha |
+| `ticks` | `int` | `6` | **Objetivo** de ticks en una escala continua (fechas o números) |
+| `max-labels` | `int` | `12` | **Tope** de etiquetas en una escala de categorías; el resto se saltan |
 | `show` | `bool` | `true` | `:show="false"` apaga el eje (y su canaleta deja de reservar ancho) |
+
+## El eje X tiene tres formas, y elegir mal la escala cambia lo que el gráfico dice
+
+- **`band`** — categorías. La fila N cae en la banda N. Es lo correcto para «Ene, Feb, Mar».
+- **`time`** — fechas. Cada punto cae **donde le toca en el calendario**, así que los huecos se ven.
+- **`linear`** — números. Lo que necesita un scatter.
+
+`auto` detecta fechas y solo fechas. **Nunca promociona a `linear` por su cuenta**: unos años escritos como enteros (2022, 2023, 2024) son *categorías*, no una recta numérica, y colocarlos en una escala lineal le cambiaría el gráfico a quien no ha pedido nada.
+
+⚠️ **Con `x="fecha"` y una cadena ya formateada, el gráfico solo puede colocar por ORDEN — y los huecos del calendario desaparecen.** Un sensor caído tres días se dibuja como si no se hubiera caído. Pasa objetos `DateTime` o `Carbon`. Ver [time-axis.md](time-axis.md).
+
+## `ticks` y `max-labels` no son lo mismo
+
+Y confundirlos sale caro:
+
+- En una escala de **bandas**, `max-labels` es un **tope**: hay N categorías y se pintan como mucho ésas, saltando el resto.
+- En una escala **continua**, `ticks` es un **objetivo**: no hay categorías que saltar, hay ticks que *elegir*. Pedir doce para un rango de una semana da uno cada doce horas, y se pisan unos con otros.
+
+Por eso el defecto de una escala continua es más bajo (6).
 
 ## `ticks` es una pista, no un contrato
 

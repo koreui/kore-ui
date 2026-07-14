@@ -2,6 +2,7 @@
     use KoreUi\Charts\ChartContext;
     use KoreUi\Charts\Format;
     use KoreUi\Charts\Plot;
+    use KoreUi\Charts\Time\TimeFormat;
 
     // Este @php corre DESPUÉS de los hijos (Blade renderiza el slot antes que la plantilla
     // que lo contiene), así que aquí el frame ya tiene todas las marcas. Ver el aviso de
@@ -19,6 +20,11 @@
         tickCount: $yAxis['ticks'] ?? ($config['ticks'] ?? 5),
         barPadding: (float) ($config['bar_padding'] ?? 0.2),
         maxXLabels: $xAxis['max_labels'] ?? ($config['max_x_labels'] ?? 12),
+        // Los meses se escriben en el idioma de la aplicación. Carbon los traduce con sus
+        // propias tablas: ni `ext-intl`, ni un byte de `Intl` en el bundle.
+        timeFormat: new TimeFormat(app()->getLocale()),
+        xTickCount: $xAxis['ticks'] ?? null,
+        continuousXTicks: (int) ($config['x_ticks'] ?? 6),
     );
 
     // Los ejes salen POR DEFECTO: un gráfico sin ejes no se lee. La marca <chart.axis-*> no
@@ -170,12 +176,17 @@
             @if($showX)
                 <div class="kore-chart-gutter-x" aria-hidden="true">
                     @foreach($plot->xTicks as $tick)
-                        {{-- `edge` lo decide el SERVIDOR, que es quien sabe si el tick se apoya en
-                             el borde del área (una línea empieza en x=0) o en el centro de una
-                             banda (una barra). Ver Plot::buildXTicks(). --}}
+                        {{-- `--ktw` es lo que MIDE la etiqueta, en `ch`. Con eso, el CSS la centra
+                             sobre su tick pero la ACOTA dentro del área — el servidor no puede
+                             medir texto, pero sí contarlo, y el navegador convierte el `ch` con la
+                             fuente real. Ver TextWidth y el trait TickBox.
+
+                             `context` es la segunda línea: el mes en un eje de días, el año en uno
+                             de meses. Solo la llevan el primer tick y aquellos en que cambia. Sin
+                             ella, un eje del 10 al 20 de enero no dice en ninguna parte de qué mes
+                             habla — ningún tick cae en un día 1. Es el agujero que tiene d3. --}}
                         <span class="kore-chart-tick"
-                              @if($tick['edge']) data-edge="{{ $tick['edge'] }}" @endif
-                              style="--kx: {{ $tick['pos'] }}">{{ $tick['label'] }}</span>
+                              style="--kx: {{ $tick['pos'] }}; --ktw: {{ $tick['width'] }}">{{ $tick['label'] }}@if($tick['context'] ?? null)<span class="kore-chart-tick-context">{{ $tick['context'] }}</span>@endif</span>
                     @endforeach
                 </div>
             @endif

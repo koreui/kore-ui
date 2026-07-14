@@ -31,6 +31,22 @@
   --color-kore-chart-6: var(--kore-chart-6);
   --color-kore-chart-7: var(--kore-chart-7);
   --color-kore-chart-8: var(--kore-chart-8);
+
+  --color-kore-seq-1: var(--kore-seq-1);
+  --color-kore-seq-2: var(--kore-seq-2);
+  --color-kore-seq-3: var(--kore-seq-3);
+  --color-kore-seq-4: var(--kore-seq-4);
+  --color-kore-seq-5: var(--kore-seq-5);
+  --color-kore-seq-6: var(--kore-seq-6);
+  --color-kore-seq-7: var(--kore-seq-7);
+
+  --color-kore-ord-1: var(--kore-ord-1);
+  --color-kore-ord-2: var(--kore-ord-2);
+  --color-kore-ord-3: var(--kore-ord-3);
+  --color-kore-ord-4: var(--kore-ord-4);
+  --color-kore-ord-5: var(--kore-ord-5);
+  --color-kore-ord-6: var(--kore-ord-6);
+  --color-kore-ord-7: var(--kore-ord-7);
   --radius-kore-sm: var(--kore-radius-sm);
   --radius-kore-md: var(--kore-radius-md);
   --radius-kore-lg: var(--kore-radius-lg);
@@ -100,6 +116,48 @@
     --kore-chart-7: oklch(0.50 0.20 292);   /* violeta */
     --kore-chart-8: oklch(0.55 0.14 150);   /* verde */
 
+    /* ── Rampa SECUENCIAL — para una MAGNITUD ────────────────────────────────────────
+       Un heatmap, un treemap: el color ES el valor.
+
+       Un solo tono, con la luminosidad y el croma subiendo a la vez. Un solo tono porque
+       el ojo ordena bien por claridad y fatal por matiz: un arcoíris (el «jet» de toda la
+       vida) obliga al lector a consultar la leyenda para CADA celda, y además inventa
+       fronteras donde el dato es continuo.
+
+       Siete escalones, y no más: por encima de siete el ojo deja de distinguirlos, y ya
+       no es una escala — es un degradado bonito.
+
+       ⚠️ El color se CUANTIZA, jamás se interpola en PHP. El servidor reparte el valor en
+       buckets y emite `data-bucket="4"`; el color lo pone el CSS. Así el gráfico sigue
+       repintándose solo al cambiar de tema, sin ejecutar una línea de JavaScript — que es
+       el invariante que ordena todo el módulo. Interpolar en el servidor lo rompería:
+       el color volvería a viajar como valor. */
+    --kore-seq-1: oklch(0.96 0.02 250);
+    --kore-seq-2: oklch(0.91 0.05 250);
+    --kore-seq-3: oklch(0.84 0.09 250);
+    --kore-seq-4: oklch(0.75 0.13 250);
+    --kore-seq-5: oklch(0.66 0.17 250);
+    --kore-seq-6: oklch(0.56 0.19 250);
+    --kore-seq-7: oklch(0.45 0.18 250);
+
+    /* ── Rampa ORDINAL — para un ORDEN ───────────────────────────────────────────────
+       Un embudo: las etapas van en fila, y cambiar el orden cambia el significado.
+
+       No es lo mismo que la secuencial, aunque se parezcan. Aquí **el color no codifica
+       el valor** —eso ya lo hace la geometría, el ancho del trapecio—: solo dice «esto va
+       en una secuencia». Por eso es más apagada y de otro tono: si un embudo y un heatmap
+       comparten página, no pueden leerse como la misma codificación.
+
+       Y por eso un embudo con la paleta CATEGÓRICA está mal: la categórica dice «estas
+       cosas son distintas», no «estas cosas van en este orden». */
+    --kore-ord-1: oklch(0.88 0.05 195);
+    --kore-ord-2: oklch(0.81 0.07 195);
+    --kore-ord-3: oklch(0.74 0.09 195);
+    --kore-ord-4: oklch(0.67 0.11 195);
+    --kore-ord-5: oklch(0.60 0.12 195);
+    --kore-ord-6: oklch(0.52 0.11 195);
+    --kore-ord-7: oklch(0.44 0.10 195);
+
     --kore-radius-sm: 0.25rem;
     --kore-radius-md: 0.375rem;
     --kore-radius-lg: 0.5rem;
@@ -158,6 +216,27 @@
     --kore-chart-6: oklch(0.64 0.17 27);    /* rojo */
     --kore-chart-7: oklch(0.63 0.17 292);   /* violeta */
     --kore-chart-8: oklch(0.62 0.13 150);   /* verde */
+
+    /* Las rampas, INVERTIDAS en su recorrido de luminosidad — no «aclaradas».
+       En claro, el valor bajo es casi el papel y el alto es tinta oscura. En oscuro no se
+       puede hacer lo mismo: el valor bajo tiene que ser casi el fondo (oscuro) y el alto,
+       luminoso. Si se aclarara la rampa clara sin más, el valor MÁS BAJO sería el color
+       más llamativo de la pantalla y el heatmap se leería del revés. */
+    --kore-seq-1: oklch(0.28 0.04 250);
+    --kore-seq-2: oklch(0.36 0.07 250);
+    --kore-seq-3: oklch(0.45 0.11 250);
+    --kore-seq-4: oklch(0.54 0.14 250);
+    --kore-seq-5: oklch(0.63 0.16 250);
+    --kore-seq-6: oklch(0.73 0.15 250);
+    --kore-seq-7: oklch(0.83 0.12 250);
+
+    --kore-ord-1: oklch(0.38 0.05 195);
+    --kore-ord-2: oklch(0.45 0.07 195);
+    --kore-ord-3: oklch(0.52 0.09 195);
+    --kore-ord-4: oklch(0.59 0.10 195);
+    --kore-ord-5: oklch(0.66 0.11 195);
+    --kore-ord-6: oklch(0.73 0.10 195);
+    --kore-ord-7: oklch(0.80 0.09 195);
   }
 }
 
@@ -1075,35 +1154,84 @@
   translate: 0 -50%;
 }
 
+/* La etiqueta se CENTRA sobre su tick, pero nunca se sale del área.
+   
+   `--ktw` es lo que mide, en `ch`, y lo cuenta el SERVIDOR (ver TextWidth): no puede medir
+   texto, pero sí contarlo, y el navegador convierte el `ch` con la fuente de verdad. Con ese
+   ancho, el clamp hace lo único correcto — la centra si cabe, y la apoya en el borde si no:
+
+     izquierda deseada = kx% - ancho/2      (centrada)
+     acotada a         = [0, 100% - ancho]  (dentro)
+
+   Esto SUSTITUYE al anclaje por borde de la primera y la última etiqueta. Aquel funcionaba
+   porque las únicas que se salían eran las de los extremos… en una escala de bandas. En una
+   escala continua un tick puede caer en el 98,9 % —ni centrado ni en el borde—, ahí ningún
+   umbral salta, y media etiqueta se va fuera de la tarjeta: medido, 5 px fuera y con ellos
+   scroll horizontal en toda la página.
+
+   El clamp no tiene umbrales que afinar: es exacto por construcción. Y de paso resuelve los dos
+   casos que el otro trataba a mano — el «EneFeb» de una banda y la etiqueta que se metía debajo
+   de la canaleta del eje Y en una escala de punto. */
 .kore-chart-gutter-x .kore-chart-tick {
   top: 0.375rem;
   /* left FÍSICO, nunca inset-inline-start: con propiedades lógicas el gráfico se ESPEJA en
      árabe y la serie temporal iría del revés. El chrome sí puede ser lógico; el dato no. */
-  left: calc(var(--kx) * 1%);
-  translate: -50% 0;
-  max-width: 8ch;
+  left: clamp(
+    0px,
+    calc(var(--kx) * 1% - var(--ktw, 2) * 0.5ch),
+    calc(100% - var(--ktw, 2) * 1ch)
+  );
+  width: calc(var(--ktw, 2) * 1ch);
+  text-align: center;
+  translate: none;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ⚠️ El anclaje de la primera y la última etiqueta depende de DÓNDE cae su tick, y eso lo
-   decide el dato, no el CSS. Por eso `data-edge` lo pone el servidor (Plot::buildXTicks).
-   Aplicarlo a ciegas a la primera y a la última rompe uno de los dos casos:
+/* La segunda línea de un tick temporal: el mes en un eje de días, el año en uno de meses.
+   Solo la llevan el primer tick y aquellos en que cambia — repetir «feb» debajo de los catorce
+   días de febrero sería ruido, no información. Sin ella, un eje del 10 al 20 de enero no dice en
+   ninguna parte de qué mes habla, porque ningún tick cae en un día 1. */
+.kore-chart-tick-context {
+  display: block;
+  margin-top: 0.2rem;
+  font-weight: 500;
+  color: var(--kore-fg);
+  opacity: 0.7;
+}
 
-   - CON barras, el tick cae en el CENTRO de la banda y tiene sitio de sobra a los lados.
-     Anclar la primera por su borde izquierdo la empuja media anchura a la derecha, encima
-     de la siguiente: en un móvil se lee "EneFeb". Aquí hay que centrar.
-   - SIN barras, el primer punto cae en x=0, pegado al eje Y. Centrar la etiqueta ahí le mete
-     media anchura debajo de la canaleta del eje Y y el eje X parece correrse. Aquí hay que
-     anclar.
+/* La canaleta crece SOLO si alguien la usa. Las etiquetas van en position:absolute, así que no
+   aportan altura: la fila del grid no se enteraría y la segunda línea se saldría de la tarjeta. */
+.kore-chart-gutter-x:has(.kore-chart-tick-context) {
+  height: 2.75rem;
+}
 
-   Un tick del medio siempre va centrado, tenga la escala que tenga. */
 .kore-chart-gutter-x {
   overflow: visible;
 }
 
-.kore-chart-gutter-x .kore-chart-tick[data-edge="start"] { translate: 0 0; }
-.kore-chart-gutter-x .kore-chart-tick[data-edge="end"]   { translate: -100% 0; }
+/* En un contenedor estrecho, se esconde una etiqueta de cada dos — pero SOLO si hay muchas.
+ *
+ * El servidor elige cuántos ticks pedir sin saber el ancho, porque no puede saberlo: la misma
+ * respuesta HTML se sirve a un móvil y a un monitor. Un eje de un día con ticks cada tres horas
+ * son nueve etiquetas: caben de sobra en 900 px y se pisan en 277.
+ *
+ * Esto es una *container query*, no una media query: un gráfico metido en un sidebar estrecho
+ * adelgaza igual aunque la pantalla sea de escritorio.
+ *
+ * `:nth-last-child(n+7)` + el hermano general es el truco clásico de «cuenta cuántos hay»: los
+ * dos selectores juntos seleccionan TODOS los ticks solo cuando hay siete o más. Con seis o
+ * menos, no se esconde nada — que es justo lo que hace falta, porque un eje de tres ticks
+ * mensuales adelgazado a la mitad se quedaría en dos.
+ *
+ * Y nunca se esconde el que lleva la línea de contexto: ése es el que dice de qué mes o de qué
+ * año habla el eje. Sin él, el eje deja de significar nada. */
+@container (max-width: 26rem) {
+  .kore-chart-gutter-x .kore-chart-tick:nth-last-child(n + 7):nth-child(even):not(:has(.kore-chart-tick-context)),
+  .kore-chart-gutter-x .kore-chart-tick:nth-last-child(n + 7) ~ .kore-chart-tick:nth-child(even):not(:has(.kore-chart-tick-context)) {
+    display: none;
+  }
+}
 
 /* ---- barras y puntos: HTML ---- */
 

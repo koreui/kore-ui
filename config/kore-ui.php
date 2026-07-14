@@ -378,8 +378,19 @@ return [
         'height' => '16rem',        // longitud CSS. Con la prop `aspect` puesta, se ignora
         'ticks' => 5,               // una PISTA: el algoritmo devuelve entre count/2 y count*2
         'bar_padding' => 0.2,       // proporción de la banda que queda libre entre barras
-        'max_x_labels' => 12,       // por encima, se saltan etiquetas (rotarlas no es opción:
-                                    // transform:rotate() no ocupa layout y se saldrían de la caja)
+
+        // ⚠️ Estos dos NO son lo mismo, aunque los dos hablen del eje X.
+        //
+        // `max_x_labels` es un TOPE, y solo aplica a un eje de CATEGORÍAS: hay N categorías y se
+        // pintan como mucho estas, saltando el resto. Rotarlas no es opción: transform:rotate()
+        // no ocupa layout y se saldrían de la caja.
+        //
+        // `x_ticks` es un OBJETIVO, y aplica a un eje CONTINUO (fechas o números): ahí no hay
+        // categorías que saltar, hay ticks que elegir. Pedir doce para un rango de una semana da
+        // uno cada doce horas y se pisan unos con otros — por eso el defecto es más bajo.
+        // Se sobrescribe por gráfico con <x-kore::chart.axis-x :ticks="8">.
+        'max_x_labels' => 12,
+        'x_ticks' => 6,
         'table_max_rows' => 500,    // tope de la tabla accesible; sin él, 10.000 filas en el DOM
 
         // Al posarse sobre un arco del donut se enciende también su fila de la leyenda, y al

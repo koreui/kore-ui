@@ -8,8 +8,10 @@ namespace KoreUi\Charts\Scales;
  * Una barra ocupa una banda; una línea sobre un eje de categorías se ancla al CENTRO de la
  * banda. Si no, la línea y las barras del mismo gráfico no coincidirían.
  */
-final class BandScale
+final class BandScale implements XScale
 {
+    use TickBox;
+
     private float $step;
 
     private float $bandwidth;
@@ -83,6 +85,81 @@ final class BandScale
     public function count(): int
     {
         return count($this->categories);
+    }
+
+    /** En una escala de bandas, la fila N cae en la banda N. Ésa es la definición. */
+    public function positionAt(int $row): ?float
+    {
+        return $this->centerAt($row);
+    }
+
+    /**
+     * Las etiquetas, saltando de N en N cuando no caben.
+     *
+     * El servidor no puede medir texto, así que no puede saber si dos etiquetas chocan. Lo que
+     * sí puede es no emitir más de las que caben razonablemente. Rotarlas NO es una opción:
+     * `transform: rotate()` no ocupa layout, la fila del grid no crecería y se saldrían de la
+     * caja.
+     *
+     * ⚠️ Esto es lo mejor que se puede hacer **con categorías**, y aun así es peor que un eje
+     * de verdad: con 90 días, `$count = 12` escupe los días 1, 8, 15, 22… — que es exactamente
+     * el «1.224» que `Ticks` se enorgullece de haber eliminado del eje Y. La respuesta a eso no
+     * es afinar el salto: es que un eje de fechas **no debe ser una escala de bandas**. Ver
+     * `TimeScale`.
+     *
+     * `$count` aquí es el TOPE de etiquetas, no un objetivo.
+     */
+    public function ticks(int $count): array
+    {
+        $total = count($this->categories);
+
+        if ($total === 0) {
+            return [];
+        }
+
+        $stride = (int) max(1, ceil($total / max(1, $count)));
+        $out = [];
+
+        foreach ($this->categories as $i => $label) {
+            if ($i % $stride !== 0 && $i !== $total - 1) {
+                continue;
+            }
+
+            $pos = round($this->centerAt($i), 2);
+
+            $out[] = [
+                'label' => (string) $label,
+                'context' => null,
+                'pos' => $pos,
+                'width' => $this->tickWidth((string) $label),
+            ];
+        }
+
+        return $out;
+    }
+
+    /** De una posición 0–100 a la fila más cercana. Es lo que necesita el zoom. */
+    public function invert(float $position): int
+    {
+        $total = count($this->categories);
+
+        if ($total === 0) {
+            return 0;
+        }
+
+        $best = 0;
+        $distance = INF;
+
+        for ($i = 0; $i < $total; $i++) {
+            $delta = abs($this->centerAt($i) - $position);
+
+            if ($delta < $distance) {
+                $distance = $delta;
+                $best = $i;
+            }
+        }
+
+        return $best;
     }
 
     private function start(int $index): float

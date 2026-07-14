@@ -38,12 +38,75 @@ final class Palette
     /** El subconjunto que sí sobrevive al daltonismo cuando todos los pares cuentan. */
     public const SCATTER_ORDER = [1, 2, 3, 6, 8];   // azul, ámbar, teal, rojo, verde
 
+    /** Escalones de las rampas secuencial y ordinal. Siete, y no más: ver abajo. */
+    public const RAMP_STEPS = 7;
+
     /** El token CSS del slot. El color nunca viaja como valor: viaja como referencia. */
     public static function token(int $slot): string
     {
         self::guard($slot);
 
         return "var(--kore-chart-{$slot})";
+    }
+
+    /**
+     * En qué escalón de una rampa de 7 cae un valor.
+     *
+     * ⚠️ **El color se CUANTIZA, jamás se interpola aquí.** PHP no calcula colores: reparte el
+     * valor en escalones y devuelve un número; el color lo pone el CSS con un token. Interpolar
+     * en el servidor rompería el invariante que ordena todo el módulo —el color viaja como
+     * token, no como valor— y con él se iría el repintado automático al cambiar de tema.
+     *
+     * Siete escalones porque por encima de siete el ojo deja de distinguirlos, y entonces ya no
+     * es una escala: es un degradado bonito del que no se puede leer un valor.
+     *
+     * @return int 1..7
+     */
+    public static function bucket(float $value, float $min, float $max, int $steps = self::RAMP_STEPS): int
+    {
+        $steps = max(1, $steps);
+        $span = $max - $min;
+
+        // Todos los valores iguales: no hay escala que hacer. Al escalón de arriba, que es lo
+        // que significa «todo está al máximo de lo que hay».
+        if ($span <= 0.0 || ! is_finite($span)) {
+            return $steps;
+        }
+
+        $bucket = (int) floor((($value - $min) / $span) * $steps) + 1;
+
+        return max(1, min($steps, $bucket));
+    }
+
+    /** El token de un escalón de la rampa SECUENCIAL: el color ES la magnitud (heatmap, treemap). */
+    public static function sequential(int $step): string
+    {
+        return 'var(--kore-seq-'.self::rampGuard($step).')';
+    }
+
+    /**
+     * El token de un escalón de la rampa ORDINAL: el color solo dice ORDEN (embudo).
+     *
+     * No es un sinónimo de `sequential()`. Ahí el color codifica el valor; aquí el valor ya lo
+     * codifica la geometría (el ancho del trapecio) y el color solo dice «esto va en una
+     * secuencia». Usar la paleta categórica para un embudo está mal: la categórica dice «estas
+     * cosas son distintas», no «estas cosas van en este orden».
+     */
+    public static function ordinal(int $step): string
+    {
+        return 'var(--kore-ord-'.self::rampGuard($step).')';
+    }
+
+    private static function rampGuard(int $step): int
+    {
+        if ($step < 1 || $step > self::RAMP_STEPS) {
+            throw new InvalidArgumentException(
+                "koreUi: una rampa tiene {$step} escalones fuera de rango; hay ".self::RAMP_STEPS.'. '
+                .'Por encima de siete el ojo deja de distinguirlos y la escala deja de leerse.'
+            );
+        }
+
+        return $step;
     }
 
     /**
