@@ -1693,6 +1693,122 @@
   color: var(--kore-muted-fg);
 }
 
+/* ---- mapa de calor (heatmap) ---- */
+
+.kore-chart-heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* La rejilla: filas a la izquierda (columna `auto`), celdas en el centro (1fr), columnas debajo. */
+.kore-chart-heatmap-frame {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: 1fr auto;
+  gap: 0.25rem 0.5rem;
+}
+
+.kore-chart-heatmap-rows {
+  grid-column: 1;
+  grid-row: 1;
+  position: relative;
+  min-width: 2ch;
+}
+
+.kore-chart-heatmap-rows .kore-chart-tick {
+  position: absolute;
+  right: 0;
+  top: calc(var(--pos) * 1%);
+  translate: 0 -50%;
+}
+
+.kore-chart-heatmap-plot {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  height: var(--kore-chart-height, 16rem);
+  /* forced-color-adjust: en alto contraste de Windows todas las celdas pasarían al mismo color y
+     el mapa dejaría de significar nada. Aquí el color ES el dato. */
+  forced-color-adjust: none;
+}
+
+.kore-chart-heatmap-cell {
+  position: absolute;
+  /* Sin color, es un hueco: no hubo dato para ese cruce. Se ve el fondo. */
+  background: var(--kore-muted);
+  border: 1px solid var(--kore-bg);
+  border-radius: 2px;
+}
+
+.kore-chart-heatmap-cell[data-bucket='1'] { background: var(--kore-seq-1); }
+.kore-chart-heatmap-cell[data-bucket='2'] { background: var(--kore-seq-2); }
+.kore-chart-heatmap-cell[data-bucket='3'] { background: var(--kore-seq-3); }
+.kore-chart-heatmap-cell[data-bucket='4'] { background: var(--kore-seq-4); }
+.kore-chart-heatmap-cell[data-bucket='5'] { background: var(--kore-seq-5); }
+.kore-chart-heatmap-cell[data-bucket='6'] { background: var(--kore-seq-6); }
+.kore-chart-heatmap-cell[data-bucket='7'] { background: var(--kore-seq-7); }
+
+/* El resalte al pasar el ratón es `:hover`, no un listener: una pseudoclase de CSS sobre 2.555
+   nodos es barata; 2.555 listeners de JavaScript no. (El TOOLTIP sí va por delegación: leer el
+   data-* de la celda es otra cosa.) */
+.kore-chart-heatmap-cell:hover {
+  outline: 2px solid var(--kore-fg);
+  outline-offset: -1px;
+  z-index: 1;
+}
+
+.kore-chart-heatmap-cols {
+  grid-column: 2;
+  grid-row: 2;
+  position: relative;
+  height: 1.25rem;
+}
+
+.kore-chart-heatmap-cols .kore-chart-tick {
+  position: absolute;
+  left: calc(var(--pos) * 1%);
+  translate: -50% 0;
+  top: 0.25rem;
+  /* Acotada al hueco hasta la vecina, para que no se pisen (el servidor lo calcula: sabe dónde cae
+     cada tick). Igual que el eje cartesiano. */
+  max-width: calc(var(--kroom, 100) * 1%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* La leyenda: una barra de escalones, no un degradado — el color se cuantiza, así que la leyenda
+   enseña los mismos escalones que las celdas. */
+.kore-chart-heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  font-size: 0.75rem;
+  color: var(--kore-muted-fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.kore-chart-heatmap-legend-scale {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.kore-chart-heatmap-legend-scale > span {
+  width: 1.1rem;
+  height: 0.7rem;
+  border-radius: 2px;
+}
+
+.kore-chart-heatmap-legend-scale > span[data-bucket='1'] { background: var(--kore-seq-1); }
+.kore-chart-heatmap-legend-scale > span[data-bucket='2'] { background: var(--kore-seq-2); }
+.kore-chart-heatmap-legend-scale > span[data-bucket='3'] { background: var(--kore-seq-3); }
+.kore-chart-heatmap-legend-scale > span[data-bucket='4'] { background: var(--kore-seq-4); }
+.kore-chart-heatmap-legend-scale > span[data-bucket='5'] { background: var(--kore-seq-5); }
+.kore-chart-heatmap-legend-scale > span[data-bucket='6'] { background: var(--kore-seq-6); }
+.kore-chart-heatmap-legend-scale > span[data-bucket='7'] { background: var(--kore-seq-7); }
+
 /* ---- embudo (funnel) ---- */
 
 .kore-chart-funnel {

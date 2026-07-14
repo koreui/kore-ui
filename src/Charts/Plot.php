@@ -503,6 +503,10 @@ final class Plot
                 $serie['highlight'] = $mark->highlight;
             }
 
+            if ($mark->type() === 'heatmap') {
+                $serie['heatmap'] = $this->heatmapGrid($mark);
+            }
+
             if ($mark->type() === 'waterfall') {
                 [$serie['bars'], $serie['connectors']] = $this->layoutWaterfall($mark, $serieValues);
 
@@ -983,6 +987,134 @@ final class Plot
     private static function pct(float $value): string
     {
         return rtrim(rtrim(number_format(round($value, 2), 2, '.', ''), '0'), '.') ?: '0';
+    }
+
+    /**
+     * La matriz de un mapa de calor: las columnas, las filas, y una celda por cada dato.
+     *
+     * El color se CUANTIZA en escalones (no se interpola): cada celda lleva un `data-bucket`, y el
+     * color lo pone el CSS con la rampa secuencial. PHP no calcula un solo color — así el tema
+     * cambia sin ejecutar JavaScript.
+     *
+     * @return array<string, mixed>
+     */
+    private function heatmapGrid(Marks\HeatmapMark $mark): array
+    {
+        $colOf = array_map('strval', $this->frame->xRaw());
+        $rowOf = array_map(fn ($v) => (string) ($v ?? ''), $this->frame->column($mark->row));
+        $values = $this->frame->values($mark);
+
+        // Columnas y filas ÚNICAS, en el orden en que aparecen: el orden del dato manda (ordena por
+        // (fila, columna) en tu SQL y salen ordenadas). Es la misma decisión que en el embudo.
+        $cols = array_values(array_unique($colOf));
+        $rows = array_values(array_unique($rowOf));
+        $colIndex = array_flip($cols);
+        $rowIndex = array_flip($rows);
+
+        $finite = array_values(array_filter(
+            array_map(fn ($v) => $v === null ? null : (float) $v, $values),
+            fn ($v) => $v !== null && is_finite($v),
+        ));
+
+        $min = $finite === [] ? 0.0 : min($finite);
+        $max = $finite === [] ? 0.0 : max($finite);
+
+        $colW = count($cols) > 0 ? 100.0 / count($cols) : 100.0;
+        $rowH = count($rows) > 0 ? 100.0 / count($rows) : 100.0;
+
+        $cells = [];
+
+        foreach ($values as $i => $value) {
+            $c = $colIndex[$colOf[$i]] ?? null;
+            $r = $rowIndex[$rowOf[$i]] ?? null;
+
+            if ($c === null || $r === null) {
+                continue;
+            }
+
+            $cells[] = [
+                'x' => round($c * $colW, 3),
+                'y' => round($r * $rowH, 3),
+                'w' => round($colW, 3),
+                'h' => round($rowH, 3),
+                'col' => $cols[$c],
+                'row' => $rows[$r],
+                // Un hueco de verdad (no hay dato para ese cruce) NO es un cero: se deja sin color,
+                // y se ve el fondo de la rejilla. Pintarlo del tono más claro diría «poco», y es
+                // «nada».
+                'bucket' => $value === null ? null : $this->heatmapShade($value, $min, $max, $mark->buckets),
+                'value' => $value,
+                'label' => $this->format->apply($value),
+            ];
+        }
+
+        return [
+            'cols' => $cols,
+            'rows' => $rows,
+            'cells' => $cells,
+            // Las etiquetas de columna se ADELGAZAN si son muchas: 24 horas en un móvil se pisan.
+            // Se muestran como mucho ~13, y cada una se acota al hueco que tiene (mismo truco que
+            // el eje cartesiano). Las de fila casi nunca chocan —van en vertical y son pocas—, así
+            // que van todas.
+            'colTicks' => $this->heatmapColTicks($cols, $colW),
+            'rowTicks' => array_map(
+                fn ($i, $r) => ['label' => $r, 'pos' => round(($i + 0.5) * $rowH, 2)],
+                array_keys($rows),
+                $rows,
+            ),
+            'min' => $min,
+            'max' => $max,
+            'minLabel' => $this->format->apply($min),
+            'maxLabel' => $this->format->apply($max),
+            'buckets' => $mark->buckets,
+        ];
+    }
+
+    /**
+     * Las etiquetas de columna de un heatmap, adelgazadas y con su hueco.
+     *
+     * @param  list<string>  $cols
+     * @return list<array{label: string, pos: float, room: float}>
+     */
+    private function heatmapColTicks(array $cols, float $colW): array
+    {
+        $total = count($cols);
+
+        if ($total === 0) {
+            return [];
+        }
+
+        $stride = (int) max(1, ceil($total / 13));
+        $out = [];
+
+        foreach ($cols as $i => $col) {
+            // Puro salto, sin forzar el último: forzarlo lo pega al penúltimo (mostrar 00,02…22
+            // sin el 23 se lee mejor que «22 23» encima).
+            if ($i % $stride !== 0) {
+                continue;
+            }
+
+            $out[] = [
+                'label' => $col,
+                'pos' => round(($i + 0.5) * $colW, 2),
+                // El hueco hasta la siguiente etiqueta MOSTRADA: el paso × el ancho de columna.
+                'room' => round($stride * $colW * 0.9, 2),
+            ];
+        }
+
+        return $out;
+    }
+
+    /** En qué escalón de la rampa secuencial (1..7) cae un valor, repartiendo los buckets sobre los 7 tonos. */
+    private function heatmapShade(float $value, float $min, float $max, int $buckets): int
+    {
+        $bucket = Palette::bucket($value, $min, $max, $buckets);
+
+        // Los `buckets` (3..7) se estiran a los 7 tonos: el más alto siempre es el más oscuro, aunque
+        // haya sólo 3 escalones. Con menos de dos buckets, el único.
+        return $buckets > 1
+            ? (int) round((($bucket - 1) / ($buckets - 1)) * (Palette::RAMP_STEPS - 1)) + 1
+            : Palette::RAMP_STEPS;
     }
 
     /** @param list<float|null> $values */

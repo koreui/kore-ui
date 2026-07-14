@@ -557,3 +557,39 @@ describe('dos gráficos que comparten componente Livewire', function () {
         b.destroy();
     });
 });
+
+describe('heatmap: el hover por delegación', function () {
+    it('lee la celda bajo el ratón de UN evento, no de un listener por celda', function () {
+        // 365×7 = 2.555 celdas. Un listener por celda cuesta 30 ms por frame (medido). Así que hay
+        // un solo pointermove en la rejilla, y closest() encuentra la celda porque el evento nace
+        // en ella.
+        const chart = KoreChart({ id: 'c1' });
+        chart.$el = { contains: () => false, querySelector: () => null, querySelectorAll: () => [] };
+        chart.$refs = { plot: { getBoundingClientRect: () => ({ left: 0, top: 0, width: 200, height: 100 }) }, tooltip: {} };
+        chart.$nextTick = (fn) => fn();
+        chart.init();
+
+        const celda = {
+            dataset: { r: 'Lun', c: '09', v: '42' },
+            getBoundingClientRect: () => ({ left: 20, top: 10, width: 8, height: 8 }),
+        };
+        const event = { target: { closest: (sel) => (sel === '[data-heat-cell]' ? celda : null) } };
+
+        chart.onHeatmapMove(event);
+
+        expect(chart.cell).toEqual({ row: 'Lun', col: '09', value: '42' });
+    });
+
+    it('suelta la celda cuando el ratón sale de una', function () {
+        const chart = KoreChart({ id: 'c1' });
+        chart.$el = { contains: () => false, querySelector: () => null, querySelectorAll: () => [] };
+        chart.$refs = { plot: { getBoundingClientRect: () => ({ left: 0, top: 0, width: 200, height: 100 }) }, tooltip: {} };
+        chart.$nextTick = (fn) => fn();
+        chart.init();
+        chart.cell = { row: 'x', col: 'y', value: '1' };
+
+        chart.onHeatmapMove({ target: { closest: () => null } });
+
+        expect(chart.cell).toBeNull();
+    });
+});

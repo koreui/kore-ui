@@ -92,6 +92,12 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
   Cada etapa es un trapecio (un `<div>` recortado con `clip-path`) que se estrecha hasta la siguiente: el estrechamiento **es** la caída, y al lado van la conversión (cuánto queda del primero) y la caída de ese paso (cuánto se pierde ahí, en rojo). El color sale de la rampa **ordinal** —`--kore-ord-*`, la que se hizo en la Fase 1—, no de la categórica: las etapas van en secuencia, y ahí el color sólo dice «vas por aquí»; el peso de la información lo lleva el ancho del trapecio. El orden de las filas es el orden del embudo, y no se reordena. Al pasar el ratón sobre una etapa se enciende el par (trapecio + fila) y se apaga el resto — CSS puro, como el donut, y se apaga con `:highlight="false"`.
 
+- **Mapa de calor (`<x-kore::chart.heatmap>`)** — una matriz de columna × fila donde el color es el valor. Ver [docs/chart/heatmap.md](docs/chart/heatmap.md).
+
+  Tres canales (la columna es el `x`, la fila es `row`, el valor es `y`), en formato «largo» —el de un `GROUP BY`—. **El color se cuantiza, no se interpola**: el valor cae en uno de N escalones (`:buckets`, 3–7), la celda lleva un `data-bucket` y el color lo pone el CSS con la rampa secuencial de la Fase 1 — así el tema sigue cambiando sin JavaScript, y una escala de escalones se lee mejor que un degradado. Un cruce sin dato no es un cero: se queda sin color.
+
+  **El hover va por delegación** — es lo único de los cuatro tipos de negocio que toca el JavaScript. Un heatmap de 365×7 son 2.555 celdas; un listener por celda cuesta 30 ms por frame, así que hay **un solo `pointermove`** en la rejilla que lee el `data-*` de la celda bajo el ratón. El resalte, en cambio, es `:hover` de CSS puro: una pseudoclase sobre miles de nodos es barata, miles de listeners no.
+
 - **Guardia de peso del bundle en CI** (`npm run size`). «El JavaScript es poco» es una promesa de la documentación, y una promesa que nadie mide deja de ser verdad sin que nadie se entere.
 
 #### El principio que ordena todo el módulo

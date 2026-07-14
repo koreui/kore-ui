@@ -14,6 +14,7 @@ Gráficos de barras, líneas, áreas y donut. **Sin ninguna librería de JavaScr
 | `<x-kore::chart.waterfall>` | Una cascada: el puente entre un valor inicial y uno final. Ver [waterfall.md](waterfall.md) |
 | `<x-kore::chart.gauge>` | Un gauge: un número contra un objetivo, con rangos de color. Ver [gauge.md](gauge.md) |
 | `<x-kore::chart.funnel>` | Un embudo: cuánta gente sobrevive cada paso de un proceso. Ver [funnel.md](funnel.md) |
+| `<x-kore::chart.heatmap>` | Un mapa de calor: una matriz donde el color es el valor. Ver [heatmap.md](heatmap.md) |
 | `<x-kore::chart.axis-y>` | El eje Y: cuántos ticks y cómo se formatean |
 | `<x-kore::chart.axis-x>` | El eje X: categorías, **fechas** o números. Ver [time-axis.md](time-axis.md) |
 | `<x-kore::chart.legend>` | La leyenda. Al pulsarla, oculta la serie |
@@ -190,7 +191,7 @@ En `config/kore-ui.php`, sección `chart`:
 
 **Hay datos en vivo, pero con techo.** Un refresco es un round-trip completo de Livewire: el techo honesto es **1 Hz con ≤ 200 puntos**, y a 10 Hz no aguanta ninguna arquitectura que dibuje en el servidor. Está medido y explicado en [streaming.md](streaming.md).
 
-**No hay tipos exóticos** (candlestick, treemap, heatmap, mapas).
+**No hay** candlestick, treemap, ni mapas.
 
 ## Una regla de diseño que el componente te va a imponer
 

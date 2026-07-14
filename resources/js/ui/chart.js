@@ -74,6 +74,9 @@ export default (config = {}) => ({
     // El rectángulo que se está arrastrando, en % del ÁREA VISIBLE (no del dominio).
     brush: null,
 
+    // La celda de un heatmap bajo el ratón: `{ row, col, value }` o null.
+    cell: null,
+
     _root: null,
     _reference: null,
     _floating: null,
@@ -252,7 +255,34 @@ export default (config = {}) => ({
 
     onPointerLeave() {
         this.hover = null;
+        this.cell = null;
         this._stopTooltip();
+    },
+
+    /**
+     * El hover de un heatmap, por DELEGACIÓN.
+     *
+     * Un mapa de calor de 365×7 son 2.555 celdas. Poner un listener por celda es letal (medido en
+     * el informe: 30 ms por frame). Así que hay UN solo `pointermove` en la rejilla, y aquí se lee
+     * el `data-*` de la celda que hay debajo del ratón — `closest()` la encuentra en O(1) porque el
+     * evento nace en ella.
+     */
+    onHeatmapMove(event) {
+        const target = event.target.closest('[data-heat-cell]');
+
+        if (!target) {
+            this.cell = null;
+            this._stopTooltip();
+
+            return;
+        }
+
+        this.cell = { row: target.dataset.r, col: target.dataset.c, value: target.dataset.v };
+
+        // El tooltip se ancla al CENTRO de la celda, no al ratón: habla de esa celda, y no debe
+        // temblar mientras el ratón se mueve dentro de ella.
+        const box = target.getBoundingClientRect();
+        this._positionTooltip(box.left + box.width / 2, box.top);
     },
 
     /**

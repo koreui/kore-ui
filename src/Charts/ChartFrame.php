@@ -171,6 +171,34 @@ final class ChartFrame
         );
     }
 
+    public function hasHeatmap(): bool
+    {
+        foreach ($this->marks() as $mark) {
+            if ($mark->type() === 'heatmap') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Los valores CRUDOS de una columna cualquiera, una por fila del dato.
+     *
+     * Es lo que necesita un heatmap para la FILA de cada celda: el `x` del gráfico ya da la
+     * columna, pero la fila viene de otra columna más.
+     *
+     * @return list<mixed>
+     */
+    public function column(?string $field): array
+    {
+        if ($field === null) {
+            return array_fill(0, count($this->data), null);
+        }
+
+        return array_map(fn ($row) => $this->raw($row, $field), array_values($this->data));
+    }
+
     public function hasFunnel(): bool
     {
         foreach ($this->marks() as $mark) {
@@ -232,6 +260,13 @@ final class ChartFrame
                     .'por definición. Pásale fechas de verdad a `x`, o quita el `max-gap`.'
                 );
             }
+        }
+
+        if ($this->hasHeatmap() && count($this->marks()) > 1) {
+            throw new InvalidArgumentException(
+                'koreUi: un mapa de calor (<x-kore::chart.heatmap>) llena una matriz de celdas — no comparte '
+                .'gráfico con otras marcas. Sácalas a su propio <x-kore::chart>.'
+            );
         }
 
         if ($this->hasFunnel() && count($this->marks()) > 1) {
