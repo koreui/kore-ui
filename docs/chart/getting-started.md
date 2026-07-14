@@ -56,6 +56,33 @@ Esto es lo contrario de lo que hace un motor de `<canvas>`: ahí el color es un 
 
 **Los datos van también en una tabla.** Un `<svg>` es tan mudo para un lector de pantalla como un `<canvas>`. Como los datos ya están en PHP, el componente emite además un `<table class="sr-only">` con todos los valores. No es opcional y no cuesta un byte de JavaScript.
 
+## Apagar cosas: `:show`, nunca un `@if`
+
+Todo se apaga con la misma prop. Los ejes y la rejilla salen por defecto (un gráfico sin ejes no se lee); el tooltip y la leyenda hay que pedirlos.
+
+```blade
+<x-kore::chart :data="$ventas" x="mes" :grid="false">
+    <x-kore::chart.bar  y="gastos" />
+    <x-kore::chart.line y="ingresos" :show="$verIngresos" />
+
+    <x-kore::chart.axis-y :show="false" />
+    <x-kore::chart.tooltip :show="$conTooltip" :crosshair="false" />
+    <x-kore::chart.legend :show="$conLeyenda" />
+</x-kore::chart>
+```
+
+**Y ahora la parte que importa: en una serie, `:show="false"` NO es lo mismo que quitar la marca con un `@if`.**
+
+El color de una serie se asigna por **orden de registro**. Si envuelves una marca en un `@if` y la condición falla, la marca desaparece del árbol de Blade, **la siguiente hereda su color y todas las series de detrás se recolocan**. El lector, que ya sabía que «Ingresos» era la naranja, se encuentra otra cosa naranja. El gráfico se ve perfectamente bien y miente.
+
+Con `:show="false"` la marca **se registra, se queda con su color y no se dibuja**. Las de detrás no se enteran.
+
+Lo que sí desaparece: el trazo, su entrada en la leyenda, su copia en el payload del tooltip, su columna en la tabla accesible — y su aportación al dominio del eje, **así que el eje se reajusta solo**. Eso sale gratis porque la geometría se calcula en el servidor: es lo que un motor de JavaScript te cobraría con un `chart.update()`.
+
+Y en el tooltip, `:show="false"` no lo esconde con CSS: **no emite el payload**. El payload es una segunda copia del dato en el DOM, y a 2.000 puntos pesa más que el propio trazo. El gráfico adelgaza de verdad.
+
+Si ocultas todas las series, sale el estado vacío.
+
 ## Los colores
 
 Hay **ocho colores de datos** (`--kore-chart-1` … `--kore-chart-8`) y se asignan **por orden de escritura de las marcas**. La primera marca es la 1, la segunda la 2, y así.
@@ -105,6 +132,7 @@ En `config/kore-ui.php`, sección `chart`:
     'bar_padding' => 0.2,       // hueco entre barras, como proporción de la banda
     'max_x_labels' => 12,       // por encima, se saltan etiquetas
     'table_max_rows' => 500,    // tope de la tabla accesible
+    'donut_highlight' => true,  // al posarte en un arco, se enciende su fila de la leyenda
 
     'empty_text' => 'No hay datos que mostrar',
     'empty_icon' => 'chart-line',

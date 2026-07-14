@@ -45,21 +45,33 @@ final class ChartFrame
         return $mark;
     }
 
-    /** @return list<Mark> */
+    /**
+     * Las marcas que se pintan.
+     *
+     * ⚠️ **Es lo que hay que usar en todas partes menos en `add()`.** El slot de color se
+     * asigna sobre TODAS las marcas registradas (en `add()`), pero el dibujo, el dominio del
+     * eje, la leyenda, el payload y la tabla accesible sólo miran las visibles. Ésa es la
+     * separación que hace que ocultar una serie con `:show="false"` **no le cambie el color
+     * a las de detrás**.
+     *
+     * @return list<Mark>
+     */
     public function marks(): array
     {
-        return $this->marks;
+        return array_values(array_filter($this->marks, fn (Mark $mark) => $mark->visible));
     }
 
     public function isEmpty(): bool
     {
-        return $this->marks === [] || $this->data === [];
+        // Si todas las marcas están ocultas, el gráfico está vacío: estado vacío, no un
+        // lienzo en blanco con ejes.
+        return $this->marks() === [] || $this->data === [];
     }
 
     /** ¿Alguna marca necesita el cero en el dominio? Basta una barra para que sí. */
     public function requiresZero(): bool
     {
-        foreach ($this->marks as $mark) {
+        foreach ($this->marks() as $mark) {
             if ($mark->requiresZero()) {
                 return true;
             }
@@ -77,13 +89,71 @@ final class ChartFrame
      */
     public function hasBars(): bool
     {
-        foreach ($this->marks as $mark) {
+        foreach ($this->marks() as $mark) {
             if ($mark->type() === 'bar') {
                 return true;
             }
         }
 
         return false;
+    }
+
+    public function hasDonut(): bool
+    {
+        foreach ($this->marks() as $mark) {
+            if ($mark->type() === 'donut') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Un donut no comparte gráfico con nada.
+     *
+     * Vive en su propio SVG cuadrado, sin ejes ni escalas cartesianas. Así que una línea, un
+     * eje o un tooltip dentro de un donut **no se pintan**: hasta ahora se descartaban en
+     * silencio, que es la peor respuesta posible — escribes una marca, el gráfico decide por
+     * su cuenta que no vale, y sales creyendo que la tienes.
+     *
+     * (El tooltip, además, no le hace ninguna falta: la leyenda del donut ya imprime la
+     * etiqueta, el valor y el porcentaje de cada porción de forma permanente.)
+     *
+     * Es la misma regla que ya aplicamos al mezclar escalas: no se adivina, se lanza.
+     * Adivinar aquí produce un gráfico que se ve bien y miente.
+     */
+    public function validate(): void
+    {
+        if (! $this->hasDonut()) {
+            return;
+        }
+
+        if (count($this->marks()) > 1) {
+            $otras = array_values(array_filter(
+                array_map(fn (Mark $mark) => $mark->type(), $this->marks()),
+                fn (string $type) => $type !== 'donut',
+            ));
+
+            throw new InvalidArgumentException(
+                'koreUi: un donut no comparte gráfico con otras marcas ('.implode(', ', $otras).'): '
+                .'vive en su propio SVG cuadrado, sin ejes ni escalas. Sácalas a su propio <x-kore::chart>.'
+            );
+        }
+
+        if ($this->tooltip !== null) {
+            throw new InvalidArgumentException(
+                'koreUi: el donut no lleva <x-kore::chart.tooltip>, y no es un olvido: su leyenda ya imprime '
+                .'la etiqueta, el valor y el porcentaje de cada porción. Al posarte sobre un arco se enciende '
+                .'su fila de la leyenda, sin nada de JavaScript.'
+            );
+        }
+
+        if ($this->axes['x'] !== null || $this->axes['y'] !== null) {
+            throw new InvalidArgumentException(
+                'koreUi: un donut no tiene ejes, así que <x-kore::chart.axis-x> y <x-kore::chart.axis-y> no pintan nada.'
+            );
+        }
     }
 
     /**
@@ -101,7 +171,7 @@ final class ChartFrame
     {
         $layers = [];
 
-        foreach ($this->marks as $mark) {
+        foreach ($this->marks() as $mark) {
             $last = $layers === [] ? null : $layers[count($layers) - 1];
 
             if ($last !== null && $last['medium'] === $mark->medium()) {
@@ -147,7 +217,7 @@ final class ChartFrame
     {
         $stacks = [];
 
-        foreach ($this->marks as $mark) {
+        foreach ($this->marks() as $mark) {
             if ($mark->type() === 'bar' && $mark->stack !== null) {
                 $stacks[$mark->stack][] = $mark;
             }

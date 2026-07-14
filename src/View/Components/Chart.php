@@ -41,6 +41,7 @@ class Chart extends Component
      * @param  string|null  $x  la clave del canal X. Si es null, se usa el índice de la fila
      * @param  string|null  $height  longitud CSS. Con `aspect` puesto, se ignora
      * @param  string|null  $aspect  proporción CSS ("16/9"). Alternativa a `height`
+     * @param  bool  $grid  la rejilla horizontal, a la altura de los ticks del eje Y
      */
     public function __construct(
         public array $data = [],
@@ -50,6 +51,7 @@ class Chart extends Component
         public ?string $title = null,
         public ?string $ariaLabel = null,
         public ?string $id = null,
+        public bool $grid = true,
     ) {
         $context = app(ChartContext::class);
 
@@ -59,6 +61,11 @@ class Chart extends Component
         $this->chartId = $id ?: $context->nextId();
 
         $this->frame = $context->open(new ChartFrame($this->chartId, $data, $x));
+
+        // La rejilla es del gráfico entero, no de una marca: es la prolongación de los ticks
+        // del eje Y. Hasta ahora ChartFrame::$grid estaba siempre en true y nadie le escribía
+        // nunca — un interruptor que no encendía nada.
+        $this->frame->grid = $grid;
     }
 
     public function render(): View

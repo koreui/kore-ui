@@ -16,6 +16,7 @@ El tooltip y el crosshair.
 | Prop | Tipo | Default | Descripción |
 |---|---|---|---|
 | `crosshair` | `bool` | `true` | La línea vertical que sigue al puntero |
+| `show` | `bool` | `true` | `:show="false"` **no lo esconde: no emite el payload**. Ver abajo |
 
 ## Cómo funciona
 

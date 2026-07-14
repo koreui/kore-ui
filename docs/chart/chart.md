@@ -21,6 +21,7 @@ El contenedor del gráfico: recibe los datos y dentro le pones las capas que qui
 | `title` | `string` | `null` | Título visible sobre el gráfico |
 | `ariaLabel` | `string` | `null` | El `<caption>` de la tabla accesible. Si no, se usa el título |
 | `id` | `string` | `null` | Id del gráfico. Por defecto, uno determinista por petición |
+| `grid` | `bool` | `true` | La rejilla horizontal, a la altura de los ticks del eje Y |
 
 ## Estado vacío
 

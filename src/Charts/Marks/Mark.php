@@ -27,6 +27,21 @@ abstract class Mark
     /** El slot de la paleta. Lo asigna el contexto por orden de registro, nunca por índice visible. */
     public int $slot = 1;
 
+    /**
+     * ¿Se pinta esta marca?
+     *
+     * ⚠️ Una marca invisible **sigue reservando su color**. Ésa es toda la razón de que
+     * exista `:show` en vez de envolver la marca en un `@if`: si la quitas del árbol de
+     * Blade, la marca siguiente hereda su slot y **todas las series de detrás cambian de
+     * color**. El lector creería estar mirando otra cosa. Con `:show="false"` la marca se
+     * registra, se queda con su color y simplemente no se dibuja.
+     *
+     * Lo que sí desaparece: el trazo, la leyenda, el payload del tooltip, la fila de la
+     * tabla accesible — y su aportación al dominio del eje, que es lo que hace que el eje se
+     * reajuste solo. Eso sale gratis porque la geometría se calcula en el servidor.
+     */
+    public bool $visible = true;
+
     public function __construct(
         public readonly string $field,
         public readonly ?string $label = null,
@@ -50,6 +65,13 @@ abstract class Mark
     public function withSlot(int $slot): static
     {
         $this->slot = $slot;
+
+        return $this;
+    }
+
+    public function withVisible(bool $visible): static
+    {
+        $this->visible = $visible;
 
         return $this;
     }

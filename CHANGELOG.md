@@ -54,6 +54,16 @@ Y como el `<svg>` lo emite el servidor, **el morph de Livewire deja de ser una a
 
 ### Changed
 
+- **Todo se apaga con la misma prop: `:show`.** Los ejes y la rejilla salen por defecto (un gráfico sin ejes no se lee); el tooltip y la leyenda hay que pedirlos. Y en una serie, `:show="false"` **no es lo mismo que envolver la marca en un `@if`**: el color se asigna por orden de registro, así que quitar la marca del árbol de Blade hace que la siguiente herede su color y **todas las series de detrás se recoloquen** — el lector, que ya sabía que «Ingresos» era la naranja, se encuentra otra cosa naranja. Con `:show="false"` la marca se registra, **se queda con su color** y no se dibuja. Lo que sí desaparece es su trazo, su entrada en la leyenda, su copia en el payload, su columna en la tabla accesible y su aportación al dominio, **así que el eje se reajusta solo** — gratis, porque la geometría se calcula en el servidor.
+
+  En el tooltip, `:show="false"` tampoco lo esconde con CSS: **no emite el payload**, que a 2.000 puntos pesa más que el propio trazo.
+
+  El `hide` de los ejes desaparece en favor de `:show` (invertido y a contracorriente del resto). `1.6.0` no llegó a publicarse, así que no rompe a nadie.
+
+- **Dos interruptores que no encendían nada.** `<x-kore::chart.tooltip :crosshair="false" />` registraba la prop y **no la leía nadie**: el crosshair se pintaba siempre. Y `ChartFrame::$grid` llevaba desde el principio en `true` sin que nada le escribiera jamás: la rejilla no se podía quitar. Ahora `crosshair` se honra y la rejilla se apaga con `<x-kore::chart :grid="false">`.
+
+- **Un donut ya no descarta marcas en silencio: lanza.** Una línea, un eje o un tooltip dentro de un donut no se pintaban, no avisaban, y encima el gráfico montaba un componente de Alpine que no hacía nada. Escribías una marca y el gráfico decidía por su cuenta que no valía. Es la misma regla que al mezclar escalas: no se adivina. (Y el donut ya no monta Alpine: su única interacción es CSS puro.)
+
 - **En el donut, al posarte sobre un arco se enciende su fila de la leyenda, y al revés.** Sin esa relación hay que emparejar el color a ojo entre el arco y la leyenda, que es lo que peor funciona —y peor todavía con daltonismo—. Está hecho con `:has()` en CSS puro: el arco y su fila comparten un `data-slice`, así que **no hace falta ni una línea de JavaScript** ni una segunda copia de los datos en el DOM. El donut sigue sin tooltip a propósito: su leyenda ya imprime etiqueta, valor y porcentaje de cada porción.
 
 - **`floating.js` acepta una referencia virtual.** El tooltip de un gráfico no cuelga de un elemento: cuelga de un punto de datos. Y como un ratón moviéndose no dispara scroll, resize ni mutación, el `cleanup` que devuelve `startFloating()` expone ahora un `update()` para pedir el reposicionamiento a mano. Los cuatro componentes que ya lo usaban no cambian.

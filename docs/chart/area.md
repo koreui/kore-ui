@@ -18,6 +18,7 @@ El área bajo una línea.
 | `label` | `string` | `null` | El nombre de la serie |
 | `color` | `string` | `null` | Un token o un color CSS |
 | `curve` | `string` | `linear` | `linear`, `monotone` o `step` |
+| `show` | `bool` | `true` | `:show="false"` la oculta **pero le reserva su color**. Ver abajo |
 
 ## Por qué el área sí llega al cero
 

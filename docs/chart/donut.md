@@ -18,6 +18,8 @@ Un donut. Con `inner="0"` es una tarta.
 | `label` | `string` | `null` | El nombre de la serie |
 | `inner` | `float` | `0.6` | El agujero, como proporción del radio. `0` = tarta |
 | `pad` | `float` | `1` | Separación entre porciones, en grados |
+| `highlight` | `bool` | `true` | Al posarte sobre un arco, enciende también su fila de la leyenda. Es CSS puro |
+| `show` | `bool` | `true` | `:show="false"` la oculta **pero le reserva su color**. Ver abajo |
 
 ## Detalles que importan
 

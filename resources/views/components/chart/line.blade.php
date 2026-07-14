@@ -4,6 +4,7 @@
     'color' => null,
     'curve' => null,      // linear | monotone | step
     'dots' => false,
+    'show' => true,       // :show="false" la oculta PERO le reserva su color de la paleta
 ])
 @php
     // Una marca NO DIBUJA. Se apunta en el contexto y se calla.
@@ -18,5 +19,6 @@
             (new \KoreUi\Charts\Marks\LineMark($y, $label, $color))
                 ->withCurve($curve)
                 ->withDots((bool) $dots)
+                ->withVisible(filter_var($show, FILTER_VALIDATE_BOOL))
         );
 @endphp

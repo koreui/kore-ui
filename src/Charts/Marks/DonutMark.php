@@ -15,6 +15,15 @@ final class DonutMark extends Mark
 
     public float $padAngle = 1.0;
 
+    /**
+     * Al posarse sobre un arco, se enciende también su fila de la leyenda (y al revés).
+     *
+     * Es CSS puro: el arco y su fila comparten un `data-slice` y `:has()` recorre esa
+     * relación. Encenderlo o apagarlo no añade ni quita un solo byte de JavaScript — sólo
+     * pone o quita el `data-highlight` del que cuelgan las reglas.
+     */
+    public bool $highlight = true;
+
     public function requiresZero(): bool
     {
         return false;
@@ -40,6 +49,13 @@ final class DonutMark extends Mark
     public function withPad(float $degrees): self
     {
         $this->padAngle = max(0.0, $degrees);
+
+        return $this;
+    }
+
+    public function withHighlight(bool $highlight): self
+    {
+        $this->highlight = $highlight;
 
         return $this;
     }

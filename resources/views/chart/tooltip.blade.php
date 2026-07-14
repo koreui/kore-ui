@@ -3,8 +3,10 @@
      en un atributo: el JSON en un atributo escapa cada comilla a &quot; — seis bytes por comilla. --}}
 <script type="application/json" data-kore-chart-payload="{{ $chartId }}">@json($plot->payload())</script>
 
-<div class="kore-chart-crosshair" x-ref="crosshair" x-show="hover !== null" x-cloak
-     style="--kx: 0" aria-hidden="true"></div>
+@if($plot->frame->tooltip['crosshair'] ?? true)
+    <div class="kore-chart-crosshair" x-ref="crosshair" x-show="hover !== null" x-cloak
+         style="--kx: 0" aria-hidden="true"></div>
+@endif
 
 {{-- ⚠️ wire:ignore NO es opcional. Medido: el morph de Livewire BORRA cualquier style inline
      que escriba el cliente, y floating-ui posiciona con style inline. Sin esto, el tooltip

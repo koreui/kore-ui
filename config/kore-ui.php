@@ -382,6 +382,11 @@ return [
                                     // transform:rotate() no ocupa layout y se saldrían de la caja)
         'table_max_rows' => 500,    // tope de la tabla accesible; sin él, 10.000 filas en el DOM
 
+        // Al posarse sobre un arco del donut se enciende también su fila de la leyenda, y al
+        // revés. Es CSS puro (`:has()` sobre un `data-slice` común), así que apagarlo no
+        // ahorra JavaScript: no había ninguno. Se apaga por gráfico con :highlight="false".
+        'donut_highlight' => true,
+
         'empty_text' => 'No hay datos que mostrar',
         'empty_icon' => 'chart-line',
 

@@ -49,6 +49,9 @@ final class Plot
         private readonly float $barPadding = 0.2,
         private readonly int $maxXLabels = 12,
     ) {
+        // Antes de calcular nada: una marca que no se va a pintar se avisa, no se descarta.
+        $frame->validate();
+
         $this->categories = $frame->categories();
         $marks = $frame->marks();
 
@@ -256,6 +259,7 @@ final class Plot
 
             if ($mark->type() === 'donut') {
                 $serie['slices'] = $this->donutSlices($mark, $serieValues);
+                $serie['highlight'] = $mark->highlight;
             }
 
             $out[] = $serie;

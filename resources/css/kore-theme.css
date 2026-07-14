@@ -905,7 +905,7 @@
     animation: none !important;
   }
 
-  .kore-chart-donut [data-slice] {
+  .kore-chart-donut[data-highlight] [data-slice] {
     transition: none !important;
   }
 
@@ -1247,22 +1247,22 @@
  * Hace falta una regla por índice porque CSS no sabe comparar dos atributos entre sí. Van
  * hasta la 12: un donut con más de doce porciones ya no se lee y hay que agrupar la cola en
  * «Otros». Por encima de esa cifra esto no se apaga a medias — simplemente no hace nada. */
-.kore-chart-donut [data-slice] {
+.kore-chart-donut[data-highlight] [data-slice] {
   transition: opacity 120ms ease-out;
 }
 
-.kore-chart-donut:has([data-slice="0"]:hover) [data-slice]:not([data-slice="0"]),
-.kore-chart-donut:has([data-slice="1"]:hover) [data-slice]:not([data-slice="1"]),
-.kore-chart-donut:has([data-slice="2"]:hover) [data-slice]:not([data-slice="2"]),
-.kore-chart-donut:has([data-slice="3"]:hover) [data-slice]:not([data-slice="3"]),
-.kore-chart-donut:has([data-slice="4"]:hover) [data-slice]:not([data-slice="4"]),
-.kore-chart-donut:has([data-slice="5"]:hover) [data-slice]:not([data-slice="5"]),
-.kore-chart-donut:has([data-slice="6"]:hover) [data-slice]:not([data-slice="6"]),
-.kore-chart-donut:has([data-slice="7"]:hover) [data-slice]:not([data-slice="7"]),
-.kore-chart-donut:has([data-slice="8"]:hover) [data-slice]:not([data-slice="8"]),
-.kore-chart-donut:has([data-slice="9"]:hover) [data-slice]:not([data-slice="9"]),
-.kore-chart-donut:has([data-slice="10"]:hover) [data-slice]:not([data-slice="10"]),
-.kore-chart-donut:has([data-slice="11"]:hover) [data-slice]:not([data-slice="11"]) {
+.kore-chart-donut[data-highlight]:has([data-slice="0"]:hover) [data-slice]:not([data-slice="0"]),
+.kore-chart-donut[data-highlight]:has([data-slice="1"]:hover) [data-slice]:not([data-slice="1"]),
+.kore-chart-donut[data-highlight]:has([data-slice="2"]:hover) [data-slice]:not([data-slice="2"]),
+.kore-chart-donut[data-highlight]:has([data-slice="3"]:hover) [data-slice]:not([data-slice="3"]),
+.kore-chart-donut[data-highlight]:has([data-slice="4"]:hover) [data-slice]:not([data-slice="4"]),
+.kore-chart-donut[data-highlight]:has([data-slice="5"]:hover) [data-slice]:not([data-slice="5"]),
+.kore-chart-donut[data-highlight]:has([data-slice="6"]:hover) [data-slice]:not([data-slice="6"]),
+.kore-chart-donut[data-highlight]:has([data-slice="7"]:hover) [data-slice]:not([data-slice="7"]),
+.kore-chart-donut[data-highlight]:has([data-slice="8"]:hover) [data-slice]:not([data-slice="8"]),
+.kore-chart-donut[data-highlight]:has([data-slice="9"]:hover) [data-slice]:not([data-slice="9"]),
+.kore-chart-donut[data-highlight]:has([data-slice="10"]:hover) [data-slice]:not([data-slice="10"]),
+.kore-chart-donut[data-highlight]:has([data-slice="11"]:hover) [data-slice]:not([data-slice="11"]) {
   opacity: 0.28;
 }
 

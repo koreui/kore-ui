@@ -345,3 +345,186 @@ describe('el donut', function () {
             ->assertSee('kore-chart-legend-percent', false);
     });
 });
+
+describe('el donut no comparte gráfico con nada', function () {
+    // Blade envuelve en ViewException lo que se lance dentro de una vista, así que se
+    // comprueba lo que de verdad ve el desarrollador: el mensaje.
+    // Se invoca con ->call($this, …): una closure declarada aquí no está ligada al test.
+    $lanza = function (string $blade, string $mensaje) {
+        try {
+            $this->blade($blade);
+            $this->fail('Debería haber lanzado en vez de descartar la marca en silencio.');
+        } catch (Throwable $e) {
+            expect($e->getMessage())->toContain($mensaje);
+        }
+    };
+
+    it('lanza si le metes un tooltip, en vez de descartarlo en silencio', function () use ($lanza) {
+        // Antes: el tooltip no se pintaba, no avisaba, y encima el gráfico montaba un
+        // componente de Alpine que no hacía nada. Escribías una marca y el gráfico decidía
+        // por su cuenta que no valía. Es la misma regla que al mezclar escalas: no se adivina.
+        $lanza->call($this, <<<'BLADE'
+            <x-kore::chart :data="[['m' => 'A', 'v' => 10]]" x="m">
+                <x-kore::chart.donut y="v" />
+                <x-kore::chart.tooltip />
+            </x-kore::chart>
+        BLADE, 'el donut no lleva <x-kore::chart.tooltip>');
+    });
+
+    it('lanza si le metes una marca cartesiana', function () use ($lanza) {
+        $lanza->call($this, <<<'BLADE'
+            <x-kore::chart :data="[['m' => 'A', 'v' => 10]]" x="m">
+                <x-kore::chart.donut y="v" />
+                <x-kore::chart.line y="v" />
+            </x-kore::chart>
+        BLADE, 'no comparte gráfico con otras marcas');
+    });
+
+    it('lanza si le metes ejes: un donut no tiene ejes', function () use ($lanza) {
+        $lanza->call($this, <<<'BLADE'
+            <x-kore::chart :data="[['m' => 'A', 'v' => 10]]" x="m">
+                <x-kore::chart.donut y="v" />
+                <x-kore::chart.axis-y />
+            </x-kore::chart>
+        BLADE, 'un donut no tiene ejes');
+    });
+
+    it('no monta Alpine: su interacción es CSS puro', function () {
+        $view = $this->blade(<<<'BLADE'
+            <x-kore::chart :data="[['m' => 'A', 'v' => 10], ['m' => 'B', 'v' => 30]]" x="m">
+                <x-kore::chart.donut y="v" />
+            </x-kore::chart>
+        BLADE);
+
+        $view->assertDontSee('KoreChart(', false)
+            ->assertSee('data-highlight', false);
+    });
+
+    it('el resaltado se apaga por gráfico', function () {
+        // Todas las reglas de :has() cuelgan de data-highlight, así que quitarlo las desactiva
+        // enteras. No hay nada que "desmontar": no había JavaScript que montar.
+        $view = $this->blade(<<<'BLADE'
+            <x-kore::chart :data="[['m' => 'A', 'v' => 10]]" x="m">
+                <x-kore::chart.donut y="v" :highlight="false" />
+            </x-kore::chart>
+        BLADE);
+
+        $view->assertDontSee('data-highlight', false)
+            ->assertSee('kore-chart-slice', false);
+    });
+});
+
+describe('todo se puede apagar', function () use ($data) {
+    it('una serie oculta CONSERVA su color: las de detrás no se recolocan', function () {
+        // Ésta es toda la razón de que exista :show en vez de envolver la marca en un @if.
+        // Con @if, la marca desaparece del árbol, la siguiente hereda su slot y TODAS las
+        // series de detrás cambian de color. El lector creería estar mirando otra cosa.
+        $conTodas = $this->blade(<<<'BLADE'
+            <x-kore::chart :data="[['m' => 'A', 'a' => 1, 'b' => 2, 'c' => 3]]" x="m">
+                <x-kore::chart.line y="a" />
+                <x-kore::chart.line y="b" />
+                <x-kore::chart.line y="c" />
+            </x-kore::chart>
+        BLADE)->__toString();
+
+        $sinLaDelMedio = $this->blade(<<<'BLADE'
+            <x-kore::chart :data="[['m' => 'A', 'a' => 1, 'b' => 2, 'c' => 3]]" x="m">
+                <x-kore::chart.line y="a" />
+                <x-kore::chart.line y="b" :show="false" />
+                <x-kore::chart.line y="c" />
+            </x-kore::chart>
+        BLADE)->__toString();
+
+        // La tercera serie sigue siendo la 3 de la paleta, no la 2.
+        expect($conTodas)->toContain('--kore-series: var(--kore-chart-3)');
+        expect($sinLaDelMedio)->toContain('--kore-series: var(--kore-chart-3)');
+        expect($sinLaDelMedio)->not->toContain('--kore-series: var(--kore-chart-2)');
+    });
+
+    it('la serie oculta desaparece del tooltip y de la tabla accesible', function () {
+        // No basta con no pintar el trazo: si siguiera en el payload, el tooltip enseñaría
+        // una serie que no está en pantalla.
+        $view = $this->blade(<<<'BLADE'
+            <x-kore::chart :data="[['m' => 'A', 'v' => 10, 'w' => 20]]" x="m">
+                <x-kore::chart.line y="v" label="Visible" />
+                <x-kore::chart.line y="w" label="Oculta" :show="false" />
+                <x-kore::chart.tooltip />
+            </x-kore::chart>
+        BLADE);
+
+        $view->assertSee('Visible', false)->assertDontSee('Oculta', false);
+    });
+
+    it('si se ocultan todas, sale el estado vacío', function () {
+        $view = $this->blade(<<<'BLADE'
+            <x-kore::chart :data="[['m' => 'A', 'v' => 10]]" x="m">
+                <x-kore::chart.line y="v" :show="false" />
+            </x-kore::chart>
+        BLADE);
+
+        $view->assertSee('data-kore-chart-empty="true"', false);
+    });
+
+    it('los ejes salen por defecto y la marca los apaga', function () use ($data) {
+        $conEjes = $this->blade(<<<BLADE
+            <x-kore::chart :data="{$data}" x="mes"><x-kore::chart.line y="ingresos" /></x-kore::chart>
+        BLADE)->__toString();
+
+        $sinEjes = $this->blade(<<<BLADE
+            <x-kore::chart :data="{$data}" x="mes">
+                <x-kore::chart.line y="ingresos" />
+                <x-kore::chart.axis-y :show="false" />
+                <x-kore::chart.axis-x :show="false" />
+            </x-kore::chart>
+        BLADE)->__toString();
+
+        expect($conEjes)->toContain('class="kore-chart-gutter-y"');
+        expect($sinEjes)->not->toContain('class="kore-chart-gutter-y"');
+        expect($sinEjes)->not->toContain('class="kore-chart-gutter-x"');
+
+        // Y la canaleta mide 0: si no, la columna del grid seguiría reservando su ancho y el
+        // gráfico dejaría una franja vacía a la izquierda.
+        expect($sinEjes)->toContain('--kore-chart-gutter-y: 0ch');
+    });
+
+    it('la rejilla se apaga desde el gráfico', function () use ($data) {
+        // ChartFrame::$grid llevaba desde el principio en `true` y NADIE le escribía nunca:
+        // un interruptor que no encendía nada.
+        $view = $this->blade(<<<BLADE
+            <x-kore::chart :data="{$data}" x="mes" :grid="false">
+                <x-kore::chart.line y="ingresos" />
+            </x-kore::chart>
+        BLADE);
+
+        $view->assertDontSee('kore-chart-grid-line', false);
+    });
+
+    it('el crosshair del tooltip se apaga', function () use ($data) {
+        // La prop `crosshair` existía desde el principio... y no la leía nadie.
+        $view = $this->blade(<<<BLADE
+            <x-kore::chart :data="{$data}" x="mes">
+                <x-kore::chart.line y="ingresos" />
+                <x-kore::chart.tooltip :crosshair="false" />
+            </x-kore::chart>
+        BLADE);
+
+        $view->assertDontSee('kore-chart-crosshair', false)
+            ->assertSee('kore-chart-tooltip', false);   // el tooltip sigue
+    });
+
+    it('apagar el tooltip no esconde el payload: no lo emite', function () use ($data) {
+        // Aquí :show="false" no es cosmético. El payload es una SEGUNDA copia del dato en el
+        // DOM; a 2.000 puntos pesa más que el propio trazo. El gráfico adelgaza de verdad.
+        $view = $this->blade(<<<BLADE
+            <x-kore::chart :data="{$data}" x="mes">
+                <x-kore::chart.line y="ingresos" />
+                <x-kore::chart.tooltip :show="false" />
+                <x-kore::chart.legend :show="false" />
+            </x-kore::chart>
+        BLADE);
+
+        $view->assertDontSee('data-kore-chart-payload', false)
+            ->assertDontSee('kore-chart-legend', false)
+            ->assertDontSee('KoreChart(', false);   // sin nada que interactuar, ni Alpine
+    });
+});

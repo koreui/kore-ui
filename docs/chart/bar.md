@@ -26,6 +26,7 @@ Barras. Con el mismo `stack` se apilan; sin `stack`, se agrupan una al lado de o
 | `label` | `string` | `null` | El nombre de la serie |
 | `color` | `string` | `null` | Un token o un color CSS |
 | `stack` | `string` | `null` | Las barras con el mismo nombre se apilan |
+| `show` | `bool` | `true` | `:show="false"` la oculta **pero le reserva su color**. Ver abajo |
 
 ## Por qué una barra siempre llega al cero
 

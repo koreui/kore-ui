@@ -19,6 +19,7 @@ Una línea. No fuerza el cero en el eje: forzarlo aplastaría la señal contra e
 | `color` | `string` | `null` | Un token (`destructive`, `success`…) o un color CSS. Por defecto, el de la paleta |
 | `curve` | `string` | `linear` | `linear`, `monotone` o `step` |
 | `dots` | `bool` | `false` | Pintar un punto por dato |
+| `show` | `bool` | `true` | `:show="false"` la oculta **pero le reserva su color**. Ver abajo |
 
 ## La curva `monotone`
 

@@ -18,14 +18,14 @@ Los ejes: cuántos ticks y cómo se escriben.
 |---|---|---|---|
 | `ticks` | `int` | `5` | Cuántos ticks, **como pista** (ver abajo) |
 | `format` | `string` | `number` | `number`, `currency`, `percent` o `compact` |
-| `hide` | `bool` | `false` | Oculta el eje |
+| `show` | `bool` | `true` | `:show="false"` apaga el eje (y su canaleta deja de reservar ancho) |
 
 ## Props de `<x-kore::chart.axis-x>`
 
 | Prop | Tipo | Default | Descripción |
 |---|---|---|---|
 | `max-labels` | `int` | `12` | Cuántas etiquetas como mucho; el resto se saltan |
-| `hide` | `bool` | `false` | Oculta el eje |
+| `show` | `bool` | `true` | `:show="false"` apaga el eje (y su canaleta deja de reservar ancho) |
 
 ## `ticks` es una pista, no un contrato
 

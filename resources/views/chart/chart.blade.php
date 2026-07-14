@@ -21,8 +21,10 @@
         maxXLabels: $xAxis['max_labels'] ?? ($config['max_x_labels'] ?? 12),
     );
 
-    $showY = ! ($yAxis['hide'] ?? false);
-    $showX = ! ($xAxis['hide'] ?? false);
+    // Los ejes salen POR DEFECTO: un gráfico sin ejes no se lee. La marca <chart.axis-*> no
+    // los enciende, los CONFIGURA — o los apaga con :show="false".
+    $showY = $yAxis['show'] ?? true;
+    $showX = $xAxis['show'] ?? true;
 
     // La altura es una longitud CSS y va a un atributo `style`: se valida, o sería una vía
     // de inyección de CSS arbitrario (mismo patrón que SidebarState::cssLength).
@@ -38,7 +40,11 @@
 @php
     // El componente Alpine solo se monta si hace falta: sin tooltip ni leyenda no hay nada
     // que interactuar y el gráfico funciona con cero JavaScript.
-    $interactive = ! $plot->empty && ($frame->tooltip || $frame->legend);
+    //
+    // El donut NUNCA lo monta: su única interacción —encender el arco y su fila de la
+    // leyenda a la vez— es CSS puro (`:has()` sobre un `data-slice` común). Montarlo aquí
+    // sería un x-data de propina que no hace absolutamente nada.
+    $interactive = ! $plot->empty && ! $donut && ($frame->tooltip || $frame->legend);
 @endphp
 
 <div
@@ -51,7 +57,9 @@
             x-on:pointerleave="onPointerLeave()"
         @endif
     @endif
-    style="{{ $aspectSafe ? '--kore-chart-aspect: '.$aspectSafe.';' : '--kore-chart-height: '.$height.';' }} --kore-chart-gutter-y: {{ $plot->empty ? 2 : $plot->yGutter() }}ch;"
+    {{-- Con el eje Y apagado la canaleta mide 0: si no, la columna del grid seguiría
+         reservando su ancho y el gráfico dejaría una franja vacía a la izquierda. --}}
+    style="{{ $aspectSafe ? '--kore-chart-aspect: '.$aspectSafe.';' : '--kore-chart-height: '.$height.';' }} --kore-chart-gutter-y: {{ $plot->empty || ! $showY ? 0 : $plot->yGutter() }}ch;"
     {{ $attributes->except('class')->class(['kore-chart', $aspectSafe ? 'kore-chart-aspect' : null, $attributes->get('class')]) }}
 >
     @if($title)
