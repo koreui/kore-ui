@@ -140,6 +140,18 @@ it('loading overlay uses the .flex modifier so the spinner stays centered', func
         ->assertSeeHtml('wire:loading.delay.flex');
 });
 
+it('ships the loading overlay hidden, because Livewire has no selector for delay+display', function () {
+    // Regresión (1.4.0): Livewire oculta estos overlays en el primer render con un <style>
+    // que lista los selectores de atributo UNO A UNO — [wire:loading], [wire:loading.delay],
+    // [wire:loading.flex], [wire:loading.delay.short]... — y NO existe ninguno para la
+    // combinación delay + display. `[wire:loading.delay.flex]` no encaja con nada, así que
+    // sin este style inline el overlay nace VISIBLE y se queda pegado sobre la tabla para
+    // siempre: el JS solo lo apaga al TERMINAR una petición, y en el primer render no hay
+    // ninguna. El `.flex` y el `style` van juntos o no van.
+    Livewire::test(TestTable::class)
+        ->assertSeeHtml('wire:loading.delay.flex style="display: none"');
+});
+
 it('renders the loading overlay outside the scroll container', function () {
     // Regression: an `absolute inset-0` INSIDE the overflow-x-auto wrapper scrolls along
     // with the content, leaving the right-hand columns uncovered once the user scrolls.

@@ -167,12 +167,20 @@
              del contenedor scrolleable se desplaza junto al contenido, y en cuanto el usuario
              hace scroll horizontal deja las columnas de la derecha sin tapar. --}}
         <div class="relative">
-            {{-- Loading overlay: el modificador `.flex` es OBLIGATORIO — wire:loading aplica un
-                 display INLINE, por defecto inline-block, que pisaría la clase `flex` y dejaría
-                 el spinner arriba a la izquierda (items/justify-center no aplican sobre una caja
-                 no-flex). Con `.flex` alterna display:none ↔ flex; `.delay` evita el parpadeo en
-                 peticiones rápidas. z-30 lo mantiene por encima del thead sticky (z-20). --}}
-            <div wire:loading.delay.flex class="absolute inset-0 z-30 flex items-center justify-center bg-kore-surface/80 backdrop-blur-[1px]">
+            {{-- Loading overlay. Las dos piezas de abajo son OBLIGATORIAS juntas:
+
+                 1. `.flex` — wire:loading escribe el display en el style INLINE (inline-block por
+                    defecto), que pisaría la clase `flex` y dejaría el spinner arriba a la izquierda.
+                 2. `style="display: none"` — Livewire oculta estos overlays en el primer render con
+                    un <style> que lista los selectores de atributo UNO A UNO
+                    (`[wire\:loading]`, `[wire\:loading\.delay]`, `[wire\:loading\.flex]`, …).
+                    No existe selector para la combinación delay + display, así que
+                    `[wire:loading.delay.flex]` NO encaja con ninguno y nunca recibiría su
+                    display:none inicial: el overlay nacería visible y se quedaría pegado para
+                    siempre sobre la tabla, porque el JS solo lo apaga al TERMINAR una petición.
+
+                 z-30 lo mantiene por encima del thead sticky (z-20). --}}
+            <div wire:loading.delay.flex style="display: none" class="absolute inset-0 z-30 flex items-center justify-center bg-kore-surface/80 backdrop-blur-[1px]">
                 <x-kore::loading size="md" />
             </div>
 

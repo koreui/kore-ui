@@ -7,6 +7,32 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.4.1] — 2026-07-13
+
+### Fixed
+
+- **DataTable — el overlay de carga se quedaba pegado sobre la tabla.** Regresión introducida en 1.4.0: los datos se veían, pero el spinner no desaparecía nunca.
+
+  La causa está en cómo Livewire oculta estos overlays en el primer render. No usa un selector genérico, sino un `<style>` que enumera los selectores de atributo **uno a uno**:
+
+  ```css
+  [wire\:loading], [wire\:loading\.delay], [wire\:loading\.flex], [wire\:loading\.block], … { display: none }
+  [wire\:loading\.delay\.short], [wire\:loading\.delay\.long], … { display: none }
+  ```
+
+  Existe `[wire:loading.delay]` y existe `[wire:loading.flex]`, pero **no existe ningún selector para la combinación *delay + display***. Como el selector es el nombre literal del atributo, un `wire:loading.delay.flex` no encaja con ninguno y nunca recibe su `display:none` inicial: nace visible. Y el JavaScript solo lo apaga al **terminar** una petición, así que si en la primera carga no hay ninguna —o dura menos que el delay— no queda nadie que lo apague.
+
+  El arreglo es declarar el estado inicial a mano, con `style="display: none"` en el propio overlay. El modificador `.flex` sigue siendo necesario para que el spinner quede centrado (sin él Livewire escribe `display:inline-block` en el style inline y pisa la clase `flex`). **Las dos piezas van juntas o no van.**
+
+  Si tienes un template del DataTable publicado, aplícale el mismo cambio:
+
+  ```diff
+  - <div wire:loading.delay.flex class="absolute inset-0 …">
+  + <div wire:loading.delay.flex style="display: none" class="absolute inset-0 …">
+  ```
+
+---
+
 ## [1.4.0] — 2026-07-13
 
 Release de correcciones. Dos bugs visibles y una pieza de configuración que llevaba tiempo mintiendo.
@@ -15,7 +41,7 @@ Release de correcciones. Dos bugs visibles y una pieza de configuración que lle
 
 - **DataTable — overlay de carga desalineado.** El overlay usaba `wire:loading.delay` sin modificador de display, así que Livewire le aplicaba `display:inline-block` en línea, pisando la clase `flex` y dejando el spinner arriba a la izquierda en vez de centrado. Ahora usa `wire:loading.delay.flex`.
 
-  > Esto **revierte** el cambio hecho en 1.2.0, que atribuía al modificador `.flex` un overlay que se quedaba visible para siempre. La causa real de aquel síntoma era el hook `morphed` de pinning, que al lanzar una excepción rompía el ciclo de morph y congelaba `wire:loading` — y se corrigió por separado en el mismo 1.2.0. El modificador `.flex` está documentado en Livewire y es la forma correcta de que un overlay `flex` no reciba `inline-block`.
+  > ⚠️ **Este cambio salió incompleto y provocó una regresión: el overlay se quedaba pegado sobre la tabla. Corregido en 1.4.1.** Al restaurar el modificador `.flex` se perdió el `display:none` inicial, porque Livewire no tiene selector CSS para la combinación *delay + display*. Ver la entrada de 1.4.1 para la explicación completa.
 - **DataTable — overlay que no tapaba la tabla al hacer scroll.** El overlay vivía dentro del contenedor con `overflow-x-auto`, donde un `absolute inset-0` se desplaza junto al contenido: en cuanto había scroll horizontal, las columnas de la derecha quedaban al descubierto durante la carga. Ahora se ancla a un padre que no hace scroll.
 - **Toast — el hover borraba la descripción.** `@mouseleave` colapsaba el toast siempre, ignorando `autoExpand`. Bastaba con rozar un toast con el cursor para que perdiera su descripción de forma permanente. El hover ahora solo puede **añadir**: nunca colapsa por debajo del estado de reposo.
 - **Toast — un `loading` resuelto no se volvía a expandir.** `resolve()` activa `autoExpand` al llegar una descripción, pero el estado se copiaba una sola vez al montar el componente Alpine, así que el cambio nunca llegaba a la vista.
@@ -236,6 +262,7 @@ Primera versión pre-release de kore-ui. Incluye el sistema base completo con ov
 
 ---
 
+[1.4.1]: https://github.com/koreui/kore-ui/releases/tag/v1.4.1
 [1.4.0]: https://github.com/koreui/kore-ui/releases/tag/v1.4.0
 [1.3.0]: https://github.com/koreui/kore-ui/releases/tag/v1.3.0
 [1.2.0]: https://github.com/koreui/kore-ui/releases/tag/v1.2.0
