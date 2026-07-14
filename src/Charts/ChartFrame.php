@@ -28,6 +28,9 @@ final class ChartFrame
     /** @var array<string, mixed>|null */
     public ?array $tooltip = null;
 
+    /** @var array{model: string, slider: bool}|null */
+    public ?array $zoom = null;
+
     public bool $grid = true;
 
     public function __construct(
@@ -155,6 +158,13 @@ final class ChartFrame
         if ($this->axes['x'] !== null || $this->axes['y'] !== null) {
             throw new InvalidArgumentException(
                 'koreUi: un donut no tiene ejes, así que <x-kore::chart.axis-x> y <x-kore::chart.axis-y> no pintan nada.'
+            );
+        }
+
+        if ($this->zoom !== null) {
+            throw new InvalidArgumentException(
+                'koreUi: un donut no lleva <x-kore::chart.zoom>. El zoom recorta un tramo del eje X, y un donut '
+                .'no tiene eje X: sus porciones son un reparto, no una secuencia.'
             );
         }
     }

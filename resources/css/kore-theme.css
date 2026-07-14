@@ -1294,6 +1294,172 @@
   opacity: 0.4;
 }
 
+/* ---- zoom: brush, slider de contexto y controles ---- */
+
+/* ⚠️ El recorte del zoom, y por qué es un `clip-path` y no un `overflow`.
+ *
+ * Al ampliar un tramo, las filas de fuera NO se borran: se quedan con una posición negativa o
+ * mayor que 100, para que el trazo siga SALIENDO por el borde en vez de cortarse en seco contra
+ * él. Eso hay que recortarlo — pero sólo a los lados.
+ *
+ * `overflow: hidden` no vale: recorta también arriba, y el `.kore-chart-svg` lleva
+ * `overflow: visible` a propósito, porque el punto máximo cae en y=0 y se le comería medio trazo.
+ * Y CSS no deja recortar un eje y dejar el otro libre (poner `overflow-x: hidden` obliga a que el
+ * eje Y deje de ser `visible`).
+ *
+ * `clip-path: inset(-100% 0)` sí: los lados se recortan en el borde de la caja, y arriba y abajo
+ * se EXPANDEN un 100 %. Es exacto, es una línea, y no mete un <rect> dentro del SVG — que está
+ * prohibido, porque con preserveAspectRatio="none" todo lo que no sea un <path> se deforma. */
+.kore-chart[data-kore-chart-zoomed] .kore-chart-svg,
+.kore-chart[data-kore-chart-zoomed] .kore-chart-marks {
+  clip-path: inset(-100% 0);
+}
+
+/* Sin esto, arrastrar sobre el gráfico en un móvil hace scroll de la página en vez de un brush:
+   el navegador se lleva el gesto antes de que llegue el pointermove. */
+.kore-chart-plot:has(~ .kore-chart-slider),
+.kore-chart:has(.kore-chart-slider) .kore-chart-plot {
+  touch-action: pan-y;
+  cursor: crosshair;
+}
+
+.kore-chart-brush {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--kx) * 1%);
+  width: calc(var(--kw) * 1%);
+  background: color-mix(in oklch, var(--kore-primary) 15%, transparent);
+  border-inline: 1px solid var(--kore-primary);
+  pointer-events: none;
+}
+
+/* El mini-gráfico de contexto. Un <path> son 17 nodos de DOM pase lo que pase — con diez puntos
+   o con diez mil— así que esto es literalmente gratis. En un motor de canvas sería un segundo
+   motor de dibujo. */
+.kore-chart-slider {
+  position: relative;
+  height: 2.5rem;
+  margin-top: 0.5rem;
+  border-radius: var(--kore-radius-sm);
+  background: var(--kore-muted);
+  touch-action: none;
+  user-select: none;
+}
+
+.kore-chart-slider-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.kore-chart-slider-line {
+  fill: none;
+  stroke: var(--kore-series);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.7;
+}
+
+.kore-chart-slider-mask {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: calc(var(--kw) * 1%);
+  background: color-mix(in oklch, var(--kore-bg) 65%, transparent);
+  pointer-events: none;
+}
+
+.kore-chart-slider-mask[data-side='start'] { left: 0; }
+.kore-chart-slider-mask[data-side='end']   { right: 0; }
+
+/* Es un <button> de verdad: entra en el tab order y las flechas lo desplazan. Ni ECharts, ni
+   uPlot, ni Highcharts tienen un zoom que se pueda usar con el teclado. */
+.kore-chart-slider-window {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--kx) * 1%);
+  width: calc(var(--kw) * 1%);
+  min-width: 4px;
+  padding: 0;
+  border: 1px solid var(--kore-primary);
+  border-radius: var(--kore-radius-sm);
+  background: color-mix(in oklch, var(--kore-primary) 10%, transparent);
+  cursor: grab;
+}
+
+.kore-chart-slider-window:active { cursor: grabbing; }
+
+.kore-chart-slider-window:focus-visible {
+  outline: 2px solid var(--kore-ring);
+  outline-offset: 2px;
+}
+
+.kore-chart-slider-handle {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 10px;   /* ancho de DEDO, no de píxel: 4px sería imposible de agarrar en un móvil */
+  cursor: ew-resize;
+}
+
+.kore-chart-slider-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: 3px;
+  height: 60%;
+  border-radius: 2px;
+  background: var(--kore-primary);
+}
+
+.kore-chart-slider-handle[data-side='start'] { left: -5px; }
+.kore-chart-slider-handle[data-side='end']   { right: -5px; }
+
+.kore-chart-zoom-controls {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.kore-chart-zoom-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  height: 1.75rem;
+  padding-inline: 0.5rem;
+  border: 1px solid var(--kore-border);
+  border-radius: var(--kore-radius-sm);
+  background: var(--kore-bg);
+  color: var(--kore-muted-fg);
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.kore-chart-zoom-button:hover:not(:disabled) {
+  background: var(--kore-muted);
+  color: var(--kore-fg);
+}
+
+.kore-chart-zoom-button:focus-visible {
+  outline: 2px solid var(--kore-ring);
+  outline-offset: 2px;
+}
+
+.kore-chart-zoom-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 /* ---- crosshair y tooltip ---- */
 
 .kore-chart-crosshair {

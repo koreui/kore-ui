@@ -1,8 +1,3 @@
-{{-- El payload SOLO se emite si hay tooltip: es una segunda copia del dato en el DOM y a
-     2.000 puntos pesa más que el propio <path>. Va en un <script type="application/json">, no
-     en un atributo: el JSON en un atributo escapa cada comilla a &quot; — seis bytes por comilla. --}}
-<script type="application/json" data-kore-chart-payload="{{ $chartId }}">@json($plot->payload())</script>
-
 @if($plot->frame->tooltip['crosshair'] ?? true)
     <div class="kore-chart-crosshair" x-ref="crosshair" x-show="hover !== null" x-cloak
          style="--kx: 0" aria-hidden="true"></div>

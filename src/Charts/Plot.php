@@ -48,7 +48,7 @@ final class Plot
     /** @var list<array{value: float, label: string, pos: float}> */
     public readonly array $yTicks;
 
-    /** @var list<array{label: string, context: string|null, pos: float, edge: string|null}> */
+    /** @var list<array{label: string, context: string|null, pos: float, width: float}> */
     public readonly array $xTicks;
 
     public readonly float $zero;
@@ -62,6 +62,15 @@ final class Plot
         ?TimeFormat $timeFormat = null,
         private readonly ?int $xTickCount = null,
         private readonly int $continuousXTicks = 6,
+        /**
+         * El tramo visible, en % del dominio COMPLETO: `[0, 100]` es todo.
+         *
+         * Dos números, no dos fechas — y eso es lo que hace que el zoom no necesite ni una escala
+         * en JavaScript. Ver `Scales\XScale::window()`.
+         *
+         * @var array{0: float, 1: float}|null
+         */
+        public readonly ?array $window = null,
     ) {
         // Antes de calcular nada: una marca que no se va a pintar se avisa, no se descarta.
         $frame->validate();
@@ -86,8 +95,26 @@ final class Plot
             $marks,
         );
 
+        // El eje X primero, y con la ventana ya aplicada. El orden importa: el dominio del eje Y
+        // se calcula sobre las filas que SE VEN, así que hay que saber cuáles son antes.
+        $x = $this->buildXScale($type, $xRaw, $timeFormat ?? new TimeFormat);
+
+        if ($window !== null) {
+            $x = $x->window((float) $window[0], (float) $window[1]);
+        }
+
+        $this->x = $x;
+
+        // ⚠️ Al ampliar un tramo, el eje Y se REESCALA sobre lo que se ve.
+        //
+        // Si no, ampliar una semana de un año deja el gráfico aplastado contra el suelo: el eje
+        // sigue llegando hasta el máximo anual, que ya no está en pantalla. Es lo que ECharts
+        // llama `filterMode: 'filter'`, y es la decisión de diseño del zoom, no un detalle.
+        //
+        // Las filas de fuera NO se borran —el trazo tiene que seguir saliendo por el borde—: solo
+        // se enmascaran para el dominio.
         $this->domain = Domain::fromSeries(
-            $this->stackedValues($frame, $values),
+            $this->stackedValues($frame, $window === null ? $values : $this->maskOutside($values)),
             includeZero: $frame->requiresZero(),
             tickCount: $tickCount,
         );
@@ -95,7 +122,6 @@ final class Plot
         $this->empty = $frame->isEmpty() || $this->domain->empty;
 
         $this->y = LinearScale::vertical($this->domain->toArray());
-        $this->x = $this->buildXScale($type, $xRaw, $timeFormat ?? new TimeFormat);
 
         // Las etiquetas de fila (tooltip y tabla accesible). En un eje temporal salen de la
         // escala, ya formateadas y enteras: «14 feb 2026», no «14» — un tooltip habla de un punto
@@ -169,6 +195,35 @@ final class Plot
     private function reorder(array $items, array $order): array
     {
         return array_map(fn (int $row) => $items[$row] ?? null, $order);
+    }
+
+    /**
+     * Los valores de las filas que quedan fuera de la ventana, a `null`.
+     *
+     * **Solo para calcular el dominio del eje Y.** Las filas siguen ahí y siguen dibujándose: el
+     * recorte del zoom es visual (`clip-path`), no de dato — si se borraran, el trazo se cortaría
+     * en seco contra el borde en vez de salir por él, y se vería un escalón donde no lo hay.
+     *
+     * @param  list<list<float|null>>  $values
+     * @return list<list<float|null>>
+     */
+    private function maskOutside(array $values): array
+    {
+        return array_map(
+            fn (array $serie) => array_map(
+                fn ($value, int $row) => $this->isVisible($row) ? $value : null,
+                $serie,
+                array_keys($serie),
+            ),
+            $values,
+        );
+    }
+
+    private function isVisible(int $row): bool
+    {
+        $pos = $this->x->positionAt($row);
+
+        return $pos !== null && $pos >= -0.01 && $pos <= 100.01;
     }
 
     /**
@@ -527,23 +582,42 @@ final class Plot
      * Y no se emite si no hay tooltip: a 2.000 puntos el payload pesa 53 kB, más que el
      * propio <path>. Es una segunda copia del dato en el DOM.
      */
-    public function payload(): array
+    public function payload(bool $series = true): array
     {
-        return [
-            // Ascendente por construcción: las filas se ordenaron por X en el constructor. La
-            // búsqueda binaria del cliente depende de eso.
-            'xs' => array_map(
-                fn (int $row) => round($this->x->positionAt($row) ?? 0.0, 2),
-                array_keys($this->categories),
-            ),
-            'labels' => $this->categories,
-            'series' => array_values(array_map(fn (array $s) => [
-                'id' => $s['id'],
-                'name' => $s['name'],
-                'slot' => $s['slot'],
-                'labels' => $s['labels'],
-            ], array_filter($this->series, fn ($s) => $s['type'] !== 'donut'))),
-        ];
+        // El tramo que se está viendo, en % del dominio COMPLETO.
+        //
+        // Es lo ÚNICO que el cliente necesita para componer un zoom sobre otro: si arrastras del
+        // 20 % al 60 % de una vista que ya enseña [40, 80], la ventana nueva es una regla de tres.
+        // Sin escalas, sin fechas, sin locales.
+        //
+        // Y va aquí, en el payload, y no en el `x-data`: el morph de Livewire reescribe el <script>
+        // pero NO reinicializa el x-data, así que un `x-data` con la ventana dentro se quedaría con
+        // la de antes del zoom.
+        $out = ['window' => $this->window ?? [0.0, 100.0]];
+
+        // Un gráfico con zoom pero SIN tooltip no necesita el dato: solo la ventana. Y el dato es
+        // caro — es una segunda copia entera en el DOM, y a 2.000 puntos pesa más que el <path>.
+        if (! $series) {
+            return $out;
+        }
+
+        // Ascendente por construcción: las filas se ordenaron por X en el constructor. La
+        // búsqueda binaria del cliente depende de eso.
+        $out['xs'] = array_map(
+            fn (int $row) => round($this->x->positionAt($row) ?? 0.0, 2),
+            array_keys($this->categories),
+        );
+
+        $out['labels'] = $this->categories;
+
+        $out['series'] = array_values(array_map(fn (array $s) => [
+            'id' => $s['id'],
+            'name' => $s['name'],
+            'slot' => $s['slot'],
+            'labels' => $s['labels'],
+        ], array_filter($this->series, fn ($s) => $s['type'] !== 'donut')));
+
+        return $out;
     }
 
     /**

@@ -255,3 +255,116 @@ describe('sin payload', function () {
         expect(chart.hover).toBeNull();
     });
 });
+
+/**
+ * El zoom.
+ *
+ * Todo el JavaScript del zoom es aritmética sobre porcentajes: ni una escala, ni una fecha, ni un
+ * formato. El cliente manda DOS NÚMEROS y el servidor hace el resto — invierte el dominio, elige
+ * los ticks nuevos, reescala el eje Y y devuelve el <path>.
+ *
+ * Un zoom en el cliente exigiría portar Ticks, Scales, Path y Format a JS y mantener dos
+ * implementaciones de la geometría idénticas para siempre. Estos tests fijan que eso no pase.
+ */
+describe('zoom', function () {
+    function makeZoom(view = [0, 100]) {
+        const set = vi.fn();
+        const chart = KoreChart({ id: 'c1', zoom: { model: 'ventana' } });
+
+        chart.$el = {
+            contains: () => false,
+            querySelector: () => ({ textContent: JSON.stringify({ ...PAYLOAD, window: view }) }),
+            querySelectorAll: () => [],
+        };
+        chart.$refs = { plot: { getBoundingClientRect: () => ({ left: 0, top: 0, width: 200, height: 100 }) } };
+        chart.$wire = { $set: set };
+        chart.$nextTick = (fn) => fn();
+        chart.init();
+
+        return { chart, set };
+    }
+
+    it('lee la ventana del payload, no del x-data', function () {
+        // El morph reescribe el <script> del payload pero NO reinicializa el x-data. Una ventana
+        // metida en el x-data se quedaría con la de ANTES del zoom.
+        const { chart } = makeZoom([25, 75]);
+
+        expect(chart.view).toEqual([25, 75]);
+        expect(chart.zoomed).toBe(true);
+    });
+
+    it('compone un zoom sobre otro con una regla de tres', function () {
+        // Arrastrar del 20 % al 60 % de una vista que ya enseña [40, 80] da [48, 64] del dominio
+        // COMPLETO. Sin escalas, sin fechas, sin locales — por eso el cliente no necesita saber
+        // qué hay debajo del eje.
+        const { chart } = makeZoom([40, 80]);
+
+        expect(chart._toFull(20)).toBeCloseTo(48);
+        expect(chart._toFull(60)).toBeCloseTo(64);
+    });
+
+    it('el brush manda la ventana COMPUESTA, en % del dominio completo', function () {
+        const { chart, set } = makeZoom([40, 80]);
+
+        chart.onBrushDown({ button: 0, clientX: 40, pointerId: 1, currentTarget: {} });
+        chart.onPointerMove({ clientX: 120 });
+        chart.onDragEnd();
+
+        // 40/200 = 20 % del área visible; 120/200 = 60 %. Sobre [40, 80] → [48, 64].
+        expect(set).toHaveBeenCalledWith('ventana', [48, 64]);
+    });
+
+    it('un arrastre de menos de un 1 % es un clic, no un zoom', function () {
+        const { chart, set } = makeZoom();
+
+        chart.onBrushDown({ button: 0, clientX: 100, pointerId: 1, currentTarget: {} });
+        chart.onPointerMove({ clientX: 101 });
+        chart.onDragEnd();
+
+        expect(set).not.toHaveBeenCalled();
+    });
+
+    it('redondea antes de mandar, o la URL se llena de ruido de coma flotante', function () {
+        // La ventana va en el query string con #[Url]. Sin redondear, un píxel de arrastre produce
+        // un 17.99999938120037 que acaba TAL CUAL en la barra de direcciones.
+        const { chart, set } = makeZoom();
+
+        chart.onBrushDown({ button: 0, clientX: 33.333333, pointerId: 1, currentTarget: {} });
+        chart.onPointerMove({ clientX: 133.333333 });
+        chart.onDragEnd();
+
+        const [, ventana] = set.mock.calls[0];
+
+        expect(ventana.every((n) => String(n).replace('-', '').split('.')[1]?.length <= 2 || Number.isInteger(n))).toBe(true);
+    });
+
+    it('amplía y reduce alrededor del centro', function () {
+        const { chart, set } = makeZoom([20, 60]);
+
+        chart.zoomBy(0.5);
+
+        expect(set).toHaveBeenCalledWith('ventana', [30, 50]);
+    });
+
+    it('reducir hasta pasarse del dominio equivale a restablecer', function () {
+        const { chart, set } = makeZoom([40, 60]);
+
+        chart.zoomBy(20);
+
+        expect(set).toHaveBeenCalledWith('ventana', null);
+    });
+
+    it('las flechas desplazan la ventana sin salirse del dominio', function () {
+        const { chart, set } = makeZoom([80, 100]);
+
+        chart.nudge(50);   // querría irse un 50 % de su ancho a la derecha, pero ya toca el borde
+
+        expect(set).toHaveBeenCalledWith('ventana', [80, 100]);
+    });
+
+    it('sin zoom no hay a dónde desplazarse, y quedarse quieto es lo correcto', function () {
+        const { chart } = makeZoom([0, 100]);
+
+        expect(chart.zoomed).toBe(false);
+    });
+});

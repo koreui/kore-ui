@@ -38,6 +38,20 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 - **Rampas de color secuencial (`--kore-seq-1…7`) y ordinal (`--kore-ord-1…7`)**, en claro y en oscuro. La secuencial codifica una **magnitud** (el valor de una celda); la ordinal solo codifica un **orden** (la etapa de un embudo, donde el valor ya lo dice la geometría). El color se **cuantiza**, jamás se interpola en PHP: el servidor reparte el valor en escalones y emite el número; el color lo pone el CSS. Así el gráfico sigue repintándose solo al cambiar de tema.
 
+- **Zoom, pan y slider de contexto** — todo resuelto en el servidor. Ver [docs/chart/zoom.md](docs/chart/zoom.md).
+
+  **El cliente manda dos números.** La ventana son dos porcentajes del dominio completo —no dos fechas—, y eso es lo que hace que el zoom no cueste ni una línea de matemática de escalas en el cliente: componer un zoom sobre otro es una regla de tres, y recortar el espacio 0–100 a un tramo es un **remapeo afín** que funciona igual con categorías, con fechas y con números. El servidor invierte el dominio (con `LinearScale::invert()`, que llevaba escrita desde el primer día **sin que la usara nadie**), elige los ticks nuevos, reescala el eje Y y devuelve el `<path>`. Livewire lo morphea.
+
+  Lo más visible: **al ampliar, el eje temporal cambia de unidad solo.** Un año dice trimestres; ampliada una semana, el mismo eje dice días. Un zoom en el cliente tendría que recalcular esos ticks — o sea, portar `TimeTicks`, `TimeInterval` y `TimeFormat` a JavaScript. Todo el JS del zoom son **~60 líneas y 0,7 kB gzip**.
+
+  **El estado vive en el componente Livewire**, no en Alpine. Sale gratis que sobreviva al morph sin ningún hook, que se comparta por URL con `#[Url]` y que se testee con `Livewire::test()`.
+
+  **Y el eje Y se reescala sobre lo que se ve** (el `filterMode: 'filter'` de ECharts): ampliar una semana de un año y dejar el eje llegando al máximo anual deja el gráfico aplastado contra el suelo. Las filas de fuera no se borran —el trazo tiene que seguir *saliendo* por el borde, no cortarse contra él—: el recorte es visual, con `clip-path`.
+
+  Los controles son **`<button>` de verdad**, y la ventana del contexto se desplaza con las flechas: ni ECharts, ni uPlot, ni Highcharts tienen un zoom que se pueda usar con el teclado.
+
+  ⚠️ **Sin rueda ni pinch, y va escrito en la doc.** Una rueda dispara ~50 eventos/s y cada uno cambia los ticks: hacerlo bien exige portar `Ticks`, `Scales`, `Path` y `Format` a JS y mantener dos implementaciones de la geometría idénticas para siempre. Es la deuda que esta arquitectura se eligió para no contraer.
+
 - **Guardia de peso del bundle en CI** (`npm run size`). «El JavaScript es poco» es una promesa de la documentación, y una promesa que nadie mide deja de ser verdad sin que nadie se entere.
 
 #### El principio que ordena todo el módulo
@@ -53,7 +67,7 @@ Y como el `<svg>` lo emite el servidor, **el morph de Livewire deja de ser una a
 - **No existe un `type="mixed"`.** Un gráfico de barras con una línea encima son dos marcas, una detrás de otra. El orden en que las escribes es el orden en que se pintan.
 - **Los ejes dicen números redondos.** El algoritmo de ticks es un puerto del de d3 (ISC, con atribución en [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)) y da exactamente los mismos valores. El reparto ingenuo que usa el resto del ecosistema PHP produce ejes que dicen "1.224".
 - **Un `null` no es un cero.** La línea se corta en el hueco, en vez de dibujar una caída al suelo que nunca ocurrió. Y la curva monótona reinicia sus tangentes ahí, para no inventarse una curva por encima del vacío.
-- **Los datos van también en un `<table class="sr-only">`.** Un `<svg>` es tan mudo para un lector de pantalla como un `<canvas>`; como los datos ya están en PHP, la tabla sale gratis. Nadie más en el ecosistema la sirve.
+- **Los datos van también en una tabla, escondida para el lector vidente.** Un `<svg>` es tan mudo para un lector de pantalla como un `<canvas>`; como los datos ya están en PHP, la tabla sale gratis. Nadie más en el ecosistema la sirve.
 - **Sin leyenda ni tooltip, el gráfico no carga JavaScript.** Y el resize no lo necesita nunca: la geometría está en porcentajes, no en píxeles.
 - **La paleta no se cicla.** La novena serie no existe: repetir el color de la primera es peor que no pintarla. Si lo intentas, salta una excepción.
 

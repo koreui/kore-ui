@@ -29,6 +29,20 @@ final class LinearXScale extends ContinuousXScale
         $this->format = $format ?? new Format;
     }
 
+    public function window(float $from, float $to): static
+    {
+        if ($to - $from <= 0.0) {
+            return $this;
+        }
+
+        [$min, $max] = $this->domainOf($from, $to);
+
+        // Las MISMAS filas, con otro dominio. Las que caen fuera se quedan con una posición
+        // negativa o mayor que 100 — que es lo que hace que el trazo siga saliendo por el borde
+        // en vez de cortarse en seco contra él.
+        return new self($this->values, $min, $max, $this->padding, $this->format);
+    }
+
     public function ticks(int $count): array
     {
         $values = Ticks::ticks($this->scale->domainMin, $this->scale->domainMax, $count);

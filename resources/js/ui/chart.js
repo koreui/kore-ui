@@ -64,9 +64,20 @@ export default (config = {}) => ({
     // los cinco gráficos de una página enseñan los datos del quinto. Sin un solo error.
     // Es exactamente el bug que tuvo la demo. Ver tests/js/chart-alpine.test.js.
     payload: null,
+
+    // El tramo visible, en % del dominio COMPLETO. Lo manda el servidor en el payload.
+    //
+    // ⚠️ Se llama `view` y no `window` a propósito: dentro de una expresión de Alpine, una
+    // propiedad llamada `window` SOMBREARÍA el objeto global del navegador.
+    view: [0, 100],
+
+    // El rectángulo que se está arrastrando, en % del ÁREA VISIBLE (no del dominio).
+    brush: null,
+
     _root: null,
     _reference: null,
     _floating: null,
+    _drag: null,
 
     init() {
         // ⚠️ `$el` NO es siempre la raíz del componente: Alpine lo resuelve al elemento cuya
@@ -77,6 +88,7 @@ export default (config = {}) => ({
         this._root = this.$el;
 
         this.payload = this._readPayload();
+        this.view = this.payload?.window ?? [0, 100];
 
         instances.add(this);
         ensureMorphHook();
@@ -90,7 +102,17 @@ export default (config = {}) => ({
     // ---- puntero -----------------------------------------------------------------
 
     onPointerMove(event) {
-        if (!this.payload || !this.payload.xs.length) return;
+        // El arrastre primero: mientras se está haciendo un brush o moviendo el slider, el tooltip
+        // estorba — y además un gráfico con zoom pero SIN tooltip no lleva `xs` en el payload, así
+        // que la guarda de abajo lo cortaría en seco.
+        if (this.onDragMove(event)) {
+            this.hover = null;
+            this._stopTooltip();
+
+            return;
+        }
+
+        if (!this.payload?.xs?.length) return;
 
         const plot = this.$refs.plot;
         if (!plot) return;
@@ -248,6 +270,11 @@ export default (config = {}) => ({
         if (fresh) {
             this.payload = fresh;
 
+            // La ventana también viene del servidor: es él quien decide qué se ve, y el cliente
+            // solo la refleja. Por eso el zoom NO necesita el hook del morph para sobrevivir —
+            // su estado vive en el componente Livewire, no aquí.
+            this.view = fresh.window ?? [0, 100];
+
             // El dataset nuevo puede ser más corto que el viejo: el índice sobre el que estaba
             // el cursor puede haber dejado de existir, y el tooltip leería un `undefined`.
             if (this.hover && this.hover.index >= fresh.xs.length) {
@@ -256,6 +283,173 @@ export default (config = {}) => ({
         }
 
         this.reapply();
+    },
+
+    // ---- zoom --------------------------------------------------------------------
+    //
+    // Aquí NO hay ni una escala, ni una fecha, ni un formato. Sólo aritmética sobre porcentajes.
+    //
+    // Ésa es toda la idea: el cliente manda **dos números** (el tramo, en % del dominio completo)
+    // y el servidor hace el resto — invierte el dominio, elige los ticks nuevos, reescala el eje Y
+    // y devuelve el <path>. Livewire lo morphea. Un zoom en el cliente exigiría portar `Ticks`,
+    // `Scales`, `Path` y `Format` a JavaScript y mantener DOS implementaciones de la geometría
+    // idénticas para siempre. Esto son 60 líneas y cero riesgo de divergencia.
+    //
+    // Y de propina: al ampliar, el eje temporal cambia de unidad SOLO. Un año dice trimestres;
+    // ampliada una semana, el mismo eje dice días. Eso lo hace `TimeTicks`, que está en PHP.
+
+    get zoomed() {
+        return this.view[0] > 0.01 || this.view[1] < 99.99;
+    },
+
+    /** De un % del área VISIBLE a un % del dominio COMPLETO. Es la única conversión que hay. */
+    _toFull(percent) {
+        const [from, to] = this.view;
+
+        return from + (percent * (to - from)) / 100;
+    },
+
+    /** Manda la ventana al servidor. El estado vive en Livewire, no aquí. */
+    _apply(from, to) {
+        const model = config.zoom?.model;
+        if (!model || !this.$wire) return;
+
+        // Un tramo más estrecho que esto no es un zoom: es un clic con la mano temblorosa.
+        if (to - from < 0.1) return;
+
+        // Redondeado, y no por elegancia: la ventana va en el query string con #[Url], y un píxel
+        // de arrastre produce un 17.99999938120037 que acaba TAL CUAL en la barra de direcciones.
+        // Dos decimales sobran para colocar un punto en un gráfico de 2.000 px.
+        const clamp = (v) => Math.round(Math.max(0, Math.min(100, v)) * 100) / 100;
+
+        this.$wire.$set(model, [clamp(from), clamp(to)]);
+    },
+
+    resetZoom() {
+        const model = config.zoom?.model;
+        if (model && this.$wire) this.$wire.$set(model, null);
+    },
+
+    /** Amplía (factor < 1) o reduce (factor > 1) alrededor del centro de lo que se ve. */
+    zoomBy(factor) {
+        const [from, to] = this.view;
+        const center = (from + to) / 2;
+        const half = ((to - from) * factor) / 2;
+
+        if (half >= 50) {
+            this.resetZoom();
+
+            return;
+        }
+
+        this._apply(center - half, center + half);
+    },
+
+    /** Desplaza la ventana. Es el pan con teclado: las flechas sobre el slider. */
+    nudge(percent) {
+        const [from, to] = this.view;
+        const span = to - from;
+        const step = Math.max(-from, Math.min(100 - to, (span * percent) / 100));
+
+        this._apply(from + step, to + step);
+    },
+
+    // ---- arrastrar ---------------------------------------------------------------
+
+    onBrushDown(event) {
+        if (event.button !== 0) return;
+
+        const box = this.$refs.plot?.getBoundingClientRect();
+        if (!box || box.width === 0) return;
+
+        const at = ((event.clientX - box.left) / box.width) * 100;
+
+        this._drag = { mode: 'brush', box, origin: at };
+        this.brush = { from: at, to: at };
+
+        // El puntero se captura, o sacar el ratón del gráfico a mitad de arrastre lo dejaría
+        // colgado: el `pointerup` se dispararía en otro elemento y nunca llegaría aquí.
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+    },
+
+    onSliderDown(event, mode) {
+        if (event.button !== 0) return;
+
+        const track = event.currentTarget.closest('.kore-chart-slider');
+        const box = track?.getBoundingClientRect();
+        if (!box || box.width === 0) return;
+
+        const at = ((event.clientX - box.left) / box.width) * 100;
+
+        this._drag = { mode, box, origin: at, view: [...this.view] };
+
+        track.setPointerCapture?.(event.pointerId);
+
+        // Un clic suelto en la pista (no en la ventana) lleva la ventana ahí. Sin esto, pinchar
+        // en la mitad derecha del contexto no haría absolutamente nada.
+        if (mode === 'pan' && (at < this.view[0] || at > this.view[1])) {
+            const half = (this.view[1] - this.view[0]) / 2;
+
+            this._drag.origin = at;
+            this._drag.view = [at - half, at + half];
+            this.view = [Math.max(0, at - half), Math.min(100, at + half)];
+        }
+    },
+
+    /** Un solo manejador de movimiento: el tooltip y el arrastre comparten el mismo puntero. */
+    onDragMove(event) {
+        if (!this._drag) return false;
+
+        const { mode, box, origin } = this._drag;
+        const at = ((event.clientX - box.left) / box.width) * 100;
+
+        if (mode === 'brush') {
+            this.brush = { from: Math.min(origin, at), to: Math.max(origin, at) };
+
+            return true;
+        }
+
+        const [from, to] = this._drag.view;
+        const delta = at - origin;
+
+        if (mode === 'pan') {
+            // El pan no deforma nada: la ventana se mueve, no se estira. Por eso el pan cabe en
+            // esta arquitectura y el zoom continuo con rueda no.
+            const shift = Math.max(-from, Math.min(100 - to, delta));
+
+            this.view = [from + shift, to + shift];
+        } else if (mode === 'from') {
+            this.view = [Math.max(0, Math.min(to - 0.5, from + delta)), to];
+        } else {
+            this.view = [from, Math.min(100, Math.max(from + 0.5, to + delta))];
+        }
+
+        return true;
+    },
+
+    onDragEnd() {
+        if (!this._drag) return;
+
+        const { mode } = this._drag;
+        const brush = this.brush;
+
+        this._drag = null;
+        this.brush = null;
+
+        if (mode === 'brush') {
+            // Un arrastre de menos de un 1 % es un clic, no un zoom.
+            if (brush && brush.to - brush.from > 1) {
+                this._apply(this._toFull(brush.from), this._toFull(brush.to));
+            }
+
+            return;
+        }
+
+        // El pan y el redimensionado ya han movido `view` en cada frame — eso es la
+        // previsualización, y es puro compositor. Al soltar se pide UN round-trip, y el servidor
+        // devuelve el trazo nítido, con sus ticks nuevos. Es el modelo de un mapa: el mosaico se
+        // escala mientras arrastras y se redibuja al soltar.
+        this._apply(this.view[0], this.view[1]);
     },
 
     // ---- payload -----------------------------------------------------------------

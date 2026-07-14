@@ -94,6 +94,35 @@ final class BandScale implements XScale
     }
 
     /**
+     * El mismo eje de bandas, enseñando solo el tramo [from, to].
+     *
+     * No hay que recalcular ninguna banda: basta con estirar el RANGO. Si el tramo visible era
+     * [20, 60], el 0–100 original pasa a mapearse en [−50, 200] — las bandas de fuera se quedan
+     * con posiciones negativas o mayores que 100, que es exactamente lo que hace falta para que
+     * el trazo siga saliendo por el borde en vez de cortarse en seco contra él.
+     *
+     * (Y el `bandwidth` se estira con él, porque sale del `step`, que sale del rango.)
+     */
+    public function window(float $from, float $to): static
+    {
+        $span = $to - $from;
+
+        if ($span <= 0.0) {
+            return $this;
+        }
+
+        $factor = 100.0 / $span;
+
+        return new self(
+            $this->categories,
+            $this->padding,
+            rangeMin: (0.0 - $from) * $factor,
+            rangeMax: (100.0 - $from) * $factor,
+            point: $this->point,
+        );
+    }
+
+    /**
      * Las etiquetas, saltando de N en N cuando no caben.
      *
      * El servidor no puede medir texto, así que no puede saber si dos etiquetas chocan. Lo que
@@ -111,7 +140,19 @@ final class BandScale implements XScale
      */
     public function ticks(int $count): array
     {
-        $total = count($this->categories);
+        // Sólo las categorías que se VEN. Sin zoom son todas; con zoom, repartir las etiquetas
+        // entre las noventa categorías cuando solo se ven diez dejaría el eje casi mudo.
+        $visible = [];
+
+        foreach ($this->categories as $i => $label) {
+            $pos = $this->centerAt($i);
+
+            if ($pos >= -0.01 && $pos <= 100.01) {
+                $visible[] = [(string) $label, round($pos, 2)];
+            }
+        }
+
+        $total = count($visible);
 
         if ($total === 0) {
             return [];
@@ -120,18 +161,16 @@ final class BandScale implements XScale
         $stride = (int) max(1, ceil($total / max(1, $count)));
         $out = [];
 
-        foreach ($this->categories as $i => $label) {
+        foreach ($visible as $i => [$label, $pos]) {
             if ($i % $stride !== 0 && $i !== $total - 1) {
                 continue;
             }
 
-            $pos = round($this->centerAt($i), 2);
-
             $out[] = [
-                'label' => (string) $label,
+                'label' => $label,
                 'context' => null,
                 'pos' => $pos,
-                'width' => $this->tickWidth((string) $label),
+                'width' => $this->tickWidth($label),
             ];
         }
 

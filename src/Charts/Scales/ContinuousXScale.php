@@ -20,6 +20,8 @@ abstract class ContinuousXScale implements XScale
 
     protected float $bandwidth;
 
+    protected readonly float $padding;
+
     /**
      * @param  list<float|null>  $values  el X de cada fila, ya convertido a número
      * @param  float  $padding  proporción del hueco que queda libre entre barras (0–1)
@@ -31,7 +33,22 @@ abstract class ContinuousXScale implements XScale
         float $padding = 0.0,
     ) {
         $this->scale = new LinearScale($min, $max);
+        $this->padding = $padding;
         $this->bandwidth = $this->deriveBandwidth($padding);
+    }
+
+    /**
+     * El dominio que hay debajo de un tramo del área.
+     *
+     * Aquí se usa `LinearScale::invert()`, que llevaba escrita desde el primer día **sin que la
+     * llamara nadie**. Es lo que hace que el zoom no necesite ni una escala en JavaScript: el
+     * cliente manda dos porcentajes y el servidor los convierte en un dominio.
+     *
+     * @return array{0: float, 1: float}
+     */
+    protected function domainOf(float $from, float $to): array
+    {
+        return [$this->scale->invert($from), $this->scale->invert($to)];
     }
 
     /**

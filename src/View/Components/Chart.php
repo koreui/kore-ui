@@ -42,6 +42,7 @@ class Chart extends Component
      * @param  string|null  $height  longitud CSS. Con `aspect` puesto, se ignora
      * @param  string|null  $aspect  proporción CSS ("16/9"). Alternativa a `height`
      * @param  bool  $grid  la rejilla horizontal, a la altura de los ticks del eje Y
+     * @param  array{0: float, 1: float}|null  $window  el tramo visible, en % del dominio COMPLETO
      */
     public function __construct(
         public array $data = [],
@@ -52,6 +53,7 @@ class Chart extends Component
         public ?string $ariaLabel = null,
         public ?string $id = null,
         public bool $grid = true,
+        public ?array $window = null,
     ) {
         $context = app(ChartContext::class);
 

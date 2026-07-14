@@ -25,6 +25,9 @@
         timeFormat: new TimeFormat(app()->getLocale()),
         xTickCount: $xAxis['ticks'] ?? null,
         continuousXTicks: (int) ($config['x_ticks'] ?? 6),
+        // El tramo visible, en % del dominio COMPLETO. Dos números, no dos fechas — y eso es lo
+        // que hace que el zoom no necesite ni una escala en JavaScript. Ver XScale::window().
+        window: is_array($window) && count($window) === 2 ? [(float) $window[0], (float) $window[1]] : null,
     );
 
     // Los ejes salen POR DEFECTO: un gráfico sin ejes no se lee. La marca <chart.axis-*> no
@@ -50,17 +53,58 @@
     // El donut NUNCA lo monta: su única interacción —encender el arco y su fila de la
     // leyenda a la vez— es CSS puro (`:has()` sobre un `data-slice` común). Montarlo aquí
     // sería un x-data de propina que no hace absolutamente nada.
-    $interactive = ! $plot->empty && ! $donut && ($frame->tooltip || $frame->legend);
+    $interactive = ! $plot->empty && ! $donut && ($frame->tooltip || $frame->legend || $frame->zoom);
+
+    $zoom = $plot->empty ? null : $frame->zoom;
+    $zoomed = $plot->window !== null && ($plot->window[0] > 0.01 || $plot->window[1] < 99.99);
+
+    // El mini-gráfico de contexto necesita la serie ENTERA, no la de la ventana. Se recalcula el
+    // Plot sin ventana — es PHP puro y no toca el frame. Y el resultado es UN <path> por serie:
+    // 17 nodos de DOM pase lo que pase, con diez puntos o con diez mil. Un gráfico de contexto es
+    // literalmente gratis en una arquitectura que dibuja en el servidor; en una de canvas es un
+    // segundo motor.
+    $overview = [];
+
+    if ($zoom && ($zoom['slider'] ?? true)) {
+        $full = new Plot(
+            frame: $frame,
+            format: Format::fromConfig($yAxis['format'] ?? null, $config['format'] ?? []),
+            barPadding: (float) ($config['bar_padding'] ?? 0.2),
+            timeFormat: new TimeFormat(app()->getLocale()),
+        );
+
+        foreach ($full->series as $serie) {
+            if ($serie['type'] === 'donut') {
+                continue;
+            }
+
+            $d = \KoreUi\Charts\Path::line($serie['points']);
+
+            if ($d !== '') {
+                $overview[] = ['d' => $d, 'color' => $serie['color']];
+            }
+        }
+    }
 @endphp
 
 <div
     data-kore-chart="{{ $chartId }}"
     @if($plot->empty) data-kore-chart-empty="true" @endif
+    @if($zoomed ?? false) data-kore-chart-zoomed="true" @endif
     @if($interactive)
-        x-data="KoreChart({{ Js::from(['id' => $chartId]) }})"
-        @if($frame->tooltip)
+        x-data="KoreChart({{ Js::from(['id' => $chartId, 'zoom' => $zoom]) }})"
+        @if($frame->tooltip || $zoom)
             x-on:pointermove="onPointerMove($event)"
+        @endif
+        @if($frame->tooltip)
             x-on:pointerleave="onPointerLeave()"
+        @endif
+        @if($zoom)
+            {{-- En `window` y no en el elemento: si el navegador no soporta setPointerCapture, el
+                 pointerup se dispara donde esté el ratón — que puede ser fuera del gráfico— y el
+                 arrastre se quedaría colgado para siempre. --}}
+            x-on:pointerup.window="onDragEnd()"
+            x-on:pointercancel.window="onDragEnd()"
         @endif
     @endif
     {{-- Con el eje Y apagado la canaleta mide 0: si no, la columna del grid seguiría
@@ -103,7 +147,11 @@
                  viewBox del SVG es EXACTAMENTE el 0%..100% de esta caja y el de las capas HTML.
                  Un `p-2` aquí desalinea las barras de la línea y los ticks de la rejilla. El aire
                  alrededor del dato se consigue en el DOMINIO (nice()), nunca en la caja. --}}
-            <div class="kore-chart-plot" x-ref="plot">
+            <div class="kore-chart-plot" x-ref="plot"
+                 @if($zoom ?? false)
+                     x-on:pointerdown="onBrushDown($event)"
+                     x-on:dblclick="resetZoom()"
+                 @endif>
                 @if($plot->frame->grid)
                     <div class="kore-chart-grid" aria-hidden="true">
                         @foreach($plot->yTicks as $tick)
@@ -168,10 +216,30 @@
                     @endif
                 @endforeach
 
+                @if($zoom ?? false)
+                    {{-- El rectángulo del brush. Es un <div> con dos custom properties: no hay que
+                         dibujar nada, solo decirle al CSS dónde empieza y cuánto mide. --}}
+                    <div class="kore-chart-brush" x-show="brush !== null" x-cloak aria-hidden="true"
+                         :style="brush ? `--kx: ${brush.from}; --kw: ${brush.to - brush.from}` : ''"></div>
+                @endif
+
                 @if($frame->tooltip)
                     @include('kore::chart.tooltip', ['plot' => $plot, 'chartId' => $chartId])
                 @endif
             </div>
+
+            {{-- El payload. Va en un <script type="application/json">, no en un atributo: el JSON
+                 dentro de un atributo HTML escapa cada comilla a &quot; — seis bytes por comilla.
+
+                 Y va AQUÍ y no en el `x-data`, porque el morph de Livewire sí reescribe este
+                 <script> pero NO reinicializa el x-data: un `x-data` con la ventana dentro se
+                 quedaría con la de antes del zoom.
+
+                 Sin tooltip solo lleva la ventana: el dato es una segunda copia entera en el DOM y
+                 a 2.000 puntos pesa más que el propio <path>. --}}
+            @if($frame->tooltip || $zoom)
+                <script type="application/json" data-kore-chart-payload="{{ $chartId }}">@json($plot->payload((bool) $frame->tooltip))</script>
+            @endif
 
             @if($showX)
                 <div class="kore-chart-gutter-x" aria-hidden="true">
@@ -191,6 +259,10 @@
                 </div>
             @endif
         </div>
+
+        @if($zoom ?? false)
+            @include('kore::chart.zoom', ['plot' => $plot, 'overview' => $overview, 'zoom' => $zoom])
+        @endif
 
         @if($frame->legend && ($frame->legend['position'] ?? 'top') === 'bottom')
             @include('kore::chart.legend', ['series' => $cartesian, 'chartId' => $chartId])

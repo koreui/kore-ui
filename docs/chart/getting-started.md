@@ -15,6 +15,7 @@ Gráficos de barras, líneas, áreas y donut. **Sin ninguna librería de JavaScr
 | `<x-kore::chart.axis-x>` | El eje X: categorías, **fechas** o números. Ver [time-axis.md](time-axis.md) |
 | `<x-kore::chart.legend>` | La leyenda. Al pulsarla, oculta la serie |
 | `<x-kore::chart.tooltip>` | El tooltip y el crosshair |
+| `<x-kore::chart.zoom>` | Zoom, pan y el mini-gráfico de contexto. Ver [zoom.md](zoom.md) |
 
 ## Ejemplo completo
 
@@ -181,7 +182,9 @@ En `config/kore-ui.php`, sección `chart`:
 
 **Ocultar una serie desde la leyenda no reescala los ejes.** La serie desaparece, pero el eje se queda como estaba. (Con `:show="false"` en el servidor **sí** se reescala: la serie sale del dominio.)
 
-**No hay zoom, ni pan, ni streaming**, ni tipos exóticos (candlestick, treemap, heatmap, mapas).
+**No hay zoom continuo con rueda ni pinch.** Sí hay zoom por arrastre, pan y un slider de contexto — todo resuelto en el servidor. Ver [zoom.md](zoom.md); ahí está escrito por qué la rueda no cabe.
+
+**No hay streaming**, ni tipos exóticos (candlestick, treemap, heatmap, mapas).
 
 ## Una regla de diseño que el componente te va a imponer
 

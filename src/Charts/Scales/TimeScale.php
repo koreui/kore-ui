@@ -49,6 +49,20 @@ final class TimeScale extends ContinuousXScale
         $this->format = $format ?? new TimeFormat;
     }
 
+    public function window(float $from, float $to): static
+    {
+        if ($to - $from <= 0.0) {
+            return $this;
+        }
+
+        // Las MISMAS fechas, con otro dominio. Los puntos de fuera se quedan con una posición
+        // negativa o mayor que 100, y el trazo sigue saliendo por el borde: el recorte es visual,
+        // no de dato. Y los ticks se regeneran solos sobre el rango nuevo — que es la mitad del
+        // valor de hacer el zoom en el servidor: al ampliar una semana, el eje pasa de decir
+        // meses a decir días, sin que nadie tenga que portar `TimeTicks` a JavaScript.
+        return new self($this->dates, $this->at($from), $this->at($to), $this->padding, $this->format);
+    }
+
     public function ticks(int $count): array
     {
         $ticks = TimeTicks::ticks($this->at(0.0), $this->at(100.0), $count);
