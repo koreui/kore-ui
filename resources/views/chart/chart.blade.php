@@ -53,10 +53,17 @@
     // El donut NUNCA lo monta: su única interacción —encender el arco y su fila de la
     // leyenda a la vez— es CSS puro (`:has()` sobre un `data-slice` común). Montarlo aquí
     // sería un x-data de propina que no hace absolutamente nada.
-    $interactive = ! $plot->empty && ! $donut && ($frame->tooltip || $frame->legend || $frame->zoom);
+    // ⚠️ El zoom NO se apaga en el estado vacío, y que lo hiciera fue un bug feo: si amplías tanto
+    // que la ventana se queda sin datos —o la metes dentro de un hueco de la serie—, sale el estado
+    // vacío… y con él desaparecían los controles. Sin botón de restablecer, sin slider, sin nada:
+    // no había forma de volver salvo tocar la URL a mano o recargar. Un callejón sin salida.
+    //
+    // Un gráfico puede quedarse sin datos que enseñar. Lo que no puede es quedarse sin salida.
+    $zoom = $donut ? null : $frame->zoom;
 
-    $zoom = $plot->empty ? null : $frame->zoom;
     $zoomed = $plot->window !== null && ($plot->window[0] > 0.01 || $plot->window[1] < 99.99);
+
+    $interactive = ! $donut && ($zoom || (! $plot->empty && ($frame->tooltip || $frame->legend)));
 
     // El mini-gráfico de contexto necesita la serie ENTERA, no la de la ventana. Se recalcula el
     // Plot sin ventana — es PHP puro y no toca el frame. Y el resultado es UN <path> por serie:
@@ -118,9 +125,18 @@
 
     @if($plot->empty)
         <x-kore::empty-state
-            :title="$config['empty_text'] ?? 'No hay datos que mostrar'"
+            :title="$zoomed
+                ? __('No hay datos en este tramo')
+                : ($config['empty_text'] ?? 'No hay datos que mostrar')"
             :icon="$config['empty_icon'] ?? 'chart-line'"
         />
+
+        @if($zoom)
+            {{-- La ventana, para que el cliente sepa dónde está. Sin las series: no hay ninguna. --}}
+            <script type="application/json" data-kore-chart-payload="{{ $chartId }}">@json($plot->payload(series: false))</script>
+
+            @include('kore::chart.zoom', ['plot' => $plot, 'overview' => $overview, 'zoom' => $zoom])
+        @endif
     @elseif($donut)
         @include('kore::chart.donut', ['plot' => $plot, 'donut' => $donut, 'chartId' => $chartId])
     @else

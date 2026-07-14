@@ -582,6 +582,32 @@ final class Plot
      * Y no se emite si no hay tooltip: a 2.000 puntos el payload pesa 53 kB, más que el
      * propio <path>. Es una segunda copia del dato en el DOM.
      */
+    /**
+     * Lo más estrecho que se puede poner la ventana del zoom, en % del dominio completo.
+     *
+     * Sin un suelo, se puede ampliar hasta un tramo más fino que la separación entre dos puntos
+     * — y ahí no hay nada que dibujar. Se llega a algo como «viendo el 48,1 % – 48,3 %» y el
+     * gráfico se queda vacío.
+     *
+     * El suelo son **dos separaciones medias**: lo justo para que quepa un segmento de línea, o
+     * un par de barras. Lo calcula el servidor porque es el único que sabe cuántas filas hay.
+     *
+     * ⚠️ Esto **no garantiza** que la ventana tenga datos: en una serie con un hueco grande (un
+     * sensor caído tres días) se puede ampliar dentro del hueco y no habrá nada. Y está bien que
+     * así sea — el hueco es real. Lo que no puede pasar es que ahí **no haya cómo volver**, y de
+     * eso se encarga el estado vacío, que sigue enseñando el botón de restablecer.
+     */
+    public function minWindow(): float
+    {
+        $rows = count($this->categories);
+
+        if ($rows < 3) {
+            return 100.0;   // con dos puntos o menos, ampliar no significa nada
+        }
+
+        return round(min(100.0, max(0.2, 200.0 / ($rows - 1))), 2);
+    }
+
     public function payload(bool $series = true): array
     {
         // El tramo que se está viendo, en % del dominio COMPLETO.
@@ -593,7 +619,12 @@ final class Plot
         // Y va aquí, en el payload, y no en el `x-data`: el morph de Livewire reescribe el <script>
         // pero NO reinicializa el x-data, así que un `x-data` con la ventana dentro se quedaría con
         // la de antes del zoom.
-        $out = ['window' => $this->window ?? [0.0, 100.0]];
+        $out = [
+            'window' => $this->window ?? [0.0, 100.0],
+            // Lo más estrecho que el cliente puede pedir. Sin esto se amplía hasta un tramo más
+            // fino que la separación entre dos puntos, y no queda nada que dibujar.
+            'minWindow' => $this->minWindow(),
+        ];
 
         // Un gráfico con zoom pero SIN tooltip no necesita el dato: solo la ventana. Y el dato es
         // caro — es una segunda copia entera en el DOM, y a 2.000 puntos pesa más que el <path>.

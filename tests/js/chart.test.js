@@ -273,7 +273,7 @@ describe('zoom', function () {
 
         chart.$el = {
             contains: () => false,
-            querySelector: () => ({ textContent: JSON.stringify({ ...PAYLOAD, window: view }) }),
+            querySelector: () => ({ textContent: JSON.stringify({ ...PAYLOAD, window: view, minWindow: 2 }) }),
             querySelectorAll: () => [],
         };
         chart.$refs = { plot: { getBoundingClientRect: () => ({ left: 0, top: 0, width: 200, height: 100 }) } };
@@ -366,5 +366,25 @@ describe('zoom', function () {
         const { chart } = makeZoom([0, 100]);
 
         expect(chart.zoomed).toBe(false);
+    });
+
+    it('respeta el SUELO de la ventana, o el gráfico se queda sin nada que enseñar', function () {
+        // Sin suelo se llega a «viendo el 48,1 % – 48,3 %» con el gráfico vacío. Lo pone el
+        // servidor en el payload (`minWindow`), porque es el único que sabe cuántas filas hay.
+        const { chart, set } = makeZoom([40, 60]);
+
+        chart.zoomBy(0.01);   // querría dejar una ventana de 0,2 %
+
+        // Se ENSANCHA al suelo (2 %) alrededor del centro (50), en vez de descartarse: ignorar el
+        // gesto dejaría al usuario arrastrando sin que pasara nada.
+        expect(set).toHaveBeenCalledWith('ventana', [49, 51]);
+    });
+
+    it('el suelo no empuja la ventana fuera del dominio', function () {
+        const { chart, set } = makeZoom([0, 1]);
+
+        chart.zoomBy(0.1);   // el centro está en 0,5: el suelo se saldría por la izquierda
+
+        expect(set).toHaveBeenCalledWith('ventana', [0, 2]);
     });
 });

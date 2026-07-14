@@ -11,7 +11,10 @@ import { readFileSync } from 'node:fs';
  * subo" sino "qué acabo de meter en el bundle y por qué". El gráfico entero —tooltip, crosshair
  * y leyenda incluidos— son 1,6 kB de estos.
  */
-const BUDGET = 34_816;   // 34 kB
+// Historial de las subidas, para que la próxima también sea una decisión y no un trámite:
+//   34 kB → el módulo chart entero (tooltip, crosshair, leyenda): 1,6 kB
+//   35 kB → el zoom (brush, pan, slider, suelo de la ventana):    +0,8 kB
+const BUDGET = 35_840;   // 35 kB
 
 const file = 'dist/kore-ui.js';
 const raw = readFileSync(file);

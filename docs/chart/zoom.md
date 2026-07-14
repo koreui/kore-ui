@@ -43,6 +43,44 @@ Y ya está. Arrastra sobre el gráfico para ampliar un tramo, arrastra la ventan
 
 Todo el JavaScript del zoom son **~60 líneas y 0,7 kB gzip**, y no es más que aritmética sobre porcentajes.
 
+## ⚠️ Dos trampas del envoltorio de Livewire
+
+**1. La raíz del componente necesita `w-full` si la página es un flex.**
+
+El zoom obliga a envolver el gráfico en un componente Livewire, y la raíz de un componente Livewire es un `<div>` más. Si el contenedor de la página es un flex —una tarjeta, una rejilla de KPIs, casi cualquier layout—, **un flex item se encoge a su contenido por defecto**.
+
+El gráfico sí rellena a su padre (lleva `width: 100%`), pero el padre no rellena la tarjeta. Y como el ancho depende del contenido, **baila al ampliar**: medido, 822 px sin zoom y 737 px con zoom, en una tarjeta de 944.
+
+```blade
+<div class="w-full space-y-3">   {{-- ← la raíz del componente Livewire --}}
+    <x-kore::chart :window="$ventana"> … </x-kore::chart>
+</div>
+```
+
+**2. Varios gráficos con zoom en la misma vista: cada uno lleva su propia propiedad.**
+
+La ventana no es global: es de su gráfico. Dos gráficos son dos propiedades, y dos `#[Url]` con claves distintas.
+
+```php
+#[Url(as: 'trafico', except: null)]
+public ?array $ventanaTrafico = null;
+
+#[Url(as: 'ventas', except: null)]
+public ?array $ventanaVentas = null;
+```
+
+```blade
+<x-kore::chart :data="$this->trafico" :window="$ventanaTrafico">
+    <x-kore::chart.zoom wire:model.live="ventanaTrafico" />
+</x-kore::chart>
+
+<x-kore::chart :data="$this->ventas" :window="$ventanaVentas">
+    <x-kore::chart.zoom wire:model.live="ventanaVentas" :slider="false" />
+</x-kore::chart>
+```
+
+La URL queda `?trafico[0]=20&trafico[1]=45&ventas[0]=60&ventas[1]=90`. Ampliar uno **no toca al otro** (verificado en el navegador). Si les das el mismo `as:`, se pisan — así que dales claves distintas.
+
 ## El estado vive en Livewire, y eso no es un detalle
 
 Sale gratis:
@@ -60,6 +98,20 @@ Ampliar una semana de un año y dejar el eje Y llegando al máximo **anual** dej
 Así que el dominio del eje Y se calcula sobre **las filas visibles**. Es lo que ECharts llama `filterMode: 'filter'`, y es *la* decisión de diseño del zoom, no un detalle.
 
 Las filas de fuera **no se borran**: se quedan con una posición negativa o mayor que 100, para que el trazo siga **saliendo por el borde** en vez de cortarse en seco contra él. El recorte es visual (`clip-path`), no de dato.
+
+## No te puedes quedar atrapado
+
+Dos cosas, y las dos hacen falta:
+
+**1. Hay un suelo para la ventana.** Sin él se amplía hasta un tramo más fino que la separación entre dos puntos, y ahí no queda nada que dibujar: se llega a «viendo el 48,1 % – 48,3 %» con el gráfico vacío.
+
+El suelo son **dos separaciones medias** — lo justo para que quepa un segmento de línea o un par de barras— y lo calcula el servidor, porque es el único que sabe cuántas filas hay. Con 365 puntos son 0,55 % (unos dos días). Cuando el gesto pide menos, la ventana **se ensancha** alrededor de su centro en vez de descartarse: ignorar el arrastre dejaría al usuario tirando del ratón sin que pasara nada.
+
+**2. Y aun así el gráfico se puede quedar vacío** — porque el suelo no garantiza que haya datos: en una serie con un hueco (un sensor caído tres días) puedes ampliar *dentro del hueco*, y ahí no hay nada. Y está bien que así sea: el hueco es real.
+
+Lo que no puede pasar es que **no haya cómo volver**. Así que **el estado vacío conserva los controles**: dice «No hay datos en este tramo» y mantiene el botón de restablecer y el slider de contexto.
+
+> Un gráfico puede quedarse sin datos que enseñar. Lo que no puede es quedarse sin salida.
 
 ## Los controles son botones de verdad
 

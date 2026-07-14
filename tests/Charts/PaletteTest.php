@@ -97,3 +97,39 @@ describe('las rampas: secuencial y ordinal', function () {
         expect($mensaje)->toContain('deja de distinguirlos');
     });
 });
+
+describe('un color que no existe LANZA, en vez de dejar la serie invisible', function () {
+    it('acepta los tokens de la paleta de datos', function () {
+        // `chart-4` es lo primero que uno prueba, y hasta ahora se colaba tal cual al CSS:
+        // `--kore-series: chart-4` no es un color válido, así que la serie NO SE PINTABA. Sin un
+        // solo error. Medido en la demo: un gráfico de barras entero, invisible.
+        expect(Palette::resolve(1, 'chart-4'))->toBe('var(--kore-chart-4)');
+        expect(Palette::resolve(1, 'seq-3'))->toBe('var(--kore-seq-3)');
+        expect(Palette::resolve(1, 'ord-7'))->toBe('var(--kore-ord-7)');
+    });
+
+    it('sigue aceptando los tokens semánticos', function () {
+        expect(Palette::resolve(1, 'destructive'))->toBe('var(--kore-destructive)');
+    });
+
+    it('deja pasar un color CSS explícito', function () {
+        expect(Palette::resolve(1, '#e11d48'))->toBe('#e11d48');
+        expect(Palette::resolve(1, 'oklch(0.6 0.2 30)'))->toBe('oklch(0.6 0.2 30)');
+        expect(Palette::resolve(1, 'var(--mi-color)'))->toBe('var(--mi-color)');
+    });
+
+    it('lanza con una errata, en vez de dejar el gráfico en blanco', function () {
+        // Un color que no existe no debe dejar la serie invisible: debe decirlo.
+        foreach (['destructiv', 'rojo', 'chart-9', 'blue-500'] as $errata) {
+            $mensaje = null;
+
+            try {
+                Palette::resolve(1, $errata);
+            } catch (InvalidArgumentException $e) {
+                $mensaje = $e->getMessage();
+            }
+
+            expect($mensaje)->toContain('no es un color que el gráfico sepa pintar');
+        }
+    });
+});

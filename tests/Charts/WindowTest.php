@@ -266,6 +266,70 @@ describe('la marca <x-kore::chart.zoom>', function () {
 
         $payload = (new Plot($frame, window: [10.0, 90.0]))->payload(series: false);
 
-        expect($payload)->toBe(['window' => [10.0, 90.0]]);
+        expect(array_keys($payload))->toBe(['window', 'minWindow']);
+        expect($payload['window'])->toBe([10.0, 90.0]);
+    });
+});
+
+describe('no se puede uno quedar atrapado', function () use ($diez) {
+    it('hay un SUELO para la ventana: no se puede ampliar hasta que no quede nada', function () use ($diez) {
+        // Sin suelo se llega a «viendo el 48,1 % – 48,3 %» con el gráfico vacío. El suelo son dos
+        // separaciones medias: lo justo para que quepa un segmento de línea o un par de barras.
+        // Lo calcula el servidor porque es el único que sabe cuántas filas hay.
+        $frame = new ChartFrame('c', $diez, 'fecha');
+        $frame->add(new LineMark('v'));
+
+        // Diez filas → 200 / 9 = 22,22 %.
+        expect((new Plot($frame))->minWindow())->toBe(22.22);
+
+        // Con muchas más filas el suelo baja, pero nunca a cero.
+        $muchos = [];
+        for ($i = 0; $i < 5000; $i++) {
+            $muchos[] = ['fecha' => (new DateTimeImmutable('2026-01-01'))->modify("+{$i} hours"), 'v' => $i];
+        }
+
+        $grande = new ChartFrame('c', $muchos, 'fecha');
+        $grande->add(new LineMark('v'));
+
+        expect((new Plot($grande))->minWindow())->toBe(0.2);
+    });
+
+    it('con dos filas o menos, ampliar no significa nada', function () {
+        $frame = new ChartFrame('c', [['m' => 'A', 'v' => 1], ['m' => 'B', 'v' => 2]], 'm');
+        $frame->add(new LineMark('v'));
+
+        expect((new Plot($frame))->minWindow())->toBe(100.0);
+    });
+
+    it('el estado vacío CONSERVA los controles del zoom', function () {
+        // Éste es el bug de verdad. Si amplías tanto que la ventana se queda sin datos —o la metes
+        // dentro de un hueco de la serie—, sale el estado vacío… y con él desaparecían los
+        // controles. Sin botón de restablecer, sin slider: no había forma de volver salvo tocar la
+        // URL a mano o recargar.
+        //
+        // Un gráfico puede quedarse sin datos que enseñar. Lo que no puede es quedarse sin salida.
+        $data = <<<'PHP'
+        [
+            ['t' => new DateTimeImmutable('2026-02-01'), 'v' => 1],
+            ['t' => new DateTimeImmutable('2026-02-02'), 'v' => 2],
+            ['t' => new DateTimeImmutable('2026-03-01'), 'v' => 3],
+        ]
+        PHP;
+
+        // Una ventana en medio del hueco de febrero: ni una fila cae dentro.
+        $html = $this->blade(<<<BLADE
+            <x-kore::chart :data="{$data}" x="t" :window="[40, 60]">
+                <x-kore::chart.line y="v" />
+                <x-kore::chart.zoom wire:model.live="ventana" />
+            </x-kore::chart>
+        BLADE)->__toString();
+
+        expect($html)->toContain('data-kore-chart-empty="true"');
+        expect($html)->toContain('No hay datos en este tramo');
+
+        // Y la salida sigue ahí.
+        expect($html)->toContain('kore-chart-zoom-reset');
+        expect($html)->toContain('kore-chart-slider');
+        expect($html)->toContain('data-kore-chart-payload');
     });
 });

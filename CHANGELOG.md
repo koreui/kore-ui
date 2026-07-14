@@ -50,6 +50,8 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
   Los controles son **`<button>` de verdad**, y la ventana del contexto se desplaza con las flechas: ni ECharts, ni uPlot, ni Highcharts tienen un zoom que se pueda usar con el teclado.
 
+  **No te puedes quedar atrapado.** Hay un **suelo** para la ventana —dos separaciones medias, que calcula el servidor porque es el único que sabe cuántas filas hay—, así que no se puede ampliar hasta que no quede nada. Y como el suelo *no* garantiza que haya datos (en una serie con un hueco puedes ampliar dentro del hueco, y ahí no hay nada), **el estado vacío conserva los controles**: dice «No hay datos en este tramo» y mantiene el botón de restablecer. Un gráfico puede quedarse sin datos que enseñar; lo que no puede es quedarse sin salida.
+
   ⚠️ **Sin rueda ni pinch, y va escrito en la doc.** Una rueda dispara ~50 eventos/s y cada uno cambia los ticks: hacerlo bien exige portar `Ticks`, `Scales`, `Path` y `Format` a JS y mantener dos implementaciones de la geometría idénticas para siempre. Es la deuda que esta arquitectura se eligió para no contraer.
 
 - **Guardia de peso del bundle en CI** (`npm run size`). «El JavaScript es poco» es una promesa de la documentación, y una promesa que nadie mide deja de ser verdad sin que nadie se entere.
@@ -78,6 +80,10 @@ Y como el `<svg>` lo emite el servidor, **el morph de Livewire deja de ser una a
 - **La tabla accesible arrastraba scroll horizontal a toda la página.** `sr-only` esconde la caja con `width: 1px`, pero sobre una `<table>` **ese ancho se ignora**: el algoritmo de layout de tablas lo acota por abajo al `min-content`. Medido en un móvil de 375 px: la tabla ocupaba **321 px de ancho**. El `clip-path` sí aplicaba —así que no se veía y nadie se enteró— pero la caja seguía ocupando. Ahora el `sr-only` va en un `<div>`, que sí obedece.
 
 - **Las etiquetas del eje X se salían de la tarjeta.** Se anclaban por el borde la primera y la última, y eso funcionaba porque las únicas que se salían eran las de los extremos… en una escala de bandas. En una escala continua un tick puede caer en el **98,9 %** —ni centrado ni en el borde—, ahí ningún umbral salta, y media etiqueta se va fuera. Ahora el servidor emite **lo que mide** la etiqueta, en `ch` (no puede medir texto, pero sí contarlo), y el CSS la acota con un `clamp`: la centra sobre su tick si cabe y la apoya en el borde si no. Es exacto por construcción, no tiene umbrales que afinar, y de paso resuelve los dos casos que el anclaje trataba a mano.
+
+- **Un color mal escrito dejaba la serie INVISIBLE, sin decir nada.** `color` se colaba tal cual al CSS, así que `color="chart-4"` —que es lo primero que uno prueba— acababa en `--kore-series: chart-4`, que no es un color válido: la serie no se pintaba. Medido en la demo, un gráfico de barras entero, invisible. Y lo mismo con cualquier errata (`destructiv`, `rojo`, `blue-500`).
+
+  Ahora `chart-1`…`chart-8`, `seq-1`…`seq-7` y `ord-1`…`ord-7` son tokens válidos, un color CSS explícito (`#e11d48`, `oklch(…)`, `var(…)`) pasa, y **cualquier otra cosa lanza**. Un color que no existe no puede dejar el gráfico en blanco: tiene que decirlo.
 
 - **En una barra apilada se redondeaba cada tramo, no la columna.** La pila se veía como una torre de piezas sueltas en vez de como una barra partida en tramos. Ahora sólo lleva el redondeo la **punta** — y la punta es el último tramo **con valor**, no el último que declaraste: si a un mes le falta la serie de arriba, la punta pasa a ser la de debajo. Un `0` no cuenta (dibuja un tramo de altura sub-píxel, y redondearlo dejaría cuadrado el que sí se ve), y una barra negativa la redondea abajo, que es hacia donde crece.
 

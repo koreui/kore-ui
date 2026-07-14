@@ -314,8 +314,26 @@ export default (config = {}) => ({
         const model = config.zoom?.model;
         if (!model || !this.$wire) return;
 
-        // Un tramo más estrecho que esto no es un zoom: es un clic con la mano temblorosa.
-        if (to - from < 0.1) return;
+        // ⚠️ Hay un SUELO, y lo pone el servidor: sin él se puede ampliar hasta un tramo más fino
+        // que la separación entre dos puntos, y ahí no queda nada que dibujar. Se llega a algo
+        // como «viendo el 48,1 % – 48,3 %» con el gráfico vacío.
+        //
+        // Cuando el tramo pedido es más estrecho que el suelo, no se descarta: se ENSANCHA
+        // alrededor de su centro. Ignorar el gesto dejaría al usuario arrastrando sin que pasara
+        // nada, que es peor que hacer algo razonable.
+        const floor = this.payload?.minWindow ?? 0.1;
+
+        if (to - from < floor) {
+            const center = (from + to) / 2;
+
+            from = center - floor / 2;
+            to = center + floor / 2;
+
+            // Reajustado contra los bordes, o al ampliar al principio del todo la ventana se
+            // saldría por la izquierda y el clamp la aplastaría contra el 0.
+            if (from < 0) [from, to] = [0, floor];
+            if (to > 100) [from, to] = [100 - floor, 100];
+        }
 
         // Redondeado, y no por elegancia: la ventana va en el query string con #[Url], y un píxel
         // de arrastre produce un 17.99999938120037 que acaba TAL CUAL en la barra de direcciones.
@@ -342,6 +360,7 @@ export default (config = {}) => ({
             return;
         }
 
+        // El suelo lo aplica `_apply()`: pulsar «+» veinte veces no puede dejar el gráfico vacío.
         this._apply(center - half, center + half);
     },
 

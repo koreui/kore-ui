@@ -112,8 +112,16 @@ final class Palette
     /**
      * El color de una serie, respetando un color explícito del usuario.
      *
-     * Se acepta un token semántico si el usuario lo pide A PROPÓSITO (una serie que
-     * literalmente significa "errores" debería ir en rojo), pero nunca por defecto.
+     * Se acepta un token si el usuario lo pide A PROPÓSITO (una serie que literalmente significa
+     * «errores» debería ir en rojo), pero nunca por defecto.
+     *
+     * ⚠️ **Una palabra suelta que no sea un token LANZA.** Y no es rigidez: hasta ahora se colaba
+     * tal cual al CSS, así que `color="chart-4"` —que es lo primero que uno prueba— acababa en
+     * `--kore-series: chart-4`, que no es un color válido, y **la serie no se pintaba**. Sin un
+     * solo error. Medido en la demo: un gráfico de barras entero, invisible.
+     *
+     * Lo mismo con cualquier errata: `destructiv`, `rojo`, `blue-500`. Un color que no existe no
+     * debe dejar el gráfico en blanco: debe decirlo.
      */
     public static function resolve(int $slot, ?string $color = null): string
     {
@@ -121,7 +129,22 @@ final class Palette
             return self::token($slot);
         }
 
-        return self::isToken($color) ? "var(--kore-{$color})" : $color;
+        $color = trim($color);
+
+        if (self::isToken($color)) {
+            return "var(--kore-{$color})";
+        }
+
+        // Un color CSS explícito: un hex, o una función — oklch(), rgb(), var(), color-mix()…
+        if (str_starts_with($color, '#') || str_contains($color, '(')) {
+            return $color;
+        }
+
+        throw new InvalidArgumentException(
+            "koreUi: «{$color}» no es un color que el gráfico sepa pintar, y dejarlo pasar haría que la serie "
+            .'desapareciera sin decir nada. Usa un token de kore (primary, destructive, success, warning, info, '
+            .'chart-1…chart-8, seq-1…seq-7, ord-1…ord-7) o un color CSS explícito (#e11d48, oklch(…), var(…)).'
+        );
     }
 
     /** El slot que le toca a la marca número N (1-based). */
@@ -144,11 +167,24 @@ final class Palette
         return $position;
     }
 
+    /**
+     * Los tokens que el gráfico sabe pintar.
+     *
+     * Los semánticos, la paleta de datos y las dos rampas. `chart-4` faltaba, y era justo el que
+     * uno prueba primero — se colaba tal cual al CSS y la serie se quedaba invisible.
+     */
     private static function isToken(string $color): bool
     {
-        return in_array($color, [
+        if (in_array($color, [
             'primary', 'secondary', 'accent', 'destructive', 'success', 'warning', 'info', 'muted-fg',
-        ], true);
+        ], true)) {
+            return true;
+        }
+
+        return (bool) preg_match(
+            '/^(chart-[1-'.self::SLOTS.']|seq-[1-'.self::RAMP_STEPS.']|ord-[1-'.self::RAMP_STEPS.'])$/',
+            $color,
+        );
     }
 
     private static function guard(int $slot): void
