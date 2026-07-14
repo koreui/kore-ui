@@ -36,6 +36,20 @@ Y como el `<svg>` lo emite el servidor, **el morph de Livewire deja de ser una a
 
 ### Fixed
 
+- **Once componentes escribían parte de su estado en el `x-data` de un ancestro, no en sí mismos.** Alpine no llama a los métodos de un componente con `this` = el objeto del componente: los llama con un Proxy que fusiona toda la pila de scopes, y su trampa `set` acaba así:
+
+  ```js
+  if (!target) target = objects[objects.length - 1];   // el x-data MÁS EXTERNO
+  ```
+
+  O sea: `this.foo = x` sobre una propiedad **no declarada** en la factoría no se guarda en el componente — se guarda en el `x-data` ancestro más externo de la página, que comparten todos sus hermanos. Las consecuencias eran silenciosas: cinco gráficos en una página enseñaban en el tooltip los datos del quinto; dos tablas compartían el `ResizeObserver`; y `_floatingCleanup` —que usan seis componentes distintos— se pisaba entre ellos, de modo que cerrar un dropdown ejecutaba la limpieza de un select. Sin un solo error en consola.
+
+  Afecta a `chart`, `datatable`, `select`, `dropdown`, `tooltip`, `overlay`, `upload`, `datepicker`, `color-picker` y `time-picker`. Todas las propiedades están ahora declaradas, y `tests/js/alpine-scope.test.js` recorre el AST de cada componente para que no vuelva a colarse ninguna.
+
+- **El tooltip del gráfico se anclaba al borde superior del área de dibujo**, así que salía siempre flotando por encima del gráfico, tapando el título. Ahora la X se engancha al dato —para que no tiemble mientras el ratón se mueve dentro de la misma banda— y la Y sigue al cursor.
+
+- **Las series perdían sus decimales.** El eje deduce los suyos del paso entre ticks; una serie no tiene paso, así que se escribía con cero decimales: un sensor que marcaba 21,4 °C aparecía en el tooltip y en la tabla accesible como «21». Ahora cada serie deduce los decimales de sus propios valores, los mismos para toda la serie.
+
 - **`theme.js` no avisaba al cambiar el tema del sistema operativo.** `setMode()` sí despachaba `theme-changed`, pero el listener de `matchMedia` no. Con `mode: 'system'` —que es el valor por defecto— cambiar el tema del SO repintaba el CSS sin avisar a nadie, así que cualquier consumidor que necesitara releer colores desde JavaScript se quedaba con el tema anterior. Y solo en la configuración por defecto, que es la peor forma de encontrar un bug.
 
 ### Changed

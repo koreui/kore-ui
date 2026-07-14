@@ -43,6 +43,42 @@ final class Format
     }
 
     /**
+     * Cuántos decimales necesita una serie para no mentir.
+     *
+     * El eje deduce sus decimales del paso entre ticks. Una serie no tiene paso, así que sin
+     * esto se escribía con cero decimales: un sensor que marca 21,4 °C aparecía en el tooltip
+     * como "21". El valor no era falso, pero tampoco era el que había.
+     *
+     * Se calcula UNA vez por serie y se aplica a todos sus valores, no valor a valor: una
+     * columna con "21,4" encima de "23" se lee peor que una con "21,4" encima de "23,0".
+     * Es la misma razón por la que un eje usa los mismos decimales en todos sus ticks.
+     *
+     * @param  list<float|int|null>  $values
+     */
+    public static function decimalsFor(array $values, int $max = 2): int
+    {
+        $needed = 0;
+
+        foreach ($values as $value) {
+            if ($value === null || ! is_finite((float) $value)) {
+                continue;
+            }
+
+            for ($places = $needed; $places < $max; $places++) {
+                // Se compara con una tolerancia relativa: 21.4 no es exactamente 21.4 en coma
+                // flotante, y `round($v, 1) == $v` sería falso para valores grandes.
+                if (abs(round((float) $value, $places) - (float) $value) <= 1e-9 * max(1.0, abs((float) $value))) {
+                    break;
+                }
+            }
+
+            $needed = max($needed, $places);
+        }
+
+        return $needed;
+    }
+
+    /**
      * @param  int|null  $decimals  los que exige el paso del eje, si no se han fijado a mano
      */
     public function apply(float|int|null $value, ?int $decimals = null): string

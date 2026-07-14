@@ -207,6 +207,9 @@ final class Plot
         foreach ($marks as $i => $mark) {
             $serieValues = $values[$i];
 
+            // Una vez por serie, no una por valor.
+            $decimals = Format::decimalsFor($serieValues);
+
             $points = [];
             foreach ($serieValues as $row => $value) {
                 $points[] = $value === null
@@ -222,7 +225,9 @@ final class Plot
                 'slot' => $mark->slot,
                 'color' => Palette::resolve($mark->slot, $mark->color),
                 'values' => $serieValues,
-                'labels' => array_map(fn ($v) => $this->format->apply($v), $serieValues),
+                // Los decimales salen de la propia serie: sin esto, un sensor a 21,4 °C se
+                // escribía "21" en el tooltip y en la tabla accesible.
+                'labels' => array_map(fn ($v) => $this->format->apply($v, $decimals), $serieValues),
                 'points' => $points,
                 'd' => null,
                 'area' => null,

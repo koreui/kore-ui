@@ -23,11 +23,13 @@ El área bajo una línea.
 
 A diferencia de una línea, el área es una **superficie**, y su tamaño se lee como magnitud. Un área que arranca en 40 dibuja una mancha enorme para una variación mínima. Por eso el eje incluye el cero.
 
-Si quieres el área y la línea encima, son dos marcas:
+## El área ya dibuja su propio trazo
+
+No hace falta añadirle una marca `line` encima. Si lo haces, el gráfico tiene **dos series** sobre los mismos datos: gastas un color de la paleta, y el tooltip enseña la misma cifra dos veces.
 
 ```blade
+{{-- Basta con esto: el borde superior del área es su trazo. --}}
 <x-kore::chart.area y="ingresos" curve="monotone" />
-<x-kore::chart.line y="ingresos" curve="monotone" />
 ```
 
 ## Los huecos

@@ -75,3 +75,33 @@ describe('prefijos y sufijos', function () {
         expect($format->apply(250))->toBe('250 ms');
     });
 });
+
+describe('los decimales de una serie', function () {
+    it('deduce los que hacen falta para no mentir', function () {
+        // El eje saca sus decimales del paso entre ticks. Una serie no tiene paso: sin esto,
+        // un sensor que marca 21,4 °C se escribía "21" en el tooltip y en la tabla accesible.
+        expect(Format::decimalsFor([21.4, 23.1, null, 25.8]))->toBe(1);
+        expect(Format::decimalsFor([1240, 3180, 2470]))->toBe(0);
+        expect(Format::decimalsFor([0.125, 1.5]))->toBe(2);   // topado en 2
+    });
+
+    it('los mismos para toda la serie, no valor a valor', function () {
+        // Una columna con "21,4" encima de "23" se lee peor que con "21,4" encima de "23,0".
+        // Es la misma razón por la que un eje usa los mismos decimales en todos sus ticks.
+        expect(Format::decimalsFor([21.4, 23]))->toBe(1);
+
+        $format = new Format;
+
+        expect($format->apply(23, Format::decimalsFor([21.4, 23])))->toBe('23,0');
+    });
+
+    it('ignora los huecos y la basura', function () {
+        expect(Format::decimalsFor([null, NAN, INF]))->toBe(0);
+    });
+
+    it('no se deja engañar por la coma flotante', function () {
+        // 0.1 + 0.2 no es 0.3, y round($v, 1) == $v sería falso para valores grandes.
+        expect(Format::decimalsFor([0.1 + 0.2]))->toBe(1);
+        expect(Format::decimalsFor([1_000_000.5]))->toBe(1);
+    });
+});

@@ -293,3 +293,21 @@ describe('la canaleta del eje Y', function () use ($data) {
         $view->assertSee('--kore-chart-gutter-y: 11.5ch', false);
     });
 });
+
+describe('los decimales del dato', function () {
+    it('no se pierden en el tooltip ni en la tabla', function () {
+        // Un sensor que marca 21,4 °C no puede aparecer como "21". El eje deduce sus decimales
+        // del paso entre ticks; la serie no tiene paso, así que los deduce de sus propios
+        // valores. Es un bug que sólo se ve mirando el gráfico con datos reales.
+        $view = $this->blade(<<<'BLADE'
+            <x-kore::chart :data="[['m' => 'Ene', 'v' => 21.4], ['m' => 'Feb', 'v' => 23.1]]" x="m">
+                <x-kore::chart.line y="v" label="Sensor" />
+                <x-kore::chart.tooltip />
+            </x-kore::chart>
+        BLADE);
+
+        $view->assertSee('21,4', false)
+            ->assertSee('23,1', false)
+            ->assertDontSee('<td>21</td>', false);
+    });
+});

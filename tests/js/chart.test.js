@@ -2,10 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Se mockea floating.js: lo que hay que probar no es el posicionamiento (que ya tiene sus
 // tests) sino la lógica del gráfico — encontrar el punto bajo el ratón y ocultar series.
+const { setPoint } = vi.hoisted(() => ({ setPoint: vi.fn() }));
+
 vi.mock('../../resources/js/utils/floating.js', () => ({
     startFloating: () => Object.assign(() => {}, { update: vi.fn() }),
     stopFloating: vi.fn(),
-    virtualReference: () => ({ setPoint: vi.fn(), getBoundingClientRect: () => ({}) }),
+    virtualReference: () => ({ setPoint, getBoundingClientRect: () => ({}) }),
 }));
 
 const KoreChart = (await import('../../resources/js/ui/chart.js')).default;
@@ -50,6 +52,22 @@ function makeChart({ width = 200, left = 0 } = {}) {
 
 beforeEach(() => {
     globalThis.window = { Livewire: undefined };
+    setPoint.mockClear();
+});
+
+describe('dónde se planta el tooltip', () => {
+    it('la X se engancha al dato y la Y sigue al cursor', () => {
+        // Antes se anclaba a `box.top`, o sea al BORDE SUPERIOR del plot: el tooltip acababa
+        // siempre flotando por encima del gráfico, tapando el título. Sólo se ve mirándolo.
+        const { chart } = makeChart({ width: 200, left: 0 });
+
+        chart.onPointerMove({ clientX: 64, clientY: 137 });
+
+        // El ratón está en el 32 %, pero el punto más cercano (xs[1]) está en el 30 % → 60px.
+        // El tooltip habla de ESE punto, así que no tiembla mientras el ratón se mueve dentro
+        // de la banda. La Y, en cambio, es la del cursor tal cual.
+        expect(setPoint).toHaveBeenLastCalledWith(60, 137);
+    });
 });
 
 describe('encontrar el punto bajo el ratón', function () {

@@ -43,6 +43,22 @@ export default (config = {}) => ({
 
     hidden: [],
 
+    // ⚠️⚠️ TODAS estas propiedades TIENEN que estar declaradas aquí, aunque sólo se asignen
+    // dentro de init(). Alpine no llama a los métodos con `this` = este objeto: los llama con
+    // un Proxy que fusiona toda la pila de scopes, y su trampa `set` hace esto:
+    //
+    //     if (!target) target = objects[objects.length - 1];   // el x-data MÁS EXTERNO
+    //
+    // Es decir: `this.payload = …` sobre una propiedad no declarada NO se guarda en el
+    // gráfico — se guarda en el x-data ancestro más externo de la página (el del layout),
+    // que comparten TODOS los gráficos. Gana el último en inicializarse, y a partir de ahí
+    // los cinco gráficos de una página enseñan los datos del quinto. Sin un solo error.
+    // Es exactamente el bug que tuvo la demo. Ver tests/js/chart-alpine.test.js.
+    payload: null,
+    _root: null,
+    _reference: null,
+    _floating: null,
+
     init() {
         // ⚠️ `$el` NO es siempre la raíz del componente: Alpine lo resuelve al elemento cuya
         // expresión se está evaluando. Dentro del x-on:click de un botón de la leyenda, `$el`
@@ -52,11 +68,6 @@ export default (config = {}) => ({
         this._root = this.$el;
 
         this.payload = this._readPayload();
-
-        // Fuera del objeto reactivo: nodos del DOM y funciones de limpieza nunca entran en el
-        // Proxy de Alpine.
-        this._reference = null;
-        this._floating = null;
 
         instances.add(this);
         ensureMorphHook();
@@ -101,7 +112,11 @@ export default (config = {}) => ({
             this.$refs.crosshair.style.setProperty('--kx', String(x));
         }
 
-        this._positionTooltip(box.left + (x / 100) * box.width, box.top);
+        // La X se ENGANCHA al dato (la del crosshair, no la del ratón: el tooltip habla de un
+        // punto concreto, y moverse dentro de la misma banda no debe hacerlo temblar). La Y
+        // sigue al cursor. Anclarlo al borde superior del plot, como estaba, lo dejaba siempre
+        // flotando por encima del gráfico, encima del título.
+        this._positionTooltip(box.left + (x / 100) * box.width, event.clientY);
     },
 
     onPointerLeave() {
