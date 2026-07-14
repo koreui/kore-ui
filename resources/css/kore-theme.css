@@ -1716,7 +1716,9 @@
   right: 0;
   background: var(--kore-series);
   /* `clip-path` recorta el rectángulo de banda completa al trapecio: el ancho de arriba es el
-     valor de esta etapa, el de abajo el de la siguiente. El estrechamiento ES la caída. */
+     valor de esta etapa, el de abajo el de la siguiente. El estrechamiento ES la caída. Y como el
+     clip recorta también el hit-testing, sólo se posa el ratón DENTRO del trapecio, no en el hueco. */
+  transition: opacity 0.15s ease;
 }
 
 .kore-chart-funnel-labels {
@@ -1772,11 +1774,41 @@
   text-align: right;
 }
 
+.kore-chart-funnel-label {
+  cursor: default;
+  transition: opacity 0.15s ease;
+}
+
+/* Al posarse sobre una etapa (o su fila), se enciende el par y se apaga el resto. `data-stage` es
+   el mismo en el trapecio y en la fila, así que `:has()` recorre esa relación entre las dos listas
+   — sin JavaScript, igual que el donut. Reglas por índice (hasta 10 etapas; más no es un embudo
+   legible), como el donut. */
+.kore-chart-funnel[data-highlight]:has([data-stage="0"]:hover) [data-stage]:not([data-stage="0"]),
+.kore-chart-funnel[data-highlight]:has([data-stage="1"]:hover) [data-stage]:not([data-stage="1"]),
+.kore-chart-funnel[data-highlight]:has([data-stage="2"]:hover) [data-stage]:not([data-stage="2"]),
+.kore-chart-funnel[data-highlight]:has([data-stage="3"]:hover) [data-stage]:not([data-stage="3"]),
+.kore-chart-funnel[data-highlight]:has([data-stage="4"]:hover) [data-stage]:not([data-stage="4"]),
+.kore-chart-funnel[data-highlight]:has([data-stage="5"]:hover) [data-stage]:not([data-stage="5"]),
+.kore-chart-funnel[data-highlight]:has([data-stage="6"]:hover) [data-stage]:not([data-stage="6"]),
+.kore-chart-funnel[data-highlight]:has([data-stage="7"]:hover) [data-stage]:not([data-stage="7"]),
+.kore-chart-funnel[data-highlight]:has([data-stage="8"]:hover) [data-stage]:not([data-stage="8"]),
+.kore-chart-funnel[data-highlight]:has([data-stage="9"]:hover) [data-stage]:not([data-stage="9"]) {
+  opacity: 0.3;
+}
+
 /* Estrecho: los números se van debajo del embudo, no al lado. */
 @container (max-width: 30rem) {
   .kore-chart-funnel {
     flex-direction: column;
     gap: 1rem;
+  }
+
+  /* ⚠️ El plot deja de ser flex-item que crece: en columna, `flex: 1 1 0` pone la base en 0 sobre
+     el eje VERTICAL y la altura colapsaba a cero — el embudo no se veía, sólo las etiquetas. Aquí
+     recupera su altura y ocupa todo el ancho. */
+  .kore-chart-funnel-plot {
+    flex: none;
+    width: 100%;
   }
 }
 

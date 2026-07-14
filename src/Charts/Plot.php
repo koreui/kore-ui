@@ -500,6 +500,7 @@ final class Plot
 
             if ($mark->type() === 'funnel') {
                 $serie['funnel'] = $this->funnelStages($serieValues);
+                $serie['highlight'] = $mark->highlight;
             }
 
             if ($mark->type() === 'waterfall') {

@@ -398,6 +398,10 @@ return [
         // ahorra JavaScript: no había ninguno. Se apaga por gráfico con :highlight="false".
         'donut_highlight' => true,
 
+        // Al posarse sobre una etapa de un embudo, se enciende el par (trapecio + fila) y se apaga
+        // el resto. CSS puro, como el donut; se apaga por gráfico con :highlight="false".
+        'funnel_highlight' => true,
+
         'empty_text' => 'No hay datos que mostrar',
         'empty_icon' => 'chart-line',
 

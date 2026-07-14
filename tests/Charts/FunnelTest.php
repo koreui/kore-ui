@@ -124,3 +124,38 @@ it('de punta a punta, desde el Blade', function () {
     expect($html)->toContain('var(--kore-ord-1)');
     expect($html)->toContain('−75 %');   // de 1000 a 250 se pierde el 75 %
 });
+
+it('marca data-stage en el trapecio y en su fila, para enlazarlos al pasar el ratón', function () {
+    // El mismo data-stage en los dos permite que `:has()` encienda el par y apague el resto sin
+    // JavaScript, como el donut. Y `data-highlight` en el contenedor es el interruptor de todo.
+    $html = $this->blade(<<<'BLADE'
+        <x-kore::chart :data="[['e' => 'A', 'n' => 100], ['e' => 'B', 'n' => 40]]" x="e">
+            <x-kore::chart.funnel y="n" />
+        </x-kore::chart>
+    BLADE)->__toString();
+
+    expect($html)->toContain('data-highlight');
+    expect($html)->toContain('kore-chart-funnel-stage"');
+    expect($html)->toContain('data-stage="0"');
+    expect($html)->toContain('data-stage="1"');
+});
+
+it('el resalte se puede apagar con :highlight="false"', function () {
+    // Es CSS puro (:has()), así que apagarlo no ahorra JavaScript, pero quita una interacción que
+    // en un embudo de dos etapas sobra. Todas las reglas cuelgan de data-highlight, así que
+    // quitarlo las desactiva enteras.
+    $con = $this->blade(<<<'BLADE'
+        <x-kore::chart :data="[['e' => 'A', 'n' => 100], ['e' => 'B', 'n' => 40]]" x="e">
+            <x-kore::chart.funnel y="n" />
+        </x-kore::chart>
+    BLADE)->__toString();
+
+    $sin = $this->blade(<<<'BLADE'
+        <x-kore::chart :data="[['e' => 'A', 'n' => 100], ['e' => 'B', 'n' => 40]]" x="e">
+            <x-kore::chart.funnel y="n" :highlight="false" />
+        </x-kore::chart>
+    BLADE)->__toString();
+
+    expect($con)->toContain('data-highlight');
+    expect($sin)->not->toContain('data-highlight');
+});

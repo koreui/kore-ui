@@ -35,11 +35,18 @@ Las etapas van **en orden**, y cambiar el orden cambia el significado. Por eso e
 
 Y aquí el color **no lleva el peso de la información** —eso ya lo hace la geometría, el ancho del trapecio—: sólo dice «vas por aquí». La rampa se reparte entre las etapas que haya: la primera clara, la última oscura.
 
+## El resalte al pasar el ratón
+
+Al posarse sobre una etapa —o su fila de números— se enciende el par y se apaga el resto. Con varias etapas, es lo que deja claro qué trapecio es «Carrito».
+
+Es **CSS puro** (`:has()` sobre un `data-stage` común, como el donut): no hay JavaScript que montar. Se apaga por gráfico con `:highlight="false"`, o para toda la app con `kore-ui.chart.funnel_highlight`. En un embudo de dos etapas sobra.
+
 ## Props
 
 | Prop | Tipo | Por defecto | Qué hace |
 |---|---|---|---|
 | `y` | string | — | La columna del valor de cada etapa |
+| `highlight` | bool | `true` | Resaltar la etapa y su fila al pasar el ratón |
 | `show` | bool | `true` | Apaga la marca |
 
 ## Un embudo no comparte gráfico

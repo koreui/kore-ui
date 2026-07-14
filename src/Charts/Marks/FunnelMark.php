@@ -18,6 +18,14 @@ namespace KoreUi\Charts\Marks;
  */
 final class FunnelMark extends Mark
 {
+    /**
+     * Al posarse sobre una etapa (o su fila), se enciende el par y se apaga el resto.
+     *
+     * Es CSS puro (`:has()` sobre un `data-stage` común, como el donut), así que apagarlo no ahorra
+     * JavaScript —no había— pero sí quita una interacción que en un embudo de dos etapas sobra.
+     */
+    public bool $highlight = true;
+
     /** El ancho de un trapecio ES el valor, así que la escala arranca en cero por definición. */
     public function requiresZero(): bool
     {
@@ -33,5 +41,12 @@ final class FunnelMark extends Mark
     public function type(): string
     {
         return 'funnel';
+    }
+
+    public function withHighlight(bool $highlight): static
+    {
+        $this->highlight = $highlight;
+
+        return $this;
     }
 }

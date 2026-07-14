@@ -159,7 +159,7 @@
     @elseif($gauge)
         @include('kore::chart.gauge', ['gauge' => $gauge['gauge'], 'name' => $gauge['name']])
     @elseif($funnel)
-        @include('kore::chart.funnel', ['stages' => $funnel['funnel']])
+        @include('kore::chart.funnel', ['stages' => $funnel['funnel'], 'highlight' => $funnel['highlight']])
     @else
         @if($frame->legend && ($frame->legend['position'] ?? 'top') === 'top')
             @include('kore::chart.legend', ['series' => $cartesian, 'chartId' => $chartId])
