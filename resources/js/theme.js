@@ -32,9 +32,7 @@ export default {
         this._resolve();
         this._listen();
 
-        document.dispatchEvent(new CustomEvent('theme-changed', {
-            detail: { mode: this.mode, resolved: this.resolved },
-        }));
+        this._dispatch();
     },
 
     _resolve() {
@@ -66,9 +64,23 @@ export default {
 
         // Only listen when mode is system
         if (this.mode === 'system') {
-            this._mediaHandler = () => this._resolve();
+            // The OS theme changed. This MUST emit `theme-changed` too, not just repaint:
+            // 'system' is the default mode, so this is the most common way a user ever
+            // switches theme. Anything that has to re-read colours from JS (a canvas, a
+            // third-party widget) would otherwise be left on the previous theme forever,
+            // and only in the default configuration — the worst kind of bug to find.
+            this._mediaHandler = () => {
+                this._resolve();
+                this._dispatch();
+            };
             this._mediaQuery.addEventListener('change', this._mediaHandler);
         }
+    },
+
+    _dispatch() {
+        document.dispatchEvent(new CustomEvent('theme-changed', {
+            detail: { mode: this.mode, resolved: this.resolved },
+        }));
     },
 
     get isDark() {
