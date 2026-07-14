@@ -156,6 +156,20 @@ final class ChartFrame
      */
     public function validate(): void
     {
+        // `max-gap` mide una DISTANCIA entre dos puntos, y entre dos categorías no hay distancia
+        // que medir: son equidistantes por definición. Pedirlo ahí no es un matiz que se pueda
+        // ignorar en silencio — es que el usuario cree que su gráfico se va a partir en los huecos
+        // y no se va a partir nunca.
+        foreach ($this->marks() as $mark) {
+            if ($mark->maxGap !== null && $this->xScaleType() === 'band') {
+                throw new InvalidArgumentException(
+                    'koreUi: `max-gap` sólo tiene sentido en un eje continuo (fechas o números): mide la '
+                    .'distancia entre dos puntos, y entre dos categorías no hay ninguna — son equidistantes '
+                    .'por definición. Pásale fechas de verdad a `x`, o quita el `max-gap`.'
+                );
+            }
+        }
+
         if (! $this->hasDonut()) {
             return;
         }

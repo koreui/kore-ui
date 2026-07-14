@@ -86,6 +86,15 @@ interface XScale
      */
     public function window(float $from, float $to): static;
 
+    /**
+     * Cuánto abarca el dominio VISIBLE, en sus propias unidades (segundos en un eje temporal).
+     *
+     * `null` en una escala de bandas: las categorías son equidistantes por definición y no hay
+     * distancia que medir entre dos. Es lo que permite convertir un `max-gap` escrito en tiempo
+     * («30s») a un porcentaje del área, que es donde vive la geometría.
+     */
+    public function domainSpan(): ?float;
+
     /** Cuántas filas hay. */
     public function count(): int;
 }

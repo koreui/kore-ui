@@ -70,6 +70,12 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
   ⚠️ **El techo va escrito, medido y con excepción.** Un refresco es un round-trip completo de Livewire, y **medido: 44 kB de HTML — 5,1 kB gzip — por refresco** con 40 puntos y 2 series. Son N renders para N clientes. `every` **lanza** por debajo de 500 ms. El techo honesto es **1 Hz con ≤ 200 puntos**; a 10 Hz no aguanta ninguna arquitectura que dibuje en el servidor, ni ésta ni ninguna.
 
+- **`max-gap` en `<x-kore::chart.line>` y `<x-kore::chart.area>`**: el trazo **se parte** cuando entre dos puntos consecutivos pasa más de lo que debería.
+
+  Un `null` explícito ya partía la línea desde el primer día. Lo que **no** partía nada era una fila que sencillamente **no está**: ahí la línea cruzaba el hueco dibujando una curva suave por encima de un rato en el que no hubo dato — y con `curve="monotone"`, un swoop que *parece* dato. **Es la misma mentira que arregló el eje temporal, un piso más arriba**: entonces el hueco desaparecía porque los puntos se colocaban por su ordinal; ahora el hueco se ve, pero el trazo lo tapa.
+
+  Acepta `«30s»`, `«5m»`, `«2h»`, `«7d»`… o un número. En un eje de categorías **lanza**: mide una distancia entre dos puntos, y entre dos categorías no hay ninguna.
+
 - **`min` y `max` en `<x-kore::chart.axis-y>`**, para fijar el dominio. `Domain::fromSeries()` los aceptaba desde el primer día —y los trata como un contrato, no los redondea por debajo de lo que pides— pero **nadie se los pasaba nunca**. En un gráfico en vivo dejan de ser un lujo: un eje que se reescala cada dos segundos porque el dato subió un punto es ilegible.
 
 - **Guardia de peso del bundle en CI** (`npm run size`). «El JavaScript es poco» es una promesa de la documentación, y una promesa que nadie mide deja de ser verdad sin que nadie se entere.
@@ -98,6 +104,10 @@ Y como el `<svg>` lo emite el servidor, **el morph de Livewire deja de ser una a
 - **La tabla accesible arrastraba scroll horizontal a toda la página.** `sr-only` esconde la caja con `width: 1px`, pero sobre una `<table>` **ese ancho se ignora**: el algoritmo de layout de tablas lo acota por abajo al `min-content`. Medido en un móvil de 375 px: la tabla ocupaba **321 px de ancho**. El `clip-path` sí aplicaba —así que no se veía y nadie se enteró— pero la caja seguía ocupando. Ahora el `sr-only` va en un `<div>`, que sí obedece.
 
 - **Las etiquetas del eje X se salían de la tarjeta.** Se anclaban por el borde la primera y la última, y eso funcionaba porque las únicas que se salían eran las de los extremos… en una escala de bandas. En una escala continua un tick puede caer en el **98,9 %** —ni centrado ni en el borde—, ahí ningún umbral salta, y media etiqueta se va fuera. Ahora el servidor emite **lo que mide** la etiqueta, en `ch` (no puede medir texto, pero sí contarlo), y el CSS la acota con un `clamp`: la centra sobre su tick si cabe y la apoya en el borde si no. Es exacto por construcción, no tiene umbrales que afinar, y de paso resuelve los dos casos que el anclaje trataba a mano.
+
+- **`max-labels` no funcionaba. Nunca.** Una prop con guion declarada en `@props` **no se puede leer con `$attributes->get()`**: Blade ya la ha extraído del bag. Así que `$attributes->get('max-labels')` devolvía `null` siempre, y el tope de etiquetas del eje X no se aplicaba jamás — salían todas. Salió a la luz al añadir `max-gap`, que fallaba igual.
+
+- **Dos gráficos con stream en el mismo componente Livewire eran dos temporizadores.** Un refresco no actualiza un gráfico: actualiza el **componente entero**. Así que había el doble de round-trips contra el servidor, el dato avanzaba al doble de velocidad, y —lo peor— **poner el ratón sobre uno no paraba el otro**: el temporizador del de al lado seguía moviéndole los números bajo el cursor. Ahora conduce uno solo, y el ratón sobre cualquiera los para a todos.
 
 - **La etiqueta de una fila no bajaba de los minutos.** En un gráfico en vivo muestreado cada dos segundos, los treinta puntos del mismo minuto se llamaban todos «21:35»: el tooltip dejaba de decir de cuál hablaba, y la tabla accesible tenía treinta filas con el mismo nombre.
 

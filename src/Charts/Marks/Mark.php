@@ -42,6 +42,23 @@ abstract class Mark
      */
     public bool $visible = true;
 
+    /**
+     * Lo más lejos que pueden estar dos puntos consecutivos antes de que el trazo SE PARTA.
+     *
+     * En las unidades del eje: segundos en uno temporal, el valor crudo en uno lineal. `null` es
+     * «no partas nunca», que es el defecto del ecosistema entero — y también el que miente.
+     *
+     * ⚠️ Un `null` explícito ya partía el trazo desde el primer día. Lo que NO partía nada era una
+     * fila que sencillamente **no existe**: ahí la línea cruzaba el hueco dibujando una curva suave
+     * por encima de un rato en el que no hubo dato. Y con `curve="monotone"` se inventaba, encima,
+     * un swoop que PARECE dato.
+     *
+     * Es la misma mentira que arreglamos con el eje temporal, un piso más arriba: entonces el hueco
+     * desaparecía porque los puntos se colocaban por su ordinal; ahora el hueco se ve, pero el trazo
+     * lo tapa.
+     */
+    public ?float $maxGap = null;
+
     public function __construct(
         public readonly string $field,
         public readonly ?string $label = null,
@@ -65,6 +82,13 @@ abstract class Mark
     public function withSlot(int $slot): static
     {
         $this->slot = $slot;
+
+        return $this;
+    }
+
+    public function withMaxGap(?float $seconds): static
+    {
+        $this->maxGap = $seconds !== null && $seconds > 0 ? $seconds : null;
 
         return $this;
     }

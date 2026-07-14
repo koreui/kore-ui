@@ -1,5 +1,5 @@
 @props([
-    'max-labels' => null,   // TOPE de etiquetas en una escala de bandas; el resto se saltan
+    'maxLabels' => null,    // TOPE de etiquetas en una escala de bandas; el resto se saltan
     'show' => true,         // los ejes salen por defecto: esta marca los CONFIGURA o los apaga
 
     // Cuántos ticks buscar en una escala CONTINUA (temporal o lineal). Es una pista, no un
@@ -25,7 +25,7 @@
 @php
     $frame = app(\KoreUi\Charts\ChartContext::class)->current('axis-x');
     $frame->axes['x'] = [
-        'max_labels' => $attributes->get('max-labels') !== null ? (int) $attributes->get('max-labels') : null,
+        'max_labels' => $maxLabels !== null ? (int) $maxLabels : null,
         'show' => filter_var($show, FILTER_VALIDATE_BOOL),
         'ticks' => $ticks !== null ? (int) $ticks : null,
         'scale' => $scale,

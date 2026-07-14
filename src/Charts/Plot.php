@@ -403,6 +403,8 @@ final class Plot
                     : [round($x, 2), round($this->y->at($value), 2)];
             }
 
+            $points = $this->breakOnGaps($points, $mark);
+
             $serie = [
                 'id' => $this->frame->id.'-s'.($i + 1),
                 'name' => $mark->name(),
@@ -446,6 +448,67 @@ final class Plot
             }
 
             $out[] = $serie;
+        }
+
+        return $out;
+    }
+
+    /**
+     * Parte el trazo donde el hueco entre dos puntos sea mayor que `max-gap`.
+     *
+     * ## Por qué hace falta, si un `null` ya partía la línea
+     *
+     * Porque un `null` es una fila que **existe y no tiene valor**. Lo que no partía nada era una
+     * fila que sencillamente **no está**: ahí la línea cruzaba el hueco dibujando una curva suave
+     * por encima de un rato en el que no hubo dato. Y con `curve="monotone"`, además, se inventaba
+     * un swoop que *parece* dato.
+     *
+     * Es la misma mentira que arregló el eje temporal, un piso más arriba: entonces el hueco
+     * desaparecía porque los puntos se colocaban por su ordinal; ahora el hueco **se ve**, pero el
+     * trazo lo tapa.
+     *
+     * ## Cómo
+     *
+     * Se mete un `null` ENTRE los dos puntos. `Path::line()` ya sabe partir ahí —y la curva
+     * monótona ya reinicia sus tangentes— así que no hay geometría nueva: sólo hay que decirle
+     * dónde.
+     *
+     * El umbral viene en unidades del EJE (segundos en uno temporal), así que se convierte a
+     * porcentaje una sola vez: el dominio ya está en el espacio 0–100.
+     *
+     * @param  list<array{0: float, 1: float}|null>  $points
+     * @return list<array{0: float, 1: float}|null>
+     */
+    private function breakOnGaps(array $points, Mark $mark): array
+    {
+        if ($mark->maxGap === null || $mark->medium() !== Mark::SVG) {
+            return $points;
+        }
+
+        // Cuánto es el umbral, en % del área. En una escala de bandas no hay respuesta posible:
+        // las categorías son equidistantes por definición y no hay hueco que medir. `validate()`
+        // ya lo ha impedido, pero por si alguien construye el Plot a mano.
+        $span = $this->x->domainSpan();
+
+        if ($span === null || $span <= 0.0) {
+            return $points;
+        }
+
+        $threshold = ($mark->maxGap / $span) * 100.0;
+
+        $out = [];
+        $previous = null;
+
+        foreach ($points as $point) {
+            if ($point !== null && $previous !== null && ($point[0] - $previous[0]) > $threshold) {
+                $out[] = null;   // aquí no hubo dato, y la línea no va a fingir que sí
+            }
+
+            $out[] = $point;
+
+            if ($point !== null) {
+                $previous = $point;
+            }
         }
 
         return $out;

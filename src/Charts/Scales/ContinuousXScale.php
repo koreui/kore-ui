@@ -74,6 +74,11 @@ abstract class ContinuousXScale implements XScale
         return count($this->values);
     }
 
+    public function domainSpan(): ?float
+    {
+        return $this->scale->domainMax - $this->scale->domainMin;
+    }
+
     public function invert(float $position): mixed
     {
         return $this->scale->invert($position);

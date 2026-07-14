@@ -491,3 +491,69 @@ describe('stream', function () {
         expect(chart._stream).toBeNull();
     });
 });
+
+/**
+ * Dos gráficos en el MISMO componente Livewire.
+ *
+ * Un refresco no actualiza un gráfico: actualiza el COMPONENTE ENTERO. Eso tiene dos consecuencias
+ * que no se ven venir, y las dos aparecieron usando la demo.
+ */
+describe('dos gráficos que comparten componente Livewire', function () {
+    function makePair() {
+        const tick = vi.fn();
+        const wire = { id: 'lw-1', tick, $refresh: vi.fn(), $set: vi.fn() };
+
+        const hacer = (id) => {
+            const c = KoreChart({ id, zoom: { model: 'v' }, stream: { every: 2000, call: 'tick' } });
+            const root = {
+                contains: () => false,
+                querySelector: () => ({ textContent: JSON.stringify({ ...PAYLOAD, window: [0, 100], minWindow: 2 }) }),
+                querySelectorAll: () => [],
+            };
+            c.$el = root;
+            c.$refs = { plot: { getBoundingClientRect: () => ({ left: 0, top: 0, width: 200, height: 100 }) } };
+            c.$wire = wire;
+            c.$nextTick = (fn) => fn();
+            c.init();
+            return c;
+        };
+
+        return { a: hacer('c1'), b: hacer('c2'), tick };
+    }
+
+    it('sólo UNO conduce el refresco: dos serían el doble de round-trips', function () {
+        const { a, b, tick } = makePair();
+
+        a._tick();
+        b._tick();
+
+        // Los dos temporizadores han disparado, pero sólo ha salido UNA petición.
+        expect(tick).toHaveBeenCalledTimes(1);
+
+        a.destroy();
+        b.destroy();
+    });
+
+    it('el ratón sobre UNO para el refresco de los DOS', function () {
+        // Es la pausa del tooltip vista desde el otro lado: si el ratón está sobre el gráfico de al
+        // lado, mi temporizador le movería los números bajo el cursor — porque compartimos dato.
+        const { a, b, tick } = makePair();
+
+        b.onPointerMove({ clientX: 60 });
+        expect(b.hover).not.toBeNull();
+
+        a._tick();   // el conductor dispara
+
+        expect(a.streamPaused).toBe(true);
+        expect(tick).not.toHaveBeenCalled();
+
+        // Y al salir, se reanuda.
+        b.onPointerLeave();
+        a._tick();
+
+        expect(tick).toHaveBeenCalledTimes(1);
+
+        a.destroy();
+        b.destroy();
+    });
+});

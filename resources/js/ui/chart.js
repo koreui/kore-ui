@@ -79,6 +79,7 @@ export default (config = {}) => ({
     _floating: null,
     _drag: null,
     _stream: null,
+    _wireId: null,
 
     init() {
         // ⚠️ `$el` NO es siempre la raíz del componente: Alpine lo resuelve al elemento cuya
@@ -95,6 +96,10 @@ export default (config = {}) => ({
         ensureMorphHook();
 
         if (config.stream?.every) {
+            // El id del componente LIVEWIRE, no el del gráfico. Es la pieza que falta para darse
+            // cuenta de que dos gráficos del mismo componente comparten refresco.
+            this._wireId = this.$wire?.id ?? null;
+
             this._stream = setInterval(() => this._tick(), config.stream.every);
         }
     },
@@ -132,11 +137,55 @@ export default (config = {}) => ({
         //    debajo es exactamente lo que no quieres.
         if (this.zoomed) return true;
 
+        // 4. ⚠️ Y mientras alguien esté leyendo CUALQUIER OTRO gráfico del mismo componente
+        //    Livewire.
+        //
+        //    Un refresco no actualiza un gráfico: actualiza el COMPONENTE ENTERO. Así que dos
+        //    gráficos en el mismo componente comparten el dato — y si el ratón está sobre el de
+        //    al lado, mi temporizador le movería los números bajo el cursor. Es exactamente la
+        //    pausa nº 1, vista desde el otro lado.
+        return this._siblingBusy();
+    },
+
+    /** ¿Hay alguien leyendo otro gráfico del mismo componente Livewire? */
+    _siblingBusy() {
+        if (!this._wireId) return false;
+
+        for (const other of instances) {
+            if (other._wireId === this._wireId && (other.hover || other._drag)) return true;
+        }
+
+        return false;
+    },
+
+    /**
+     * ¿Es este el gráfico que conduce el refresco de su componente?
+     *
+     * Un refresco actualiza el componente Livewire ENTERO. Con dos gráficos con stream dentro
+     * habría dos temporizadores pidiendo exactamente lo mismo: el doble de round-trips contra el
+     * servidor, y el dato avanzando al doble de velocidad. Conduce **uno solo** — el primero que
+     * se montó— y los demás se limitan a repintarse con lo que traiga.
+     *
+     * (Los otros sí conservan sus transiciones y sus pausas: lo que no tienen es su propio
+     * temporizador.)
+     */
+    _isStreamDriver() {
+        // Sin componente Livewire no hay nada que coordinar: cada uno conduce el suyo.
+        if (!this._wireId) return true;
+
+        for (const other of instances) {
+            if (other._wireId === this._wireId && other._stream) {
+                // Por la RAÍZ, no por `$el`: fuera de una expresión de Alpine, `$el` no es la raíz
+                // del componente. Es la misma trampa que init() lleva documentada desde el primer día.
+                return other._root === this._root;
+            }
+        }
+
         return false;
     },
 
     _tick() {
-        if (this.streamPaused || !this.$wire) return;
+        if (!this.$wire || !this._isStreamDriver() || this.streamPaused) return;
 
         const call = config.stream?.call;
 

@@ -43,7 +43,7 @@ Eso no es un detalle: es el issue **#20103 de Filament** («el gráfico parpadea
 
 **Y ~25 líneas de JavaScript**: un temporizador y tres motivos para no dispararlo.
 
-## Los tres momentos en que refrescar es hostil
+## Los cuatro momentos en que refrescar es hostil
 
 Un `wire:poll` a secas refresca **siempre**. Por eso el refresco lo conduce el gráfico:
 
@@ -52,6 +52,44 @@ Un `wire:poll` a secas refresca **siempre**. Por eso el refresco lo conduce el g
 2. **Con la pestaña oculta.** Diez pestañas abiertas serían diez renders cada dos segundos en tu servidor, para nadie.
 
 3. **Con el zoom puesto.** Has ampliado para mirar algo concreto: que se te mueva el suelo debajo es exactamente lo que no quieres.
+
+4. **Mientras alguien lee OTRO gráfico del mismo componente Livewire.** Es la pausa nº 1 vista desde el otro lado — y no se ve venir.
+
+## ⚠️ Un refresco no actualiza un gráfico: actualiza el componente ENTERO
+
+De ahí salen dos cosas que hay que saber:
+
+**Si pones dos gráficos con stream en el mismo componente Livewire, sólo uno conduce.** Dos temporizadores pidiendo exactamente lo mismo serían **el doble de round-trips** contra el servidor y el dato avanzando al doble de velocidad. El gráfico se da cuenta solo y elige uno: los demás conservan sus transiciones y sus pausas, pero no su propio temporizador.
+
+**Y el ratón sobre uno para el refresco de todos.** Si comparten componente, comparten dato: un temporizador que dispare mientras lees el gráfico de al lado le movería los números bajo el cursor.
+
+## El navegador NO es la fuente del dato
+
+El refresco se para con la pestaña oculta — y debe pararse. Pero eso **no pierde datos**, porque el navegador no es quien los produce.
+
+En un panel de verdad el dato lo escribe un colector (un cron, un agente, otro proceso) y el componente lo **consulta**:
+
+```php
+Lectura::where('medido_en', '>', now()->subSeconds(80))->get();
+```
+
+Esa consulta no sabe nada de tu pestaña. Al volver, devuelve **todo** lo que pasó mientras no mirabas.
+
+> Si tu componente **genera** el dato en el `tick()` (una demo, un simulador), entonces sí lo pierdes. Ahí hay que generar hacia atrás: mirar cuánto tiempo ha pasado de verdad, no cuántas veces se ha llamado al método.
+
+## Cuando faltan datos de verdad: `max-gap`
+
+Un `null` explícito ya partía la línea. Lo que **no** partía nada era una fila que sencillamente **no está**:
+
+```blade
+<x-kore::chart.line y="cpu" curve="monotone" max-gap="10s" />
+```
+
+Sin eso, si el colector se muere media hora, la línea **cruza el hueco dibujando una curva suave por encima de un rato en el que no hubo dato**. Y con `curve="monotone"` se inventa, además, un swoop que *parece* dato.
+
+Es la misma mentira que arregló el eje temporal, un piso más arriba: entonces el hueco desaparecía porque los puntos se colocaban por su ordinal; ahora el hueco **se ve**, pero el trazo lo tapa.
+
+`max-gap` acepta `«500ms»`, `«30s»`, `«5m»`, `«2h»`, `«7d»`, `«1w»` o un número (las unidades del eje). Sólo tiene sentido en un eje **continuo**: en uno de categorías no hay huecos que medir, y pedirlo ahí **lanza**.
 
 ## Fija el eje Y
 

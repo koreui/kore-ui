@@ -676,3 +676,26 @@ it('la tabla accesible no arrastra scroll horizontal a toda la página', functio
     expect($html)->toContain('<div class="sr-only">');
     expect($html)->not->toContain('<table class="sr-only">');
 });
+
+it('max-labels FUNCIONA — llevaba sin funcionar desde el primer día', function () {
+    // Una prop con guion declarada en @props NO se puede leer con $attributes->get(): Blade ya la
+    // ha extraído del bag. Así que `$attributes->get('max-labels')` devolvía null SIEMPRE, y el
+    // tope de etiquetas del eje X no se aplicaba nunca. Salían todas.
+    //
+    // La forma correcta es declararla en camelCase (`maxLabels`) y dejar que Blade mapee el
+    // `max-labels` del call-site. Salió a la luz al añadir `max-gap`, que fallaba igual.
+    $data = "[['m'=>'A','v'=>1],['m'=>'B','v'=>2],['m'=>'C','v'=>3],['m'=>'D','v'=>4]]";
+
+    $html = $this->blade(<<<BLADE
+        <x-kore::chart :data="{$data}" x="m">
+            <x-kore::chart.line y="v" />
+            <x-kore::chart.axis-x max-labels="2" />
+        </x-kore::chart>
+    BLADE)->__toString();
+
+    preg_match('/kore-chart-gutter-x.*?<\/div>/s', $html, $gutter);
+
+    // Con el tope en 2, el salto es 2: sólo A y C… y siempre la última (D).
+    expect(substr_count($gutter[0], 'kore-chart-tick'))->toBeLessThan(4);
+    expect($gutter[0])->toContain('>A<')->toContain('>D<')->not->toContain('>B<');
+});

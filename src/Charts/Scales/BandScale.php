@@ -87,6 +87,12 @@ final class BandScale implements XScale
         return count($this->categories);
     }
 
+    /** Entre dos categorías no hay distancia que medir: son equidistantes por definición. */
+    public function domainSpan(): ?float
+    {
+        return null;
+    }
+
     /** En una escala de bandas, la fila N cae en la banda N. Ésa es la definición. */
     public function positionAt(int $row): ?float
     {
