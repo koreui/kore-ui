@@ -1,3 +1,5 @@
+import { lockScroll, unlockScroll } from './utils/scroll-lock.js';
+
 export default function KoreOverlay() {
     return {
         show: false,
@@ -9,7 +11,6 @@ export default function KoreOverlay() {
         positionClasses: '',
         listeners: [],
         transitioning: false,
-        savedScrollY: 0,
         swipe: null,
         swipeTranslateY: 0,
 
@@ -227,20 +228,15 @@ export default function KoreOverlay() {
             }
         },
 
+        // El lock es un recurso global compartido con el drawer del sidebar:
+        // utils/scroll-lock.js cuenta dueños para que el primero en cerrarse no
+        // devuelva el scroll al body mientras el otro sigue abierto.
         lockScroll() {
-            this.savedScrollY = window.scrollY;
-            document.body.style.position = 'fixed';
-            document.body.style.top = `-${this.savedScrollY}px`;
-            document.body.style.left = '0';
-            document.body.style.right = '0';
+            lockScroll(this);
         },
 
         unlockScroll() {
-            document.body.style.position = '';
-            document.body.style.top = '';
-            document.body.style.left = '';
-            document.body.style.right = '';
-            window.scrollTo(0, this.savedScrollY);
+            unlockScroll(this);
         },
 
         updateAttributes(id) {
