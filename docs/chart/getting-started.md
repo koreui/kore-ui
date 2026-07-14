@@ -1,0 +1,137 @@
+# Gráficos
+
+Gráficos de barras, líneas, áreas y donut. **Sin ninguna librería de JavaScript**: la geometría se calcula en PHP y el servidor te devuelve el `<svg>` ya dibujado.
+
+## Los componentes
+
+| Componente | Para qué |
+|---|---|
+| `<x-kore::chart>` | El gráfico. Le das los datos y dentro pones las capas |
+| `<x-kore::chart.line>` | Una línea |
+| `<x-kore::chart.area>` | Un área bajo la línea |
+| `<x-kore::chart.bar>` | Barras. Con `stack` se apilan; sin él, se agrupan |
+| `<x-kore::chart.donut>` | Un donut (o una tarta, con `inner="0"`) |
+| `<x-kore::chart.axis-y>` | El eje Y: cuántos ticks y cómo se formatean |
+| `<x-kore::chart.axis-x>` | El eje X |
+| `<x-kore::chart.legend>` | La leyenda. Al pulsarla, oculta la serie |
+| `<x-kore::chart.tooltip>` | El tooltip y el crosshair |
+
+## Ejemplo completo
+
+```blade
+<x-kore::chart :data="$ventas" x="mes" title="Ingresos y gastos">
+    <x-kore::chart.bar  y="gastos"   label="Gastos" />
+    <x-kore::chart.line y="ingresos" label="Ingresos" curve="monotone" />
+
+    <x-kore::chart.axis-y :ticks="5" format="currency" />
+    <x-kore::chart.axis-x />
+    <x-kore::chart.legend />
+    <x-kore::chart.tooltip />
+</x-kore::chart>
+```
+
+```php
+$ventas = [
+    ['mes' => 'Ene', 'ingresos' => 1240, 'gastos' => 800],
+    ['mes' => 'Feb', 'ingresos' => 3180, 'gastos' => 1500],
+    // ...
+];
+```
+
+**No hay tipos de gráfico.** No existe un `type="mixed"`: un gráfico de barras con una línea encima son dos marcas, una detrás de otra. El orden en que las escribes es el orden en que se pintan.
+
+## Cómo funciona (y por qué importa)
+
+**El gráfico lo dibuja el servidor.** El `<svg>` llega ya hecho en el HTML de la respuesta, con el atributo `d` calculado en PHP. Consecuencias que se notan:
+
+- **El primer paint es el bueno.** No hay un hueco que se rellena cuando arranca el JavaScript.
+- **Con Livewire, el morph *es* la actualización.** Cambias el dato en PHP, Livewire morphea el `<path>` y ya está. Sin `wire:ignore`, sin `chart.update()`, sin una instancia de JavaScript que proteger. Está verificado: el morph actualiza el `d` **sin recrear el nodo**.
+- **El gráfico funciona sin JavaScript.** Sin leyenda ni tooltip, no se carga ni un byte de JS.
+
+**El color nunca es un valor, es un token.** Las series se pintan con `var(--kore-chart-1)`, `var(--kore-chart-2)`… así que **al cambiar de tema el gráfico se repinta solo, sin ejecutar nada**. Verificado en Chrome, Firefox y Safari.
+
+Esto es lo contrario de lo que hace un motor de `<canvas>`: ahí el color es un valor de JavaScript, y hay que volver a ejecutar código y repintar en cada cambio de tema.
+
+**El resize tampoco necesita JavaScript.** Toda la geometría está en porcentajes del área de trazado, no en píxeles. El navegador escala.
+
+**Los datos van también en una tabla.** Un `<svg>` es tan mudo para un lector de pantalla como un `<canvas>`. Como los datos ya están en PHP, el componente emite además un `<table class="sr-only">` con todos los valores. No es opcional y no cuesta un byte de JavaScript.
+
+## Los colores
+
+Hay **ocho colores de datos** (`--kore-chart-1` … `--kore-chart-8`) y se asignan **por orden de escritura de las marcas**. La primera marca es la 1, la segunda la 2, y así.
+
+Son una escala aparte de los tokens semánticos, y a propósito: `--kore-success` significa *"esto va bien"*. Si lo usas para la serie 2, le estás diciendo al lector que la serie 2 va bien.
+
+> **La novena serie no existe.** La paleta no se cicla: repetir el color de la serie 1 en la novena es peor que no pintarla, porque el lector deja de poder distinguirlas. Con más de ocho series, agrupa el resto en "Otros". Si lo intentas, el componente lanza una excepción.
+
+Puedes forzar un color concreto cuando la serie *significa* algo:
+
+```blade
+<x-kore::chart.line y="errores" color="destructive" />
+```
+
+## Instalación
+
+Los componentes vienen con la librería. Solo dos cosas, como el resto de KoreUi:
+
+**1. `@koreScripts`** en el layout — y solo hace falta si usas leyenda o tooltip:
+
+```blade
+<body>
+    {{-- tu contenido --}}
+
+    @livewireScripts
+    @koreScripts
+</body>
+```
+
+**2. Que Tailwind vea las vistas del paquete**, en tu CSS:
+
+```css
+@import 'tailwindcss';
+@import '../../vendor/koreui/kore-ui/resources/css/kore-theme.css';
+
+@source '../../vendor/koreui/kore-ui/resources/**/*.blade.php';
+```
+
+## Configuración
+
+En `config/kore-ui.php`, sección `chart`:
+
+```php
+'chart' => [
+    'height' => '16rem',        // longitud CSS. Con la prop `aspect`, se ignora
+    'ticks' => 5,               // una PISTA, no un contrato (ver abajo)
+    'bar_padding' => 0.2,       // hueco entre barras, como proporción de la banda
+    'max_x_labels' => 12,       // por encima, se saltan etiquetas
+    'table_max_rows' => 500,    // tope de la tabla accesible
+
+    'empty_text' => 'No hay datos que mostrar',
+    'empty_icon' => 'chart-line',
+
+    'format' => [
+        'decimal_separator' => ',',
+        'thousands_separator' => '.',
+        'currency' => '€',
+        'currency_after' => true,   // "12 €" (es) vs "$12" (en)
+    ],
+],
+```
+
+## Limitaciones que conviene conocer
+
+**`ticks` es una pista, no una promesa.** Si pides 5, te pueden salir 7. El algoritmo (el mismo que usa d3) prioriza que los valores sean redondos —1.000, 2.000, 3.000— sobre que sean exactamente los que pediste. Un eje que dice "1.224" es un eje roto, y prometer un número exacto de ticks obliga a eso.
+
+**Los puntos de la línea no se pintan por defecto.** Con `dots` los activas, pero son un `<div>` por punto: con 10.000 puntos el HTML pesa 1,4 MB y mover el crosshair cuesta medio frame. Sin ellos, el trazo es **un solo nodo** y da igual cuántos datos haya.
+
+**El techo son unos 2.000 puntos por serie.** No lo pone el rendimiento del dibujo, lo pone el peso del HTML. Por encima, agrega o decima los datos en PHP.
+
+**El eje X es categórico.** Las fechas se pre-formatean en PHP y entran como categorías. Una escala temporal de verdad (con ticks que caen en fronteras de mes o de trimestre) es otro algoritmo entero, y no está en esta versión.
+
+**Ocultar una serie desde la leyenda no reescala los ejes.** La serie desaparece, pero el eje se queda como estaba.
+
+**No hay zoom, ni pan, ni streaming**, ni tipos exóticos (candlestick, treemap, heatmap, mapas).
+
+## Una regla de diseño que el componente te va a imponer
+
+**Nunca hay dos ejes Y.** Si quieres comparar dos medidas de escalas distintas, son dos gráficos, no uno con dos escalas: un doble eje Y permite dibujar *cualquier* correlación con solo elegir bien las escalas, y por eso es el error más frecuente y más grave de la visualización de datos.

@@ -7,6 +7,45 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.6.0] — 2026-07-14
+
+**Gráficos.** Barras, líneas, áreas y donut, **sin ninguna librería de JavaScript**: la geometría se calcula en PHP y el servidor devuelve el `<svg>` ya dibujado.
+
+### Added
+
+- **`<x-kore::chart>`** y sus marcas: `chart.line`, `chart.area`, `chart.bar`, `chart.donut`, `chart.axis-x`, `chart.axis-y`, `chart.legend` y `chart.tooltip`. Ver [docs/chart/getting-started.md](docs/chart/getting-started.md).
+- **`Kore\Charts\`**: el motor de geometría, en PHP puro y sin depender de Blade ni de JavaScript. Sirve igual para un PDF, un email o un export.
+- **Paleta categórica `--kore-chart-1` … `--kore-chart-8`**, en claro y en oscuro.
+
+#### El principio que ordena todo el módulo
+
+**El color nunca es un valor: es un token.** Las series se pintan con `var(--kore-chart-1)`, así que **al cambiar de tema el gráfico se repinta solo, sin ejecutar una sola línea de JavaScript**. Verificado en Chrome, Firefox y WebKit.
+
+Eso es lo contrario de lo que hace un motor de `<canvas>`, donde el color es un valor de JS y hay que volver a ejecutar código en cada cambio de tema — con las consecuencias que lleva años pagando el resto del ecosistema Laravel: colores que se intercambian solos entre gráficos, y gráficos que necesitan una recarga para verse bien en modo oscuro.
+
+Y como el `<svg>` lo emite el servidor, **el morph de Livewire deja de ser una amenaza y pasa a ser el mecanismo de actualización**: cambias el dato en PHP y Livewire actualiza el atributo `d` del `<path>` **sin recrear el nodo**. Sin `wire:ignore`, sin `chart.update()`, sin una instancia de JavaScript que proteger.
+
+#### Detalles que quizá quieras conocer
+
+- **No existe un `type="mixed"`.** Un gráfico de barras con una línea encima son dos marcas, una detrás de otra. El orden en que las escribes es el orden en que se pintan.
+- **Los ejes dicen números redondos.** El algoritmo de ticks es un puerto del de d3 (ISC, con atribución en [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)) y da exactamente los mismos valores. El reparto ingenuo que usa el resto del ecosistema PHP produce ejes que dicen "1.224".
+- **Un `null` no es un cero.** La línea se corta en el hueco, en vez de dibujar una caída al suelo que nunca ocurrió. Y la curva monótona reinicia sus tangentes ahí, para no inventarse una curva por encima del vacío.
+- **Los datos van también en un `<table class="sr-only">`.** Un `<svg>` es tan mudo para un lector de pantalla como un `<canvas>`; como los datos ya están en PHP, la tabla sale gratis. Nadie más en el ecosistema la sirve.
+- **Sin leyenda ni tooltip, el gráfico no carga JavaScript.** Y el resize no lo necesita nunca: la geometría está en porcentajes, no en píxeles.
+- **La paleta no se cicla.** La novena serie no existe: repetir el color de la primera es peor que no pintarla. Si lo intentas, salta una excepción.
+
+### Fixed
+
+- **`theme.js` no avisaba al cambiar el tema del sistema operativo.** `setMode()` sí despachaba `theme-changed`, pero el listener de `matchMedia` no. Con `mode: 'system'` —que es el valor por defecto— cambiar el tema del SO repintaba el CSS sin avisar a nadie, así que cualquier consumidor que necesitara releer colores desde JavaScript se quedaba con el tema anterior. Y solo en la configuración por defecto, que es la peor forma de encontrar un bug.
+
+### Changed
+
+- **`floating.js` acepta una referencia virtual.** El tooltip de un gráfico no cuelga de un elemento: cuelga de un punto de datos. Y como un ratón moviéndose no dispara scroll, resize ni mutación, el `cleanup` que devuelve `startFloating()` expone ahora un `update()` para pedir el reposicionamiento a mano. Los cuatro componentes que ya lo usaban no cambian.
+
+> **Limitaciones que conviene conocer.** El eje X es categórico: las fechas se pre-formatean en PHP y entran como categorías (una escala temporal de verdad es otro algoritmo entero). Los puntos de la línea son opt-in, porque son un `<div>` por dato. El techo práctico son unos 2.000 puntos por serie, y no lo pone el dibujo sino el peso del HTML. Ocultar una serie desde la leyenda no reescala los ejes. Y no hay zoom, ni pan, ni tipos exóticos.
+
+---
+
 ## [1.5.0] — 2026-07-13
 
 **App Shell.** El chasis de la aplicación —sidebar, barra superior y el layout que los coordina— pasa a ser parte de la librería. Con esto se monta un panel de administración completo sin escribir layout a mano.

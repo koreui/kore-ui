@@ -51,7 +51,7 @@
             x-on:pointerleave="onPointerLeave()"
         @endif
     @endif
-    style="{{ $aspectSafe ? '--kore-chart-aspect: '.$aspectSafe.';' : '--kore-chart-height: '.$height.';' }}"
+    style="{{ $aspectSafe ? '--kore-chart-aspect: '.$aspectSafe.';' : '--kore-chart-height: '.$height.';' }} --kore-chart-gutter-y: {{ $plot->empty ? 2 : $plot->yGutter() }}ch;"
     {{ $attributes->except('class')->class(['kore-chart', $aspectSafe ? 'kore-chart-aspect' : null, $attributes->get('class')]) }}
 >
     @if($title)
@@ -70,10 +70,12 @@
             @include('kore::chart.legend', ['series' => $cartesian, 'chartId' => $chartId])
         @endif
 
-        {{-- El grid de 3 zonas. La canaleta del eje Y es una columna `auto`: la dimensiona el
-             navegador con el ancho real de las etiquetas, así que el servidor NUNCA tiene que
-             medir texto. Y como las posiciones del dato son % del área RESTANTE, que la
-             canaleta cambie de ancho no invalida ninguna coordenada. --}}
+        {{-- El grid de 3 zonas. El ancho de la canaleta del eje Y sale de CONTAR CARACTERES en
+             PHP y expresarlo en `ch`: el servidor no puede medir texto, pero el navegador sí
+             convierte `ch` a píxeles con la fuente real. (Dejarla en `auto` no funciona: las
+             etiquetas van en position:absolute —cada una a la altura de su tick— así que no
+             aportan anchura y la columna colapsaría.) Y como las posiciones del dato son % del
+             área RESTANTE, que la canaleta mida más o menos no invalida ninguna coordenada. --}}
         <div class="kore-chart-frame">
             @if($showY)
                 <div class="kore-chart-gutter-y" aria-hidden="true">

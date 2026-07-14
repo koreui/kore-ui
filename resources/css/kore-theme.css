@@ -940,6 +940,7 @@
 
   --kore-chart-height: 16rem;
   --kore-chart-gap: 0.5rem;
+  --kore-chart-gutter-y: 4ch;
 }
 
 .kore-chart-title {
@@ -1030,7 +1031,13 @@
   position: relative;
   grid-column: 1;
   grid-row: 1;
-  min-width: 2ch;
+
+  /* Las etiquetas del eje van en `position: absolute` —cada una a la altura de su tick—, así
+     que NO aportan anchura a la columna `auto` del grid: colapsaría y se saldrían por la
+     izquierda, fuera de la tarjeta. El servidor no puede medir texto, pero sí contar
+     caracteres; `ch` deja que el navegador haga la conversión con la fuente real, y como los
+     ticks usan tabular-nums, todos los dígitos miden lo mismo. */
+  width: var(--kore-chart-gutter-y);
 }
 
 .kore-chart-gutter-x {

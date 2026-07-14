@@ -135,6 +135,30 @@ final class Plot
     }
 
     /**
+     * El ancho de la canaleta del eje Y, en `ch`.
+     *
+     * La columna del grid es `auto`, pero las etiquetas van en `position: absolute` —y tienen
+     * que ir, porque cada una se coloca a la altura de su tick— así que **no aportan anchura**:
+     * la columna colapsaría y las etiquetas se saldrían por la izquierda, fuera de la tarjeta.
+     *
+     * El servidor no puede medir texto, pero sí puede CONTAR CARACTERES. La unidad `ch` deja
+     * que el navegador haga la conversión a píxeles con la fuente real. Y como los ticks usan
+     * `tabular-nums`, todos los dígitos miden lo mismo, así que la cuenta es exacta.
+     */
+    public function yGutter(): float
+    {
+        $longest = 0;
+
+        foreach ($this->yTicks as $tick) {
+            $longest = max($longest, mb_strlen($tick['label']));
+        }
+
+        // +0.5 de margen: el signo menos y el símbolo de moneda no son dígitos y pueden
+        // medir algo más que un `ch`.
+        return round(max($longest + 0.5, 2), 1);
+    }
+
+    /**
      * Las etiquetas del eje X, saltando de N en N cuando no caben.
      *
      * El servidor no puede medir texto, así que no puede saber si dos etiquetas colisionan.

@@ -263,3 +263,33 @@ describe('seguridad', function () use ($data) {
         $view->assertDontSee('url(evil)', false);
     });
 });
+
+describe('la canaleta del eje Y', function () use ($data) {
+    it('se dimensiona contando caracteres, porque el servidor no puede medir texto', function () use ($data) {
+        // La columna del grid NO puede ser `auto`: las etiquetas van en position:absolute
+        // (cada una a la altura de su tick), así que no aportan anchura y la columna
+        // colapsaría — las etiquetas se saldrían por la izquierda, fuera de la tarjeta.
+        // Es un bug que solo se ve mirando, y por eso tiene test.
+        $view = $this->blade(<<<BLADE
+            <x-kore::chart :data="{$data}" x="mes">
+                <x-kore::chart.line y="ingresos" />
+                <x-kore::chart.axis-y format="currency" />
+            </x-kore::chart>
+        BLADE);
+
+        // "3.000 €" son 7 caracteres → 7.5ch
+        $view->assertSee('--kore-chart-gutter-y: 7.5ch', false);
+    });
+
+    it('se ensancha con etiquetas más largas', function () {
+        $view = $this->blade(<<<'BLADE'
+            <x-kore::chart :data="[['m' => 'A', 'v' => 1500000], ['m' => 'B', 'v' => 2500000]]" x="m">
+                <x-kore::chart.line y="v" />
+                <x-kore::chart.axis-y format="currency" />
+            </x-kore::chart>
+        BLADE);
+
+        // "2.500.000 €" son 11 caracteres
+        $view->assertSee('--kore-chart-gutter-y: 11.5ch', false);
+    });
+});
