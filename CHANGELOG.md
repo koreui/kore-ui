@@ -7,6 +7,50 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.5.0] — 2026-07-13
+
+**App Shell.** El chasis de la aplicación —sidebar, barra superior y el layout que los coordina— pasa a ser parte de la librería. Con esto se monta un panel de administración completo sin escribir layout a mano.
+
+### Added
+
+- **`<x-kore::shell>`** — el layout. Los sidebars se le anuncian solos al renderizarse, así que reserva el espacio del contenido sin recibir props duplicadas ni inspeccionar el HTML.
+- **`<x-kore::sidebar>`** — navegación lateral colapsable, con drawer automático en móvil, modo rail y soporte para dos sidebars a la vez (uno a cada lado).
+- **`<x-kore::sidebar.item>`** — enlaces, desplegables a cualquier profundidad, badges y detección de ruta activa.
+- **`<x-kore::sidebar.group>`** — secciones con título, opcionalmente plegables.
+- **`<x-kore::sidebar.toggle>`** — el botón de menú. Habla con el store de Alpine, así que funciona desde cualquier punto de la página; en escritorio colapsa y en móvil abre el drawer.
+- **`<x-kore::navbar>`** — barra superior con tres zonas y el botón de menú incorporado.
+
+Documentación en [`docs/shell/`](docs/shell/getting-started.md).
+
+#### El principio que ordena todo el módulo
+
+**El estado lo resuelve el servidor y lo estampa en el HTML. Alpine solo cambia atributos.**
+
+- **El sidebar recuerda si está colapsado en una cookie** (`kore_sidebar`), no en `localStorage`. La cookie viaja al servidor, así que Laravel emite el ancho correcto **en el primer paint**: cero parpadeo, cero JavaScript en el camino crítico, y el sidebar sale bien aunque el JS no cargue nunca. Con `localStorage` el estado solo se sabría tras arrancar Alpine, y el sidebar aparecería ancho y se encogería a la vista del usuario en cada carga.
+- **La ruta activa y los sub-menús abiertos se calculan en PHP.** Si estás en una hoja del árbol, toda su rama sale ya desplegada en el HTML — a cualquier profundidad. Nada de menús que se abren de golpe cuando arranca el JavaScript.
+- **El layout móvil es CSS puro.** Media queries, no `matchMedia`: correcto en el primer paint y en cada resize.
+
+#### Detalles que quizá quieras conocer
+
+- Con el sidebar en iconos, los sub-menús salen en **flyouts apilados**: un menú anidado se abre *al lado* de su padre, no en su lugar.
+- Los **badges numéricos se mudan a la esquina del icono** al colapsar, con tope configurable (`badge_max`, por defecto `99` → `"99+"`). El valor acortado es solo el visual: un lector de pantalla sigue anunciando el número real.
+- **Accesibilidad**: navegación completa por teclado (`↑↓`, `Home`/`End`, `←→` para los sub-menús), focus trap **solo** en el drawer móvil (en escritorio el sidebar es parte de la página, y atrapar el foco ahí sería un fallo, no una mejora), y los enlaces conservan su nombre cuando la etiqueta desaparece al colapsar.
+- **`shell.badge_max`, `shell.sidebar.*` y `shell.navbar.*`** en `config/kore-ui.php`. Los anchos son longitudes CSS, no clases de Tailwind: alimentan las custom properties que gobiernan el layout.
+
+> **Una limitación de CSS, no de KoreUi:** el sidebar es `position: fixed` y deja de anclarse a la ventana si un **ancestro** del shell tiene `transform`, `filter` o `contain`. Si aparece en un sitio raro, busca eso.
+
+### Fixed
+
+- **El selector de tema estaba muerto en las variantes `toggle` y `segmented`.** No declaraban `x-data`, y Alpine solo evalúa directivas dentro de un árbol que lo tenga: sus `x-on:click` nunca se registraban y pulsarlos no hacía nada, **sin ningún error**. Funcionaba por accidente en las apps cuyo layout tuviera un `x-data` colgado del `<html>`, y estaba roto en las demás.
+- **MCP** — los tokens del shell (`--kore-sidebar-width: 16rem`) se publicaban como si fueran **colores**, con una clase `bg-kore-sidebar-width` inexistente. Ahora tienen su propia categoría `layout`. Además, el filtro por categoría solo conocía 4 de las 9 que existen.
+
+### Changed
+
+- **`<x-kore::toolbar>` acepta `:role="false"`** para no emitir `role="toolbar"`. Ese rol le promete a un lector de pantalla un widget que se recorre con las flechas; una cabecera de página no lo es. Retrocompatible: por defecto se sigue emitiendo.
+- **El bloqueo de scroll sale de `overlay.js`** a `utils/scroll-lock.js`, con conteo de dueños. Es un recurso global: sin ese conteo, cerrar un modal devolvería el scroll a la página con el drawer del sidebar todavía abierto.
+
+---
+
 ## [1.4.1] — 2026-07-13
 
 ### Fixed
@@ -262,6 +306,7 @@ Primera versión pre-release de kore-ui. Incluye el sistema base completo con ov
 
 ---
 
+[1.5.0]: https://github.com/koreui/kore-ui/releases/tag/v1.5.0
 [1.4.1]: https://github.com/koreui/kore-ui/releases/tag/v1.4.1
 [1.4.0]: https://github.com/koreui/kore-ui/releases/tag/v1.4.0
 [1.3.0]: https://github.com/koreui/kore-ui/releases/tag/v1.3.0
