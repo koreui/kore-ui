@@ -1472,32 +1472,42 @@
 
 /* Las marcas se MUEVEN a su sitio nuevo en vez de aparecer en él.
  *
- * ⚠️ Sólo las barras y los puntos, y no es un olvido: son <div> con la posición en custom
- * properties, así que una transición sobre `top`/`height` funciona en todas partes y hace lo
- * correcto.
+ * ⚠️⚠️ DOS REGLAS, Y LAS DOS SE APRENDIERON MIRANDO.
  *
- * La LÍNEA no se anima. Animarla exigiría `transition: d`, y está medido en los tres motores:
- * Firefox interpola, **WebKit ni siquiera lo soporta** (`CSS.supports('d')` devuelve false) y
- * Chromium dice soportarlo pero da un salto seco.
+ * ── 1. Si el gráfico tiene TRAZO (una línea, un área), no se anima NADA. ─────────────────
  *
- * Y hay una razón mejor para no hacerlo aunque funcionara: en una ventana deslizante, interpolar
- * `d` lleva el punto i hasta el valor del punto i+1 — o sea, la onda TIEMBLA EN EL SITIO en vez
- * de desplazarse. Es la animación equivocada. Un motor de canvas tiene el mismo problema y lo
- * resuelve igual: redibujando.
+ * El `<path>` no se puede animar. Animarlo exigiría `transition: d`, y está medido en los tres
+ * motores con Playwright: Firefox interpola, **WebKit ni siquiera lo soporta**
+ * (`CSS.supports('d')` devuelve false) y Chromium dice soportarlo pero da un salto seco.
  *
- * Aun así, la línea ya sale ganando: el morph de Livewire cambia el `d` SIN RECREAR EL NODO, así
- * que no parpadea. Es el issue #20103 de Filament, que nosotros no podemos tener. */
+ * Así que el trazo SALTA. Y todo lo que se mueva despacio mientras el trazo salta **se despega de
+ * él**. Medido en la demo, con los puntos animados: el peor se iba a **8,36 % del área** de la
+ * curva sobre la que se supone que está — unos 24 px. Se veía a la legua.
+ *
+ * O se anima todo, o no se anima nada. Y como el trazo no puede, no se anima nada: el atributo
+ * `data-kore-chart-stream` sólo lo emite el servidor cuando NO hay línea ni área.
+ *
+ * (Aun así el trazo ya sale ganando: el morph cambia el `d` SIN RECREAR EL NODO, así que no
+ * parpadea. Es el issue #20103 de Filament, que nosotros no podemos tener.)
+ *
+ * ── 2. Sólo se anima lo VERTICAL. Lo horizontal salta. ───────────────────────────────────
+ *
+ * Las etiquetas del eje X no se animan —saltan a su sitio nuevo—, así que una barra que se
+ * desplazara despacio hacia la izquierda se quedaría atrás de su propio tick. Lo horizontal se
+ * mueve todo junto y de golpe; lo vertical (que es donde está el DATO) glisa.
+ *
+ * Y por eso las barras llevan `wire:key` cuando hay stream: sin ella, en una ventana deslizante
+ * el morph reutiliza la barra i para el dato i+1 y la barra crece EN EL SITIO — que es
+ * exactamente el temblor que esta regla existe para evitar. */
 .kore-chart[data-kore-chart-stream] .kore-chart-bar,
 .kore-chart[data-kore-chart-stream] .kore-chart-dot {
   transition:
-    left var(--kore-chart-tween) ease-out,
     top var(--kore-chart-tween) ease-out,
-    width var(--kore-chart-tween) ease-out,
     height var(--kore-chart-tween) ease-out;
 }
 
-/* La rejilla y los ticks del eje Y también: si el dominio cambia, las líneas se deslizan a su
-   altura nueva en vez de teletransportarse. */
+/* La rejilla y los ticks del eje Y: si el dominio cambia, se deslizan a su altura nueva en vez de
+   teletransportarse. Van con las marcas, con la misma duración, así que no se despegan. */
 .kore-chart[data-kore-chart-stream] .kore-chart-grid-line,
 .kore-chart[data-kore-chart-stream] .kore-chart-gutter-y .kore-chart-tick {
   transition: top var(--kore-chart-tween) ease-out;

@@ -65,11 +65,11 @@ Un eje que se reescala cada dos segundos porque el dato subió un punto es **ile
 
 `min` y `max` son un **contrato**, no una sugerencia: no se redondea por debajo de lo que pides.
 
-## Por qué la línea no se anima y las barras sí
+## Si el gráfico tiene trazo, no se anima nada
 
-Las barras y los puntos son `<div>` con la posición en custom properties: una transición CSS sobre `top`/`height` funciona en todas partes y hace lo correcto.
+**Y no es un olvido: es la única respuesta coherente.**
 
-La línea es un `<path>`, y animarla exigiría `transition: d`. **Medido en los tres motores:**
+La línea es un `<path>`, y animarla exigiría `transition: d`. **Medido en los tres motores con Playwright:**
 
 | Motor | `CSS.supports('d')` | ¿Interpola de verdad? |
 |---|---|---|
@@ -79,7 +79,23 @@ La línea es un `<path>`, y animarla exigiría `transition: d`. **Medido en los 
 
 Y hay una razón mejor para no hacerlo aunque funcionara: en una ventana deslizante, interpolar `d` lleva el punto *i* hasta el valor del punto *i+1* — o sea, **la onda tiembla en el sitio en vez de desplazarse**. Es la animación equivocada. Un motor de canvas tiene el mismo problema y lo resuelve igual: redibujando.
 
-La línea no necesita animación de todas formas: el morph cambia el `d` sin recrear el nodo, así que **no parpadea**.
+**Así que el trazo salta. Y todo lo que se mueva despacio mientras el trazo salta se despega de él.**
+
+Eso no es teórico: con los puntos animados, **el peor se iba a 8,36 % del área** de la curva sobre la que se supone que está — unos 24 px en un gráfico de 18 rem. Se veía a la legua.
+
+> **O se anima todo, o no se anima nada.** Y como el trazo no puede, no se anima nada.
+
+Así que las transiciones **sólo se encienden cuando el gráfico no tiene línea ni área**. Un gráfico de barras en vivo sí las tiene: ahí no hay ningún trazo del que despegarse.
+
+La línea no las necesita de todas formas: el morph cambia el `d` sin recrear el nodo, así que **no parpadea**.
+
+### Y sólo se anima lo vertical
+
+Las etiquetas del eje X **no** se animan: saltan a su sitio nuevo. Así que una barra que se desplazara despacio hacia la izquierda se quedaría atrás de su propio tick.
+
+Lo horizontal se mueve todo junto y de golpe. Lo **vertical** —que es donde está el dato— glisa.
+
+Y por eso las barras llevan `wire:key` cuando hay stream: sin ella, en una ventana deslizante el morph reutiliza la barra *i* para el dato *i+1*, y la barra **crece en el sitio** en vez de que la de al lado se desplace. Que es exactamente el temblor que esta regla existe para evitar.
 
 > Todo esto se apaga con `:transition="false"`, y se respeta `prefers-reduced-motion` sin que hagas nada.
 

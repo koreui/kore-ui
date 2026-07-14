@@ -62,7 +62,11 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
   La ventana deslizante es un `array_slice`: ni ring buffer, ni motor. Y todo el JavaScript son ~25 líneas.
 
-  **Las barras y los puntos se animan; la línea no**, y no es un olvido. Animar el trazo exigiría `transition: d`, y está medido en los tres motores: Firefox interpola, **WebKit ni siquiera lo soporta** y Chromium dice soportarlo pero da un salto seco. Y hay una razón mejor: en una ventana deslizante, interpolar `d` lleva el punto *i* hasta el valor del punto *i+1* — la onda **tiembla en el sitio** en vez de desplazarse. Es la animación equivocada.
+  **Si el gráfico tiene trazo, no se anima nada.** Animar la línea exigiría `transition: d`, y está medido en los tres motores con Playwright: Firefox interpola, **WebKit ni siquiera lo soporta** y Chromium dice soportarlo pero da un salto seco. Y hay una razón mejor: en una ventana deslizante, interpolar `d` lleva el punto *i* hasta el valor del punto *i+1* — la onda **tiembla en el sitio** en vez de desplazarse.
+
+  Así que el trazo **salta**. Y todo lo que se mueva despacio mientras el trazo salta **se despega de él**: medido, con los puntos animados el peor se iba a **8,36 % del área** de la curva sobre la que se supone que está — unos 24 px. O se anima todo, o no se anima nada; y como el trazo no puede, no se anima nada.
+
+  Las transiciones sólo se encienden cuando **no hay línea ni área** (un gráfico de barras en vivo: ahí no hay trazo del que despegarse), y sólo sobre lo **vertical** — lo horizontal salta, porque las etiquetas del eje X también saltan. Las barras llevan `wire:key` cuando hay stream: sin ella, el morph reutiliza la barra *i* para el dato *i+1* y la barra crece en el sitio en vez de que la de al lado se desplace.
 
   ⚠️ **El techo va escrito, medido y con excepción.** Un refresco es un round-trip completo de Livewire, y **medido: 44 kB de HTML — 5,1 kB gzip — por refresco** con 40 puntos y 2 series. Son N renders para N clientes. `every` **lanza** por debajo de 500 ms. El techo honesto es **1 Hz con ≤ 200 puntos**; a 10 Hz no aguanta ninguna arquitectura que dibuje en el servidor, ni ésta ni ninguna.
 

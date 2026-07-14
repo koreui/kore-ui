@@ -107,6 +107,28 @@ final class ChartFrame
         return false;
     }
 
+    /**
+     * ¿Hay algún trazo SVG (una línea, un área)?
+     *
+     * Importa para una sola cosa, y es de las que no se ven venir: **si hay trazo, en un gráfico
+     * en vivo no se puede animar NADA**. El `<path>` no se puede animar —medido en los tres
+     * motores: WebKit ni siquiera soporta `transition: d`— así que salta de golpe. Y todo lo que
+     * se mueva despacio mientras el trazo salta **se despega de él**.
+     *
+     * Medido: con los puntos animados, el peor se iba a **8,36 % del área** de la curva sobre la
+     * que se supone que está — unos 24 px. Se veía a la legua.
+     */
+    public function hasTrace(): bool
+    {
+        foreach ($this->marks() as $mark) {
+            if ($mark->medium() === Mark::SVG && $mark->type() !== 'donut') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function hasDonut(): bool
     {
         foreach ($this->marks() as $mark) {

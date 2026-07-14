@@ -104,7 +104,15 @@
     data-kore-chart="{{ $chartId }}"
     @if($plot->empty) data-kore-chart-empty="true" @endif
     @if($zoomed ?? false) data-kore-chart-zoomed="true" @endif
-    @if(($stream ?? null) && ($stream['transition'] ?? true)) data-kore-chart-stream="true" @endif
+    {{-- ⚠️ Las transiciones sólo se encienden si NO hay trazo.
+
+         El <path> no se puede animar (medido: WebKit ni soporta `transition: d`), así que salta de
+         golpe. Y todo lo que se mueva despacio mientras el trazo salta SE DESPEGA DE ÉL: medido,
+         con los puntos animados el peor se iba a 8,36 % del área de la curva sobre la que se supone
+         que está. Unos 24 px. Se veía a la legua.
+
+         Así que o se anima todo, o no se anima nada — y como el trazo no puede, no se anima nada. --}}
+    @if(($stream ?? null) && ($stream['transition'] ?? true) && ! $frame->hasTrace()) data-kore-chart-stream="true" @endif
     @if($interactive)
         x-data="KoreChart({{ Js::from(['id' => $chartId, 'zoom' => $zoom, 'stream' => $stream]) }})"
         @if($frame->tooltip || $zoom)
@@ -213,6 +221,15 @@
                             @foreach($layer['series'] as $serie)
                                 @foreach($serie['bars'] as $bar)
                                     <div class="kore-chart-bar"
+                                         @if($stream ?? null)
+                                             {{-- La clave sigue al DATO, no a su sitio en la lista.
+                                                  Sin ella, en una ventana deslizante el morph
+                                                  reutiliza la barra i para el dato i+1: la barra
+                                                  CRECE en el sitio en vez de que la de al lado se
+                                                  desplace, y con la transición puesta se ve
+                                                  temblar. --}}
+                                             wire:key="{{ $chartId }}-{{ $serie['id'] }}-{{ $plot->categories[$bar['index']] ?? $bar['index'] }}"
+                                         @endif
                                          data-kore-serie="{{ $serie['id'] }}"
                                          data-index="{{ $bar['index'] }}"
                                          @if($bar['negative']) data-negative="true" @endif
