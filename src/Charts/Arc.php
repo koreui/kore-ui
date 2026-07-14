@@ -101,6 +101,32 @@ final class Arc
         return self::ring($start, $end, $inner, $outer, $cx, $cy);
     }
 
+    /**
+     * Un arco ABIERTO, para TRAZAR (no rellenar). Lo que necesita un gauge.
+     *
+     * Un gauge es una línea curva con grosor y las puntas redondeadas (`stroke-linecap: round`),
+     * no un anillo relleno como una porción de donut. Sale más limpio y con mucho menos path.
+     *
+     * Un gauge nunca da la vuelta entera (eso es un donut), así que aquí no hace falta partir el
+     * arco degenerado de 360°.
+     */
+    public static function open(float $start, float $end, float $radius, float $cx = 50.0, float $cy = 50.0): string
+    {
+        // Un arco de longitud cero (valor en el mínimo) no dibuja nada, y está bien: no hay valor
+        // que enseñar. Con `stroke-linecap: round` saldría un punto, que tampoco molesta.
+        if (abs($end - $start) < 1e-9) {
+            return '';
+        }
+
+        $large = ($end - $start) > M_PI ? 1 : 0;
+
+        [$x0, $y0] = self::point($cx, $cy, $radius, $start);
+        [$x1, $y1] = self::point($cx, $cy, $radius, $end);
+
+        return 'M'.self::n($x0).' '.self::n($y0)
+            .' A'.self::n($radius).' '.self::n($radius).' 0 '.$large.' 1 '.self::n($x1).' '.self::n($y1);
+    }
+
     private static function ring(float $start, float $end, float $inner, float $outer, float $cx, float $cy): string
     {
         $large = ($end - $start) > M_PI ? 1 : 0;

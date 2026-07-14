@@ -82,6 +82,12 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
   **Es un apilado de una sola serie con la base moviéndose por fila**: la barra flotante ya la calculaba `layoutBars()` para las pilas, así que no hay geometría nueva. Cada etapa es un salto que sube (verde) o baja (rojo); una fila marcada como `total` es un descansillo que va del cero al acumulado, en neutro. **Los totales se calculan solos si los dejas vacíos** — no hay que repetir la suma en el dato. El color codifica **polaridad, no identidad**: es el único sitio donde una serie usa los tokens semánticos, y es legítimo (`--kore-success` significa «esto suma»).
 
+- **Gauge (`<x-kore::chart.gauge>`)** — un número, contra un objetivo, y con rangos de color. Ver [docs/chart/gauge.md](docs/chart/gauge.md).
+
+  **Reutiliza el donut**: vive en su mismo SVG cuadrado con escalado uniforme, y la trigonometría del arco ya estaba en `Arc` (un método nuevo, `Arc::open()`, para trazar un arco abierto en vez de rellenar un anillo). El número y el arco se pintan con el color de la banda en la que cae el valor —verde, ámbar, rojo—, y unos pellizcos marcan dónde empieza cada una. El dominio no tiene por qué ser 0–100, el arco no tiene por qué ser de 270° (`sweep="180"` = semicírculo), y el número no pierde los decimales (un SLA de 99,2 no sale «99»).
+
+  ⚠️ **Sin rangos de color, un gauge es un stat tile con un anillo decorativo**, y la documentación te lo dice: lo que justifica el arco es el contexto de color, no el arco.
+
 - **Guardia de peso del bundle en CI** (`npm run size`). «El JavaScript es poco» es una promesa de la documentación, y una promesa que nadie mide deja de ser verdad sin que nadie se entere.
 
 #### El principio que ordena todo el módulo

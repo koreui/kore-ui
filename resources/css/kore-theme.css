@@ -1626,6 +1626,73 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ---- gauge ---- */
+
+.kore-chart-gauge {
+  position: relative;
+  width: var(--kore-chart-height, 16rem);
+  height: var(--kore-chart-height, 16rem);
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.kore-chart-gauge > svg {
+  width: 100%;
+  height: 100%;
+  /* overflow visible: el trazo del arco tiene grosor y las puntas redondeadas rebasan un pelín
+     el radio, y los pellizcos de banda salen aún más. */
+  overflow: visible;
+}
+
+.kore-chart-gauge-track {
+  stroke: var(--kore-muted);
+  stroke-width: 9;
+  stroke-linecap: round;
+}
+
+.kore-chart-gauge-arc {
+  stroke: var(--kore-gauge);
+  stroke-width: 9;
+  stroke-linecap: round;
+  /* El arco crece hasta su valor cuando entra en pantalla. `pathLength` no hace falta: es una
+     transición de la longitud del trazo, que el navegador anima sola al cambiar el `d` en un
+     morph — el mismo mecanismo que ya usa todo el módulo. */
+  transition: none;
+}
+
+.kore-chart-gauge-tick {
+  stroke: var(--kore-bg);
+  stroke-width: 2;
+}
+
+/* El número, centrado en el hueco del arco. Es HTML, no <text>: así usa la tipografía de la app y
+   no se deforma. Un pelín por debajo del centro, que es donde queda el hueco de un arco de 270°. */
+.kore-chart-gauge-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  pointer-events: none;
+}
+
+.kore-chart-gauge-value {
+  /* Relativo a la ALTURA del gauge, no a container queries (que colapsaban el elemento): un gauge
+     de 12rem da un número de ~2rem, uno de 16rem da ~2,6rem. Escala solo con el tamaño del arco. */
+  font-size: calc(var(--kore-chart-height, 16rem) * 0.16);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--kore-gauge);
+  font-variant-numeric: tabular-nums;
+}
+
+.kore-chart-gauge-caption {
+  font-size: 0.8125rem;
+  color: var(--kore-muted-fg);
+}
+
 .kore-chart-donut {
   display: flex;
   align-items: center;

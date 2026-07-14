@@ -171,6 +171,17 @@ final class ChartFrame
         );
     }
 
+    public function hasGauge(): bool
+    {
+        foreach ($this->marks() as $mark) {
+            if ($mark->type() === 'gauge') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function hasDonut(): bool
     {
         foreach ($this->marks() as $mark) {
@@ -210,6 +221,14 @@ final class ChartFrame
                     .'por definición. Pásale fechas de verdad a `x`, o quita el `max-gap`.'
                 );
             }
+        }
+
+        if ($this->hasGauge() && count($this->marks()) > 1) {
+            throw new InvalidArgumentException(
+                'koreUi: un gauge (<x-kore::chart.gauge>) enseña un número contra un objetivo — no comparte '
+                .'gráfico con otras marcas. Vive en su propio SVG cuadrado, sin ejes. Sácalas a su propio '
+                .'<x-kore::chart>.'
+            );
         }
 
         if ($this->hasWaterfall() && count($this->marks()) > 1) {

@@ -494,6 +494,10 @@ final class Plot
                 $serie['highlight'] = $mark->highlight;
             }
 
+            if ($mark->type() === 'gauge') {
+                $serie['gauge'] = $this->gaugeGeometry($mark, $serieValues);
+            }
+
             if ($mark->type() === 'waterfall') {
                 [$serie['bars'], $serie['connectors']] = $this->layoutWaterfall($mark, $serieValues);
 
@@ -812,6 +816,91 @@ final class Plot
             foreach ($rows as [$markIndex, $position]) {
                 $out[$markIndex][$position]['cap'] = 1;
             }
+        }
+
+        return $out;
+    }
+
+    /**
+     * La geometría de un gauge: el arco de fondo, el arco del valor, y el número.
+     *
+     * Un gauge enseña UN número —el de la primera fila con dato—, así que aquí no hay serie: hay un
+     * valor, su fracción del rango, y dos arcos. La trigonometría la pone `Arc::open()`; esto solo
+     * decide los ángulos y el color de la banda.
+     *
+     * @param  list<float|null>  $values
+     * @return array<string, mixed>
+     */
+    private function gaugeGeometry(Marks\GaugeMark $mark, array $values): array
+    {
+        // El primer valor real. Un gauge es un número; si le das una columna con muchas filas, se
+        // queda con la primera que tenga dato.
+        $value = 0.0;
+        foreach ($values as $v) {
+            if ($v !== null) {
+                $value = (float) $v;
+                break;
+            }
+        }
+
+        $span = $mark->max - $mark->min;
+        $fraction = $span > 0 ? max(0.0, min(1.0, ($value - $mark->min) / $span)) : 0.0;
+
+        // El arco es simétrico respecto a las 12 en punto: el hueco queda centrado abajo.
+        $sweep = deg2rad($mark->sweep);
+        $start = -M_PI / 2 - $sweep / 2;
+        $radius = 40.0;
+
+        $color = $mark->colorFor($value);
+
+        // Los decimales que hagan falta para no mentir: un SLA de 99,2 no puede salir «99». Salen
+        // del propio valor, como en el resto del módulo.
+        $decimals = Format::decimalsFor([$value]);
+
+        return [
+            'value' => $value,
+            'formatted' => $this->format->apply($value, $decimals),
+            'fraction' => round($fraction * 100, 1),
+            'caption' => $mark->caption,
+            'track' => Arc::open($start, $start + $sweep, $radius),
+            'arc' => Arc::open($start, $start + $fraction * $sweep, $radius),
+            'color' => $color !== null ? Palette::resolve($mark->slot, $color) : Palette::token($mark->slot),
+            // Unos pellizcos radiales donde empieza cada banda (dónde acaba el verde y empieza el
+            // ámbar). Es lo que convierte un anillo decorativo en un gauge de verdad: sin ellos, un
+            // «73» dentro de un arco no dice si eso está bien o mal.
+            'ticks' => $this->gaugeTicks($mark, $start, $sweep, $radius),
+        ];
+    }
+
+    /**
+     * Los pellizcos radiales que marcan el principio de cada banda de color.
+     *
+     * @return list<array{x1: float, y1: float, x2: float, y2: float}>
+     */
+    private function gaugeTicks(Marks\GaugeMark $mark, float $start, float $sweep, float $radius): array
+    {
+        $span = $mark->max - $mark->min;
+
+        if ($span <= 0.0) {
+            return [];
+        }
+
+        $out = [];
+
+        foreach (array_keys($mark->thresholds) as $upTo) {
+            // La última cota es el final del arco, no una frontera interior: no se marca.
+            if ($upTo <= $mark->min || $upTo >= $mark->max) {
+                continue;
+            }
+
+            $angle = $start + (($upTo - $mark->min) / $span) * $sweep;
+
+            $out[] = [
+                'x1' => round(50.0 + ($radius - 6.0) * cos($angle), 2),
+                'y1' => round(50.0 + ($radius - 6.0) * sin($angle), 2),
+                'x2' => round(50.0 + ($radius + 6.0) * cos($angle), 2),
+                'y2' => round(50.0 + ($radius + 6.0) * sin($angle), 2),
+            ];
         }
 
         return $out;
