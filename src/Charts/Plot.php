@@ -305,6 +305,7 @@ final class Plot
 
         $out = [];
         $offsets = [];   // acumulado por (grupo, fila) para los apilados
+        $cap = [];       // la PUNTA de cada columna: [grupo][fila] => [markIndex, posición]
 
         foreach ($groupKeys as $g => $key) {
             foreach ($groups[$key] as $markIndex) {
@@ -328,8 +329,25 @@ final class Plot
                         'y' => round(min($top, $bottom), 2),
                         'h' => round(abs($bottom - $top), 2),
                         'negative' => $value < 0 ? 1 : 0,
+                        'cap' => 0,
                     ];
+
+                    // La punta de la columna es el ÚLTIMO segmento con valor, no el último
+                    // declarado: si en un mes falta la serie de arriba, la punta es la de
+                    // debajo. Y un 0 no cuenta — dibuja un segmento de altura sub-píxel, y
+                    // redondearlo dejaría cuadrado el que sí se ve.
+                    if ($value != 0.0) {
+                        $cap[$key][$row] = [$markIndex, count($out[$markIndex]) - 1];
+                    }
                 }
+            }
+        }
+
+        // Sólo la punta se redondea. Si cada segmento lleva su propio redondeo, la pila se ve
+        // como una torre de piezas sueltas en vez de como UNA barra partida en tramos.
+        foreach ($cap as $rows) {
+            foreach ($rows as [$markIndex, $position]) {
+                $out[$markIndex][$position]['cap'] = 1;
             }
         }
 

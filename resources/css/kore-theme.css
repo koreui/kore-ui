@@ -1077,10 +1077,17 @@
   text-overflow: ellipsis;
 }
 
-/* La primera y la última etiqueta se saldrían de la caja: se pegan al borde en vez de
-   centrarse. */
-.kore-chart-gutter-x .kore-chart-tick:first-child { translate: 0 0; }
-.kore-chart-gutter-x .kore-chart-tick:last-child  { translate: -100% 0; }
+/* ⚠️ NO anclar la primera y la última etiqueta por su borde ("translate: 0 0" y "-100% 0").
+   Parece que las mete en la caja, pero el tick del eje X es el CENTRO de la banda: anclarla
+   por el borde izquierdo la empuja media anchura a la derecha, justo encima de la siguiente
+   — y en un móvil se lee "EneFeb". Todas van centradas en su tick, y punto.
+
+   Lo que sobresale por los lados no molesta a nadie: por la izquierda cae bajo la canaleta
+   del eje Y, que en esa fila del grid está vacía; por la derecha, en el padding de la
+   tarjeta. Media etiqueta de aire es más barata que una etiqueta encima de otra. */
+.kore-chart-gutter-x {
+  overflow: visible;
+}
 
 /* ---- barras y puntos: HTML ---- */
 
@@ -1096,7 +1103,8 @@
   top: calc(var(--ky) * 1%);
   height: calc(var(--kh) * 1%);
   background: var(--kore-series);
-  border-radius: var(--kore-radius-sm) var(--kore-radius-sm) 0 0;
+  /* Cuadrada por defecto: en una pila, un tramo del medio no tiene punta. */
+  border-radius: 0;
   /* Un valor casi cero da una altura sub-píxel: la barra existiría y no se vería. */
   min-height: 1px;
   pointer-events: auto;
@@ -1106,7 +1114,16 @@
   -webkit-print-color-adjust: exact;
 }
 
-.kore-chart-bar[data-negative="true"] {
+/* Sólo la PUNTA de la columna se redondea — el último tramo con valor, que no siempre es el
+   último que declaraste: si en un mes falta la serie de arriba, la punta es la de debajo.
+   Si cada tramo lleva su propio redondeo, la pila se ve como una torre de piezas sueltas en
+   vez de como UNA barra partida en tramos. Una barra suelta siempre es su propia punta. */
+.kore-chart-bar[data-cap="true"] {
+  border-radius: var(--kore-radius-sm) var(--kore-radius-sm) 0 0;
+}
+
+/* Una barra negativa crece hacia abajo: su punta es el borde inferior. */
+.kore-chart-bar[data-cap="true"][data-negative="true"] {
   border-radius: 0 0 var(--kore-radius-sm) var(--kore-radius-sm);
 }
 
@@ -1230,6 +1247,27 @@
   width: var(--kore-chart-height);
   height: var(--kore-chart-height);
   flex-shrink: 0;
+}
+
+/* En un contenedor estrecho, el arco (16rem) y su leyenda no caben uno al lado del otro y el
+   donut se sale de la tarjeta. Se apilan. Es una CONTAINER query, no una media query: el
+   gráfico responde al ancho de SU contenedor, así que uno metido en un sidebar estrecho se
+   apila también aunque la ventana sea de escritorio. */
+@container (max-width: 26rem) {
+  .kore-chart-donut {
+    flex-direction: column;
+  }
+
+  .kore-chart-donut > svg {
+    /* `height: auto` y no otra altura: el viewBox es cuadrado y el SVG conserva su
+       proporción solo. Poner una altura fija aquí deformaría los arcos. */
+    width: min(var(--kore-chart-height), 100%);
+    height: auto;
+  }
+
+  .kore-chart-donut .kore-chart-legend {
+    width: 100%;
+  }
 }
 
 /* ── El arco y su fila de la leyenda, enlazados. Sin una línea de JavaScript. ─────────────

@@ -139,6 +139,8 @@
                                          data-kore-serie="{{ $serie['id'] }}"
                                          data-index="{{ $bar['index'] }}"
                                          @if($bar['negative']) data-negative="true" @endif
+                                         {{-- Sólo la PUNTA de la columna se redondea. Ver Plot::layoutBars(). --}}
+                                         @if($bar['cap']) data-cap="true" @endif
                                          style="--kore-series: {{ $serie['color'] }}; --kx: {{ $bar['x'] }}; --kw: {{ $bar['w'] }}; --ky: {{ $bar['y'] }}; --kh: {{ $bar['h'] }}"></div>
                                 @endforeach
                             @endforeach

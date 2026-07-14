@@ -36,6 +36,12 @@ Y como el `<svg>` lo emite el servidor, **el morph de Livewire deja de ser una a
 
 ### Fixed
 
+- **En una barra apilada se redondeaba cada tramo, no la columna.** La pila se veía como una torre de piezas sueltas en vez de como una barra partida en tramos. Ahora sólo lleva el redondeo la **punta** — y la punta es el último tramo **con valor**, no el último que declaraste: si a un mes le falta la serie de arriba, la punta pasa a ser la de debajo. Un `0` no cuenta (dibuja un tramo de altura sub-píxel, y redondearlo dejaría cuadrado el que sí se ve), y una barra negativa la redondea abajo, que es hacia donde crece.
+
+- **En un móvil se leía «EneFeb».** La primera y la última etiqueta del eje X se anclaban por su borde para no salirse de la caja, pero el tick del eje X es el **centro de la banda**: anclar la primera por el borde izquierdo la empujaba media anchura a la derecha, encima de la siguiente. Ahora todas van centradas en su tick; lo que sobresale cae bajo la canaleta del eje Y (vacía en esa fila) y en el padding de la tarjeta. Medido a 375 px: cero solapes.
+
+- **El donut se salía de la tarjeta en pantallas estrechas.** El arco (16rem) y su leyenda no caben uno al lado del otro en 277 px. Por debajo de 26rem se apilan. Es una *container query*, no una *media query*: el gráfico responde al ancho de su contenedor, así que uno metido en un sidebar estrecho se apila también aunque la ventana sea de escritorio.
+
 - **Once componentes escribían parte de su estado en el `x-data` de un ancestro, no en sí mismos.** Alpine no llama a los métodos de un componente con `this` = el objeto del componente: los llama con un Proxy que fusiona toda la pila de scopes, y su trampa `set` acaba así:
 
   ```js

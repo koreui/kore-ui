@@ -528,3 +528,76 @@ describe('todo se puede apagar', function () use ($data) {
             ->assertDontSee('KoreChart(', false);   // sin nada que interactuar, ni Alpine
     });
 });
+
+describe('la punta de una barra apilada', function () {
+    it('sólo redondea el último tramo, no cada uno', function () {
+        // Si cada tramo lleva su propio redondeo, la pila se ve como una torre de piezas
+        // sueltas en vez de como UNA barra partida en tramos.
+        $html = $this->blade(<<<'BLADE'
+            <x-kore::chart :data="[['m' => 'Ene', 'a' => 10, 'b' => 20, 'c' => 30]]" x="m">
+                <x-kore::chart.bar y="a" stack="s" />
+                <x-kore::chart.bar y="b" stack="s" />
+                <x-kore::chart.bar y="c" stack="s" />
+            </x-kore::chart>
+        BLADE)->__toString();
+
+        expect(substr_count($html, 'class="kore-chart-bar"'))->toBe(3);
+        expect(substr_count($html, 'data-cap="true"'))->toBe(1);
+    });
+
+    it('si al mes le falta la serie de arriba, la punta es la de debajo', function () {
+        // Éste es el caso que hay que probar: la punta es el último tramo CON VALOR, no el
+        // último que declaraste. Con un null en «c», la punta de Feb es «b».
+        $html = $this->blade(<<<'BLADE'
+            <x-kore::chart :data="[
+                ['m' => 'Ene', 'a' => 10, 'b' => 20, 'c' => 30],
+                ['m' => 'Feb', 'a' => 10, 'b' => 20, 'c' => null],
+            ]" x="m">
+                <x-kore::chart.bar y="a" stack="s" label="A" />
+                <x-kore::chart.bar y="b" stack="s" label="B" />
+                <x-kore::chart.bar y="c" stack="s" label="C" />
+            </x-kore::chart>
+        BLADE)->__toString();
+
+        // 5 barras: Ene tiene 3 tramos, Feb sólo 2 (el null no dibuja nada).
+        expect(substr_count($html, 'class="kore-chart-bar"'))->toBe(5);
+
+        // Una punta por columna: la de Ene y la de Feb.
+        expect(substr_count($html, 'data-cap="true"'))->toBe(2);
+
+        // Y en Feb la punta es la serie B (la 2 de la paleta), no la C.
+        preg_match_all('/<div class="kore-chart-bar"[^>]*data-index="1"[^>]*>/', $html, $feb);
+        $puntaDeFeb = array_values(array_filter($feb[0], fn ($bar) => str_contains($bar, 'data-cap="true"')));
+
+        expect($puntaDeFeb)->toHaveCount(1);
+        expect($puntaDeFeb[0])->toContain('var(--kore-chart-2)');   // B, no C
+    });
+
+    it('un cero no cuenta como punta: no se ve, y dejaría cuadrado el tramo que sí se ve', function () {
+        $html = $this->blade(<<<'BLADE'
+            <x-kore::chart :data="[['m' => 'Ene', 'a' => 10, 'b' => 0]]" x="m">
+                <x-kore::chart.bar y="a" stack="s" />
+                <x-kore::chart.bar y="b" stack="s" />
+            </x-kore::chart>
+        BLADE)->__toString();
+
+        // El 0 SÍ dibuja un tramo (un cero es un dato, a diferencia de un null), pero mide un
+        // píxel. La punta es «a».
+        preg_match_all('/<div class="kore-chart-bar"[^>]*>/', $html, $bars);
+        $punta = array_values(array_filter($bars[0], fn ($bar) => str_contains($bar, 'data-cap="true"')));
+
+        expect($punta)->toHaveCount(1);
+        expect($punta[0])->toContain('var(--kore-chart-1)');
+    });
+
+    it('una barra suelta siempre es su propia punta, y la negativa la redondea abajo', function () {
+        $html = $this->blade(<<<'BLADE'
+            <x-kore::chart :data="[['m' => 'Ene', 'v' => 10], ['m' => 'Feb', 'v' => -5]]" x="m">
+                <x-kore::chart.bar y="v" />
+            </x-kore::chart>
+        BLADE)->__toString();
+
+        expect(substr_count($html, 'data-cap="true"'))->toBe(2);
+        expect($html)->toContain('data-negative="true"');
+    });
+});
