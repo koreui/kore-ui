@@ -56,6 +56,11 @@
     <button
         type="button"
         role="switch"
+        {{-- x-data vacío, pero imprescindible: Alpine solo evalúa directivas dentro de un
+             árbol que tenga x-data. Sin esto el componente depende de que la app haya
+             puesto un x-data en algún ancestro por casualidad, y si no lo hay, los clicks
+             no hacen nada — en silencio. --}}
+        x-data
         x-bind:aria-checked="$store.koreTheme.isDark.toString()"
         x-on:click="$store.koreTheme.setMode($store.koreTheme.isDark ? 'light' : 'dark')"
         aria-label="Toggle dark mode"
@@ -193,6 +198,9 @@
     <div
         role="radiogroup"
         aria-label="Theme selector"
+        {{-- Ver la nota del x-data en la variante `toggle`: sin él, Alpine no procesa los
+             x-on:click de los botones y el selector no hace nada. --}}
+        x-data
         {{ $attributes->class([
             'kore-theme-switch inline-flex items-center rounded-kore-lg bg-kore-muted p-1 gap-1',
         ]) }}

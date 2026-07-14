@@ -98,3 +98,15 @@ it('propagates attributes on segmented variant', function () {
 
     $view->assertSee('my-custom-class', false);
 });
+
+// --- Regresión: Alpine necesita un x-data ancestro ---
+
+it('declares its own x-data in every variant', function (string $variant) {
+    // Alpine SOLO evalúa directivas dentro de un árbol que tenga x-data. Sin él, las
+    // variantes `toggle` y `segmented` dependían de que la app hubiera puesto un x-data
+    // en algún ancestro por casualidad (el layout de la demo lo hacía). En una página que
+    // no lo tuviera, los clicks no hacían absolutamente nada, y sin ningún error.
+    $html = $this->blade('<x-kore::theme-switch variant="'.$variant.'" />')->__toString();
+
+    expect($html)->toContain('x-data');
+})->with(['toggle', 'dropdown', 'segmented']);
