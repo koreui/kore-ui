@@ -1077,17 +1077,24 @@
   text-overflow: ellipsis;
 }
 
-/* ⚠️ NO anclar la primera y la última etiqueta por su borde ("translate: 0 0" y "-100% 0").
-   Parece que las mete en la caja, pero el tick del eje X es el CENTRO de la banda: anclarla
-   por el borde izquierdo la empuja media anchura a la derecha, justo encima de la siguiente
-   — y en un móvil se lee "EneFeb". Todas van centradas en su tick, y punto.
+/* ⚠️ El anclaje de la primera y la última etiqueta depende de DÓNDE cae su tick, y eso lo
+   decide el dato, no el CSS. Por eso `data-edge` lo pone el servidor (Plot::buildXTicks).
+   Aplicarlo a ciegas a la primera y a la última rompe uno de los dos casos:
 
-   Lo que sobresale por los lados no molesta a nadie: por la izquierda cae bajo la canaleta
-   del eje Y, que en esa fila del grid está vacía; por la derecha, en el padding de la
-   tarjeta. Media etiqueta de aire es más barata que una etiqueta encima de otra. */
+   - CON barras, el tick cae en el CENTRO de la banda y tiene sitio de sobra a los lados.
+     Anclar la primera por su borde izquierdo la empuja media anchura a la derecha, encima
+     de la siguiente: en un móvil se lee "EneFeb". Aquí hay que centrar.
+   - SIN barras, el primer punto cae en x=0, pegado al eje Y. Centrar la etiqueta ahí le mete
+     media anchura debajo de la canaleta del eje Y y el eje X parece correrse. Aquí hay que
+     anclar.
+
+   Un tick del medio siempre va centrado, tenga la escala que tenga. */
 .kore-chart-gutter-x {
   overflow: visible;
 }
+
+.kore-chart-gutter-x .kore-chart-tick[data-edge="start"] { translate: 0 0; }
+.kore-chart-gutter-x .kore-chart-tick[data-edge="end"]   { translate: -100% 0; }
 
 /* ---- barras y puntos: HTML ---- */
 

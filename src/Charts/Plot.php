@@ -187,10 +187,28 @@ final class Plot
                 continue;
             }
 
+            $pos = round($this->x->centerAt($i), 2);
+
             $out[] = [
                 'label' => $label,
-                'pos' => round($this->x->centerAt($i), 2),
+                'pos' => $pos,
                 'index' => $i,
+                // ¿La etiqueta se apoya en el BORDE del área de trazado?
+                //
+                // Con barras, el primer tick cae en el centro de la primera banda y tiene
+                // sitio de sobra a su izquierda: la etiqueta va centrada y ya está. Sin
+                // barras (una línea, un área), el primer punto cae en x=0, pegado al eje Y —
+                // y una etiqueta centrada ahí se mete media anchura debajo de la canaleta del
+                // eje Y: el eje X parece correrse.
+                //
+                // La distinción no es de CSS: **es del dato**. Aquí se sabe, así que aquí se
+                // decide. Y se decide por la POSICIÓN, no por «es el primero»: con el
+                // adelgazado de etiquetas, el último tick pintado no siempre cae en el 100.
+                'edge' => match (true) {
+                    $pos <= 0.01 => 'start',
+                    $pos >= 99.99 => 'end',
+                    default => null,
+                },
             ];
         }
 

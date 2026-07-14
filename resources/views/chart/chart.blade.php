@@ -170,7 +170,12 @@
             @if($showX)
                 <div class="kore-chart-gutter-x" aria-hidden="true">
                     @foreach($plot->xTicks as $tick)
-                        <span class="kore-chart-tick" style="--kx: {{ $tick['pos'] }}">{{ $tick['label'] }}</span>
+                        {{-- `edge` lo decide el SERVIDOR, que es quien sabe si el tick se apoya en
+                             el borde del área (una línea empieza en x=0) o en el centro de una
+                             banda (una barra). Ver Plot::buildXTicks(). --}}
+                        <span class="kore-chart-tick"
+                              @if($tick['edge']) data-edge="{{ $tick['edge'] }}" @endif
+                              style="--kx: {{ $tick['pos'] }}">{{ $tick['label'] }}</span>
                     @endforeach
                 </div>
             @endif

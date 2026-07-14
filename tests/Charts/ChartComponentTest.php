@@ -601,3 +601,43 @@ describe('la punta de una barra apilada', function () {
         expect($html)->toContain('data-negative="true"');
     });
 });
+
+describe('las etiquetas del borde del eje X', function () use ($data) {
+    it('con barras van TODAS centradas: el tick es el centro de la banda', function () use ($data) {
+        // Anclar la primera por su borde izquierdo la empuja media anchura a la derecha,
+        // encima de la siguiente. En un móvil se leía "EneFeb".
+        $view = $this->blade(<<<BLADE
+            <x-kore::chart :data="{$data}" x="mes"><x-kore::chart.bar y="ingresos" /></x-kore::chart>
+        BLADE);
+
+        $view->assertDontSee('data-edge', false);
+    });
+
+    it('sin barras, la primera y la última se anclan: el punto cae en el borde', function () use ($data) {
+        // Una línea empieza en x=0, pegada al eje Y. Centrar la etiqueta ahí le mete media
+        // anchura debajo de la canaleta del eje Y, y el eje X parece correrse.
+        $view = $this->blade(<<<BLADE
+            <x-kore::chart :data="{$data}" x="mes"><x-kore::chart.line y="ingresos" /></x-kore::chart>
+        BLADE);
+
+        $view->assertSee('data-edge="start"', false)
+            ->assertSee('data-edge="end"', false);
+    });
+
+    it('lo decide la POSICIÓN del tick, no su orden', function () {
+        // Con el adelgazado de etiquetas, el último tick pintado no siempre cae en el 100.
+        $plot = new \KoreUi\Charts\Plot(
+            frame: tap(new \KoreUi\Charts\ChartFrame('c', array_map(
+                fn ($i) => ['m' => "M{$i}", 'v' => $i],
+                range(0, 19),
+            ), 'm'), fn ($f) => $f->add(new \KoreUi\Charts\Marks\LineMark('v'))),
+            maxXLabels: 4,
+        );
+
+        $bordes = array_map(fn ($t) => $t['edge'], $plot->xTicks);
+
+        expect($bordes[0])->toBe('start');
+        expect(end($bordes))->toBe('end');
+        expect(array_slice($bordes, 1, -1))->each->toBeNull();
+    });
+});

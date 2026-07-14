@@ -90,7 +90,7 @@ El gráfico responde al ancho de **su contenedor**, no al de la ventana: son *co
 Lo que cambia solo, sin que tengas que hacer nada:
 
 - **El donut se apila.** El arco y su leyenda no caben uno al lado del otro por debajo de 26rem, así que la leyenda se va abajo y el arco se encoge conservando su proporción.
-- **Las etiquetas del eje X van siempre centradas en su tick.** Lo que sobresale por los lados cae bajo la canaleta del eje Y (que en esa fila está vacía) y en el padding de la tarjeta. *No* se anclan por el borde: el tick es el centro de la banda, así que anclarlas empujaría la primera media anchura a la derecha, encima de la siguiente — se leería «EneFeb».
+- **Las etiquetas del eje X se colocan según dónde caiga su tick.** Con barras el tick es el centro de una banda, así que la etiqueta va centrada y le sobra sitio. Sin barras, el primer punto cae en el borde mismo del área, pegado al eje Y, y ahí la etiqueta se apoya en el borde en vez de centrarse. Lo decide el servidor, que es quien lo sabe. (Anclar siempre la primera la empujaría media anchura a la derecha, encima de la siguiente: se leería «EneFeb». Centrarla siempre la metería debajo del eje Y.)
 - **El tooltip nunca se sale de la ventana.** Lo mantiene dentro `shift()` de Floating UI.
 
 Si aun así te caben mal las etiquetas, baja `max_x_labels` o pre-formatea las categorías más cortas en PHP. **Rotarlas no es una opción**: `transform: rotate()` no ocupa layout, la fila del grid no crecería y se saldrían de la caja.
