@@ -148,17 +148,54 @@ final class Plot
      * que el navegador haga la conversión a píxeles con la fuente real. Y como los ticks usan
      * `tabular-nums`, todos los dígitos miden lo mismo, así que la cuenta es exacta.
      */
+    /**
+     * Cuánto mide la canaleta del eje Y, en `ch`.
+     *
+     * El servidor no puede medir texto, pero sí contar caracteres — y `ch` deja que el
+     * navegador haga la conversión con la fuente real. Lo que NO se puede hacer es contar
+     * cada carácter como un `ch`: medido a 12px (1ch = 7,56px), un dígito mide 7,56 (=1ch,
+     * exacto, porque las etiquetas usan `tabular-nums` y ahí todas las cifras miden lo que la
+     * cifra "0", que es la definición de `ch`), pero el punto mide 3,56 (0,47ch) y el espacio
+     * 3,38 (0,45ch). Contándolos como 1ch, "7.000 €" pedía 7,5ch cuando ocupa 5,9 — y la
+     * canaleta se comía 31px de nada, empujando el gráfico entero a la derecha.
+     *
+     * Ojo con el "%": mide 1,47ch, MÁS que un dígito. Contarlo como 1 se quedaría corto y la
+     * etiqueta se saldría por la izquierda, fuera de la tarjeta.
+     *
+     * Los pesos son cotas superiores de lo medido, no lo medido: la fuente la pone la app, no
+     * nosotros. Pasarse un par de píxeles es barato; quedarse corto saca la etiqueta de la
+     * tarjeta.
+     *
+     * ⚠️ Esto sólo cuadra si el `ch` se resuelve con la MISMA fuente con la que se pinta la
+     * etiqueta. Por eso `.kore-chart-gutter-y` fija su propio `font-size: 0.75rem` en el CSS:
+     * heredaba los 16px del contenedor y resolvía 1ch = 10,08px en vez de 7,56 — un 33% de
+     * más, encima de lo anterior.
+     */
     public function yGutter(): float
     {
-        $longest = 0;
+        $longest = 0.0;
 
         foreach ($this->yTicks as $tick) {
-            $longest = max($longest, mb_strlen($tick['label']));
+            $width = 0.0;
+
+            foreach (preg_split('//u', $tick['label'], -1, PREG_SPLIT_NO_EMPTY) ?: [] as $char) {
+                $width += match (true) {
+                    // Con tabular-nums, toda cifra mide exactamente 1ch.
+                    ctype_digit($char) => 1.0,
+                    // Separadores y espacios (incluido el fino y el duro, que usa el formateo).
+                    in_array($char, ['.', ',', ' ', ' ', ' ', "'"], true) => 0.5,
+                    $char === '-' || $char === '−' || $char === '+' => 0.8,
+                    // Todo lo demás —moneda, %, la "M" de compacto, un sufijo cualquiera— se
+                    // estima por arriba: una "M" es más ancha que una cifra, y el "%" también.
+                    default => 1.3,
+                };
+            }
+
+            $longest = max($longest, $width);
         }
 
-        // +0.5 de margen: el signo menos y el símbolo de moneda no son dígitos y pueden
-        // medir algo más que un `ch`.
-        return round(max($longest + 0.5, 2), 1);
+        // El mínimo evita una canaleta ridícula cuando las etiquetas son de un solo dígito.
+        return round(max($longest, 2.0), 2);
     }
 
     /**

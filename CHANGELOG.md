@@ -38,6 +38,13 @@ Y como el `<svg>` lo emite el servidor, **el morph de Livewire deja de ser una a
 
 - **En una barra apilada se redondeaba cada tramo, no la columna.** La pila se veía como una torre de piezas sueltas en vez de como una barra partida en tramos. Ahora sólo lleva el redondeo la **punta** — y la punta es el último tramo **con valor**, no el último que declaraste: si a un mes le falta la serie de arriba, la punta pasa a ser la de debajo. Un `0` no cuenta (dibuja un tramo de altura sub-píxel, y redondearlo dejaría cuadrado el que sí se ve), y una barra negativa la redondea abajo, que es hacia donde crece.
 
+- **La canaleta del eje Y medía casi el doble de lo que ocupaban sus etiquetas**, y ese hueco vacío empujaba el gráfico entero a la derecha. En un móvil, 31 px de 277 — un 11 % del ancho, robado al dato. Eran dos errores que se multiplicaban:
+
+  - **`ch` se resolvía con la fuente equivocada.** La canaleta heredaba los 16 px del contenedor (`1ch = 10,08 px`) mientras las etiquetas se pintan a 12 px (`1ch = 7,56 px`): un 33 % de más. Ahora fija su propia fuente, la misma con la que pinta.
+  - **Se contaba cada carácter como un `ch`.** Medido a 12 px: una cifra mide 1,00 ch (exacto, por `tabular-nums`), pero el punto mide 0,47 y el espacio 0,45. «7.000 €» pedía 7,5 ch cuando ocupa 5,9. Ahora cada carácter pesa lo suyo. Ojo al `%`, que mide **1,47 ch** —más que una cifra—: contarlo como 1 dejaría la etiqueta fuera de la tarjeta.
+
+  Medido: el área de trazado pasa de 193 a 221 px en un móvil, con 3 px de holgura y ninguna etiqueta fuera.
+
 - **En un móvil se leía «EneFeb».** Las etiquetas del eje X se anclaban por su borde —la primera y la última— para no salirse de la caja. Pero **dónde hay que anclar depende del dato, no del orden**, y aplicarlo a ciegas rompe uno de los dos casos:
 
   - **Con barras**, el tick cae en el CENTRO de la banda y tiene sitio de sobra a los lados. Anclar la primera por su borde izquierdo la empujaba media anchura a la derecha, justo encima de la siguiente: «EneFeb».

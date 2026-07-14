@@ -1040,7 +1040,16 @@
      que NO aportan anchura a la columna `auto` del grid: colapsaría y se saldrían por la
      izquierda, fuera de la tarjeta. El servidor no puede medir texto, pero sí contar
      caracteres; `ch` deja que el navegador haga la conversión con la fuente real, y como los
-     ticks usan tabular-nums, todos los dígitos miden lo mismo. */
+     ticks usan tabular-nums, todos los dígitos miden exactamente 1ch.
+
+     ⚠️ Y por eso este elemento fija su PROPIA fuente, en vez de heredarla. `1ch` se resuelve
+     con la fuente del elemento donde se usa: heredando los 16px del contenedor, resolvía
+     1ch = 10,08px mientras la etiqueta se pintaba a 12px (1ch = 7,56px). Un 33% de canaleta
+     de más — un hueco vacío que empujaba el gráfico entero a la derecha. La cuenta de
+     caracteres vive en Plot::yGutter(); las dos mitades tienen que hablar de la misma fuente
+     o no cuadra ninguna. */
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
   width: var(--kore-chart-gutter-y);
 }
 

@@ -277,8 +277,10 @@ describe('la canaleta del eje Y', function () use ($data) {
             </x-kore::chart>
         BLADE);
 
-        // "3.000 €" son 7 caracteres → 7.5ch
-        $view->assertSee('--kore-chart-gutter-y: 7.5ch', false);
+        // "3.000 €" NO son 7ch: son 4 cifras (1ch cada una, por tabular-nums) + un punto
+        // (0,5) + un espacio (0,5) + el símbolo (1,3) = 6,3ch. Contando 1ch por carácter, la
+        // canaleta pedía 31px de más y empujaba el gráfico entero a la derecha.
+        $view->assertSee('--kore-chart-gutter-y: 6.3ch', false);
     });
 
     it('se ensancha con etiquetas más largas', function () {
@@ -289,8 +291,8 @@ describe('la canaleta del eje Y', function () use ($data) {
             </x-kore::chart>
         BLADE);
 
-        // "2.500.000 €" son 11 caracteres
-        $view->assertSee('--kore-chart-gutter-y: 11.5ch', false);
+        // "2.500.000 €": 7 cifras + 2 puntos + espacio + símbolo = 7 + 1 + 0,5 + 1,3 = 9,8ch
+        $view->assertSee('--kore-chart-gutter-y: 9.8ch', false);
     });
 });
 
