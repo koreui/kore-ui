@@ -48,7 +48,7 @@ final class Plot
     /** @var list<array{value: float, label: string, pos: float}> */
     public readonly array $yTicks;
 
-    /** @var list<array{label: string, context: string|null, pos: float, width: float}> */
+    /** @var list<array{label: string, context: string|null, pos: float, width: float, room: float}> */
     public readonly array $xTicks;
 
     public readonly float $zero;
@@ -165,12 +165,52 @@ final class Plot
         // Así que el defecto de una escala continua es más bajo, y a propósito. Cuando las
         // etiquetas no caben, la respuesta de un gráfico que no puede medir texto es **pedir
         // menos ticks**, nunca truncarlos ni rotarlos.
-        $this->xTicks = $this->x->ticks(
+        $this->xTicks = $this->addLabelRoom($this->x->ticks(
             $this->xTickCount ?? ($this->x instanceof BandScale ? $this->maxXLabels : $this->continuousXTicks),
-        );
+        ));
 
         $this->series = $this->buildSeries($marks, $values);
         $this->layers = $this->buildLayers();
+    }
+
+    /**
+     * Cuánto sitio tiene cada etiqueta del eje X antes de chocar con su vecina, en % del área.
+     *
+     * El servidor no puede medir texto, pero sí sabe DÓNDE cae cada tick — y con eso basta para
+     * que dos etiquetas no se pisen: cada una se acota a la distancia hasta su vecina más cercana.
+     * Una etiqueta larga («Coste de ventas», «/api/pedidos») se recorta con puntos suspensivos en
+     * vez de meterse encima de la de al lado.
+     *
+     * Es la pieza que faltaba. El `width` (en `ch`) ya evitaba que una etiqueta se saliera de la
+     * TARJETA; esto evita que se solape con la de al lado — que es un choque distinto, y el que se
+     * veía en un móvil con categorías largas o con un eje de tiempo denso.
+     *
+     * El 0,9 deja un respiro: dos etiquetas centradas y pegadas a su vecina se tocarían justo en
+     * el borde, y un pelín de aire se lee mucho mejor.
+     *
+     * @param  list<array{label: string, context: string|null, pos: float, width: float}>  $ticks
+     * @return list<array{label: string, context: string|null, pos: float, width: float, room: float}>
+     */
+    private function addLabelRoom(array $ticks): array
+    {
+        $n = count($ticks);
+
+        foreach ($ticks as $i => $tick) {
+            $gaps = [];
+
+            if ($i > 0) {
+                $gaps[] = abs($tick['pos'] - $ticks[$i - 1]['pos']);
+            }
+
+            if ($i < $n - 1) {
+                $gaps[] = abs($ticks[$i + 1]['pos'] - $tick['pos']);
+            }
+
+            // Un solo tick tiene toda la anchura para él.
+            $ticks[$i]['room'] = $gaps === [] ? 100.0 : round(min($gaps) * 0.9, 2);
+        }
+
+        return $ticks;
     }
 
     /**

@@ -1182,14 +1182,19 @@
    de la canaleta del eje Y en una escala de punto. */
 .kore-chart-gutter-x .kore-chart-tick {
   top: 0.375rem;
+
+  /* El ancho es el MENOR de dos cotas, y cada una tapa un choque distinto:
+       --ktw  (en ch)  → lo que MIDE la etiqueta. La acota dentro de la TARJETA.
+       --kroom (en %)  → el hueco hasta la vecina. La acota para que no la PISE.
+     Una categoría larga («Coste de ventas») se recorta a lo que cabe entre dos ticks y sale con
+     puntos suspensivos, en vez de meterse encima de la de al lado. El servidor no mide texto, pero
+     sí sabe dónde cae cada tick — y con eso calcula el hueco (ver Plot::addLabelRoom). */
+  --kw-eff: min(calc(var(--ktw, 2) * 1ch), calc(var(--kroom, 100) * 1%));
+
   /* left FÍSICO, nunca inset-inline-start: con propiedades lógicas el gráfico se ESPEJA en
      árabe y la serie temporal iría del revés. El chrome sí puede ser lógico; el dato no. */
-  left: clamp(
-    0px,
-    calc(var(--kx) * 1% - var(--ktw, 2) * 0.5ch),
-    calc(100% - var(--ktw, 2) * 1ch)
-  );
-  width: calc(var(--ktw, 2) * 1ch);
+  left: clamp(0px, calc(var(--kx) * 1% - var(--kw-eff) / 2), calc(100% - var(--kw-eff)));
+  width: var(--kw-eff);
   text-align: center;
   translate: none;
   overflow: hidden;
@@ -1218,28 +1223,17 @@
   overflow: visible;
 }
 
-/* En un contenedor estrecho, se esconde una etiqueta de cada dos — pero SOLO si hay muchas.
+/* No hay adelgazado por container-query, y es una decisión.
  *
- * El servidor elige cuántos ticks pedir sin saber el ancho, porque no puede saberlo: la misma
- * respuesta HTML se sirve a un móvil y a un monitor. Un eje de un día con ticks cada tres horas
- * son nueve etiquetas: caben de sobra en 900 px y se pisan en 277.
+ * Lo hubo: escondía una etiqueta de cada dos por debajo de 26rem. Pero peleaba con el cap de hueco
+ * (`--kroom`), que ahora acota cada etiqueta al sitio que tiene hasta su vecina: el servidor
+ * calculaba el hueco contando TODAS las etiquetas, y luego la container-query escondía la mitad —
+ * así que las que quedaban salían recortadísimas y con huecos, «Ing…    Ma…», en vez de aprovechar
+ * el doble de sitio que de verdad tenían.
  *
- * Esto es una *container query*, no una media query: un gráfico metido en un sidebar estrecho
- * adelgaza igual aunque la pantalla sea de escritorio.
- *
- * `:nth-last-child(n+7)` + el hermano general es el truco clásico de «cuenta cuántos hay»: los
- * dos selectores juntos seleccionan TODOS los ticks solo cuando hay siete o más. Con seis o
- * menos, no se esconde nada — que es justo lo que hace falta, porque un eje de tres ticks
- * mensuales adelgazado a la mitad se quedaría en dos.
- *
- * Y nunca se esconde el que lleva la línea de contexto: ése es el que dice de qué mes o de qué
- * año habla el eje. Sin él, el eje deja de significar nada. */
-@container (max-width: 26rem) {
-  .kore-chart-gutter-x .kore-chart-tick:nth-last-child(n + 7):nth-child(even):not(:has(.kore-chart-tick-context)),
-  .kore-chart-gutter-x .kore-chart-tick:nth-last-child(n + 7) ~ .kore-chart-tick:nth-child(even):not(:has(.kore-chart-tick-context)) {
-    display: none;
-  }
-}
+ * Con una sola regla (el cap de hueco) cada etiqueta se recorta EXACTAMENTE a lo que le toca, y
+ * ninguna se pisa. Si aun así te caben mal, la respuesta sigue siendo la de siempre: menos ticks
+ * (`:ticks` en el eje) o categorías más cortas. */
 
 /* ---- barras y puntos: HTML ---- */
 
@@ -1287,6 +1281,13 @@
 .kore-chart-bar[data-variant='up']    { background: var(--kore-success); }
 .kore-chart-bar[data-variant='down']  { background: var(--kore-destructive); }
 .kore-chart-bar[data-variant='total'] { background: var(--kore-muted-fg); }
+
+/* Una barra de cascada FLOTA: no crece desde el suelo, así que no tiene una «punta». Se le
+   redondean las cuatro esquinas por igual — el redondeo sólo-arriba de una barra normal la dejaba
+   con las esquinas de abajo en pico, que en un rectángulo suelto se ve raro. */
+.kore-chart-bar[data-variant] {
+  border-radius: var(--kore-radius-sm);
+}
 
 /* La línea que enlaza el final de una barra con el principio de la siguiente, al nivel donde se
    tocan. `--ky` es ese nivel; el `translateY(-50%)` la centra en él para que no engorde el flujo. */
@@ -1414,7 +1415,10 @@
   bottom: 0;
   left: calc(var(--kx) * 1%);
   width: calc(var(--kw) * 1%);
-  min-width: 4px;
+  /* Ancho de DEDO, no de píxel. Con el zoom muy cerrado la ventana es un 5 % del ancho —unos 16 px
+     en un móvil— y con dos asas de 10px encima se vuelve imposible de agarrar. Un mínimo de 24px
+     deja siempre algo que tocar; las asas se apoyan en sus bordes. */
+  min-width: 24px;
   padding: 0;
   border: 1px solid var(--kore-primary);
   border-radius: var(--kore-radius-sm);

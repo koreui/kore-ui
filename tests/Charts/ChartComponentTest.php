@@ -699,3 +699,33 @@ it('max-labels FUNCIONA — llevaba sin funcionar desde el primer día', functio
     expect(substr_count($gutter[0], 'kore-chart-tick'))->toBeLessThan(4);
     expect($gutter[0])->toContain('>A<')->toContain('>D<')->not->toContain('>B<');
 });
+
+describe('las etiquetas del eje X no se pisan entre sí', function () {
+    it('cada etiqueta lleva el hueco que tiene hasta su vecina, en %', function () {
+        // El servidor no mide texto, pero sí sabe DÓNDE cae cada tick. Con la distancia a la vecina
+        // más cercana, el CSS acota cada etiqueta para que no se meta encima de la de al lado —
+        // una categoría larga («Coste de ventas») se recorta con puntos suspensivos. Es un choque
+        // distinto del de salirse de la tarjeta (ése lo tapa `width`), y era el que se veía en un
+        // móvil con categorías largas.
+        $data = "[
+            ['m' => 'Coste de ventas', 'v' => 1],
+            ['m' => 'Marketing', 'v' => 2],
+            ['m' => 'Personal', 'v' => 3],
+            ['m' => 'Impuestos', 'v' => 4],
+        ]";
+
+        $html = $this->blade(<<<BLADE
+            <x-kore::chart :data="{$data}" x="m"><x-kore::chart.bar y="v" /></x-kore::chart>
+        BLADE)->__toString();
+
+        // 4 categorías → bandas cada 25 %, hueco 25 % × 0,9 = 22,5 %.
+        expect($html)->toContain('--kroom: 22.5');
+    });
+
+    it('un solo tick tiene toda la anchura para él', function () {
+        $frame = new \KoreUi\Charts\ChartFrame('c', [['m' => 'Único', 'v' => 1]], 'm');
+        $frame->add(new \KoreUi\Charts\Marks\LineMark('v'));
+
+        expect((new \KoreUi\Charts\Plot($frame))->xTicks[0]['room'])->toBe(100.0);
+    });
+});

@@ -307,7 +307,7 @@
                              ella, un eje del 10 al 20 de enero no dice en ninguna parte de qué mes
                              habla — ningún tick cae en un día 1. Es el agujero que tiene d3. --}}
                         <span class="kore-chart-tick"
-                              style="--kx: {{ $tick['pos'] }}; --ktw: {{ $tick['width'] }}">{{ $tick['label'] }}@if($tick['context'] ?? null)<span class="kore-chart-tick-context">{{ $tick['context'] }}</span>@endif</span>
+                              style="--kx: {{ $tick['pos'] }}; --ktw: {{ $tick['width'] }}; --kroom: {{ $tick['room'] ?? 100 }}">{{ $tick['label'] }}@if($tick['context'] ?? null)<span class="kore-chart-tick-context">{{ $tick['context'] }}</span>@endif</span>
                     @endforeach
                 </div>
             @endif
