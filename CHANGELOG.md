@@ -88,6 +88,10 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
   ⚠️ **Sin rangos de color, un gauge es un stat tile con un anillo decorativo**, y la documentación te lo dice: lo que justifica el arco es el contexto de color, no el arco.
 
+- **Embudo (`<x-kore::chart.funnel>`)** — cuánta gente sobrevive cada paso de un proceso. Ver [docs/chart/funnel.md](docs/chart/funnel.md).
+
+  Cada etapa es un trapecio (un `<div>` recortado con `clip-path`) que se estrecha hasta la siguiente: el estrechamiento **es** la caída, y al lado van la conversión (cuánto queda del primero) y la caída de ese paso (cuánto se pierde ahí, en rojo). El color sale de la rampa **ordinal** —`--kore-ord-*`, la que se hizo en la Fase 1—, no de la categórica: las etapas van en secuencia, y ahí el color sólo dice «vas por aquí»; el peso de la información lo lleva el ancho del trapecio. El orden de las filas es el orden del embudo, y no se reordena.
+
 - **Guardia de peso del bundle en CI** (`npm run size`). «El JavaScript es poco» es una promesa de la documentación, y una promesa que nadie mide deja de ser verdad sin que nadie se entere.
 
 #### El principio que ordena todo el módulo

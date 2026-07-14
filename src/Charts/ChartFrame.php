@@ -171,6 +171,17 @@ final class ChartFrame
         );
     }
 
+    public function hasFunnel(): bool
+    {
+        foreach ($this->marks() as $mark) {
+            if ($mark->type() === 'funnel') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function hasGauge(): bool
     {
         foreach ($this->marks() as $mark) {
@@ -221,6 +232,13 @@ final class ChartFrame
                     .'por definición. Pásale fechas de verdad a `x`, o quita el `max-gap`.'
                 );
             }
+        }
+
+        if ($this->hasFunnel() && count($this->marks()) > 1) {
+            throw new InvalidArgumentException(
+                'koreUi: un embudo (<x-kore::chart.funnel>) enseña las etapas de un proceso, una debajo de '
+                .'otra — no comparte gráfico con otras marcas. Sácalas a su propio <x-kore::chart>.'
+            );
         }
 
         if ($this->hasGauge() && count($this->marks()) > 1) {

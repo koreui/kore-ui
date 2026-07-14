@@ -498,6 +498,10 @@ final class Plot
                 $serie['gauge'] = $this->gaugeGeometry($mark, $serieValues);
             }
 
+            if ($mark->type() === 'funnel') {
+                $serie['funnel'] = $this->funnelStages($serieValues);
+            }
+
             if ($mark->type() === 'waterfall') {
                 [$serie['bars'], $serie['connectors']] = $this->layoutWaterfall($mark, $serieValues);
 
@@ -904,6 +908,80 @@ final class Plot
         }
 
         return $out;
+    }
+
+    /**
+     * Las etapas de un embudo: un trapecio por cada una, que se estrecha hacia la siguiente.
+     *
+     * El ancho de un trapecio ES el valor de la etapa, en % del máximo. El estrechamiento entre
+     * dos etapas es la CAÍDA, y la ponemos también en número: cuánto queda del primero (conversión)
+     * y cuánto se pierde en este paso.
+     *
+     * @param  list<float|null>  $values
+     * @return list<array<string, mixed>>
+     */
+    private function funnelStages(array $values): array
+    {
+        $nums = array_map(fn ($v) => (float) ($v ?? 0.0), $values);
+        $count = count($nums);
+        $max = $count > 0 ? max($nums) : 0.0;
+        $first = $nums[0] ?? 0.0;
+
+        if ($count === 0 || $max <= 0.0) {
+            return [];
+        }
+
+        // Un hueco vertical fino entre etapas: las hace distinguibles sin romper la silueta.
+        $gap = $count > 1 ? min(1.5, 40.0 / $count) : 0.0;
+        $bandHeight = 100.0 / $count;
+
+        $out = [];
+
+        foreach ($nums as $i => $value) {
+            $topWidth = ($value / $max) * 100.0;
+            // El trapecio se estrecha hasta la etapa siguiente; la última es un rectángulo (su
+            // propio ancho arriba y abajo), que es el recuento final.
+            $bottomWidth = $i + 1 < $count ? (($nums[$i + 1] / $max) * 100.0) : $topWidth;
+
+            $topHalf = $topWidth / 2;
+            $bottomHalf = $bottomWidth / 2;
+
+            $out[] = [
+                'index' => $i,
+                'label' => $this->categories[$i] ?? '',
+                'value' => $value,
+                'formatted' => $this->format->apply($value),
+                // Conversión: cuánto queda del primero. Y caída: cuánto se pierde en este paso.
+                'percent' => $first > 0 ? round(($value / $first) * 100, 1) : 0.0,
+                'drop' => $i > 0 && $nums[$i - 1] > 0
+                    ? round((($nums[$i - 1] - $value) / $nums[$i - 1]) * 100, 1)
+                    : null,
+                'top' => round($i * $bandHeight + $gap / 2, 2),
+                'height' => round($bandHeight - $gap, 2),
+                // El polígono del trapecio, en % de su propia caja (100 % ancho, `height` % alto).
+                'clip' => sprintf(
+                    'polygon(%s%% 0, %s%% 0, %s%% 100%%, %s%% 100%%)',
+                    self::pct(50 - $topHalf),
+                    self::pct(50 + $topHalf),
+                    self::pct(50 + $bottomHalf),
+                    self::pct(50 - $bottomHalf),
+                ),
+                // La rampa ORDINAL, repartida entre las etapas: la 1 es la más clara, la última la
+                // más oscura. El color sólo dice «vas por aquí», no el valor — eso ya lo dice el ancho.
+                'color' => Palette::ordinal(
+                    $count > 1
+                        ? (int) min(Palette::RAMP_STEPS, floor($i / ($count - 1) * (Palette::RAMP_STEPS - 1)) + 1)
+                        : 1
+                ),
+            ];
+        }
+
+        return $out;
+    }
+
+    private static function pct(float $value): string
+    {
+        return rtrim(rtrim(number_format(round($value, 2), 2, '.', ''), '0'), '.') ?: '0';
     }
 
     /** @param list<float|null> $values */

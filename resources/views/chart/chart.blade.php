@@ -46,6 +46,7 @@
 
     $donut = collect($plot->series)->firstWhere('type', 'donut');
     $gauge = collect($plot->series)->firstWhere('type', 'gauge');
+    $funnel = collect($plot->series)->firstWhere('type', 'funnel');
     $cartesian = collect($plot->series)->reject(fn ($s) => $s['type'] === 'donut')->values()->all();
 @endphp
 
@@ -70,7 +71,7 @@
     // arranca sin datos se rellene solo cuando llegan.
     $stream = $donut ? null : $frame->stream;
 
-    $interactive = ! $donut && ! $gauge && ($zoom || $stream || (! $plot->empty && ($frame->tooltip || $frame->legend)));
+    $interactive = ! $donut && ! $gauge && ! $funnel && ($zoom || $stream || (! $plot->empty && ($frame->tooltip || $frame->legend)));
 
     // El mini-gráfico de contexto necesita la serie ENTERA, no la de la ventana. Se recalcula el
     // Plot sin ventana — es PHP puro y no toca el frame. Y el resultado es UN <path> por serie:
@@ -157,6 +158,8 @@
         @include('kore::chart.donut', ['plot' => $plot, 'donut' => $donut, 'chartId' => $chartId])
     @elseif($gauge)
         @include('kore::chart.gauge', ['gauge' => $gauge['gauge'], 'name' => $gauge['name']])
+    @elseif($funnel)
+        @include('kore::chart.funnel', ['stages' => $funnel['funnel']])
     @else
         @if($frame->legend && ($frame->legend['position'] ?? 'top') === 'top')
             @include('kore::chart.legend', ['series' => $cartesian, 'chartId' => $chartId])
