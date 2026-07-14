@@ -14,10 +14,17 @@ import { startFloating, stopFloating, virtualReference } from '../utils/floating
  * Lo que sí hace: encontrar el punto bajo el ratón, y ocultar series.
  */
 
-// El estado que escribe el CLIENTE no sobrevive al morph de Livewire. Está medido: el morph
-// borra los data-* y los style inline que no vengan del servidor. Sin este hook, ocultar una
-// serie y luego actualizar cualquier cosa de la página la haría reaparecer, mientras Alpine
-// sigue creyendo que está oculta.
+// El morph de Livewire va en las DOS direcciones, y las dos hay que atenderlas:
+//
+//   → Lo que escribe el CLIENTE, el morph lo BORRA. Está medido: se lleva por delante los
+//     data-* y los style inline que no vengan del servidor. Sin reaplicarlos, ocultas una
+//     serie, actualizas cualquier cosa de la página, y la serie reaparece mientras Alpine
+//     sigue creyendo que está oculta.
+//
+//   → Lo que escribe el SERVIDOR, Alpine NO lo RELEE. El morph preserva el elemento, así que
+//     el x-data no se re-inicializa y init() no vuelve a correr. El <script> del payload sí se
+//     refresca en el DOM (está fuera del wire:ignore, que solo protege la caja flotante), pero
+//     `payload` se queda con la copia del render anterior.
 let morphHookRegistered = false;
 const instances = new Set();
 
@@ -29,11 +36,13 @@ function ensureMorphHook() {
 
     // Envuelto en try/catch: si esto lanza, se rompe el ciclo de morph de Livewire y
     // wire:loading se queda colgado para siempre.
-    window.Livewire.hook('morphed', () => {
+    window.Livewire.hook('morphed', (payload) => {
         try {
-            instances.forEach((instance) => instance.reapply());
+            const el = payload && payload.el;
+
+            instances.forEach((instance) => instance.onMorphed(el));
         } catch (e) {
-            // ocultar una serie nunca puede tumbar el morph
+            // un gráfico nunca puede tumbar el morph
         }
     });
 }
@@ -212,13 +221,55 @@ export default (config = {}) => ({
         });
     },
 
+    // ---- morph -------------------------------------------------------------------
+
+    /**
+     * Después de que Livewire morphee: releer lo del servidor, reestampar lo del cliente.
+     *
+     * Lo segundo ya se hacía. Lo primero NO, y era un bug: cambiabas el dato con un wire:model,
+     * el <path> se repintaba con los valores nuevos, y el tooltip seguía enseñando los VIEJOS
+     * —sin ningún error— porque `payload` solo se leía en init() y el morph no reinicializa el
+     * x-data.
+     */
+    onMorphed(el) {
+        if (!this._root) return;
+
+        // Solo si el morph tocó a ESTE gráfico. Releer el payload de los cinco gráficos de una
+        // página cada vez que morphea cualquier cosa cuesta un JSON.parse por gráfico, y a 2.000
+        // puntos el payload pesa 53 kB. `el` puede no venir, según el build de Livewire.
+        const mine = !el
+            || this._root === el
+            || (typeof el.contains === 'function' && (this._root.contains(el) || el.contains(this._root)));
+
+        if (!mine) return;
+
+        const fresh = this._readPayload();
+
+        if (fresh) {
+            this.payload = fresh;
+
+            // El dataset nuevo puede ser más corto que el viejo: el índice sobre el que estaba
+            // el cursor puede haber dejado de existir, y el tooltip leería un `undefined`.
+            if (this.hover && this.hover.index >= fresh.xs.length) {
+                this.onPointerLeave();
+            }
+        }
+
+        this.reapply();
+    },
+
     // ---- payload -----------------------------------------------------------------
 
     _readPayload() {
+        // Sobre `_root`, NUNCA sobre `$el`: esto se llama también desde onMorphed(), que corre
+        // dentro de un hook de Livewire y no dentro de una expresión de Alpine — y ahí `$el` no
+        // es la raíz. Es la misma trampa que init() ya documenta.
+        if (!this._root) return null;
+
         // En un <script type="application/json">, no en un atributo: el JSON dentro de un
         // atributo HTML escapa cada comilla a &quot; — seis bytes por comilla, y a 2.000
         // puntos eso son decenas de kB de nada.
-        const node = this.$el?.querySelector('[data-kore-chart-payload]');   // en init(), $el SÍ es la raíz
+        const node = this._root.querySelector('[data-kore-chart-payload]');
 
         if (!node) return null;
 

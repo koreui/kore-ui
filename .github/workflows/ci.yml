@@ -52,3 +52,8 @@ jobs:
 
       - name: Build assets
         run: npm run build
+
+      # "El JavaScript es poco" es una promesa de la documentación. Una promesa que nadie
+      # mide deja de ser verdad sin que nadie se entere.
+      - name: Check bundle size
+        run: npm run size

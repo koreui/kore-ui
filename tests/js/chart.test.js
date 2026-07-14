@@ -27,10 +27,14 @@ function makeChart({ width = 200, left = 0 } = {}) {
         { id: 'c1-s2', attrs: {} },
     ];
 
+    // El payload es MUTABLE a propósito: es lo que un morph de Livewire reescribe en el DOM.
+    const state = { payload: PAYLOAD };
+
     const chart = KoreChart({ id: 'c1' });
 
     chart.$el = {
-        querySelector: () => ({ textContent: JSON.stringify(PAYLOAD) }),
+        contains: () => false,
+        querySelector: () => ({ textContent: JSON.stringify(state.payload) }),
         querySelectorAll: () => nodes.map((node) => ({
             getAttribute: () => node.id,
             setAttribute: (k, v) => { node.attrs[k] = v; },
@@ -47,7 +51,14 @@ function makeChart({ width = 200, left = 0 } = {}) {
     chart.$nextTick = (fn) => fn();
     chart.init();
 
-    return { chart, nodes };
+    // `morph()` es lo que hace Livewire: reescribe el HTML del servidor (el <script> del
+    // payload incluido) y dispara el hook. Lo que NO hace es reinicializar el x-data.
+    const morph = (payload, el) => {
+        if (payload) state.payload = payload;
+        chart.onMorphed(el);
+    };
+
+    return { chart, nodes, morph };
 }
 
 beforeEach(() => {
@@ -172,14 +183,64 @@ describe('ocultar series desde la leyenda', function () {
         // Medido: el morph de Livewire BORRA los data-* que escribe el cliente, porque el HTML
         // del servidor no los lleva. Sin reapply(), ocultar una serie y luego actualizar
         // cualquier cosa de la página la haría reaparecer mientras Alpine la cree oculta.
-        const { chart, nodes } = makeChart();
+        const { chart, nodes, morph } = makeChart();
 
         chart.toggleSeries('c1-s2');
         delete nodes[1].attrs['data-hidden'];   // esto es lo que hace el morph
 
-        chart.reapply();
+        morph();
 
         expect(nodes[1].attrs['data-hidden']).toBe('true');
+    });
+});
+
+describe('el morph de Livewire, en la otra dirección', function () {
+    const NUEVOS = {
+        xs: [10, 30, 50, 70, 90],
+        labels: ['Jun', 'Jul', 'Ago', 'Sep', 'Oct'],
+        series: [
+            { id: 'c1-s1', name: 'Ingresos', slot: 1, labels: ['9 €', '8 €', '7 €', '6 €', '5 €'] },
+        ],
+    };
+
+    it('relee el payload, o el tooltip enseñaría los datos del render ANTERIOR', () => {
+        // El bug: `payload` sólo se leía en init(), y el morph NO reinicializa el x-data (Alpine
+        // preserva el elemento). El <script> del payload sí se refresca en el DOM —está fuera del
+        // wire:ignore, que sólo protege la caja flotante—, así que el <path> se repintaba con los
+        // datos nuevos mientras el tooltip seguía leyendo los viejos. Sin ningún error.
+        const { chart, morph } = makeChart();
+
+        expect(chart.payload.labels[1]).toBe('Feb');
+
+        morph(NUEVOS);
+
+        chart.onPointerMove({ clientX: 60 });   // 30 % → xs[1]
+
+        expect(chart.hover.label).toBe('Jul');
+        expect(chart.hover.rows[0].value).toBe('8 €');
+    });
+
+    it('suelta el hover si el dataset nuevo tiene menos filas', () => {
+        // Si no, el índice sobre el que estaba el cursor deja de existir y el tooltip lee un
+        // undefined. Es el caso normal de un gráfico en streaming con ventana deslizante.
+        const { chart, morph } = makeChart();
+
+        chart.onPointerMove({ clientX: 9999 });
+        expect(chart.hover.index).toBe(4);
+
+        morph({ xs: [10, 50], labels: ['Ene', 'Feb'], series: [] });
+
+        expect(chart.hover).toBeNull();
+    });
+
+    it('ignora los morphs de otras partes de la página', () => {
+        // Releer el payload de los cinco gráficos de una página cada vez que morphea cualquier
+        // cosa cuesta un JSON.parse por gráfico — y a 2.000 puntos el payload pesa 53 kB.
+        const { chart, morph } = makeChart();
+
+        morph(NUEVOS, { contains: () => false });   // un morph de otro componente
+
+        expect(chart.payload.labels[1]).toBe('Feb');
     });
 });
 
