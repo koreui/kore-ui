@@ -311,3 +311,37 @@ describe('los decimales del dato', function () {
             ->assertDontSee('<td>21</td>', false);
     });
 });
+
+describe('el donut', function () {
+    it('enlaza cada arco con su fila de la leyenda por el mismo atributo', function () {
+        // De ese atributo compartido cuelga TODA la interacción del donut, y es CSS puro
+        // (`:has()` en kore-theme.css): ni una línea de JavaScript. Si alguien renombra el
+        // atributo en uno de los dos sitios, el enlace se rompe sin ningún error.
+        $view = $this->blade(<<<'BLADE'
+            <x-kore::chart :data="[['m' => 'A', 'v' => 10], ['m' => 'B', 'v' => 30]]" x="m">
+                <x-kore::chart.donut y="v" />
+            </x-kore::chart>
+        BLADE);
+
+        $view->assertSee('<path class="kore-chart-slice"', false)
+            ->assertSee('data-slice="0"', false)
+            ->assertSee('data-slice="1"', false)
+            // el arco y la fila comparten el índice
+            ->assertSee('<li class="kore-chart-legend-item" data-slice="0">', false);
+    });
+
+    it('no lleva tooltip: sus valores ya están en la leyenda', function () {
+        // No es un olvido. La leyenda imprime etiqueta, valor y porcentaje de cada porción de
+        // forma permanente; un tooltip repetiría lo que ya está en pantalla y metería en el
+        // DOM una segunda copia de los datos a cambio de nada.
+        $view = $this->blade(<<<'BLADE'
+            <x-kore::chart :data="[['m' => 'A', 'v' => 10], ['m' => 'B', 'v' => 30]]" x="m">
+                <x-kore::chart.donut y="v" />
+            </x-kore::chart>
+        BLADE);
+
+        $view->assertDontSee('data-kore-chart-payload', false)
+            ->assertSee('kore-chart-legend-value', false)
+            ->assertSee('kore-chart-legend-percent', false);
+    });
+});

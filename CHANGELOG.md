@@ -54,6 +54,8 @@ Y como el `<svg>` lo emite el servidor, **el morph de Livewire deja de ser una a
 
 ### Changed
 
+- **En el donut, al posarte sobre un arco se enciende su fila de la leyenda, y al revés.** Sin esa relación hay que emparejar el color a ojo entre el arco y la leyenda, que es lo que peor funciona —y peor todavía con daltonismo—. Está hecho con `:has()` en CSS puro: el arco y su fila comparten un `data-slice`, así que **no hace falta ni una línea de JavaScript** ni una segunda copia de los datos en el DOM. El donut sigue sin tooltip a propósito: su leyenda ya imprime etiqueta, valor y porcentaje de cada porción.
+
 - **`floating.js` acepta una referencia virtual.** El tooltip de un gráfico no cuelga de un elemento: cuelga de un punto de datos. Y como un ratón moviéndose no dispara scroll, resize ni mutación, el `cleanup` que devuelve `startFloating()` expone ahora un `update()` para pedir el reposicionamiento a mano. Los cuatro componentes que ya lo usaban no cambian.
 
 > **Limitaciones que conviene conocer.** El eje X es categórico: las fechas se pre-formatean en PHP y entran como categorías (una escala temporal de verdad es otro algoritmo entero). Los puntos de la línea son opt-in, porque son un `<div>` por dato. El techo práctico son unos 2.000 puntos por serie, y no lo pone el dibujo sino el peso del HTML. Ocultar una serie desde la leyenda no reescala los ejes. Y no hay zoom, ni pan, ni tipos exóticos.

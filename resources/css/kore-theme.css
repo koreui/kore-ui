@@ -905,6 +905,10 @@
     animation: none !important;
   }
 
+  .kore-chart-donut [data-slice] {
+    transition: none !important;
+  }
+
   .kore-skeleton-shimmer::after {
     animation: none !important;
   }
@@ -1226,6 +1230,40 @@
   width: var(--kore-chart-height);
   height: var(--kore-chart-height);
   flex-shrink: 0;
+}
+
+/* ── El arco y su fila de la leyenda, enlazados. Sin una línea de JavaScript. ─────────────
+ *
+ * El donut NO lleva tooltip, y no es un olvido: la leyenda ya imprime la etiqueta, el valor
+ * y el porcentaje de cada porción, de forma permanente. Un tooltip repetiría lo que ya está
+ * en pantalla y metería una segunda copia de los datos en el DOM a cambio de nada.
+ *
+ * Lo que sí faltaba es saber QUÉ porción es cuál sin emparejar colores a ojo — que es lo que
+ * peor funciona, y peor todavía con daltonismo (a partir de la sexta serie, magenta y teal
+ * son el mismo color bajo deuteranopia; está medido). Como el arco y su fila comparten
+ * `data-slice`, `:has()` puede recorrer esa relación: al posarse sobre cualquiera de los dos,
+ * se apagan todos los demás.
+ *
+ * Hace falta una regla por índice porque CSS no sabe comparar dos atributos entre sí. Van
+ * hasta la 12: un donut con más de doce porciones ya no se lee y hay que agrupar la cola en
+ * «Otros». Por encima de esa cifra esto no se apaga a medias — simplemente no hace nada. */
+.kore-chart-donut [data-slice] {
+  transition: opacity 120ms ease-out;
+}
+
+.kore-chart-donut:has([data-slice="0"]:hover) [data-slice]:not([data-slice="0"]),
+.kore-chart-donut:has([data-slice="1"]:hover) [data-slice]:not([data-slice="1"]),
+.kore-chart-donut:has([data-slice="2"]:hover) [data-slice]:not([data-slice="2"]),
+.kore-chart-donut:has([data-slice="3"]:hover) [data-slice]:not([data-slice="3"]),
+.kore-chart-donut:has([data-slice="4"]:hover) [data-slice]:not([data-slice="4"]),
+.kore-chart-donut:has([data-slice="5"]:hover) [data-slice]:not([data-slice="5"]),
+.kore-chart-donut:has([data-slice="6"]:hover) [data-slice]:not([data-slice="6"]),
+.kore-chart-donut:has([data-slice="7"]:hover) [data-slice]:not([data-slice="7"]),
+.kore-chart-donut:has([data-slice="8"]:hover) [data-slice]:not([data-slice="8"]),
+.kore-chart-donut:has([data-slice="9"]:hover) [data-slice]:not([data-slice="9"]),
+.kore-chart-donut:has([data-slice="10"]:hover) [data-slice]:not([data-slice="10"]),
+.kore-chart-donut:has([data-slice="11"]:hover) [data-slice]:not([data-slice="11"]) {
+  opacity: 0.28;
 }
 
 /* En alto contraste de Windows, TODAS las series pasarían al mismo color y el gráfico
