@@ -5,6 +5,11 @@ export default (config) => ({
     open: false,
     customHex: '',
 
+    // Sin declarar, Alpine las escribiría en el x-data ancestro, no aquí.
+    // Ver tests/js/alpine-scope.test.js.
+    _floatingCleanup: null,
+    _boundMousedown: null,
+
     init() {
         const val = this.$refs.hiddenInput?.value;
         if (val) {

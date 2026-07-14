@@ -4,6 +4,11 @@ export default (config) => ({
     open: false,
     highlighted: -1,
 
+    // Lo que no se declara aquí, Alpine lo escribe en el x-data ancestro más externo, no en
+    // el componente. Ver tests/js/alpine-scope.test.js.
+    _clickAwayHandler: null,
+    _floatingCleanup: null,
+
     init() {
         // Permanent click-away listener — survives Livewire re-renders
         this._clickAwayHandler = (e) => {

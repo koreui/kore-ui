@@ -28,6 +28,12 @@ export default (config) => ({
     pendingRangeStart: null,
     pendingRangeEnd: null,
 
+    // Sin declarar, Alpine las escribiría en el x-data ancestro, no aquí — y `_floatingCleanup`
+    // lo comparten seis componentes. Ver tests/js/alpine-scope.test.js.
+    _floatingCleanup: null,
+    _boundMousedown: null,
+    _boundResponsive: null,
+
     init() {
         const input = this.$refs.hiddenInput;
         this._syncFromInput(input);

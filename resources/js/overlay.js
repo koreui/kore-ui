@@ -14,6 +14,11 @@ export default function KoreOverlay() {
         swipe: null,
         swipeTranslateY: 0,
 
+        // Sin declarar, Alpine las escribiría en el x-data ancestro, no aquí.
+        // Ver tests/js/alpine-scope.test.js.
+        _teleportObserver: null,
+        _focusinGuard: null,
+
         init() {
             this.listeners.push(
                 Livewire.on('kore:overlay-changed', ({ id }) => {

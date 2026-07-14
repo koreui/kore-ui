@@ -4,6 +4,12 @@ export default (config) => ({
     show: false,
     _timer: null,
 
+    // Declarada aquí, aunque se asigne en open(): lo que un componente no declara, Alpine lo
+    // escribe en el x-data ANCESTRO más externo — compartido con el resto de la página. Y
+    // `_floatingCleanup` lo usan seis componentes, así que se pisarían entre ellos.
+    // Ver tests/js/alpine-scope.test.js.
+    _floatingCleanup: null,
+
     open() {
         this._timer = setTimeout(() => {
             this.show = true;

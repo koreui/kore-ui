@@ -95,6 +95,13 @@ export default (config = {}) => ({
     // Copyable feedback
     copyFeedback: null,
 
+    // Sin declarar, Alpine las escribiría en el x-data ancestro, no aquí: dos tablas en la
+    // misma página compartirían el ResizeObserver y sólo una se desengancharía.
+    // Ver tests/js/alpine-scope.test.js.
+    _copyTimer: null,
+    _onKeydown: null,
+    _resizeObserver: null,
+
     get densityClasses() {
         return {
             compact: 'px-3 py-1 text-sm',

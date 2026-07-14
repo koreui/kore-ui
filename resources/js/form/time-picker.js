@@ -9,6 +9,11 @@ export default (config) => ({
     holdTimeout: null,
     _hasBeenSet: false,
 
+    // Sin declarar, Alpine las escribiría en el x-data ancestro, no aquí.
+    // Ver tests/js/alpine-scope.test.js.
+    _floatingCleanup: null,
+    _boundMousedown: null,
+
     init() {
         const input = this.$refs.hiddenInput;
         this._syncFromInput(input);

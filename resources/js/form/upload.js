@@ -8,6 +8,14 @@ export default (config = {}) => ({
     _nativeFiles: null,
     _uploadMeta: null,
 
+    // Los handlers de los hooks de Livewire. Sin declarar, Alpine los escribiría en el x-data
+    // ancestro: dos uploads en la misma página se pisarían los suyos y el segundo recibiría
+    // el progreso del primero. Ver tests/js/alpine-scope.test.js.
+    _onStart: null,
+    _onProgress: null,
+    _onFinish: null,
+    _onError: null,
+
     init() {
         this._isLivewire = !!this.$wire;
         this._nativeFiles = new Map();
