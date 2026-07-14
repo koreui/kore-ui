@@ -94,3 +94,14 @@ it('traduce los meses sin ext-intl y sin un byte de Intl en el bundle', function
     expect((new TimeFormat('en'))->tick($at('2026-02-01'))['label'])->toBe('Feb');
     expect((new TimeFormat('fr'))->tick($at('2026-02-01'))['label'])->toBe('févr.');
 });
+
+it('la etiqueta de fila baja a los segundos cuando el dato los tiene', function () use ($at) {
+    // Sin esto, un gráfico en vivo muestreado cada dos segundos etiqueta los TREINTA puntos del
+    // mismo minuto como «21:35»: el tooltip deja de decir de cuál habla, y la tabla accesible
+    // tiene treinta filas con el mismo nombre.
+    $format = new TimeFormat('es');
+
+    expect($format->row($at('2026-02-14 21:35:07')))->toBe('14 feb. 2026, 21:35:07');
+    expect($format->row($at('2026-02-14 21:35:00')))->toBe('14 feb. 2026, 21:35');
+    expect($format->row($at('2026-02-14 00:00:00')))->toBe('14 feb. 2026');
+});

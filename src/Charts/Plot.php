@@ -63,6 +63,16 @@ final class Plot
         private readonly ?int $xTickCount = null,
         private readonly int $continuousXTicks = 6,
         /**
+         * El dominio del eje Y, fijado a mano.
+         *
+         * `Domain::fromSeries()` los aceptaba desde el primer día y los trata como un CONTRATO —no
+         * los redondea por debajo de lo que pides—, pero nadie se los pasaba nunca. En un gráfico
+         * en vivo dejan de ser un lujo: un eje que se reescala cada dos segundos porque el dato
+         * subió un punto es ilegible.
+         */
+        private readonly ?float $yMin = null,
+        private readonly ?float $yMax = null,
+        /**
          * El tramo visible, en % del dominio COMPLETO: `[0, 100]` es todo.
          *
          * Dos números, no dos fechas — y eso es lo que hace que el zoom no necesite ni una escala
@@ -116,6 +126,8 @@ final class Plot
         $this->domain = Domain::fromSeries(
             $this->stackedValues($frame, $window === null ? $values : $this->maskOutside($values)),
             includeZero: $frame->requiresZero(),
+            min: $yMin,
+            max: $yMax,
             tickCount: $tickCount,
         );
 

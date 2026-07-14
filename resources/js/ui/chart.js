@@ -78,6 +78,7 @@ export default (config = {}) => ({
     _reference: null,
     _floating: null,
     _drag: null,
+    _stream: null,
 
     init() {
         // ⚠️ `$el` NO es siempre la raíz del componente: Alpine lo resuelve al elemento cuya
@@ -92,11 +93,61 @@ export default (config = {}) => ({
 
         instances.add(this);
         ensureMorphHook();
+
+        if (config.stream?.every) {
+            this._stream = setInterval(() => this._tick(), config.stream.every);
+        }
     },
 
     destroy() {
         instances.delete(this);
         this._stopTooltip();
+
+        // Sin esto, el temporizador sigue pidiendo refrescos de un componente que ya no existe —
+        // y con `wire:navigate` eso significa un goteo eterno contra el servidor por cada gráfico
+        // que el usuario haya visitado.
+        clearInterval(this._stream);
+        this._stream = null;
+    },
+
+    // ---- datos en vivo -----------------------------------------------------------
+    //
+    // El morph de Livewire YA ES el mecanismo de actualización: cambias el dato en PHP y el
+    // atributo `d` del <path> se actualiza sin recrear el nodo. No hay nada que inventar ahí.
+    //
+    // Lo que sí hay que construir es saber **cuándo NO refrescar**. Un `wire:poll` a secas
+    // refresca siempre, y hay tres momentos en que eso es hostil. Por eso el refresco lo conduce
+    // el gráfico y no un `wire:poll` ciego.
+
+    get streamPaused() {
+        // 1. Mientras lees un tooltip. El dato se movería bajo el cursor y el número que estabas
+        //    mirando cambiaría mientras lo miras.
+        if (this.hover || this._drag) return true;
+
+        // 2. Con la pestaña oculta. Diez pestañas abiertas son diez renders por segundo en tu
+        //    servidor, para nadie. (`wire:poll` sí trae esto de serie; el resto, no.)
+        if (typeof document !== 'undefined' && document.hidden) return true;
+
+        // 3. Con el zoom puesto. Has ampliado para mirar algo concreto: que se te mueva el suelo
+        //    debajo es exactamente lo que no quieres.
+        if (this.zoomed) return true;
+
+        return false;
+    },
+
+    _tick() {
+        if (this.streamPaused || !this.$wire) return;
+
+        const call = config.stream?.call;
+
+        // Con `call`, se invoca el método que trae el dato nuevo — como `wire:poll.5s="tick"`.
+        // Sin él, un `$refresh()` a secas: sirve cuando el dato lo produce el propio render (una
+        // consulta), no cuando hay que avanzar un estado.
+        if (call) {
+            this.$wire[call]?.();
+        } else {
+            this.$wire.$refresh();
+        }
     },
 
     // ---- puntero -----------------------------------------------------------------

@@ -66,9 +66,17 @@ final class TimeFormat
      */
     public function row(DateTimeImmutable $date): string
     {
-        return TimeInterval::day()->floor($date) == $date
-            ? $this->at($date)->translatedFormat('j M Y')
-            : $this->at($date)->translatedFormat('j M Y, H:i');
+        // La misma escalera que los ticks, pero al revés: aquí NO se quita nada, se AÑADE lo que
+        // haga falta para que dos filas distintas no se llamen igual.
+        //
+        // ⚠️ Sin los segundos, un gráfico en vivo muestreado cada dos segundos etiqueta los treinta
+        // puntos del mismo minuto como «21:35». El tooltip deja de decir de cuál habla, y la tabla
+        // accesible tiene treinta filas con el mismo nombre.
+        return match (true) {
+            TimeInterval::minute()->floor($date) != $date => $this->at($date)->translatedFormat('j M Y, H:i:s'),
+            TimeInterval::day()->floor($date) != $date => $this->at($date)->translatedFormat('j M Y, H:i'),
+            default => $this->at($date)->translatedFormat('j M Y'),
+        };
     }
 
     /**

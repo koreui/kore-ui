@@ -25,6 +25,8 @@
         timeFormat: new TimeFormat(app()->getLocale()),
         xTickCount: $xAxis['ticks'] ?? null,
         continuousXTicks: (int) ($config['x_ticks'] ?? 6),
+        yMin: $yAxis['min'] ?? null,
+        yMax: $yAxis['max'] ?? null,
         // El tramo visible, en % del dominio COMPLETO. Dos números, no dos fechas — y eso es lo
         // que hace que el zoom no necesite ni una escala en JavaScript. Ver XScale::window().
         window: is_array($window) && count($window) === 2 ? [(float) $window[0], (float) $window[1]] : null,
@@ -63,7 +65,11 @@
 
     $zoomed = $plot->window !== null && ($plot->window[0] > 0.01 || $plot->window[1] < 99.99);
 
-    $interactive = ! $donut && ($zoom || (! $plot->empty && ($frame->tooltip || $frame->legend)));
+    // El stream sí vive aunque el gráfico esté vacío: es justamente lo que hace que un panel que
+    // arranca sin datos se rellene solo cuando llegan.
+    $stream = $donut ? null : $frame->stream;
+
+    $interactive = ! $donut && ($zoom || $stream || (! $plot->empty && ($frame->tooltip || $frame->legend)));
 
     // El mini-gráfico de contexto necesita la serie ENTERA, no la de la ventana. Se recalcula el
     // Plot sin ventana — es PHP puro y no toca el frame. Y el resultado es UN <path> por serie:
@@ -98,8 +104,9 @@
     data-kore-chart="{{ $chartId }}"
     @if($plot->empty) data-kore-chart-empty="true" @endif
     @if($zoomed ?? false) data-kore-chart-zoomed="true" @endif
+    @if(($stream ?? null) && ($stream['transition'] ?? true)) data-kore-chart-stream="true" @endif
     @if($interactive)
-        x-data="KoreChart({{ Js::from(['id' => $chartId, 'zoom' => $zoom]) }})"
+        x-data="KoreChart({{ Js::from(['id' => $chartId, 'zoom' => $zoom, 'stream' => $stream]) }})"
         @if($frame->tooltip || $zoom)
             x-on:pointermove="onPointerMove($event)"
         @endif

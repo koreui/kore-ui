@@ -31,6 +31,9 @@ final class ChartFrame
     /** @var array{model: string, slider: bool}|null */
     public ?array $zoom = null;
 
+    /** @var array{every: int, call: string|null, transition: bool}|null */
+    public ?array $stream = null;
+
     public bool $grid = true;
 
     public function __construct(

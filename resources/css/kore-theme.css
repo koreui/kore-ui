@@ -969,6 +969,10 @@
     --kore-spring-easing: ease;
     --kore-spring-duration: 0ms;
     --kore-sidebar-duration: 0ms;
+
+    /* Un gráfico en vivo con las marcas moviéndose es exactamente lo que alguien con sensibilidad
+       al movimiento no quiere ver. El dato sigue llegando; lo que se apaga es el viaje. */
+    --kore-chart-tween: 0ms;
   }
 
   .kore-toast-progress {
@@ -1024,6 +1028,10 @@
   --kore-chart-height: 16rem;
   --kore-chart-gap: 0.5rem;
   --kore-chart-gutter-y: 4ch;
+
+  /* Cuánto tarda una marca en llegar a su sitio nuevo cuando el dato cambia en vivo. Corta a
+     propósito: una animación más larga que el intervalo de refresco no termina nunca. */
+  --kore-chart-tween: 400ms;
 }
 
 .kore-chart-title {
@@ -1458,6 +1466,41 @@
 .kore-chart-zoom-button:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+/* ---- datos en vivo ---- */
+
+/* Las marcas se MUEVEN a su sitio nuevo en vez de aparecer en él.
+ *
+ * ⚠️ Sólo las barras y los puntos, y no es un olvido: son <div> con la posición en custom
+ * properties, así que una transición sobre `top`/`height` funciona en todas partes y hace lo
+ * correcto.
+ *
+ * La LÍNEA no se anima. Animarla exigiría `transition: d`, y está medido en los tres motores:
+ * Firefox interpola, **WebKit ni siquiera lo soporta** (`CSS.supports('d')` devuelve false) y
+ * Chromium dice soportarlo pero da un salto seco.
+ *
+ * Y hay una razón mejor para no hacerlo aunque funcionara: en una ventana deslizante, interpolar
+ * `d` lleva el punto i hasta el valor del punto i+1 — o sea, la onda TIEMBLA EN EL SITIO en vez
+ * de desplazarse. Es la animación equivocada. Un motor de canvas tiene el mismo problema y lo
+ * resuelve igual: redibujando.
+ *
+ * Aun así, la línea ya sale ganando: el morph de Livewire cambia el `d` SIN RECREAR EL NODO, así
+ * que no parpadea. Es el issue #20103 de Filament, que nosotros no podemos tener. */
+.kore-chart[data-kore-chart-stream] .kore-chart-bar,
+.kore-chart[data-kore-chart-stream] .kore-chart-dot {
+  transition:
+    left var(--kore-chart-tween) ease-out,
+    top var(--kore-chart-tween) ease-out,
+    width var(--kore-chart-tween) ease-out,
+    height var(--kore-chart-tween) ease-out;
+}
+
+/* La rejilla y los ticks del eje Y también: si el dominio cambia, las líneas se deslizan a su
+   altura nueva en vez de teletransportarse. */
+.kore-chart[data-kore-chart-stream] .kore-chart-grid-line,
+.kore-chart[data-kore-chart-stream] .kore-chart-gutter-y .kore-chart-tick {
+  transition: top var(--kore-chart-tween) ease-out;
 }
 
 /* ---- crosshair y tooltip ---- */

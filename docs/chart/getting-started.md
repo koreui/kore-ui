@@ -16,6 +16,7 @@ Gráficos de barras, líneas, áreas y donut. **Sin ninguna librería de JavaScr
 | `<x-kore::chart.legend>` | La leyenda. Al pulsarla, oculta la serie |
 | `<x-kore::chart.tooltip>` | El tooltip y el crosshair |
 | `<x-kore::chart.zoom>` | Zoom, pan y el mini-gráfico de contexto. Ver [zoom.md](zoom.md) |
+| `<x-kore::chart.stream>` | Datos en vivo. Ver [streaming.md](streaming.md) |
 
 ## Ejemplo completo
 
@@ -184,7 +185,9 @@ En `config/kore-ui.php`, sección `chart`:
 
 **No hay zoom continuo con rueda ni pinch.** Sí hay zoom por arrastre, pan y un slider de contexto — todo resuelto en el servidor. Ver [zoom.md](zoom.md); ahí está escrito por qué la rueda no cabe.
 
-**No hay streaming**, ni tipos exóticos (candlestick, treemap, heatmap, mapas).
+**Hay datos en vivo, pero con techo.** Un refresco es un round-trip completo de Livewire: el techo honesto es **1 Hz con ≤ 200 puntos**, y a 10 Hz no aguanta ninguna arquitectura que dibuje en el servidor. Está medido y explicado en [streaming.md](streaming.md).
+
+**No hay tipos exóticos** (candlestick, treemap, heatmap, mapas).
 
 ## Una regla de diseño que el componente te va a imponer
 

@@ -63,6 +63,7 @@ function makeChart({ width = 200, left = 0 } = {}) {
 
 beforeEach(() => {
     globalThis.window = { Livewire: undefined };
+    globalThis.document = globalThis.document ?? { hidden: false };
     setPoint.mockClear();
 });
 
@@ -386,5 +387,107 @@ describe('zoom', function () {
         chart.zoomBy(0.1);   // el centro está en 0,5: el suelo se saldría por la izquierda
 
         expect(set).toHaveBeenCalledWith('ventana', [0, 2]);
+    });
+});
+
+/**
+ * Datos en vivo.
+ *
+ * El morph de Livewire YA ES el mecanismo de actualización. Lo que hay que construir no es
+ * refrescar: es saber CUÁNDO NO HACERLO.
+ */
+describe('stream', function () {
+    function makeStream({ every = 2000, call = 'tick', view = [0, 100] } = {}) {
+        const refresh = vi.fn();
+        const tick = vi.fn();
+        const chart = KoreChart({ id: 'c1', zoom: { model: 'v' }, stream: { every, call } });
+
+        chart.$el = {
+            contains: () => false,
+            querySelector: () => ({ textContent: JSON.stringify({ ...PAYLOAD, window: view, minWindow: 2 }) }),
+            querySelectorAll: () => [],
+        };
+        chart.$refs = { plot: { getBoundingClientRect: () => ({ left: 0, top: 0, width: 200, height: 100 }) } };
+        chart.$wire = { $refresh: refresh, tick, $set: vi.fn() };
+        chart.$nextTick = (fn) => fn();
+        chart.init();
+
+        return { chart, refresh, tick };
+    }
+
+    it('llama al método que trae el dato, como wire:poll.2s="tick"', function () {
+        const { chart, tick } = makeStream();
+
+        chart._tick();
+
+        expect(tick).toHaveBeenCalled();
+    });
+
+    it('sin método, un $refresh() a secas', function () {
+        const { chart, refresh, tick } = makeStream({ call: null });
+
+        chart._tick();
+
+        expect(refresh).toHaveBeenCalled();
+        expect(tick).not.toHaveBeenCalled();
+    });
+
+    it('NO refresca mientras lees un tooltip', function () {
+        // El dato se movería bajo el cursor y el número que estabas mirando cambiaría mientras lo
+        // miras. Es la razón principal de que el refresco lo conduzca el gráfico y no un wire:poll.
+        const { chart, tick } = makeStream();
+
+        chart.onPointerMove({ clientX: 60 });
+        expect(chart.hover).not.toBeNull();
+
+        chart._tick();
+
+        expect(chart.streamPaused).toBe(true);
+        expect(tick).not.toHaveBeenCalled();
+
+        // Y se reanuda al salir.
+        chart.onPointerLeave();
+        chart._tick();
+
+        expect(tick).toHaveBeenCalled();
+    });
+
+    it('NO refresca con el zoom puesto', function () {
+        // Has ampliado para mirar algo concreto: que se te mueva el suelo debajo es exactamente lo
+        // que no quieres.
+        const { chart, tick } = makeStream({ view: [20, 40] });
+
+        expect(chart.zoomed).toBe(true);
+
+        chart._tick();
+
+        expect(chart.streamPaused).toBe(true);
+        expect(tick).not.toHaveBeenCalled();
+    });
+
+    it('NO refresca con la pestaña oculta', function () {
+        // Diez pestañas abiertas serían diez renders cada dos segundos en tu servidor, para nadie.
+        const { chart, tick } = makeStream();
+
+        Object.defineProperty(globalThis.document, 'hidden', { value: true, configurable: true });
+
+        chart._tick();
+
+        expect(chart.streamPaused).toBe(true);
+        expect(tick).not.toHaveBeenCalled();
+
+        Object.defineProperty(globalThis.document, 'hidden', { value: false, configurable: true });
+    });
+
+    it('apaga el temporizador al destruirse', function () {
+        // Sin esto, con wire:navigate el temporizador sigue pidiendo refrescos de un componente que
+        // ya no existe: un goteo eterno contra el servidor por cada gráfico que se haya visitado.
+        const { chart } = makeStream();
+
+        expect(chart._stream).not.toBeNull();
+
+        chart.destroy();
+
+        expect(chart._stream).toBeNull();
     });
 });

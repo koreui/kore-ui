@@ -54,6 +54,20 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
   ⚠️ **Sin rueda ni pinch, y va escrito en la doc.** Una rueda dispara ~50 eventos/s y cada uno cambia los ticks: hacerlo bien exige portar `Ticks`, `Scales`, `Path` y `Format` a JS y mantener dos implementaciones de la geometría idénticas para siempre. Es la deuda que esta arquitectura se eligió para no contraer.
 
+- **Datos en vivo** con `<x-kore::chart.stream>`. Ver [docs/chart/streaming.md](docs/chart/streaming.md).
+
+  **El morph de Livewire ya ERA la actualización**: cambia el atributo `d` del `<path>` sin recrear el nodo. No hay instancia de JavaScript que proteger, así que no hay nada que parpadee — que es el issue **#20103 de Filament**, abierto porque cada refresco destruye y recrea una instancia de Chart.js. Lo que había que construir no era refrescar: era **saber cuándo no hacerlo**.
+
+  Un `wire:poll` a secas refresca siempre. El gráfico se para solo en los tres momentos en que eso es hostil: **mientras lees un tooltip** (el número que estás mirando no puede cambiar bajo el cursor), **con la pestaña oculta** (diez pestañas serían diez renders por segundo en tu servidor, para nadie) y **con el zoom puesto** (has ido a mirar algo concreto; no se te mueve el suelo).
+
+  La ventana deslizante es un `array_slice`: ni ring buffer, ni motor. Y todo el JavaScript son ~25 líneas.
+
+  **Las barras y los puntos se animan; la línea no**, y no es un olvido. Animar el trazo exigiría `transition: d`, y está medido en los tres motores: Firefox interpola, **WebKit ni siquiera lo soporta** y Chromium dice soportarlo pero da un salto seco. Y hay una razón mejor: en una ventana deslizante, interpolar `d` lleva el punto *i* hasta el valor del punto *i+1* — la onda **tiembla en el sitio** en vez de desplazarse. Es la animación equivocada.
+
+  ⚠️ **El techo va escrito, medido y con excepción.** Un refresco es un round-trip completo de Livewire, y **medido: 44 kB de HTML — 5,1 kB gzip — por refresco** con 40 puntos y 2 series. Son N renders para N clientes. `every` **lanza** por debajo de 500 ms. El techo honesto es **1 Hz con ≤ 200 puntos**; a 10 Hz no aguanta ninguna arquitectura que dibuje en el servidor, ni ésta ni ninguna.
+
+- **`min` y `max` en `<x-kore::chart.axis-y>`**, para fijar el dominio. `Domain::fromSeries()` los aceptaba desde el primer día —y los trata como un contrato, no los redondea por debajo de lo que pides— pero **nadie se los pasaba nunca**. En un gráfico en vivo dejan de ser un lujo: un eje que se reescala cada dos segundos porque el dato subió un punto es ilegible.
+
 - **Guardia de peso del bundle en CI** (`npm run size`). «El JavaScript es poco» es una promesa de la documentación, y una promesa que nadie mide deja de ser verdad sin que nadie se entere.
 
 #### El principio que ordena todo el módulo
@@ -80,6 +94,8 @@ Y como el `<svg>` lo emite el servidor, **el morph de Livewire deja de ser una a
 - **La tabla accesible arrastraba scroll horizontal a toda la página.** `sr-only` esconde la caja con `width: 1px`, pero sobre una `<table>` **ese ancho se ignora**: el algoritmo de layout de tablas lo acota por abajo al `min-content`. Medido en un móvil de 375 px: la tabla ocupaba **321 px de ancho**. El `clip-path` sí aplicaba —así que no se veía y nadie se enteró— pero la caja seguía ocupando. Ahora el `sr-only` va en un `<div>`, que sí obedece.
 
 - **Las etiquetas del eje X se salían de la tarjeta.** Se anclaban por el borde la primera y la última, y eso funcionaba porque las únicas que se salían eran las de los extremos… en una escala de bandas. En una escala continua un tick puede caer en el **98,9 %** —ni centrado ni en el borde—, ahí ningún umbral salta, y media etiqueta se va fuera. Ahora el servidor emite **lo que mide** la etiqueta, en `ch` (no puede medir texto, pero sí contarlo), y el CSS la acota con un `clamp`: la centra sobre su tick si cabe y la apoya en el borde si no. Es exacto por construcción, no tiene umbrales que afinar, y de paso resuelve los dos casos que el anclaje trataba a mano.
+
+- **La etiqueta de una fila no bajaba de los minutos.** En un gráfico en vivo muestreado cada dos segundos, los treinta puntos del mismo minuto se llamaban todos «21:35»: el tooltip dejaba de decir de cuál hablaba, y la tabla accesible tenía treinta filas con el mismo nombre.
 
 - **Un color mal escrito dejaba la serie INVISIBLE, sin decir nada.** `color` se colaba tal cual al CSS, así que `color="chart-4"` —que es lo primero que uno prueba— acababa en `--kore-series: chart-4`, que no es un color válido: la serie no se pintaba. Medido en la demo, un gráfico de barras entero, invisible. Y lo mismo con cualquier errata (`destructiv`, `rojo`, `blue-500`).
 
