@@ -361,4 +361,45 @@ return [
         'nonce' => null,         // CSP nonce for the anti-FOUC inline script
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | App Shell
+    |--------------------------------------------------------------------------
+    |
+    | Defaults for the application chrome: shell layout, sidebar and navbar.
+    |
+    | The collapsed/expanded state is persisted in the `kore_sidebar` cookie (not
+    | localStorage) so the server can render the correct width on the first paint,
+    | with no layout flash. Widths are CSS lengths, not Tailwind classes: they feed
+    | the --kore-sidebar-* custom properties that drive the layout.
+    |
+    */
+    'shell' => [
+        'sidebar' => [
+            'collapsible' => true,
+            'collapsed' => false,        // initial state on first visit (before any cookie)
+            'placement' => 'left',       // 'left' | 'right'
+            'width' => '16rem',
+            'collapsed_width' => '4rem',
+            'breakpoint' => 'lg',        // 'sm' | 'md' | 'lg' | 'xl' — below this it becomes a drawer
+            'persist' => true,
+            'smart' => true,             // auto-detect the active route
+            'navigate' => false,         // add wire:navigate to item links
+            'overlay' => true,           // on mobile, show a backdrop behind the drawer
+            'rail' => false,             // icons only, expands over the content on hover
+            'expand_on_hover' => false,
+            'duration' => 200,           // ms — collapse/expand transition
+
+            // Collapsed, a numeric badge shrinks to a counter on the corner of the icon.
+            // Anything above this shows as "99+": a four-digit count would be unreadable
+            // at that size and would blow the icon's bounding box apart.
+            'badge_max' => 99,
+        ],
+
+        'navbar' => [
+            'sticky' => true,
+            'bordered' => true,
+        ],
+    ],
+
 ];

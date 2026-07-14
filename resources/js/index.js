@@ -24,9 +24,11 @@ import KoreSplitter from './ui/splitter.js';
 import KoreCarousel from './ui/carousel.js';
 import KoreTree from './ui/tree.js';
 import KoreTooltip from './ui/tooltip.js';
+import KoreSidebar from './ui/sidebar.js';
 import KoreDataTable from './datatable.js';
 import KoreSpotlight from './spotlight.js';
 import KoreTheme from './theme.js';
+import KoreSidebarStore from './sidebar.js';
 
 document.addEventListener('alpine:init', () => {
     Alpine.plugin(collapse);
@@ -57,5 +59,12 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('KoreTooltip', KoreTooltip);
     Alpine.data('KoreDataTable', KoreDataTable);
     Alpine.data('KoreSpotlight', KoreSpotlight);
+
+    // El store se registra ANTES que el Alpine.data del sidebar: la factory
+    // KoreSidebar llama a store.register() en su cuerpo, así que el store tiene
+    // que existir ya cuando Alpine procese el primer x-data.
+    Alpine.store('koreSidebar', KoreSidebarStore);
+    Alpine.data('KoreSidebar', KoreSidebar);
+
     Alpine.store('koreTheme', KoreTheme);
 });

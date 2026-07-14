@@ -68,6 +68,18 @@
     --kore-radius-md: 0.375rem;
     --kore-radius-lg: 0.5rem;
     --kore-radius-xl: 0.75rem;
+
+    /* App shell. El ancho vive en una custom property (y no en clases de Tailwind)
+       porque el servidor lo decide leyendo la cookie: así el primer paint ya sale
+       correcto y Alpine solo cambia un atributo, sin salto de layout. */
+    --kore-sidebar-width: 16rem;
+    --kore-sidebar-width-collapsed: 4rem;
+    --kore-sidebar-duration: 200ms;
+    --kore-sidebar-accent-width: 3px;
+    --kore-navbar-height: 4rem;
+    --kore-sidebar-z: 40;
+    --kore-navbar-z: 30;
+    --kore-sidebar-backdrop-z: 39;
   }
 
   .dark, [data-theme="dark"] {
@@ -318,11 +330,517 @@
   min-height: 0;
 }
 
+/* ==========================================================================
+   App Shell — layout
+   ==========================================================================
+
+   Todo el layout se deriva de atributos `data-*` que ESTAMPA EL SERVIDOR leyendo
+   la cookie. Alpine solo cambia esos atributos; nunca calcula anchos. Por eso el
+   primer paint ya sale correcto, la transición es CSS pura, y el shell sigue
+   siendo usable aunque el JS no cargue nunca.
+
+   Hay DOS ejes de anchura, y es deliberado:
+     --kore-sidebar-current  → lo ancho que se VE el sidebar
+     --kore-shell-left/right → el espacio que el contenido RESERVA
+   En modo rail divergen: el sidebar se expande por encima del contenido sin
+   desplazarlo. Con una sola variable, rail sería imposible.
+   ========================================================================== */
+
+[data-kore-shell] {
+  --kore-shell-left: 0px;
+  --kore-shell-right: 0px;
+  position: relative;
+  min-height: 100dvh;
+}
+
+/* Espacio reservado para el contenido, según el estado de cada sidebar. */
+[data-kore-shell][data-sidebar-left="expanded"] { --kore-shell-left: var(--kore-sidebar-width); }
+[data-kore-shell][data-sidebar-left="collapsed"] { --kore-shell-left: var(--kore-sidebar-width-collapsed); }
+[data-kore-shell][data-sidebar-right="expanded"] { --kore-shell-right: var(--kore-sidebar-width); }
+[data-kore-shell][data-sidebar-right="collapsed"] { --kore-shell-right: var(--kore-sidebar-width-collapsed); }
+
+/* Rail: el contenido reserva SIEMPRE el ancho colapsado, aunque el sidebar se
+   expanda al hover. Ese es justamente el punto del modo rail. */
+[data-kore-shell][data-sidebar-left="rail"] { --kore-shell-left: var(--kore-sidebar-width-collapsed); }
+[data-kore-shell][data-sidebar-right="rail"] { --kore-shell-right: var(--kore-sidebar-width-collapsed); }
+
+.kore-shell-main {
+  padding-left: var(--kore-shell-left);
+  padding-right: var(--kore-shell-right);
+  transition: padding var(--kore-sidebar-duration) ease;
+  /* Contiene los z-index de dentro del contenido (p.ej. el overlay de carga del
+     datatable, z-30) para que no puedan taparle el chrome al shell. */
+  isolation: isolate;
+}
+
+/* --- Sidebar --- */
+
+.kore-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: var(--kore-sidebar-z);
+  display: flex;
+  flex-direction: column;
+  width: var(--kore-sidebar-current);
+  overflow-x: hidden;
+  background-color: var(--kore-surface);
+  transition:
+    width var(--kore-sidebar-duration) ease,
+    transform var(--kore-sidebar-duration) ease;
+}
+
+[data-kore-sidebar] { --kore-sidebar-current: var(--kore-sidebar-width); }
+[data-kore-sidebar="collapsed"] { --kore-sidebar-current: var(--kore-sidebar-width-collapsed); }
+
+[data-kore-sidebar][data-placement="left"] {
+  left: 0;
+  border-right: 1px solid var(--kore-border);
+}
+
+[data-kore-sidebar][data-placement="right"] {
+  right: 0;
+  border-left: 1px solid var(--kore-border);
+}
+
+/* --- Etiquetas y marca ---
+
+   La visibilidad NO se decide con selectores descendentes, sino con dos variables
+   heredadas que cada contexto redefine. Es deliberado: con selectores, la regla de
+   "colapsado" acumulaba una especificidad enorme por los :not() encadenados y ganaba
+   siempre — hasta dentro de un flyout o de un drawer móvil, donde el sidebar SÍ es
+   ancho. Con variables, quien manda es el ancestro más cercano que las declare, sin
+   guerras de especificidad. */
+
+[data-kore-sidebar] {
+  --kore-label-opacity: 1;
+  --kore-label-display: block;
+  --kore-label-max: var(--kore-sidebar-width);
+  --kore-group-rows: 1fr;
+  --kore-group-visibility: visible;
+  --kore-mini-display: none;   /* la marca compacta solo existe en modo iconos */
+
+  /* Geometría de la fila. En modo iconos el hueco entre icono y texto y el padding
+     lateral tienen que desaparecer: si no, el icono queda empujado contra el borde
+     izquierdo en vez de centrado en la columna. */
+  --kore-item-justify: flex-start;
+  --kore-item-gap: 0.75rem;
+  --kore-item-px: 0.75rem;
+}
+
+[data-kore-sidebar="collapsed"] {
+  --kore-label-opacity: 0;
+  --kore-label-display: none;
+  --kore-label-max: 0px;
+  --kore-group-rows: 0fr;
+  --kore-group-visibility: hidden;
+  --kore-mini-display: block;
+
+  --kore-item-justify: center;
+  --kore-item-gap: 0;
+  --kore-item-px: 0;
+}
+
+/* Rail / expand-on-hover: el sidebar se ensancha y vuelven las etiquetas. `focus-within`
+   es obligatorio, no un extra: sin él, quien navegue con Tab no ve dónde está. */
+[data-kore-sidebar][data-hover-expand="true"]:hover,
+[data-kore-sidebar][data-hover-expand="true"]:focus-within {
+  --kore-sidebar-current: var(--kore-sidebar-width);
+  --kore-label-opacity: 1;
+  --kore-label-display: block;
+  --kore-label-max: var(--kore-sidebar-width);
+  --kore-group-rows: 1fr;
+  --kore-group-visibility: visible;
+  --kore-mini-display: none;
+  --kore-item-justify: flex-start;
+  --kore-item-gap: 0.75rem;
+  --kore-item-px: 0.75rem;
+  box-shadow: 0 0 0 1px var(--kore-border), 0 10px 30px -10px var(--kore-pin-shadow);
+}
+
+/* La etiqueta hace DOS cosas al colapsar, y las dos hacen falta:
+
+   1. `max-width` la encoge de forma progresiva, de modo que va cediendo su espacio
+      mientras el sidebar se estrecha y el icono se desliza hacia el centro. Sin esto, la
+      etiqueta conservaba su hueco (invisible, pero presente) durante toda la animación y
+      el icono saltaba al centro de golpe justo al final.
+
+   2. `display: none` la saca del flujo AL TERMINAR (de ahí `allow-discrete`). Hace falta
+      porque un flex item de ancho cero sigue participando en el reparto del espacio, y el
+      icono nunca acababa exactamente en el eje de la columna.
+
+   Donde `allow-discrete` no esté soportado, la etiqueta simplemente desaparece sin el
+   último fundido: degradación aceptable, no un fallo. */
+.kore-sidebar-label {
+  display: var(--kore-label-display);
+  opacity: var(--kore-label-opacity);
+  max-width: var(--kore-label-max);
+  white-space: nowrap;
+  overflow: hidden;
+  transition:
+    opacity calc(var(--kore-sidebar-duration) / 2) ease,
+    max-width var(--kore-sidebar-duration) ease,
+    display var(--kore-sidebar-duration) allow-discrete;
+}
+
+/* Contrapartida de .kore-sidebar-label: se ve SOLO en modo iconos. Sirve para dar un
+   logotipo compacto (o unas iniciales) cuando el nombre completo ya no cabe. */
+.kore-sidebar-mini {
+  display: var(--kore-mini-display);
+}
+
+/* Título de sección ("GESTIÓN", "CONFIGURACIÓN").
+
+   No basta con esconder el texto: la fila entera tiene que perder su ALTURA, o al colapsar
+   desaparecería de golpe y todo lo que hay debajo pegaría un salto hacia arriba. Se anima
+   con el truco de grid-template-rows 1fr→0fr, el mismo que usan los sub-menús, que es la
+   única forma de transicionar a "altura automática" en CSS.
+
+   La `visibility` saca el contenido del orden de tabulación una vez encogido (un botón de
+   grupo colapsable seguiría siendo alcanzable con Tab, invisible pero enfocable), y su
+   `transition-delay` la retrasa hasta el final de la animación para no cortarla en seco. */
+.kore-sidebar-group-header {
+  display: grid;
+  grid-template-rows: var(--kore-group-rows);
+  transition: grid-template-rows var(--kore-sidebar-duration) ease;
+}
+
+.kore-sidebar-group-header > * {
+  overflow: hidden;
+  visibility: var(--kore-group-visibility);
+  transition: visibility 0s linear var(--kore-sidebar-duration);
+}
+
+/* Badges anclados al icono. El `box-shadow` hace de recorte contra el icono (y contra el
+   fondo del item activo) sin necesidad de un elemento extra. */
+.kore-sidebar-count,
+.kore-sidebar-dot {
+  position: absolute;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 2px var(--kore-surface);
+}
+
+/* El punto (variante `dot`) se ve SIEMPRE: es un aviso de "hay algo", y sigue teniendo
+   sentido con el sidebar ancho, donde no hay ninguna píldora que lo sustituya. */
+.kore-sidebar-dot {
+  display: block;
+  inset-block-start: -0.125rem;
+  inset-inline-end: -0.125rem;
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+/* El contador, en cambio, solo existe en modo iconos: con el sidebar ancho ese número ya
+   lo lleva la píldora del final de la fila. Comparte la variable de la marca compacta, así
+   que aparece exactamente cuando la etiqueta desaparece. */
+.kore-sidebar-count {
+  display: var(--kore-mini-display);
+  inset-block-start: -0.375rem;
+  inset-inline-end: -0.5rem;
+  min-width: 1rem;
+  padding-inline: 0.1875rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1rem;
+  text-align: center;
+  white-space: nowrap;   /* "99+" no parte en dos líneas */
+}
+
+/* Un badge que no cabe ni acortado (un texto largo) se degrada a punto: al menos queda
+   constancia de que ese item tiene algo que decir. */
+.kore-sidebar-count:empty {
+  inset-block-start: -0.125rem;
+  inset-inline-end: -0.125rem;
+  min-width: 0.625rem;
+  width: 0.625rem;
+  height: 0.625rem;
+  padding: 0;
+}
+
+/* La fila de un item (y la cabecera). Al colapsar, el contenido se centra y se van el
+   hueco y el padding lateral, así que el icono queda en el eje de la columna. */
+.kore-sidebar-link,
+.kore-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: var(--kore-item-justify);
+  gap: var(--kore-item-gap);
+  padding-inline: var(--kore-item-px);
+  transition:
+    gap var(--kore-sidebar-duration) ease,
+    padding-inline var(--kore-sidebar-duration) ease;
+}
+
+/* El backdrop del drawer móvil solo existe por debajo del breakpoint. */
+.kore-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--kore-sidebar-backdrop-z);
+  display: none;
+  background-color: rgb(0 0 0 / 0.4);
+  opacity: 0;
+  transition: opacity var(--kore-sidebar-duration) ease;
+}
+
+/* --- Móvil: el sidebar pasa a ser un drawer ---
+
+   Se resuelve con media queries ESTÁTICAS, no con matchMedia: así el layout es
+   correcto en el primer paint y en cada resize, sin depender del JS. El
+   matchMedia del store queda solo para el comportamiento (auto-cerrar, scroll-lock).
+
+   Hay un bloque por breakpoint porque `breakpoint` es configurable por sidebar y
+   CSS no permite media queries con variables. */
+
+/* Un drawer SIEMPRE se abre a ancho completo y con etiquetas, aunque el sidebar
+   estuviera colapsado en escritorio: un panel a pantalla completa mostrando solo
+   iconos no tiene ningún sentido, y era justo lo que pasaba.
+
+   Los `:hover` / `:focus-within` del selector no son decorativos: están para ganarle en
+   especificidad a las reglas de rail / expand-on-hover, que si no seguirían mandando. */
+
+@media (max-width: 639.98px) {
+  [data-kore-shell][data-breakpoint="sm"] { --kore-shell-left: 0px; --kore-shell-right: 0px; }
+
+  [data-kore-sidebar][data-breakpoint="sm"],
+  [data-kore-sidebar][data-breakpoint="sm"]:hover,
+  [data-kore-sidebar][data-breakpoint="sm"]:focus-within {
+    --kore-sidebar-current: var(--kore-sidebar-width);
+    --kore-label-opacity: 1;
+    --kore-label-display: block;
+  --kore-label-max: var(--kore-sidebar-width);
+  --kore-group-rows: 1fr;
+  --kore-group-visibility: visible;
+    --kore-mini-display: none;
+    --kore-item-justify: flex-start;
+    --kore-item-gap: 0.75rem;
+    --kore-item-px: 0.75rem;
+    box-shadow: none;
+  }
+
+  [data-kore-sidebar][data-breakpoint="sm"][data-placement="left"] { transform: translateX(-100%); }
+  [data-kore-sidebar][data-breakpoint="sm"][data-placement="right"] { transform: translateX(100%); }
+  [data-kore-sidebar][data-breakpoint="sm"][data-open="true"] { transform: translateX(0); }
+  [data-kore-sidebar][data-breakpoint="sm"][data-open="true"] ~ .kore-sidebar-backdrop { display: block; opacity: 1; }
+  [data-kore-sidebar][data-breakpoint="sm"] .kore-sidebar-close { display: inline-flex; }
+}
+
+@media (max-width: 767.98px) {
+  [data-kore-shell][data-breakpoint="md"] { --kore-shell-left: 0px; --kore-shell-right: 0px; }
+
+  [data-kore-sidebar][data-breakpoint="md"],
+  [data-kore-sidebar][data-breakpoint="md"]:hover,
+  [data-kore-sidebar][data-breakpoint="md"]:focus-within {
+    --kore-sidebar-current: var(--kore-sidebar-width);
+    --kore-label-opacity: 1;
+    --kore-label-display: block;
+  --kore-label-max: var(--kore-sidebar-width);
+  --kore-group-rows: 1fr;
+  --kore-group-visibility: visible;
+    --kore-mini-display: none;
+    --kore-item-justify: flex-start;
+    --kore-item-gap: 0.75rem;
+    --kore-item-px: 0.75rem;
+    box-shadow: none;
+  }
+
+  [data-kore-sidebar][data-breakpoint="md"][data-placement="left"] { transform: translateX(-100%); }
+  [data-kore-sidebar][data-breakpoint="md"][data-placement="right"] { transform: translateX(100%); }
+  [data-kore-sidebar][data-breakpoint="md"][data-open="true"] { transform: translateX(0); }
+  [data-kore-sidebar][data-breakpoint="md"][data-open="true"] ~ .kore-sidebar-backdrop { display: block; opacity: 1; }
+  [data-kore-sidebar][data-breakpoint="md"] .kore-sidebar-close { display: inline-flex; }
+}
+
+@media (max-width: 1023.98px) {
+  [data-kore-shell][data-breakpoint="lg"] { --kore-shell-left: 0px; --kore-shell-right: 0px; }
+
+  [data-kore-sidebar][data-breakpoint="lg"],
+  [data-kore-sidebar][data-breakpoint="lg"]:hover,
+  [data-kore-sidebar][data-breakpoint="lg"]:focus-within {
+    --kore-sidebar-current: var(--kore-sidebar-width);
+    --kore-label-opacity: 1;
+    --kore-label-display: block;
+  --kore-label-max: var(--kore-sidebar-width);
+  --kore-group-rows: 1fr;
+  --kore-group-visibility: visible;
+    --kore-mini-display: none;
+    --kore-item-justify: flex-start;
+    --kore-item-gap: 0.75rem;
+    --kore-item-px: 0.75rem;
+    box-shadow: none;
+  }
+
+  [data-kore-sidebar][data-breakpoint="lg"][data-placement="left"] { transform: translateX(-100%); }
+  [data-kore-sidebar][data-breakpoint="lg"][data-placement="right"] { transform: translateX(100%); }
+  [data-kore-sidebar][data-breakpoint="lg"][data-open="true"] { transform: translateX(0); }
+  [data-kore-sidebar][data-breakpoint="lg"][data-open="true"] ~ .kore-sidebar-backdrop { display: block; opacity: 1; }
+  [data-kore-sidebar][data-breakpoint="lg"] .kore-sidebar-close { display: inline-flex; }
+}
+
+@media (max-width: 1279.98px) {
+  [data-kore-shell][data-breakpoint="xl"] { --kore-shell-left: 0px; --kore-shell-right: 0px; }
+
+  [data-kore-sidebar][data-breakpoint="xl"],
+  [data-kore-sidebar][data-breakpoint="xl"]:hover,
+  [data-kore-sidebar][data-breakpoint="xl"]:focus-within {
+    --kore-sidebar-current: var(--kore-sidebar-width);
+    --kore-label-opacity: 1;
+    --kore-label-display: block;
+  --kore-label-max: var(--kore-sidebar-width);
+  --kore-group-rows: 1fr;
+  --kore-group-visibility: visible;
+    --kore-mini-display: none;
+    --kore-item-justify: flex-start;
+    --kore-item-gap: 0.75rem;
+    --kore-item-px: 0.75rem;
+    box-shadow: none;
+  }
+
+  [data-kore-sidebar][data-breakpoint="xl"][data-placement="left"] { transform: translateX(-100%); }
+  [data-kore-sidebar][data-breakpoint="xl"][data-placement="right"] { transform: translateX(100%); }
+  [data-kore-sidebar][data-breakpoint="xl"][data-open="true"] { transform: translateX(0); }
+  [data-kore-sidebar][data-breakpoint="xl"][data-open="true"] ~ .kore-sidebar-backdrop { display: block; opacity: 1; }
+  [data-kore-sidebar][data-breakpoint="xl"] .kore-sidebar-close { display: inline-flex; }
+}
+
+/* Botón de cierre del drawer: no existe en escritorio, donde el sidebar es parte de la
+   página y no hay nada que cerrar. Las media queries de arriba lo encienden. */
+.kore-sidebar-close {
+  display: none;
+}
+
+/* Sub-menús. El estado vive en el DOM (`data-kore-open`), no en Alpine: el
+   servidor ya lo emite abierto si contiene la ruta activa. Si dependiera de
+   Alpine, se pintaría cerrado y se abriría de golpe al arrancar el JS. */
+.kore-sidebar-submenu {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--kore-sidebar-duration) ease;
+}
+
+[data-kore-open="true"] > .kore-sidebar-submenu {
+  grid-template-rows: 1fr;
+}
+
+/* `visibility` no es decorativo aquí: un sub-menú cerrado con grid-template-rows:0fr
+   solo desaparece a la VISTA — sus enlaces siguen en el orden de tabulación, y quien
+   navegue con Tab caería en items invisibles. visibility:hidden sí los saca del árbol
+   de accesibilidad.
+
+   El transition-delay es el truco que lo hace compatible con la animación: al CERRAR,
+   la visibilidad se apaga al terminar el colapso (si no, el contenido desaparecería de
+   golpe en el primer frame); al ABRIR, se enciende de inmediato. */
+.kore-sidebar-submenu > * {
+  overflow: hidden;
+  visibility: hidden;
+  transition: visibility 0s linear var(--kore-sidebar-duration);
+}
+
+[data-kore-open="true"] > .kore-sidebar-submenu > * {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+[data-kore-has-children] > * > .kore-sidebar-chevron {
+  transition: transform var(--kore-sidebar-duration) ease;
+}
+
+[data-kore-open="true"] > * > .kore-sidebar-chevron {
+  transform: rotate(90deg);
+}
+
+/* --- Sidebar colapsado: flyout y tooltip ---
+
+   Con el sidebar reducido a iconos no hay sitio para desplegar un sub-menú en línea,
+   así que sale flotando al lado. El flyout NO clona nada: promociona el MISMO
+   .kore-sidebar-submenu a panel flotante, así que los enlaces, el estado y el foco
+   siguen siendo los de siempre. Lo posiciona Floating UI (utils/floating.js).
+
+   No hace falta teleport: `overflow` no recorta descendientes `position: fixed` —
+   solo lo harían ancestros con transform/filter/contain, y el sidebar no los tiene
+   en escritorio (en móvil sí, y por eso allí el flyout está desactivado). */
+
+[data-kore-sidebar="collapsed"]:not([data-hover-expand]) .kore-sidebar-submenu {
+  display: none;
+}
+
+[data-kore-sidebar="collapsed"] .kore-sidebar-submenu[data-flyout="true"] {
+  display: block;
+  min-width: 12rem;
+  padding: 0.25rem;
+  border: 1px solid var(--kore-border);
+  border-radius: var(--kore-radius-md);
+  background-color: var(--kore-surface);
+  box-shadow: 0 10px 30px -10px var(--kore-pin-shadow);
+
+  /* El flyout es un contexto propio: aquí SÍ hay sitio para los textos, aunque el
+     sidebar esté en iconos. Sin esto el panel se abría con la altura correcta pero
+     completamente vacío — los enlaces estaban dentro, con las etiquetas a opacity 0. */
+  --kore-label-opacity: 1;
+  --kore-label-display: block;
+  --kore-label-max: var(--kore-sidebar-width);
+  --kore-group-rows: 1fr;
+  --kore-group-visibility: visible;
+  --kore-mini-display: none;
+  --kore-item-justify: flex-start;
+  --kore-item-gap: 0.75rem;
+  --kore-item-px: 0.75rem;
+}
+
+[data-kore-sidebar="collapsed"] .kore-sidebar-submenu[data-flyout="true"] > * {
+  overflow: visible;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+/* En flyout el sub-árbol ya no cuelga de nada: sobran la guía vertical y la sangría. */
+[data-kore-sidebar="collapsed"] .kore-sidebar-submenu[data-flyout="true"] ul {
+  margin: 0;
+  padding-left: 0;
+  margin-inline-start: 0;
+  border-left: 0;
+}
+
+/* Tooltip del label para los items SIN sub-items. Hay uno solo por sidebar, que se
+   recoloca: instanciar veinte tooltips (uno por item) sería tirar memoria. */
+.kore-sidebar-tooltip {
+  position: fixed;
+  z-index: 70;
+  display: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--kore-radius-md);
+  background-color: var(--kore-fg);
+  color: var(--kore-bg);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.kore-sidebar-tooltip[data-show="true"] {
+  display: block;
+}
+
+/* --- Navbar --- */
+
+.kore-navbar {
+  z-index: var(--kore-navbar-z);
+  display: flex;
+  align-items: center;
+  min-height: var(--kore-navbar-height);
+  background-color: var(--kore-surface);
+}
+
+.kore-navbar[data-sticky="true"] {
+  position: sticky;
+  top: 0;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --kore-spring-easing: ease;
     --kore-spring-duration: 0ms;
+    --kore-sidebar-duration: 0ms;
   }
 
   .kore-toast-progress {

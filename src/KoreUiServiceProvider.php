@@ -2,6 +2,7 @@
 
 namespace KoreUi;
 
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -9,6 +10,8 @@ use KoreUi\Breadcrumbs\BreadcrumbManager;
 use KoreUi\Feedback\ConfirmDialog;
 use KoreUi\Feedback\FeedbackManager;
 use KoreUi\Overlay\OverlayManager;
+use KoreUi\Shell\ShellContext;
+use KoreUi\Shell\SidebarState;
 use KoreUi\Spotlight\SpotlightManager;
 use Livewire\Livewire;
 
@@ -23,10 +26,21 @@ class KoreUiServiceProvider extends ServiceProvider
         if (config('kore-ui.breadcrumbs.enabled', true)) {
             $this->app->singleton(BreadcrumbManager::class);
         }
+
+        // scoped, no singleton: Octane reutiliza el contenedor entre requests y el
+        // registro de sidebars de una petición no debe filtrarse a la siguiente.
+        $this->app->scoped(ShellContext::class);
     }
 
     public function boot(): void
     {
+        // La cookie del sidebar la escribe JavaScript en texto plano. Laravel
+        // encripta todas las cookies y, al no poder desencriptar esta, la anularía
+        // (EncryptCookies::decrypt() hace $request->cookies->set($key, null) al
+        // capturar DecryptException). El estado no persistiría jamás, y sin ningún
+        // error visible. Esto tiene que correr antes del middleware: boot() lo hace.
+        EncryptCookies::except(SidebarState::COOKIE);
+
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'kore');
 
         Blade::anonymousComponentPath(__DIR__.'/../resources/views/components', 'kore');
