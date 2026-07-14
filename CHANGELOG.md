@@ -78,6 +78,10 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 - **`min` y `max` en `<x-kore::chart.axis-y>`**, para fijar el dominio. `Domain::fromSeries()` los aceptaba desde el primer día —y los trata como un contrato, no los redondea por debajo de lo que pides— pero **nadie se los pasaba nunca**. En un gráfico en vivo dejan de ser un lujo: un eje que se reescala cada dos segundos porque el dato subió un punto es ilegible.
 
+- **Cascada (`<x-kore::chart.waterfall>`)** — el puente entre un valor inicial y uno final. Ver [docs/chart/waterfall.md](docs/chart/waterfall.md).
+
+  **Es un apilado de una sola serie con la base moviéndose por fila**: la barra flotante ya la calculaba `layoutBars()` para las pilas, así que no hay geometría nueva. Cada etapa es un salto que sube (verde) o baja (rojo); una fila marcada como `total` es un descansillo que va del cero al acumulado, en neutro. **Los totales se calculan solos si los dejas vacíos** — no hay que repetir la suma en el dato. El color codifica **polaridad, no identidad**: es el único sitio donde una serie usa los tokens semánticos, y es legítimo (`--kore-success` significa «esto suma»).
+
 - **Guardia de peso del bundle en CI** (`npm run size`). «El JavaScript es poco» es una promesa de la documentación, y una promesa que nadie mide deja de ser verdad sin que nadie se entere.
 
 #### El principio que ordena todo el módulo

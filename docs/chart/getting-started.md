@@ -11,6 +11,7 @@ Gráficos de barras, líneas, áreas y donut. **Sin ninguna librería de JavaScr
 | `<x-kore::chart.area>` | Un área bajo la línea |
 | `<x-kore::chart.bar>` | Barras. Con `stack` se apilan; sin él, se agrupan |
 | `<x-kore::chart.donut>` | Un donut (o una tarta, con `inner="0"`) |
+| `<x-kore::chart.waterfall>` | Una cascada: el puente entre un valor inicial y uno final. Ver [waterfall.md](waterfall.md) |
 | `<x-kore::chart.axis-y>` | El eje Y: cuántos ticks y cómo se formatean |
 | `<x-kore::chart.axis-x>` | El eje X: categorías, **fechas** o números. Ver [time-axis.md](time-axis.md) |
 | `<x-kore::chart.legend>` | La leyenda. Al pulsarla, oculta la serie |

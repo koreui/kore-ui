@@ -232,11 +232,24 @@
                                          @endif
                                          data-kore-serie="{{ $serie['id'] }}"
                                          data-index="{{ $bar['index'] }}"
-                                         @if($bar['negative']) data-negative="true" @endif
+                                         @if($bar['negative'] ?? false) data-negative="true" @endif
+                                         {{-- En una cascada, el color codifica POLARIDAD (sube/baja/total),
+                                              no identidad. Es el único sitio donde una serie usa los tokens
+                                              semánticos, y es legítimo: verde = «esto suma». --}}
+                                         @if($bar['variant'] ?? false) data-variant="{{ $bar['variant'] }}" @endif
                                          {{-- Sólo la PUNTA de la columna se redondea. Ver Plot::layoutBars(). --}}
                                          @if($bar['cap']) data-cap="true" @endif
                                          style="--kore-series: {{ $serie['color'] }}; --kx: {{ $bar['x'] }}; --kw: {{ $bar['w'] }}; --ky: {{ $bar['y'] }}; --kh: {{ $bar['h'] }}"></div>
                                 @endforeach
+
+                                {{-- Los conectores de la cascada: una línea fina al nivel donde cada
+                                     barra se toca con la siguiente. Enlazan visualmente el salto. --}}
+                                @if($serie['connectors_on'] ?? false)
+                                    @foreach($serie['connectors'] as $conn)
+                                        <div class="kore-chart-connector" aria-hidden="true"
+                                             style="--kx: {{ $conn['x'] }}; --kw: {{ $conn['w'] }}; --ky: {{ $conn['y'] }}"></div>
+                                    @endforeach
+                                @endif
                             @endforeach
                         </div>
                     @endif

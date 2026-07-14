@@ -123,8 +123,15 @@ final class Plot
         //
         // Las filas de fuera NO se borran —el trazo tiene que seguir saliendo por el borde—: solo
         // se enmascaran para el dominio.
+        // El dominio de una cascada NO es el de sus saltos: es el de la SUMA CORRIDA. Una barra
+        // flota hasta `acumulado + salto`, que puede pasar de largo cualquier salto suelto. Es el
+        // mismo problema que un apilado, un piso al lado.
+        $domainInput = $frame->hasWaterfall()
+            ? $this->waterfallBreakpoints($frame, $marks, $values)
+            : $this->stackedValues($frame, $window === null ? $values : $this->maskOutside($values));
+
         $this->domain = Domain::fromSeries(
-            $this->stackedValues($frame, $window === null ? $values : $this->maskOutside($values)),
+            $domainInput,
             includeZero: $frame->requiresZero(),
             min: $yMin,
             max: $yMax,
@@ -246,7 +253,7 @@ final class Plot
     private function buildXScale(string $type, array $xRaw, TimeFormat $timeFormat): XScale
     {
         // El padding solo existe si hay barras: una línea no necesita hueco a los lados.
-        $padding = $this->frame->hasBars() ? $this->barPadding : 0.0;
+        $padding = $this->frame->usesBands() ? $this->barPadding : 0.0;
 
         $present = array_values(array_filter($xRaw, fn ($value) => $value !== null));
 
@@ -272,7 +279,7 @@ final class Plot
         return new BandScale(
             array_map('strval', $xRaw),
             padding: $padding,
-            point: ! $this->frame->hasBars(),
+            point: ! $this->frame->usesBands(),
         );
     }
 
@@ -447,6 +454,18 @@ final class Plot
                 $serie['highlight'] = $mark->highlight;
             }
 
+            if ($mark->type() === 'waterfall') {
+                [$serie['bars'], $serie['connectors']] = $this->layoutWaterfall($mark, $serieValues);
+
+                // La etiqueta de una barra es lo que ESA barra vale, no siempre su salto: en un
+                // total, la etiqueta es el acumulado. Sale del layout, que ya lo ha calculado.
+                $serie['labels'] = array_map(
+                    fn (array $bar) => $this->format->apply($bar['value'], $decimals),
+                    $serie['bars'],
+                );
+                $serie['connectors_on'] = $mark->connectors;
+            }
+
             $out[] = $serie;
         }
 
@@ -509,6 +528,157 @@ final class Plot
             if ($point !== null) {
                 $previous = $point;
             }
+        }
+
+        return $out;
+    }
+
+    /**
+     * A qué nivel deja la suma corrida una etapa de la cascada.
+     *
+     * Un SALTO la mueve por su valor. Un TOTAL la fija a un absoluto:
+     *
+     *  - si traes el valor (el acumulado que ya calculaste en tu SQL), se usa ése — así el primer
+     *    total puede ser el saldo de apertura y no queda clavado en cero;
+     *  - si no lo traes (`0` o `null`), se usa el acumulado hasta aquí — así el total final sale
+     *    solo, sin que tengas que repetir la suma.
+     *
+     * Es la regla de Excel, pero perdonando el caso más común: dejar el total final vacío.
+     */
+    private function waterfallLevel(float $running, float|null|int $delta, bool $isTotal): float
+    {
+        if (! $isTotal) {
+            return $running + (float) ($delta ?? 0.0);
+        }
+
+        $own = (float) ($delta ?? 0.0);
+
+        return $own != 0.0 ? $own : $running;
+    }
+
+    /**
+     * Los valores que el DOMINIO de una cascada tiene que abarcar: el cero y cada acumulado.
+     *
+     * @param  list<Mark>  $marks
+     * @param  list<list<float|null>>  $values
+     * @return list<list<float|null>>
+     */
+    private function waterfallBreakpoints(ChartFrame $frame, array $marks, array $values): array
+    {
+        foreach ($marks as $i => $mark) {
+            if ($mark->type() !== 'waterfall') {
+                continue;
+            }
+
+            $totals = $frame->waterfallTotals($mark);
+            $running = 0.0;
+            $out = [0.0];
+
+            foreach ($values[$i] as $row => $delta) {
+                $running = $this->waterfallLevel($running, $delta, $totals[$row] ?? false);
+                $out[] = $running;
+            }
+
+            return [$out];
+        }
+
+        return $values;
+    }
+
+    /**
+     * Dónde va cada barra de una cascada, y los conectores entre ellas.
+     *
+     * Cada barra FLOTA: empieza donde acabó la anterior. La geometría es la misma barra flotante
+     * que `layoutBars()` ya calculaba para un apilado —`at($base + $valor)`—, sólo que aquí la base
+     * es la suma corrida.
+     *
+     *  - Una SUBIDA va del acumulado al acumulado + salto, en verde.
+     *  - Una BAJADA, ídem con el salto negativo, en rojo.
+     *  - Un TOTAL va del cero al acumulado, en neutro, y no mueve la suma. Es un descansillo.
+     *
+     * El conector entre dos barras vive en el nivel donde se tocan —la suma corrida en esa
+     * frontera— así que enlaza el final del flujo de una con el principio de la siguiente.
+     *
+     * @param  list<float|null>  $deltas
+     * @return array{0: list<array<string, mixed>>, 1: list<array<string, float>>}
+     */
+    private function layoutWaterfall(Marks\WaterfallMark $mark, array $deltas): array
+    {
+        $totals = $this->frame->waterfallTotals($mark);
+        $bandwidth = $this->x->bandwidth();
+
+        $running = 0.0;
+        $bars = [];
+        $flow = [];   // [row => [center, nivelDelFlujoDespuésDeEstaBarra]]
+
+        foreach ($deltas as $row => $delta) {
+            $center = $this->x->positionAt($row);
+
+            if ($center === null) {
+                continue;
+            }
+
+            if ($totals[$row] ?? false) {
+                $from = 0.0;
+                $to = $this->waterfallLevel($running, $delta, true);
+                $running = $to;
+                $variant = 'total';
+                $shown = $to;
+            } else {
+                $d = (float) ($delta ?? 0.0);
+                $from = $running;
+                $to = $running + $d;
+                $running = $to;
+                $variant = $d >= 0.0 ? 'up' : 'down';
+                $shown = $d;
+            }
+
+            $yTop = $this->y->at(max($from, $to));
+            $yBottom = $this->y->at(min($from, $to));
+
+            $bars[] = [
+                'index' => $row,
+                'x' => round($center - $bandwidth / 2, 2),
+                'w' => round(max($bandwidth, 0.01), 2),
+                'y' => round($yTop, 2),
+                // Un salto de cero mide sub-píxel: se le da un mínimo para que la línea del cambio
+                // nulo no desaparezca. `layoutBars` no lo necesita porque un 0 no dibuja barra; aquí
+                // sí, porque una etapa sin cambio sigue siendo una etapa.
+                'h' => round(max(abs($yBottom - $yTop), 0.4), 2),
+                'variant' => $variant,
+                'value' => $shown,
+                'cap' => 1,
+            ];
+
+            $flow[] = [$center, $this->y->at($running)];
+        }
+
+        return [$bars, $mark->connectors ? $this->waterfallConnectors($flow, $bandwidth) : []];
+    }
+
+    /**
+     * Las líneas que enlazan una barra con la siguiente, al nivel donde se tocan.
+     *
+     * @param  list<array{0: float, 1: float}>  $flow  [centro, nivelY del flujo] por barra dibujada
+     * @return list<array{x: float, w: float, y: float}>
+     */
+    private function waterfallConnectors(array $flow, float $bandwidth): array
+    {
+        $out = [];
+
+        for ($i = 1, $n = count($flow); $i < $n; $i++) {
+            [$centerA] = $flow[$i - 1];
+            [$centerB] = $flow[$i];
+            $level = $flow[$i - 1][1];   // el flujo DESPUÉS de la barra A es donde arranca la B
+
+            $x1 = $centerA + $bandwidth / 2;
+            $x2 = $centerB - $bandwidth / 2;
+
+            $out[] = [
+                'x' => round($x1, 2),
+                'w' => round(max($x2 - $x1, 0.0), 2),
+                'y' => round($level, 2),
+            ];
         }
 
         return $out;

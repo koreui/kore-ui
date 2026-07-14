@@ -129,6 +129,48 @@ final class ChartFrame
         return false;
     }
 
+    public function hasWaterfall(): bool
+    {
+        foreach ($this->marks() as $mark) {
+            if ($mark->type() === 'waterfall') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * ¿El eje X es de bandas?
+     *
+     * Lo pide cualquier marca que ocupe una banda entera: las barras y las cascadas. Una línea
+     * o un área, no — sus puntos se reparten de borde a borde.
+     */
+    public function usesBands(): bool
+    {
+        return $this->hasBars() || $this->hasWaterfall();
+    }
+
+    /**
+     * Las filas que son TOTALES de una cascada.
+     *
+     * Un total va del cero hasta la suma acumulada y no mueve la suma corrida: es un descansillo,
+     * no un salto. `null` en la columna → no es total.
+     *
+     * @return list<bool>
+     */
+    public function waterfallTotals(\KoreUi\Charts\Marks\WaterfallMark $mark): array
+    {
+        if ($mark->total === null) {
+            return array_fill(0, count($this->data), false);
+        }
+
+        return array_map(
+            fn ($row) => (bool) $this->raw($row, $mark->total),
+            array_values($this->data),
+        );
+    }
+
     public function hasDonut(): bool
     {
         foreach ($this->marks() as $mark) {
@@ -168,6 +210,14 @@ final class ChartFrame
                     .'por definición. Pásale fechas de verdad a `x`, o quita el `max-gap`.'
                 );
             }
+        }
+
+        if ($this->hasWaterfall() && count($this->marks()) > 1) {
+            throw new InvalidArgumentException(
+                'koreUi: una cascada (<x-kore::chart.waterfall>) no comparte gráfico con otras marcas: cada '
+                .'barra flota sobre la suma de las anteriores, así que superponerle una línea o unas barras '
+                .'normales mezclaría dos sistemas de coordenadas. Sácalas a su propio <x-kore::chart>.'
+            );
         }
 
         if (! $this->hasDonut()) {

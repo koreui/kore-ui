@@ -1279,6 +1279,28 @@
   border-radius: 0 0 var(--kore-radius-sm) var(--kore-radius-sm);
 }
 
+/* ---- cascada (waterfall) ---- */
+
+/* El color codifica POLARIDAD, no identidad — y por eso, y sólo aquí, una barra usa los tokens
+   semánticos. `--kore-success` significa «esto suma», que es exactamente lo que dice una barra que
+   sube; pintar la serie 2 de verde por gusto sería mentir, esto no. */
+.kore-chart-bar[data-variant='up']    { background: var(--kore-success); }
+.kore-chart-bar[data-variant='down']  { background: var(--kore-destructive); }
+.kore-chart-bar[data-variant='total'] { background: var(--kore-muted-fg); }
+
+/* La línea que enlaza el final de una barra con el principio de la siguiente, al nivel donde se
+   tocan. `--ky` es ese nivel; el `translateY(-50%)` la centra en él para que no engorde el flujo. */
+.kore-chart-connector {
+  position: absolute;
+  left: calc(var(--kx) * 1%);
+  width: calc(var(--kw) * 1%);
+  top: calc(var(--ky) * 1%);
+  height: 0;
+  border-top: 1px dashed var(--kore-border);
+  translate: 0 -50%;
+  pointer-events: none;
+}
+
 .kore-chart-dot {
   position: absolute;
   left: calc(var(--kx) * 1%);
