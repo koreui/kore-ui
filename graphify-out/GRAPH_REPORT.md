@@ -1,16 +1,16 @@
 # Graph Report - kore-ui  (2026-07-14)
 
 ## Corpus Check
-- 529 files · ~212,022 words
+- 529 files · ~212,716 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4536 nodes · 5119 edges · 617 communities (444 shown, 173 thin omitted)
+- 4553 nodes · 5148 edges · 618 communities (444 shown, 174 thin omitted)
 - Extraction: 94% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 279 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ab86b203`
+- Built from commit: `1fa438a3`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -119,9 +119,9 @@
 - [[_COMMUNITY_KoreAccordion Alpine Plugin|KoreAccordion Alpine Plugin]]
 - [[_COMMUNITY_Table Component|Table Component]]
 - [[_COMMUNITY_toolbar.blade.php|toolbar.blade.php]]
+- [[_COMMUNITY_DemoComponent|DemoComponent]]
 - [[_COMMUNITY_SpotlightResult|SpotlightResult]]
 - [[_COMMUNITY_UrlSanitizer|UrlSanitizer]]
-- [[_COMMUNITY_TextFilter|TextFilter]]
 - [[_COMMUNITY_Filter|Filter]]
 - [[_COMMUNITY_CsvExporter|CsvExporter]]
 - [[_COMMUNITY_HasSearch.php|HasSearch.php]]
@@ -133,8 +133,8 @@
 - [[_COMMUNITY_WithInlineEditing.php|WithInlineEditing.php]]
 - [[_COMMUNITY_WithSearch.php|WithSearch.php]]
 - [[_COMMUNITY_TestCase Base Class|TestCase Base Class]]
+- [[_COMMUNITY_Splitter Component|Splitter Component]]
 - [[_COMMUNITY_accordion.js|accordion.js]]
-- [[_COMMUNITY_koredatatable.filters.fields|kore::datatable.filters.fields]]
 - [[_COMMUNITY_TestQueryStringTable|TestQueryStringTable]]
 - [[_COMMUNITY_TestDefaultPresetTable|TestDefaultPresetTable]]
 - [[_COMMUNITY_columns|columns]]
@@ -164,7 +164,7 @@
 - [[_COMMUNITY_Button|Button]]
 - [[_COMMUNITY_Avatar Component|Avatar Component]]
 - [[_COMMUNITY_WCAG 3.3.1  4.1.2|WCAG 3.3.1 / 4.1.2]]
-- [[_COMMUNITY_confirm.blade.php|confirm.blade.php]]
+- [[_COMMUNITY_index.blade.php|index.blade.php]]
 - [[_COMMUNITY_filter-pills.blade.php|filter-pills.blade.php]]
 - [[_COMMUNITY_column-select.blade.php|column-select.blade.php]]
 - [[_COMMUNITY_sort-pills.blade.php|sort-pills.blade.php]]
@@ -177,7 +177,7 @@
 - [[_COMMUNITY_FilterApplied|FilterApplied]]
 - [[_COMMUNITY_RowUpdated|RowUpdated]]
 - [[_COMMUNITY_BulkActionExecuted|BulkActionExecuted]]
-- [[_COMMUNITY_SpotlightProvidertoArray|SpotlightProvider::toArray]]
+- [[_COMMUNITY_Speed Dial Component|Speed Dial Component]]
 - [[_COMMUNITY_TimelineTest Suite|TimelineTest Suite]]
 - [[_COMMUNITY_Tree Component|Tree Component]]
 - [[_COMMUNITY_korefeedback.toast|kore::feedback.toast]]
@@ -217,10 +217,11 @@
 - [[_COMMUNITY_vite.config.js|vite.config.js]]
 - [[_COMMUNITY_vitest.config.js|vitest.config.js]]
 - [[_COMMUNITY_kore-ui.php|kore-ui.php]]
+- [[_COMMUNITY_manager.blade.php|manager.blade.php]]
 - [[_COMMUNITY_toast.blade.php|toast.blade.php]]
 - [[_COMMUNITY_float-label.blade.php|float-label.blade.php]]
 - [[_COMMUNITY_field.blade.php|field.blade.php]]
-- [[_COMMUNITY_table.blade.php|table.blade.php]]
+- [[_COMMUNITY_range.blade.php|range.blade.php]]
 - [[_COMMUNITY_stats.blade.php|stats.blade.php]]
 - [[_COMMUNITY_radio-group.blade.php|radio-group.blade.php]]
 - [[_COMMUNITY_alert.blade.php|alert.blade.php]]
@@ -229,7 +230,6 @@
 - [[_COMMUNITY_kbd.blade.php|kbd.blade.php]]
 - [[_COMMUNITY_boolean.blade.php|boolean.blade.php]]
 - [[_COMMUNITY_color-picker.blade.php|color-picker.blade.php]]
-- [[_COMMUNITY_time-picker.blade.php|time-picker.blade.php]]
 - [[_COMMUNITY_input-otp.blade.php|input-otp.blade.php]]
 - [[_COMMUNITY_loading.blade.php|loading.blade.php]]
 - [[_COMMUNITY_tooltip.blade.php|tooltip.blade.php]]
@@ -245,7 +245,7 @@
 - [[_COMMUNITY_maskable.blade.php|maskable.blade.php]]
 - [[_COMMUNITY_card.blade.php|card.blade.php]]
 - [[_COMMUNITY_badge.blade.php|badge.blade.php]]
-- [[_COMMUNITY_toggle.blade.php|toggle.blade.php]]
+- [[_COMMUNITY__datepicker-panel.blade.php|_datepicker-panel.blade.php]]
 - [[_COMMUNITY_select.blade.php|select.blade.php]]
 - [[_COMMUNITY_radio.blade.php|radio.blade.php]]
 - [[_COMMUNITY_empty-state.blade.php|empty-state.blade.php]]
@@ -273,9 +273,9 @@
 - [[_COMMUNITY_index.blade.php|index.blade.php]]
 - [[_COMMUNITY_item.blade.php|item.blade.php]]
 - [[_COMMUNITY_index.blade.php|index.blade.php]]
-- [[_COMMUNITY_slide.blade.php|slide.blade.php]]
-- [[_COMMUNITY_header.blade.php|header.blade.php]]
 - [[_COMMUNITY_row.blade.php|row.blade.php]]
+- [[_COMMUNITY_empty.blade.php|empty.blade.php]]
+- [[_COMMUNITY_cell.blade.php|cell.blade.php]]
 - [[_COMMUNITY_pagination.blade.php|pagination.blade.php]]
 - [[_COMMUNITY_index.blade.php|index.blade.php]]
 - [[_COMMUNITY_item.blade.php|item.blade.php]]
@@ -284,12 +284,12 @@
 - [[_COMMUNITY_manager.blade.php|manager.blade.php]]
 - [[_COMMUNITY_slide-down.blade.php|slide-down.blade.php]]
 - [[_COMMUNITY_number-range.blade.php|number-range.blade.php]]
-- [[_COMMUNITY_date.blade.php|date.blade.php]]
-- [[_COMMUNITY_text.blade.php|text.blade.php]]
 - [[_COMMUNITY_boolean.blade.php|boolean.blade.php]]
-- [[_COMMUNITY_date-range.blade.php|date-range.blade.php]]
+- [[_COMMUNITY_select.blade.php|select.blade.php]]
 - [[_COMMUNITY_date.blade.php|date.blade.php]]
+- [[_COMMUNITY_boolean.blade.php|boolean.blade.php]]
 - [[_COMMUNITY_image.blade.php|image.blade.php]]
+- [[_COMMUNITY_link.blade.php|link.blade.php]]
 - [[_COMMUNITY_badge.blade.php|badge.blade.php]]
 - [[_COMMUNITY_progress.blade.php|progress.blade.php]]
 - [[_COMMUNITY_component.blade.php|component.blade.php]]
@@ -327,7 +327,7 @@
 - [[_COMMUNITY_DropdownTest.php|DropdownTest.php]]
 - [[_COMMUNITY_ToggleTest.php|ToggleTest.php]]
 - [[_COMMUNITY_TimePickerTest.php|TimePickerTest.php]]
-- [[_COMMUNITY_InputTest.php|InputTest.php]]
+- [[_COMMUNITY_SelectTest.php|SelectTest.php]]
 - [[_COMMUNITY_FloatLabelTest.php|FloatLabelTest.php]]
 - [[_COMMUNITY_UploadTest.php|UploadTest.php]]
 - [[_COMMUNITY_TagInputTest.php|TagInputTest.php]]
@@ -368,13 +368,13 @@
 - [[_COMMUNITY_BulkActionsTest.php|BulkActionsTest.php]]
 - [[_COMMUNITY_UrlSanitizerTest.php|UrlSanitizerTest.php]]
 - [[_COMMUNITY_ExportTest.php|ExportTest.php]]
-- [[_COMMUNITY_Community 590|Community 590]]
+- [[_COMMUNITY_QueryStringTest.php|QueryStringTest.php]]
 - [[_COMMUNITY_Community 591|Community 591]]
 - [[_COMMUNITY_Community 592|Community 592]]
 - [[_COMMUNITY_Community 593|Community 593]]
 - [[_COMMUNITY_Community 594|Community 594]]
-- [[_COMMUNITY_Community 597|Community 597]]
-- [[_COMMUNITY_Community 599|Community 599]]
+- [[_COMMUNITY_Community 595|Community 595]]
+- [[_COMMUNITY_Community 598|Community 598]]
 - [[_COMMUNITY_Community 600|Community 600]]
 - [[_COMMUNITY_Community 601|Community 601]]
 - [[_COMMUNITY_Community 602|Community 602]]
@@ -392,18 +392,19 @@
 - [[_COMMUNITY_Community 614|Community 614]]
 - [[_COMMUNITY_Community 615|Community 615]]
 - [[_COMMUNITY_Community 616|Community 616]]
+- [[_COMMUNITY_Community 617|Community 617]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `[1.2.0] — 2026-06-03` - 54 edges
+1. `[1.2.0] — 2026-06-03` - 58 edges
 2. `Toast` - 43 edges
-3. `Column` - 42 edges
-4. `[1.5.0] — 2026-07-13` - 40 edges
+3. `[1.5.0] — 2026-07-13` - 43 edges
+4. `Column` - 42 edges
 5. `Column Class (DataTable domain model)` - 34 edges
 6. `Column` - 33 edges
 7. `RowAction` - 32 edges
-8. `[1.3.0] — 2026-06-04` - 30 edges
-9. `KoreDataTable` - 30 edges
-10. `TestUser` - 30 edges
+8. `[1.3.0] — 2026-06-04` - 32 edges
+9. `[1.4.0] — 2026-07-13` - 31 edges
+10. `[0.1.0] — 2026-03-18` - 31 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `register()` --calls--> `Number`  [INFERRED]
@@ -470,7 +471,7 @@
 - **kore-ui JS Build & Test Toolchain** — viteconfig_config, vitestconfig_config, number_test_suite, number_korenumber, index_entrypoint [INFERRED 0.85]
 - **Loading / Progress Feedback Component Family** — loading_component, page_loading_component, progress_component, skeleton_component [INFERRED 0.75]
 
-## Communities (617 total, 173 thin omitted)
+## Communities (618 total, 174 thin omitted)
 
 ### Community 0 - "Datepicker (JS)"
 Cohesion: 0.06
@@ -485,16 +486,16 @@ Cohesion: 0.05
 Nodes (48): Basic Usage, code:html (<x-kore::number wire:model="quantity" label="Quantity" :min=), code:html (<x-kore::number wire:model="price" label="Price" :min="0" :s), code:html (<x-kore::number wire:model="amount" label="Amount" :controls), code:html (<x-kore::number wire:model="amount" label="Amount (USD)"), code:html ({{-- Mexican Peso --}}), code:html (<x-kore::number wire:model="donation" label="Donation"), code:html (<x-kore::number wire:model="budget" label="Budget") (+40 more)
 
 ### Community 3 - "Overlay Runtime (Alpine)"
-Cohesion: 0.06
-Nodes (40): _addClickAwayListener(), Async (Remote Search), Basic Usage, _cleanup(), clear(), close(), code:html ({{-- Custom select (default) --}}), code:php (// Simple key => value array) (+32 more)
+Cohesion: 0.04
+Nodes (52): [1.2.0] — 2026-06-03, Accessibility, Added, Added, Added, Added, Added, Added (+44 more)
 
 ### Community 4 - "Toast Feedback"
 Cohesion: 0.04
-Nodes (49): [1.2.0] — 2026-06-03, Accessibility, Added, Added, Added, Added, Added, Added (+41 more)
+Nodes (49): [1.5.0] — 2026-07-13, Added, Added, Added, Added, Added, Added, Added (+41 more)
 
 ### Community 5 - "Upload (JS)"
-Cohesion: 0.04
-Nodes (47): [1.5.0] — 2026-07-13, Added, Added, Added, Added, Added, Added, Added (+39 more)
+Cohesion: 0.06
+Nodes (40): _addClickAwayListener(), Async (Remote Search), Basic Usage, _cleanup(), clear(), close(), code:html ({{-- Custom select (default) --}}), code:php (// Simple key => value array) (+32 more)
 
 ### Community 6 - "Row Actions"
 Cohesion: 0.04
@@ -513,8 +514,8 @@ Cohesion: 0.05
 Nodes (40): ActionColumn, BadgeColumn, BooleanColumn, code:php (use KoreUi\DataTable\Columns\BooleanColumn;), code:php (// Componente Blade), code:php (use KoreUi\DataTable\Actions\RowAction;), code:php (RowAction::make('id', 'Label')), code:php (// Semantico) (+32 more)
 
 ### Community 10 - "Filter Presets"
-Cohesion: 0.2
-Nodes (36): [0.1.0] — 2026-03-18, Added, Added, Added, Added, Added, Added, Added (+28 more)
+Cohesion: 0.19
+Nodes (38): [0.1.0] — 2026-03-18, Added, Added, Added, Added, Added, Added, Added (+30 more)
 
 ### Community 12 - "Time Picker (JS)"
 Cohesion: 0.1
@@ -524,9 +525,9 @@ Nodes (19): _addFiles(), _assignFilesToInput(), _bindLivewireEvents(), clear(), 
 Cohesion: 0.08
 Nodes (15): clearSelected(), confirmBulkAction(), executeBulkAction(), executeBulkActionMatching(), findBulkAction(), getAllMatchingIds(), runBulk(), runBulkAction() (+7 more)
 
-### Community 15 - "DataTable Test Fixtures"
+### Community 14 - "Form Field Accessibility"
 Cohesion: 0.06
-Nodes (31): [1.4.0] — 2026-07-13, Added, Added, Added, Added, Added, Added, Added (+23 more)
+Nodes (32): [1.4.0] — 2026-07-13, Added, Added, Added, Added, Added, Added, Added (+24 more)
 
 ### Community 16 - "Spotlight Items"
 Cohesion: 0.06
@@ -540,27 +541,27 @@ Nodes (30): Auto-resolve desde registry, Before / After callbacks, Breadcrumbs, 
 Cohesion: 0.11
 Nodes (25): _apply(), destroy(), ensureMorphHook(), init(), instances, _isStreamDriver(), _nearest(), nudge() (+17 more)
 
-### Community 20 - "Alpine Plugin Registry"
-Cohesion: 0.11
-Nodes (20): Action Class (row action item), BulkAction Class, Column Class (DataTable domain model), DataTable Bulk Actions Partial, DataTable Action Column Renderer, DataTable Badge Column Renderer, DataTable Boolean Column Renderer, DataTable Color Column Renderer (+12 more)
+### Community 19 - "Bulk Actions"
+Cohesion: 0.07
+Nodes (30): [1.3.0] — 2026-06-04, Added, Added, Added, Added, Added, Added, Added (+22 more)
 
-### Community 21 - "Filter Contract"
+### Community 20 - "Alpine Plugin Registry"
 Cohesion: 0.07
 Nodes (28): `close()`, `closeAll()`, `closeWith(array $events)`, code:html (<!-- Inside an overlay component's Blade view -->), code:php (use App\Livewire\UserList;), code:php ($this->closeWith([), code:html (<!-- Page: open a drawer -->), code:html (<!-- Inside settings-drawer: open a confirm dialog -->) (+20 more)
 
-### Community 22 - "Form Components (Blade)"
+### Community 21 - "Filter Contract"
 Cohesion: 0.07
 Nodes (28): Bottom Sheet, code:php (use KoreUi\Overlay\OverlayComponent;), code:block10 (Position classes: items-stretch), code:php (public static function overlayType(): string), code:php ([), code:php (class NavigationDrawer extends OverlayComponent), code:html (<button x-on:click="$dispatch('kore:open', { name: 'overlays), code:php (class DeleteConfirm extends OverlayComponent) (+20 more)
 
 ### Community 23 - "Carousel (JS)"
-Cohesion: 0.07
-Nodes (28): [1.3.0] — 2026-06-04, Added, Added, Added, Added, Added, Added, Added (+20 more)
+Cohesion: 0.11
+Nodes (20): Action Class (row action item), BulkAction Class, Column Class (DataTable domain model), DataTable Bulk Actions Partial, DataTable Action Column Renderer, DataTable Badge Column Renderer, DataTable Boolean Column Renderer, DataTable Color Column Renderer (+12 more)
 
 ### Community 24 - "Column Pinning & Presets Tests"
 Cohesion: 0.07
 Nodes (27): `activate(id, skip = false)`, Alpine Component: `KoreOverlay()`, `attr(id)`, `closeOnClickAway()`, `closeOnEscape()`, `closeOverlay(force = false, skipPrevious = 0, destroySkipped = false)`, code:js (import KoreOverlay from './overlay.js';), code:html (<div x-data="KoreOverlay()">) (+19 more)
 
-### Community 26 - "Row Selection"
+### Community 25 - "Column Types & Security"
 Cohesion: 0.07
 Nodes (26): `backdropBlur(): bool`, `closesOnClickAway(): bool`, `closesOnEscape(): bool`, code:php (public static function closesOnClickAway(): bool), code:php (class EditForm extends OverlayComponent), code:html (<div>), code:html (@script), code:php (class ImportantConfirm extends OverlayComponent) (+18 more)
 
@@ -573,156 +574,156 @@ Cohesion: 0.08
 Nodes (4): Accessibility, Pause on Hover, Swipe to Dismiss, Toast
 
 ### Community 29 - "JS Entry & Plugins Index"
+Cohesion: 0.13
+Nodes (25): BulkActionExecuted, ColumnPinningTest, CsvExporter, Base Filtered Query Pattern, EventsTest, Exporter (interface), FilterApplied, FilterPreset (+17 more)
+
+### Community 30 - "Splitter (JS)"
 Cohesion: 0.14
 Nodes (18): _addClickAwayListener(), _cleanup(), close(), decrementHour(), decrementMinute(), destroy(), incrementHour(), incrementMinute() (+10 more)
 
-### Community 30 - "Splitter (JS)"
+### Community 31 - "Color Picker (JS)"
 Cohesion: 0.08
 Nodes (23): Accesibilidad, Animaciones, code:blade (<x-kore::icon name="search" />), code:php ('ui' => [), code:php (// config/kore-ui.php), code:blade (<x-kore::icon name="star" size="xs" />   {{-- 12px --}}), code:blade (<x-kore::icon name="check-circle" color="success" />), code:blade (<x-kore::icon name="alert-circle" error />) (+15 more)
 
-### Community 31 - "Color Picker (JS)"
+### Community 32 - "Input Masking (JS)"
 Cohesion: 0.1
 Nodes (6): checkBreakpoint(), ensurePinnedMorphHook(), init(), moveDown(), moveUp(), scrollActiveRowIntoView()
 
-### Community 33 - "Overlay Architecture (PHP)"
+### Community 34 - "Floating UI (Dropdown/Tooltip)"
 Cohesion: 0.09
 Nodes (22): Basic Usage, code:html (<x-kore::datepicker wire:model="date" label="Date"), code:block10, code:block11, code:block12, code:block13, code:php ('form' => [), code:html (<x-kore::datepicker wire:model="dateRange" label="Period") (+14 more)
 
-### Community 34 - "Floating UI (Dropdown/Tooltip)"
+### Community 35 - "Feedback System (Toast/Confirm)"
 Cohesion: 0.09
 Nodes (22): Basic Usage, Callbacks, code:php (use KoreUi\Core\Concerns\InteractsWithFeedback;), code:php ($this->confirm('Discard changes?')), code:php ($this->confirm('Delete account permanently?')), code:php ($this->confirm('Publish article?')), code:php (->onConfirm('methodName', [$param1, $param2])), code:php (->onCancel('keepEditing')) (+14 more)
 
-### Community 35 - "Feedback System (Toast/Confirm)"
+### Community 36 - "DataTable Filter Layouts (Blade)"
 Cohesion: 0.09
 Nodes (22): Animation Classes Per Type, Animation System Overview, Backdrop Animation, Bottom Sheet, code:html (x-transition:enter="{{ $anim['enter']['duration'] }}"), code:html (<button x-on:click="$dispatch('kore:open', {), code:block2 (Enter:), code:block3 (Enter:) (+14 more)
 
-### Community 36 - "DataTable Filter Layouts (Blade)"
+### Community 37 - "Spotlight System"
 Cohesion: 0.09
 Nodes (21): code:blade (<x-kore::progress :value="65" />), code:blade (<x-kore::progress :value="45" label="Subiendo archivo..." sh), code:blade ({{-- Cambia de color según el porcentaje: destructive → warn), code:blade (<x-kore::progress :value="70" striped animated color="info" ), code:blade (<x-kore::progress indeterminate label="Procesando..." />), code:blade (<x-kore::progress.circle :value="75" />), code:blade (<x-kore::progress.circle :value="50" size="sm" />), code:blade (<x-kore::progress.circle :value="60" :strokeWidth="8" size=") (+13 more)
 
-### Community 37 - "Spotlight System"
+### Community 38 - "DataTable Blade Templates"
 Cohesion: 0.09
 Nodes (21): Carga lazy, code:blade (<x-kore::tab selected="general">), code:blade ({{-- Línea inferior (por defecto) --}}), code:blade (<x-kore::tab selected="mensajes">), code:blade (<x-kore::tab orientation="vertical" selected="perfil">), code:blade (<x-kore::tab selected="resumen">), code:blade (<x-kore::tab selected="doc1">), code:blade ({{-- Útil cuando hay muchas pestañas --}}) (+13 more)
 
-### Community 38 - "DataTable Blade Templates"
+### Community 39 - "DataTable Alpine Component"
 Cohesion: 0.09
 Nodes (21): Adding the Overlay Manager to Your Layout, Closing an Overlay, code:css (@import '../../vendor/kore-ui/kore-ui/resources/css/kore-the), code:php (// app/Livewire/Overlays/Welcome.php), code:html (<!-- resources/views/livewire/overlays/welcome.blade.php -->), code:html (<button), code:js (import '../../vendor/kore-ui/kore-ui/resources/js/index.js';), code:html (<!DOCTYPE html>) (+13 more)
 
-### Community 39 - "DataTable Alpine Component"
+### Community 40 - "SpotlightDefaults"
+Cohesion: 0.1
+Nodes (22): Color Picker, Datepicker, DatePickerTest test suite, Field, Float Label, Input, Input OTP, KoreInputOtp Alpine Component (+14 more)
+
+### Community 41 - "HasOverlayBehavior.php"
 Cohesion: 0.18
 Nodes (22): Accessible Sortable Headers (scope/aria-sort), AggregationTest, AVG Aggregation Null Safety on Empty Dataset, BulkActionsTest, ColumnSelectTest, DeferredLoadingTest, KeyboardNavigationTest, KoreDataTableTest (+14 more)
 
-### Community 41 - "HasOverlayBehavior.php"
+### Community 43 - "MultiSelectFilter"
 Cohesion: 0.1
 Nodes (20): code:php (class Monitor extends Component), code:blade (<x-kore::chart :data="$this->serie" x="medido_en">), code:php (Lectura::where('medido_en', '>', now()->subSeconds(80))->get), code:blade (<x-kore::chart.line y="cpu" curve="monotone" max-gap="10s" /), code:blade (<x-kore::chart.axis-y :min="0" :max="100" />), Cuando faltan datos de verdad: `max-gap`, Datos en vivo, El navegador NO es la fuente del dato (+12 more)
 
-### Community 42 - "NumberFilter"
+### Community 44 - "ActionColumn"
 Cohesion: 0.13
 Nodes (20): Apagar cosas: `:show`, nunca un `@if`, Cómo funciona (y por qué importa), code:blade (<x-kore::chart :data="$ventas" x="mes" title="Ingresos y gas), code:php ($ventas = [), code:blade (<x-kore::chart :data="$lecturas" x="medido_en">), code:blade (<x-kore::chart :data="$ventas" x="mes" :grid="false">), code:blade (<x-kore::chart.line y="errores" color="destructive" />), code:blade (<body>) (+12 more)
 
-### Community 43 - "MultiSelectFilter"
+### Community 45 - "HasAggregation.php"
 Cohesion: 0.1
 Nodes (20): Accessibility, Basic Usage, code:html ({{-- Segmented (default) --}}), code:html (<x-kore::theme-switch />), code:html (<x-kore::theme-switch variant="toggle" />), code:html (<x-kore::theme-switch variant="dropdown" />), code:html (<x-kore::theme-switch size="sm" />), code:html (<x-kore::theme-switch :labels="true") (+12 more)
 
-### Community 44 - "ActionColumn"
+### Community 46 - "WithPagination.php"
 Cohesion: 0.1
 Nodes (20): API Reference, code:php (use KoreUi\DataTable\Events\RowUpdated;), code:php (// En un EventServiceProvider o Listener), code:php (Column::make('Email', 'email')->copyable()), code:php (// Con URL estática), code:php (Column::make('ID', 'id')->pinned('left')->width(80)), code:php (public function configure(): void), code:php (// config/kore-ui.php) (+12 more)
 
-### Community 45 - "HasAggregation.php"
-Cohesion: 0.13
-Nodes (21): BreadcrumbTrail class, Kore Facade, Confirm Callback Authorization (blocks forged kore:confirm-callback events), Feedback System (v0.1.0), Overlay System (v0.1.0), Theming System (v0.1.0), v0.1.0 Release (initial pre-release), config: feedback (toast/confirm) defaults section (+13 more)
-
-### Community 46 - "WithPagination.php"
-Cohesion: 0.16
-Nodes (21): Color Picker, KoreColorPicker Alpine Component, KoreDatePicker Alpine Component, Dropdown Alpine Component, startFloating, stopFloating, Alpine Plugin Registration Entry Point, Range Slider Component (+13 more)
-
 ### Community 47 - "KoreDataTable"
+Cohesion: 0.11
+Nodes (21): Chip Component, ChipTest Suite, Feedback Confirm Dialog View, KoreFeedback Alpine Component, Feedback Manager (Toast Container), Feedback Toast Item, Icon Component, IconTest Suite (+13 more)
+
+### Community 48 - "<x-kore::table> component"
 Cohesion: 0.16
 Nodes (12): _clamp(), _createFormatter(), decrement(), _format(), increment(), init(), _onBlur(), _parse() (+4 more)
 
-### Community 49 - "P0 Security Hardening"
+### Community 51 - "Confirm"
+Cohesion: 0.23
+Nodes (20): [1.4.1] — 2026-07-13, code:php ($paso = TimeTicks::interval($desde, $hasta, count: 8);   // ), code:js (if (!target) target = objects[objects.length - 1];   // el x), code:css ([wire\:loading], [wire\:loading\.delay], [wire\:loading\.fle), code:diff (- <div wire:loading.delay.flex class="absolute inset-0 …">), Fixed, Fixed, Fixed (+12 more)
+
+### Community 52 - "NumberRangeFilter"
 Cohesion: 0.1
 Nodes (19): 1. Columnas, 2. Selección y acciones masivas, 3. Exportación, 4. Filtros y presets, 5. Cabecera, pinning y responsive, 6. Accesibilidad, 7. Seguridad (garantías del componente), Caché de conteos de preset (+11 more)
 
-### Community 50 - "SpotlightManager"
-Cohesion: 0.16
-Nodes (20): BulkActionExecuted, ColumnPinningTest, CsvExporter, Base Filtered Query Pattern, EventsTest, Exporter (interface), FilterApplied, KoreDataTable (+12 more)
-
-### Community 51 - "Confirm"
+### Community 53 - "SelectFilter"
 Cohesion: 0.11
-Nodes (20): Chip Component, ChipTest Suite, Icon Component, IconTest Suite, kore-ui.php Config File, Page Loading Component, Feedback Manager, Overlay Manager (+12 more)
+Nodes (20): ColorColumn XSS/CSS Injection Fix, BadgeColumn, BooleanColumn, ColorColumn, ComponentColumn, DateColumn, ImageColumn, LinkColumn (+12 more)
 
 ### Community 54 - "BooleanFilter"
-Cohesion: 0.24
-Nodes (19): [1.4.1] — 2026-07-13, code:php ($paso = TimeTicks::interval($desde, $hasta, count: 8);   // ), code:js (if (!target) target = objects[objects.length - 1];   // el x), code:css ([wire\:loading], [wire\:loading\.delay], [wire\:loading\.fle), code:diff (- <div wire:loading.delay.flex class="absolute inset-0 …">), Fixed, Fixed, Fixed (+11 more)
-
-### Community 55 - "HasEditing.php"
-Cohesion: 0.11
-Nodes (18): Button, Button Group, code:blade (<x-kore::button label="Guardar" />), code:blade (<x-kore::button label="Solid" variant="solid" />), code:blade (<x-kore::button label="Primary" color="primary" />), code:blade (<x-kore::button label="Guardar" icon="save" />), code:blade (<x-kore::button label="Guardando..." :loading="true" />), code:blade (<x-kore::button label="Ir a inicio" href="/" />) (+10 more)
+Cohesion: 0.17
+Nodes (20): KoreColorPicker Alpine Component, KoreDatePicker Alpine Component, Dropdown Alpine Component, startFloating, stopFloating, Alpine Plugin Registration Entry Point, Range Slider Component, KoreRange Alpine Component (+12 more)
 
 ### Community 56 - "WithFiltering.php"
 Cohesion: 0.11
-Nodes (18): code:blade (<x-kore::stepper selected="datos">), code:blade ({{-- Horizontal (por defecto) --}}), code:blade (<x-kore::stepper selected="cuenta">), code:blade (<x-kore::stepper selected="pago">), code:blade ({{-- No permite saltar pasos: solo avanzar al siguiente o re), code:blade (<x-kore::stepper selected="paso1">), code:blade (<x-kore::stepper wire:model="currentStep">), Con descripciones e iconos (+10 more)
+Nodes (18): Button, Button Group, code:blade (<x-kore::button label="Guardar" />), code:blade (<x-kore::button label="Solid" variant="solid" />), code:blade (<x-kore::button label="Primary" color="primary" />), code:blade (<x-kore::button label="Guardar" icon="save" />), code:blade (<x-kore::button label="Guardando..." :loading="true" />), code:blade (<x-kore::button label="Ir a inicio" href="/" />) (+10 more)
 
 ### Community 57 - "v0.1.0 Release"
 Cohesion: 0.11
-Nodes (15): Backspace para deshacer, code:php (SpotlightItem::make('Asignar rol a usuario')), code:block5 (Paso 0: Usuario busca "Asignar rol"), code:php (// En el componente Livewire), code:json ([), code:php (// routes/web.php o api.php), Ejemplo completo — flujo de 2 pasos, Endpoint para dependencia de tipo search (+7 more)
+Nodes (18): code:blade (<x-kore::stepper selected="datos">), code:blade ({{-- Horizontal (por defecto) --}}), code:blade (<x-kore::stepper selected="cuenta">), code:blade (<x-kore::stepper selected="pago">), code:blade ({{-- No permite saltar pasos: solo avanzar al siguiente o re), code:blade (<x-kore::stepper selected="paso1">), code:blade (<x-kore::stepper wire:model="currentStep">), Con descripciones e iconos (+10 more)
 
 ### Community 58 - "Stepper Component"
 Cohesion: 0.11
-Nodes (18): code:blade (<x-kore::sidebar>), code:blade (<x-slot:header>), code:blade (<x-kore::sidebar :rail="true">), code:blade (<x-kore::shell>), code:blade (<button x-data x-on:click="$store.koreSidebar.handleToggle('), Eventos, La marca al colapsar, Móvil (+10 more)
+Nodes (15): Backspace para deshacer, code:php (SpotlightItem::make('Asignar rol a usuario')), code:block5 (Paso 0: Usuario busca "Asignar rol"), code:php (// En el componente Livewire), code:json ([), code:php (// routes/web.php o api.php), Ejemplo completo — flujo de 2 pasos, Endpoint para dependencia de tipo search (+7 more)
 
 ### Community 59 - "kore-ui.php Config File"
 Cohesion: 0.11
-Nodes (18): Basic Usage, code:html (<button x-on:click="$dispatch('kore:open', {), code:html (<button x-on:click="$dispatch('kore:open', {), code:block3 (config defaults (kore-ui.php)), code:html (<!-- Desktop trigger -->), code:html (<button x-on:click="$dispatch('kore:open', {), code:html (<!-- Normal: can be dismissed easily -->), code:html (<button x-on:click="$dispatch('kore:open', {) (+10 more)
+Nodes (18): code:blade (<x-kore::sidebar>), code:blade (<x-slot:header>), code:blade (<x-kore::sidebar :rail="true">), code:blade (<x-kore::shell>), code:blade (<button x-data x-on:click="$store.koreSidebar.handleToggle('), Eventos, La marca al colapsar, Móvil (+10 more)
 
 ### Community 60 - "BreadcrumbManager"
-Cohesion: 0.15
-Nodes (19): ActionColumn, BadgeColumn, ColorColumn, ColorColumnSecurityTest, ColumnInteractionTest, ColumnTypesTest, ComponentColumn, DateColumn (+11 more)
+Cohesion: 0.11
+Nodes (18): Basic Usage, code:html (<button x-on:click="$dispatch('kore:open', {), code:html (<button x-on:click="$dispatch('kore:open', {), code:block3 (config defaults (kore-ui.php)), code:html (<!-- Desktop trigger -->), code:html (<button x-on:click="$dispatch('kore:open', {), code:html (<!-- Normal: can be dismissed easily -->), code:html (<button x-on:click="$dispatch('kore:open', {) (+10 more)
 
 ### Community 61 - "parent"
-Cohesion: 0.15
-Nodes (16): Confirm-callback forgery-resistant authorization, Confirm, ConfirmCallbackSecurityTest test suite, ConfirmTest test suite, DemoComponent fixture class, DemoComponent::handleConfirm, DemoComponent::secretAction (protected), DemoComponent::sendConfirm (+8 more)
-
-### Community 62 - "NumberColumn"
 Cohesion: 0.11
 Nodes (19): Alert Component, Badge Component, Boolean Component, Button Component, Button Group Component, Clipboard, Clipboard Component, KoreClipboard Alpine Factory (+11 more)
 
-### Community 63 - "WithBulkActions.php"
+### Community 62 - "NumberColumn"
 Cohesion: 0.18
 Nodes (10): destroy(), goTo(), next(), onPointerUp(), pause(), prev(), resume(), _startAutoplay() (+2 more)
 
-### Community 64 - "WithSorting.php"
-Cohesion: 0.14
-Nodes (5): columns(), query(), TestBulkTable, TestPresetsTable, TestUser
-
-### Community 65 - "tree.js"
+### Community 63 - "WithBulkActions.php"
 Cohesion: 0.11
 Nodes (17): Basic Usage, code:html (<x-kore::float-label label="Full Name">), code:html (<x-kore::float-label label="Email">), code:block3 (Resting:                   Active:), code:html (<x-kore::float-label label="Username" variant="in">), code:block5 (Resting:                   Active:), code:html (<x-kore::float-label label="First Name" variant="on">), code:block7 (Always:) (+9 more)
 
-### Community 66 - "stepper.js"
+### Community 64 - "WithSorting.php"
 Cohesion: 0.11
 Nodes (17): Architecture, Automatic Error Detection, code:html (<form wire:submit="save">), code:html ({{-- Automatic: uses $errors->first('email') --}}), code:html (<x-kore::input label="Small" size="sm" />), code:html (<x-kore::input label="Email" hint="We won't share it" />), code:html (<x-kore::input label="Email" required />), code:php ('form' => [) (+9 more)
 
-### Community 67 - "CustomOverlay"
+### Community 65 - "tree.js"
 Cohesion: 0.11
 Nodes (17): Barras en un eje de fechas, code:blade (<x-kore::chart :data="$lecturas" x="medido_en">), code:php ($lecturas = Lectura::orderBy('medido_en')->get();   // `medi), code:php (// Un sensor que se cayó del 3 al 5 de febrero. Esas tres fi), code:blade (<x-kore::chart.axis-x timezone="Europe/Madrid" />), code:php (use KoreUi\Charts\Time\TimeTicks;), Cuántos ticks pedir, Eje temporal (+9 more)
 
-### Community 68 - "SpotlightDependency"
+### Community 66 - "stepper.js"
 Cohesion: 0.11
 Nodes (17): Cómo funciona (y por qué no hay ni una escala en JavaScript), code:php (use Livewire\Attributes\Url;), code:blade (<x-kore::chart :data="$this->trafico" x="dia" :window="$vent), code:blade (<div class="w-full space-y-3">   {{-- ← la raíz del componen), code:php (#[Url(as: 'trafico', except: null)]), code:blade (<x-kore::chart :data="$this->trafico" :window="$ventanaTrafi), ⚠️ Dos trampas del envoltorio de Livewire, El eje Y se reescala sobre lo que se ve (+9 more)
 
+### Community 67 - "CustomOverlay"
+Cohesion: 0.14
+Nodes (5): columns(), query(), TestBulkTable, TestPresetsTable, TestUser
+
+### Community 68 - "SpotlightDependency"
+Cohesion: 0.16
+Nodes (15): Confirm-callback forgery-resistant authorization, Confirm, ConfirmCallbackSecurityTest test suite, ConfirmTest test suite, DemoComponent fixture class, DemoComponent::handleConfirm, DemoComponent::secretAction (protected), DemoComponent::sendConfirm (+7 more)
+
 ### Community 69 - "DateRangeFilter"
-Cohesion: 0.2
-Nodes (18): CI (GitHub Actions: Pest matrix, Vitest, asset build), Form Accessibility (aria-invalid / aria-describedby, WCAG 3.3.1/4.1.2), 18 Form Components (v0.1.0), v1.3.0 Release, Vitest JS Test Suite, <x-kore::checkbox> component, <x-kore::color-picker> component, config: form components defaults section (+10 more)
+Cohesion: 0.23
+Nodes (10): close(), destroy(), onKeydown(), openDropdown(), toggle(), close(), destroy(), isDomNode() (+2 more)
 
 ### Community 70 - "HasVisibility.php"
 Cohesion: 0.12
 Nodes (14): ajustes, floatingCalls, item, items, makeStore(), mensajes, mount(), panel (+6 more)
 
 ### Community 71 - "WithExport.php"
-Cohesion: 0.23
-Nodes (10): close(), destroy(), onKeydown(), openDropdown(), toggle(), close(), destroy(), isDomNode() (+2 more)
+Cohesion: 0.13
+Nodes (3): isOpen(), _syncWireModel(), toggle()
 
 ### Community 72 - "kore-ui Config File"
 Cohesion: 0.17
@@ -741,8 +742,12 @@ Cohesion: 0.12
 Nodes (16): 1. Add the anti-FOUC directive, 2. Use the component, Architecture, code:html (<head>), code:html ({{-- Segmented (default) — shows light, system, dark --}}), code:php ('theme' => [), code:php (// config/kore-ui.php), code:block5 (Page load) (+8 more)
 
 ### Community 76 - "tag-input.js"
-Cohesion: 0.2
-Nodes (17): ComponentResolver, ConfirmDialog, ConfirmDialogTest test suite, CustomOverlay Fixture, DemoOverlay Fixture, DemoSpotlightComponent Fixture, FeedbackManager, HasOverlayBehavior (+9 more)
+Cohesion: 0.12
+Nodes (16): Alpine.js Plugin, Atajo de teclado, Boton slide-down y filter count, code:php (Column::make('Empresa', 'company.name'),      // with('compa), code:php (// Siempre oculta), code:php (Column::make('Estado', 'status')), DataTable, Eager Loading automatico (+8 more)
+
+### Community 77 - "theme.js"
+Cohesion: 0.23
+Nodes (13): _addClickAwayListener(), applyCustom(), _cleanup(), clear(), close(), destroy(), isValidHex(), _onMousedown() (+5 more)
 
 ### Community 78 - "Overlayable.php"
 Cohesion: 0.28
@@ -753,152 +758,152 @@ Cohesion: 0.17
 Nodes (9): applyPanelSizes(), gutterEls, onKeydown(), onPointerMove(), onPointerUp(), panels, resize(), saveState() (+1 more)
 
 ### Community 80 - "DateColumn"
-Cohesion: 0.23
-Nodes (13): _addClickAwayListener(), applyCustom(), _cleanup(), clear(), close(), destroy(), isValidHex(), _onMousedown() (+5 more)
-
-### Community 81 - "ProgressColumn"
 Cohesion: 0.12
 Nodes (11): { a, b, tick }, { chart }, { chart, morph }, { chart, nodes }, { chart, nodes, morph }, { chart, refresh, tick }, { chart, set }, { chart, tick } (+3 more)
 
-### Community 82 - "BadgeColumn"
-Cohesion: 0.12
-Nodes (4): TestDeferredTable, TestQueryStringTable, TestTable, KoreDataTable Alpine Component
-
-### Community 83 - "WithFilterPresets.php"
+### Community 81 - "ProgressColumn"
 Cohesion: 0.12
 Nodes (15): code:blade (<x-kore::stats label="Total Users" :value="12450" icon="user), code:blade ({{-- Tendencia automática basada en previousValue --}}), code:blade (<x-kore::stats label="Users" :value="2450" icon="users" vari), code:blade (<x-kore::stats label="View Reports" :value="156" icon="bar-c), code:blade (<x-kore::stats label="Total" :value="9999" :animated="false"), code:php ('stats' => [), Como enlace, Con tendencia (+7 more)
 
-### Community 84 - "Confirm"
+### Community 82 - "BadgeColumn"
 Cohesion: 0.12
 Nodes (15): Accessibility, Basic Usage, code:blade (<x-kore::rating wire:model="rating" label="Rating" />), code:blade (<x-kore::rating wire:model="rating" label="Rating" allow-hal), code:php (// Livewire component), code:blade (<x-kore::rating size="sm" />  {{-- 16px stars --}}), code:blade (<x-kore::rating readonly allow-half value="3.5" />), code:blade (<x-kore::rating :stars="10" label="Score (out of 10)" />) (+7 more)
 
-### Community 85 - "BreadcrumbManager Class"
+### Community 83 - "WithFilterPresets.php"
 Cohesion: 0.12
 Nodes (15): Alpine Store API, code:html (<button @click="$store.koreTheme.setMode('dark')">Dark</butt), code:js (document.addEventListener('theme-changed', (e) => {), code:html ({{-- Conditional rendering --}}), DOM Effects, Events, Getters, `init()` (+7 more)
 
-### Community 86 - "Dropdown Component"
-Cohesion: 0.12
-Nodes (15): Alpine.js Plugin, Atajo de teclado, code:php (Column::make('Empresa', 'company.name'),      // with('compa), code:php (// Siempre oculta), code:php (Column::make('Estado', 'status')), code:php (<?php), code:blade ({{-- resources/views/products/index.blade.php --}}), DataTable (+7 more)
-
-### Community 87 - "tab.js"
-Cohesion: 0.12
-Nodes (16): ActionColumn, BadgeColumn, ComponentColumn, DateColumn, ImageColumn, LinkColumn, ProgressColumn, RowAction class (+8 more)
-
-### Community 88 - "rating.js"
+### Community 84 - "Confirm"
 Cohesion: 0.13
 Nodes (16): WCAG field accessibility pattern (aria-describedby / aria-invalid), ARIA in HTML (W3C spec), Checkbox, CheckboxTest test suite, FieldAccessibilityTest test suite, kore::password component, PasswordTest test suite, kore::radio component (+8 more)
 
-### Community 89 - "LinkColumn"
+### Community 85 - "BreadcrumbManager Class"
+Cohesion: 0.17
+Nodes (16): ActionColumn, BadgeColumn, ColorColumn, ColorColumnSecurityTest, ColumnInteractionTest, ColumnTypesTest, ComponentColumn, DateColumn (+8 more)
+
+### Community 86 - "Dropdown Component"
 Cohesion: 0.19
 Nodes (8): _apply(), _dispatch(), init(), _listen(), _resolve(), setMode(), loadStore(), mediaQuery
 
-### Community 90 - "DateFilter"
+### Community 87 - "tab.js"
+Cohesion: 0.13
+Nodes (15): [1.0.0] — 2026-04-03, Fixed, Fixed, Fixed, Fixed, Fixed, Fixed, Fixed (+7 more)
+
+### Community 88 - "rating.js"
 Cohesion: 0.13
 Nodes (14): Accordion, code:blade (<x-kore::accordion>), code:blade (<x-kore::accordion multiple>), code:blade ({{-- Sin bordes exteriores --}}), code:blade (<x-kore::accordion>), code:blade (<x-kore::accordion wire:model="openPanels">), Con icono y deshabilitado, Integración con Livewire (+6 more)
 
-### Community 91 - "BooleanColumn"
+### Community 89 - "LinkColumn"
 Cohesion: 0.13
 Nodes (14): code:blade (<x-kore::divider />), code:blade (<x-kore::divider label="Sección" align="left" />), code:blade (<x-kore::divider icon="arrow-down" />), code:blade (<x-kore::divider>), code:blade (<div class="flex items-center gap-4 h-20">), code:blade (<x-kore::divider type="solid" />), Con etiqueta y alineación, Con icono (+6 more)
 
-### Community 92 - "WithColumnSelect.php"
+### Community 90 - "DateFilter"
 Cohesion: 0.13
 Nodes (14): Basic Usage, code:blade (<x-kore::color-picker wire:model="color" label="Color" />), code:blade (<x-kore::color-picker wire:model="color" label="Color" inlin), code:php (// Livewire component), code:blade (<x-kore::color-picker), code:php (// config/kore-ui.php), Color Picker, Configuration (+6 more)
 
-### Community 93 - "Field"
+### Community 91 - "BooleanColumn"
 Cohesion: 0.13
 Nodes (14): Attribute Forwarding, Basic Usage, Clearable, code:html (<x-kore::input wire:model="name" label="Name" placeholder="E), code:html (<x-kore::input label="Search" icon="search" placeholder="Sea), code:html (<x-kore::input label="Website" prefix="https://" suffix=".co), code:html (<x-kore::input wire:model="search" label="Search" icon="sear), code:html (<x-kore::input label="Disabled" disabled />) (+6 more)
 
-### Community 94 - "Toast"
+### Community 92 - "WithColumnSelect.php"
 Cohesion: 0.13
 Nodes (14): Abstract class base, code:php (abstract class SpotlightProvider), code:php (class NavigationProvider extends SpotlightProvider), code:php (class ActionProvider extends SpotlightProvider), code:php (class UserSearchProvider extends SpotlightProvider), code:php ('spotlight' => [), code:blade (<x-kore::spotlight :providers="[\App\Spotlight\NavigationPro), Ejemplos (+6 more)
 
+### Community 93 - "Field"
+Cohesion: 0.18
+Nodes (15): BreadcrumbTrail class, Kore Facade, Confirm Callback Authorization (blocks forged kore:confirm-callback events), Feedback System (v0.1.0), config: feedback (toast/confirm) defaults section, Confirm fluent builder ($this->confirm()), kore:confirm-callback event, ConfirmDialog (Livewire component, extends OverlayComponent) (+7 more)
+
+### Community 94 - "Toast"
+Cohesion: 0.25
+Nodes (15): Form Accessibility (aria-invalid / aria-describedby, WCAG 3.3.1/4.1.2), 18 Form Components (v0.1.0), <x-kore::checkbox> component, <x-kore::color-picker> component, config: form components defaults section, <x-kore::float-label> component, <x-kore::field> wrapper component, Form Components overview (10 anonymous Blade components) (+7 more)
+
 ### Community 95 - "KoreFeedback Alpine Component"
-Cohesion: 0.17
-Nodes (15): Datatable Toolbar, Datatable Filter Drawer Layout, Datatable Filter Fields Partial, Datatable Filter Inline Layout, Datatable Filter Popover Layout, Datatable Filter Slide-Down Panel, Datatable Filter Slide-Down Trigger, Filter Type View: Boolean (+7 more)
-
-### Community 96 - "range.js"
-Cohesion: 0.29
-Nodes (15): DemoProvider Fixture, SpotlightDefaults, SpotlightDependency, SpotlightDependencyTest Suite, SpotlightItem (builder), SpotlightItemTest Suite, SpotlightManager, SpotlightManagerTest Suite (+7 more)
-
-### Community 97 - "input-otp.js"
 Cohesion: 0.14
 Nodes (15): Dropdown Component, Dropdown Header Component, Dropdown Header Sub-component (x-kore::dropdown.header), Dropdown Item Component, Dropdown Item Sub-component (x-kore::dropdown.item), KoreDropdown Alpine Factory, Dropdown Separator Component, Dropdown Separator Sub-component (x-kore::dropdown.separator) (+7 more)
 
+### Community 96 - "range.js"
+Cohesion: 0.18
+Nodes (15): Accordion Component, Accordion Item Component, Stepper Component, Stepper Component, Stepper Item Component, Stepper Item Component, KoreStepper Alpine Plugin, StepperTest Suite (+7 more)
+
+### Community 97 - "input-otp.js"
+Cohesion: 0.13
+Nodes (4): TestAggregationTable, TestQueryStringTable, TestScopedEditableTable, KoreDataTable Alpine Component
+
 ### Community 98 - "WithResponsive.php"
+Cohesion: 0.17
+Nodes (15): Datatable Toolbar, Datatable Filter Drawer Layout, Datatable Filter Fields Partial, Datatable Filter Inline Layout, Datatable Filter Popover Layout, Datatable Filter Slide-Down Panel, Datatable Filter Slide-Down Trigger, Filter Type View: Boolean (+7 more)
+
+### Community 99 - "SpotlightProvider"
+Cohesion: 0.23
+Nodes (15): ComponentResolver, ConfirmDialog, ConfirmDialogTest test suite, CustomOverlay Fixture, DemoOverlay Fixture, DemoSpotlightComponent Fixture, HasOverlayBehavior, InvalidOverlay Fixture (+7 more)
+
+### Community 100 - "ColorColumn"
+Cohesion: 0.29
+Nodes (15): DemoProvider Fixture, SpotlightDefaults, SpotlightDependency, SpotlightDependencyTest Suite, SpotlightItem (builder), SpotlightItemTest Suite, SpotlightManager, SpotlightManagerTest Suite (+7 more)
+
+### Community 101 - "KoreAccordion Alpine Plugin"
 Cohesion: 0.16
 Nodes (11): kore::datatable.columns., kore::datatable.columns.action, kore::datatable.filter-pills, kore::datatable.filter-presets, kore::datatable.pagination, kore::datatable.responsive.card, kore::datatable.responsive.collapse, kore::datatable.sort-pills (+3 more)
 
-### Community 105 - "SpotlightResult"
+### Community 108 - "Filter"
 Cohesion: 0.26
 Nodes (12): applyPagination(), getPage(), getPaginationType(), getPerPageOptions(), gotoPage(), nextPage(), normalizePerPage(), pageName() (+4 more)
 
-### Community 106 - "UrlSanitizer"
-Cohesion: 0.14
-Nodes (14): [1.0.0] — 2026-04-03, Fixed, Fixed, Fixed, Fixed, Fixed, Fixed, Fixed (+6 more)
-
-### Community 107 - "TextFilter"
-Cohesion: 0.14
-Nodes (13): code:blade (<x-kore::timeline>), code:blade (<x-kore::timeline>), code:blade (<x-kore::timeline variant="alternate">), code:blade (<x-kore::timeline variant="right">), code:php ('timeline' => [), Con iconos y colores, Configuración, Props del contenedor (+5 more)
-
-### Community 108 - "Filter"
-Cohesion: 0.14
-Nodes (13): Chip, code:blade (<x-kore::chip label="Tag" />), code:blade (<x-kore::chip label="Soft" variant="soft" color="primary" />), code:blade (<x-kore::chip label="John Doe" image="/avatar.jpg" :removabl), code:blade (<x-kore::chip label="Remove me" :removable="true" />), code:php ('chip' => [), Con imagen, Configuración (+5 more)
-
 ### Community 109 - "CsvExporter"
 Cohesion: 0.14
-Nodes (13): Auto-generated Placeholder, Basic Usage, code:blade (<x-kore::maskable wire:model="phone" label="Phone" mask="(##), code:php (// User types: (55) 1234-5678), code:blade (<x-kore::maskable wire:model="phone" mask="(##) ####-####" e), code:blade (<x-kore::maskable), code:php (// config/kore-ui.php), Configuration (+5 more)
+Nodes (14): [1.1.0] — 2026-04-04, Added, Added, Added, Added, Added, Added, Added (+6 more)
 
 ### Community 110 - "HasSearch.php"
 Cohesion: 0.14
-Nodes (13): App Shell, Cómo funciona (y por qué importa), code:blade (<x-kore::shell>), code:blade (<body>), code:css (@import 'tailwindcss';), code:php ('shell' => [), code:blade (<button x-data x-on:click="$store.koreSidebar.toggle('main')), Configuración (+5 more)
+Nodes (13): code:blade (<x-kore::timeline>), code:blade (<x-kore::timeline>), code:blade (<x-kore::timeline variant="alternate">), code:blade (<x-kore::timeline variant="right">), code:php ('timeline' => [), Con iconos y colores, Configuración, Props del contenedor (+5 more)
 
 ### Community 111 - "WithQueryString.php"
 Cohesion: 0.14
-Nodes (14): WithColumnSelect trait, config: datatable defaults section, Data Visualization: Table vs DataTable overview, CSV/Formula Injection Protection, Export maxRows fix (chunk() no longer overrides limit()), CSV Export (setExportEnabled/setExportMaxRows), Query String Persistence, Deferred Loading (skeleton via wire:init) (+6 more)
+Nodes (13): Chip, code:blade (<x-kore::chip label="Tag" />), code:blade (<x-kore::chip label="Soft" variant="soft" color="primary" />), code:blade (<x-kore::chip label="John Doe" image="/avatar.jpg" :removabl), code:blade (<x-kore::chip label="Remove me" :removable="true" />), code:php ('chip' => [), Con imagen, Configuración (+5 more)
 
 ### Community 112 - "KoreCarousel Alpine Component"
-Cohesion: 0.2
-Nodes (14): BulkAction, BulkActionTest, exportMaxRows Enforcement Over chunk(), FilterPreset, FilterPresetsTest, Preset Count Caching & Invalidation, Select-All-Matching Operates on Filtered Query, SelectionTest (+6 more)
+Cohesion: 0.14
+Nodes (13): Auto-generated Placeholder, Basic Usage, code:blade (<x-kore::maskable wire:model="phone" label="Phone" mask="(##), code:php (// User types: (55) 1234-5678), code:blade (<x-kore::maskable wire:model="phone" mask="(##) ####-####" e), code:blade (<x-kore::maskable), code:php (// config/kore-ui.php), Configuration (+5 more)
 
 ### Community 113 - "KoreNumber JS Test Suite"
-Cohesion: 0.16
-Nodes (14): Datepicker, DatePickerTest test suite, Field, Float Label, Input, Input OTP, KoreInputOtp Alpine Component, InputTest test suite (+6 more)
+Cohesion: 0.14
+Nodes (13): App Shell, Cómo funciona (y por qué importa), code:blade (<x-kore::shell>), code:blade (<body>), code:css (@import 'tailwindcss';), code:php ('shell' => [), code:blade (<button x-data x-on:click="$store.koreSidebar.toggle('main')), Configuración (+5 more)
 
 ### Community 114 - "TestBulkTable"
-Cohesion: 0.16
-Nodes (14): Feedback Confirm Dialog View, KoreFeedback Alpine Component, Feedback Manager (Toast Container), Feedback Toast Item, Focus Trapping (x-trap.noscroll.inert), KoreOverlay() Alpine component, Overlay Manager, Spotlight Fuzzy Search Ranking Design (+6 more)
+Cohesion: 0.14
+Nodes (14): WithColumnSelect trait, config: datatable defaults section, Data Visualization: Table vs DataTable overview, CSV/Formula Injection Protection, Export maxRows fix (chunk() no longer overrides limit()), CSV Export (setExportEnabled/setExportMaxRows), Query String Persistence, Deferred Loading (skeleton via wire:init) (+6 more)
 
-### Community 120 - "accordion.js"
+### Community 115 - "Progress Bar Component"
 Cohesion: 0.15
-Nodes (13): [1.1.0] — 2026-04-04, Added, Added, Added, Added, Added, Added, Added (+5 more)
-
-### Community 121 - "kore::datatable.filters.fields"
-Cohesion: 0.15
-Nodes (12): code:bash (composer require kore-ui/kore-ui), code:css (@import "tailwindcss";), code:javascript (import '../../vendor/kore-ui/kore-ui/resources/js';), code:html (<livewire:kore-overlay-manager />), code:html (<button wire:click="$dispatch('kore:open', { component: 'my-), CSS Setup, Installation, JS Setup (+4 more)
+Nodes (14): BulkAction class, ensurePinnedMorphHook, KoreDataTable (abstract Livewire class), #[Locked] property pattern (persist config across requests, immune to client tampering), recalcPinnedOffsets, syncSelectionCheckboxes, table-name multi-table URL isolation, wire:ignore filter sync pattern (prevents Livewire morph interfering with Alpine) (+6 more)
 
 ### Community 122 - "TestQueryStringTable"
 Cohesion: 0.15
-Nodes (12): Animaciones, code:blade (<x-kore::skeleton />), code:blade ({{-- Rectángulo (default) --}}), code:blade (<div class="rounded-kore-lg border border-kore-border p-4 sp), code:blade ({{-- Shimmer (default) — gradiente que barre de izquierda a ), code:php ('skeleton' => [), Composición (Card skeleton), Configuración (+4 more)
+Nodes (12): code:bash (composer require kore-ui/kore-ui), code:css (@import "tailwindcss";), code:javascript (import '../../vendor/kore-ui/kore-ui/resources/js';), code:html (<livewire:kore-overlay-manager />), code:html (<button wire:click="$dispatch('kore:open', { component: 'my-), CSS Setup, Installation, JS Setup (+4 more)
 
 ### Community 123 - "TestDefaultPresetTable"
 Cohesion: 0.15
-Nodes (12): Basic Usage, code:blade (<x-kore::tag-input wire:model="skills" label="Skills" placeh), code:php (// Livewire component), code:blade (<x-kore::tag-input :max="5" label="Tags (max 5)" />), code:blade (<x-kore::tag-input separator=";" label="Semicolon separated"), Custom Separator, Keyboard Interactions, Max Limit (+4 more)
+Nodes (12): Animaciones, code:blade (<x-kore::skeleton />), code:blade ({{-- Rectángulo (default) --}}), code:blade (<div class="rounded-kore-lg border border-kore-border p-4 sp), code:blade ({{-- Shimmer (default) — gradiente que barre de izquierda a ), code:php ('skeleton' => [), Composición (Card skeleton), Configuración (+4 more)
 
 ### Community 124 - "columns"
 Cohesion: 0.15
-Nodes (12): Basic Usage, code:html (<x-kore::input-otp wire:model="code" label="Verification Cod), code:html (<x-kore::input-otp wire:model="pin" label="PIN" :length="4" ), code:html (<x-kore::input-otp wire:model="pin" label="Secret PIN" :leng), code:html (<x-kore::input-otp wire:model="code" label="Code" :length="6), Input OTP, Keyboard Behavior, Masked (+4 more)
+Nodes (12): Basic Usage, code:blade (<x-kore::tag-input wire:model="skills" label="Skills" placeh), code:php (// Livewire component), code:blade (<x-kore::tag-input :max="5" label="Tags (max 5)" />), code:blade (<x-kore::tag-input separator=";" label="Semicolon separated"), Custom Separator, Keyboard Interactions, Max Limit (+4 more)
 
 ### Community 125 - "KoreManager"
 Cohesion: 0.15
-Nodes (12): 12-hour Format, Basic Usage, code:html (<x-kore::time-picker wire:model="time" label="Time"), code:html (<x-kore::time-picker wire:model="time" label="Time"), code:html (<x-kore::time-picker wire:model="time" label="Time"), Dropdown Positioning, Keyboard Navigation, Minute Step (+4 more)
+Nodes (12): Basic Usage, code:html (<x-kore::input-otp wire:model="code" label="Verification Cod), code:html (<x-kore::input-otp wire:model="pin" label="PIN" :length="4" ), code:html (<x-kore::input-otp wire:model="pin" label="Secret PIN" :leng), code:html (<x-kore::input-otp wire:model="code" label="Code" :length="6), Input OTP, Keyboard Behavior, Masked (+4 more)
 
 ### Community 126 - "DemoProvider"
-Cohesion: 0.33
-Nodes (13): BooleanFilter, DateFilter, DateRangeFilter, Filter, FilteringTest, FilterTest, IsFilter, MultiSelectFilter (+5 more)
+Cohesion: 0.15
+Nodes (12): 12-hour Format, Basic Usage, code:html (<x-kore::time-picker wire:model="time" label="Time"), code:html (<x-kore::time-picker wire:model="time" label="Time"), code:html (<x-kore::time-picker wire:model="time" label="Time"), Dropdown Positioning, Keyboard Navigation, Minute Step (+4 more)
 
 ### Community 127 - "KoreUiServiceProvider"
-Cohesion: 0.22
-Nodes (13): Stepper Component, Stepper Component, Stepper Item Component, Stepper Item Component, KoreStepper Alpine Plugin, StepperTest Suite, Tab Component (x-kore::tab), Tab Component (+5 more)
+Cohesion: 0.17
+Nodes (13): BreadcrumbManager singleton, <x-kore::breadcrumbs> component, JSON-LD structured data output, Overlay System (v0.1.0), Theming System (v0.1.0), 20+ UI Components (v0.1.0), v0.1.0 Release (initial pre-release), ActionColumn (+5 more)
+
+### Community 128 - "filters"
+Cohesion: 0.33
+Nodes (13): BooleanFilter, DateFilter, DateRangeFilter, Filter, FilteringTest, FilterTest, IsFilter, MultiSelectFilter (+5 more)
 
 ### Community 132 - "Filter base class"
 Cohesion: 0.24
@@ -952,229 +957,233 @@ Nodes (4): next(), previous(), select(), _syncWireModel()
 Cohesion: 0.24
 Nodes (5): isVisible(), _matchesFilter(), onNodeClick(), toggleExpand(), toggleSelect()
 
-### Community 153 - "filter-pills.blade.php"
+### Community 152 - "index.blade.php"
 Cohesion: 0.25
 Nodes (5): exportAs(), getExportColumns(), getExportFormats(), isExportEnabled(), resolveExporter()
 
-### Community 154 - "column-select.blade.php"
+### Community 153 - "filter-pills.blade.php"
 Cohesion: 0.18
 Nodes (10): code:blade (<x-kore::speed-dial :items="[), code:php ([), code:blade (<x-kore::speed-dial position="bottom-right" :items="$items" ), code:blade (<x-kore::speed-dial direction="up" :items="$items" />), Direcciones, Estructura de items, Posición fija, Props (+2 more)
 
-### Community 155 - "sort-pills.blade.php"
+### Community 154 - "column-select.blade.php"
 Cohesion: 0.18
 Nodes (10): Autoplay, Carousel, code:blade (<x-kore::carousel>), code:blade (<x-kore::carousel :autoplay="true" :interval="3000">), code:blade (<x-kore::carousel :numVisible="3" :gap="24">), code:blade (<x-kore::carousel>), Múltiples slides visibles, Props del contenedor (+2 more)
 
-### Community 156 - "filter-presets.blade.php"
+### Community 155 - "sort-pills.blade.php"
 Cohesion: 0.18
 Nodes (10): Alert, Closeable y auto-dismiss, code:blade (<x-kore::alert title="Éxito" description="Operación completa), code:blade (<x-kore::alert type="info" title="Información" description="), code:blade (<x-kore::alert title="Cerrable" closeable />), code:blade (<x-kore::alert title="Actualización disponible" type="info">), Con acción, Props (+2 more)
 
-### Community 157 - "InvalidOverlay"
+### Community 156 - "filter-presets.blade.php"
 Cohesion: 0.18
 Nodes (10): code:blade (<x-kore::loading />), code:blade (<x-kore::loading text="Cargando datos..." />), code:blade (<div class="relative">), code:blade (<div class="relative">), Con texto, Loading, Overlay, Overlay con blur (+2 more)
 
-### Community 158 - "DemoOverlay"
+### Community 157 - "InvalidOverlay"
 Cohesion: 0.18
 Nodes (10): Auto Resize, Basic Usage, Character Counter, code:html (<x-kore::textarea wire:model="bio" label="Bio" placeholder="), code:html (<x-kore::textarea wire:model.live="notes" label="Notes" auto), code:html (<x-kore::textarea label="Tweet" :max-length="280" hint="Keep), code:html (<x-kore::textarea label="Description" auto-resize :max-lengt), Combined (+2 more)
 
-### Community 159 - "items"
+### Community 158 - "DemoOverlay"
 Cohesion: 0.18
 Nodes (10): API JavaScript, code:blade ({{-- resources/views/layouts/app.blade.php --}}), code:php (// app/Spotlight/NavigationProvider.php), code:php (// config/kore-ui.php), code:blade (<x-kore::spotlight search-url="{{ route('spotlight.search') ), code:js (// Abrir / cerrar desde JS), Instalación, Props del componente (+2 more)
 
-### Community 160 - "Kore"
+### Community 159 - "items"
 Cohesion: 0.18
 Nodes (10): Chart Axis, code:blade (<x-kore::chart :data="$ventas" x="mes">), El eje X tiene tres formas, y elegir mal la escala cambia lo que el gráfico dice, Las etiquetas del eje X no se rotan, Limitaciones, Props de `<x-kore::chart.axis-x>`, Props de `<x-kore::chart.axis-y>`, `ticks` es una pista, no un contrato (+2 more)
 
-### Community 161 - "DuplicateBreadcrumbException"
+### Community 160 - "Kore"
 Cohesion: 0.18
 Nodes (11): code:php (public function configure(): void), code:php (public function configure(): void), code:php (public function configure(): void), code:php (public function configure(): void), code:php (// config/kore-ui.php), Configuracion global, Drawer, Inline (+3 more)
 
+### Community 161 - "DuplicateBreadcrumbException"
+Cohesion: 0.2
+Nodes (11): CI (GitHub Actions: Pest matrix, Vitest, asset build), DataTable Export Authorization (server-side validation, not just UI hiding), P0 Security Hardening (client-to-server audit), Spotlight Navigation URL Sanitization (neutralizes javascript:/data://host), Spotlight Providers Locked (prevents arbitrary class instantiation), Spotlight SSRF Protection (blocks private/loopback/link-local hosts), UrlSanitizer (rejects scheme-relative URLs, strips control chars), v1.3.0 Release (+3 more)
+
 ### Community 162 - "FilterApplied"
-Cohesion: 0.2
-Nodes (11): ColorColumn XSS/CSS Injection Fix, DataTable Export Authorization (server-side validation, not just UI hiding), P0 Security Hardening (client-to-server audit), Spotlight Navigation URL Sanitization (neutralizes javascript:/data://host), Spotlight Providers Locked (prevents arbitrary class instantiation), Spotlight SSRF Protection (blocks private/loopback/link-local hosts), UrlSanitizer (rejects scheme-relative URLs, strips control chars), ColorColumn (+3 more)
-
-### Community 163 - "RowUpdated"
-Cohesion: 0.2
-Nodes (11): ensurePinnedMorphHook, KoreDataTable (abstract Livewire class), #[Locked] property pattern (persist config across requests, immune to client tampering), recalcPinnedOffsets, syncSelectionCheckboxes, table-name multi-table URL isolation, wire:ignore filter sync pattern (prevents Livewire morph interfering with Alpine), Cross-page selection with indicator (+3 more)
-
-### Community 164 - "BulkActionExecuted"
 Cohesion: 0.18
 Nodes (11): kore-ui Config File, KoreTimePicker Alpine Component, KoreTooltip Alpine Component, KoreUpload Alpine Component, Time Picker Component, Timeline Container Component, Timeline Item Component, Toggle Switch Component (+3 more)
 
-### Community 165 - "SpotlightProvider::toArray"
+### Community 163 - "RowUpdated"
+Cohesion: 0.25
+Nodes (11): CSV/Formula Injection Mitigation, exportMaxRows Enforcement Over chunk(), ExportTest, IDOR Protection via Query Scoping, LIKE Wildcard Literal Escaping, Security Audit Findings (C2/S3 checklist), SecurityHardeningTest, Sort Whitelist & Direction Normalization (+3 more)
+
+### Community 164 - "BulkActionExecuted"
 Cohesion: 0.4
 Nodes (9): addCurrentTag(), addTag(), clearAll(), _getModelName(), init(), onKeydown(), onPaste(), removeTag() (+1 more)
 
-### Community 177 - "DataTable responsive modes"
+### Community 176 - "DataTable accessibility"
 Cohesion: 0.38
 Nodes (8): applyPreset(), applyPresetState(), clearPreset(), filterPresets(), findPreset(), getPresetCounts(), mountWithFilterPresets(), resolveFilterPresets()
 
-### Community 178 - "HasOverlayBehavior::closeWith"
+### Community 177 - "DataTable responsive modes"
 Cohesion: 0.2
 Nodes (9): Card, code:blade (<x-kore::card title="Mi Card" subtitle="Descripción">), code:blade (<x-kore::card title="Sección" collapsible>), code:blade (<x-kore::card image="/photo.jpg" title="Foto">), Collapsible, Con imagen, Props, Slots (+1 more)
 
-### Community 179 - "Spotlight Recent History"
+### Community 178 - "HasOverlayBehavior::closeWith"
 Cohesion: 0.2
 Nodes (9): code:blade (<x-kore::dropdown>), code:blade (<x-kore::dropdown>), Con secciones, Dropdown, Props (Dropdown), Props (Item), Sub-componentes, Teclado (+1 more)
 
-### Community 180 - "koreTheme.setMode"
+### Community 179 - "Spotlight Recent History"
 Cohesion: 0.2
 Nodes (9): Avatar, Avatar Group, code:blade (<x-kore::avatar src="/avatar.jpg" name="Juan Pérez" />), code:blade (<x-kore::avatar-group>), code:blade (<x-kore::avatar name="Juan" presence="online" />), Presencia, Prioridad de render, Props (+1 more)
 
-### Community 181 - "Kbd Component"
+### Community 180 - "koreTheme.setMode"
 Cohesion: 0.2
 Nodes (9): code:blade (<x-kore::splitter class="h-64">), code:blade (<x-kore::splitter orientation="vertical" class="h-96">), code:blade (<x-kore::splitter stateKey="my-layout">), Persistencia, Props del contenedor, Props del panel, Splitter, Uso básico (+1 more)
 
-### Community 182 - "Stepper Alpine Component"
+### Community 181 - "Kbd Component"
 Cohesion: 0.2
 Nodes (9): Basic Usage, code:html (<x-kore::radio wire:model="plan" value="basic" label="Basic"), code:html (<x-kore::radio-group label="Select your plan">), code:html (<x-kore::radio-group label="Layout" inline>), Inline Layout, Radio, Radio Group, Radio Group Props (+1 more)
 
-### Community 183 - "DatePicker Component"
+### Community 182 - "Stepper Alpine Component"
 Cohesion: 0.2
 Nodes (9): Basic Usage, Checkbox, code:html (<x-kore::checkbox wire:model="terms" label="I accept the ter), code:html (<x-kore::checkbox wire:model="selectAll" label="Select all" ), code:html (<x-kore::checkbox label="Remember me" label-position="left" ), Custom Styling, Indeterminate, Label Position (+1 more)
 
-### Community 184 - "Loading"
+### Community 183 - "DatePicker Component"
 Cohesion: 0.2
 Nodes (9): Accesibilidad, Al colapsar el sidebar, code:blade (<x-kore::sidebar.group label="Gestión">), code:blade (<x-kore::sidebar.group label="Informes" icon="bar-chart-2" :), Grupo o item con hijos, Grupo plegable, Props, Sidebar Group (+1 more)
 
-### Community 185 - "koreTheme Alpine Store"
+### Community 184 - "Loading"
 Cohesion: 0.2
 Nodes (9): Cómo sabe cuánto espacio reservar, code:blade (<x-kore::shell>), code:blade (<x-kore::shell>), Contenido a pantalla completa, Dos anchuras, no una, Shell, Sin sidebar, Slots (+1 more)
 
-### Community 186 - "KoreTree Alpine Component"
+### Community 185 - "koreTheme Alpine Store"
 Cohesion: 0.2
 Nodes (9): Chart Bar, code:blade ({{-- agrupadas --}}), code:php (['mes' => 'Mar', 'web' => 1100, 'tienda' => 700, 'movil' => ), Las barras son HTML, no SVG, Limitaciones, Por qué una barra siempre llega al cero, Props, Sólo se redondea la punta (+1 more)
 
-### Community 187 - "Datatable Responsive Card View"
+### Community 186 - "KoreTree Alpine Component"
 Cohesion: 0.2
 Nodes (9): Cómo reutiliza lo que ya había, Cascada (waterfall), code:blade (<x-kore::chart :data="$pyl" x="concepto">), code:php ($pyl = [), El color codifica polaridad, no identidad, Props, Saltos y totales, Una cascada no comparte gráfico (+1 more)
 
-### Community 188 - "SimpleTableTest"
+### Community 187 - "Datatable Responsive Card View"
 Cohesion: 0.2
 Nodes (9): Available Sizes, code:php (use KoreUi\Overlay\OverlayComponent;), code:php (class WideDrawer extends OverlayComponent), code:html (<button x-on:click="$dispatch('kore:open', {), How Sizes Work, Overlay Sizes, Runtime Size Override, Setting the Size (+1 more)
 
-### Community 189 - "kore::input-otp component"
+### Community 188 - "SimpleTableTest"
 Cohesion: 0.22
-Nodes (10): BooleanColumn, NumberColumn, <x-kore::datepicker> component, Datepicker keyboard navigation, Datepicker presets sidebar, Datepicker range mode, Aggregation (Footer) — sum/avg/count/min/max, Inline Editing (+2 more)
+Nodes (10): Accordion Index Component, Accordion Item Component, KoreAccordion Alpine Plugin, Card Component, Loading Component, LoadingTest Suite, Page Loading Component, Feedback Manager (+2 more)
 
-### Community 190 - "kore::tag-input component"
+### Community 189 - "kore::input-otp component"
 Cohesion: 0.2
 Nodes (9): BreadcrumbManager Class (stub, referenced), BreadcrumbManagerTest, Breadcrumbs Index Component, Breadcrumbs Item Partial, Breadcrumbs Separator Partial, BreadcrumbTrail, DuplicateBreadcrumbException, InvalidBreadcrumbException (+1 more)
 
-### Community 191 - "kore::color-picker component"
+### Community 190 - "kore::tag-input component"
 Cohesion: 0.33
 Nodes (5): closeTab(), _focusTab(), onKeydown(), select(), _syncWireModel()
 
-### Community 197 - "Kore Accordion Component"
+### Community 196 - "Kore Boolean Component"
 Cohesion: 0.31
 Nodes (4): getColumnSelectSessionKey(), mountWithColumnSelect(), resetColumnSelect(), toggleColumnVisibility()
 
-### Community 198 - "Kore Alert Component"
+### Community 197 - "Kore Accordion Component"
 Cohesion: 0.22
 Nodes (8): Boolean, code:blade (<x-kore::boolean :value="true" />), code:blade (<x-kore::boolean :value="true" trueColor="primary" />), code:blade (<x-kore::boolean :value="true" trueIcon="check-circle" false), Colores personalizados, Iconos personalizados, Props, Uso básico
 
-### Community 199 - "Kore Avatar Component"
+### Community 198 - "Kore Alert Component"
 Cohesion: 0.22
 Nodes (8): code:blade (<x-kore::kbd>K</x-kore::kbd>), code:blade (<x-kore::kbd size="sm">A</x-kore::kbd>), code:blade (<x-kore::kbd>⌘</x-kore::kbd> + <x-kore::kbd>Shift</x-kore::k), Combinaciones, Kbd, Props, Tamaños, Uso básico
 
-### Community 200 - "Kore Card Component"
+### Community 199 - "Kore Avatar Component"
 Cohesion: 0.22
 Nodes (8): Accessibility, Basic Usage, code:html (<x-kore::toggle wire:model="darkMode" label="Dark mode" />), code:html (<x-kore::toggle wire:model="maintenance" label="Maintenance ), Implementation, On/Off Labels, Props, Toggle
 
-### Community 201 - "Tooltip Component"
+### Community 200 - "Kore Card Component"
 Cohesion: 0.22
 Nodes (8): code:blade (<x-kore::navbar>), code:blade (<x-kore::navbar :toggle="false">), El botón de menú, Navbar, Props, Slots, Un detalle de accesibilidad, Uso básico
 
-### Community 202 - "Toolbar Component"
+### Community 201 - "Tooltip Component"
 Cohesion: 0.25
 Nodes (8): Chart Area, code:blade (<x-kore::chart :data="$ventas" x="mes">), code:blade ({{-- Basta con esto: el borde superior del área es su trazo.), El área ya dibuja su propio trazo, Los huecos, Por qué el área sí llega al cero, Props, Uso básico
 
-### Community 203 - "vite.config.js"
-Cohesion: 0.54
-Nodes (6): focusInput(), getInput(), onInput(), onKeydown(), onPaste(), sync()
+### Community 202 - "Toolbar Component"
+Cohesion: 0.22
+Nodes (9): Progress Circle Component, Progress Circle Sub-component (x-kore::progress.circle), Progress Bar Component, ProgressTest Suite, Skeleton Component, SkeletonTest Suite, Stats Component, KoreStats Alpine Factory (+1 more)
 
-### Community 204 - "vitest.config.js"
+### Community 203 - "vite.config.js"
 Cohesion: 0.39
 Nodes (5): _getModelName(), init(), onHighInput(), onLowInput(), _syncRange()
 
-### Community 214 - "alert.blade.php"
+### Community 204 - "vitest.config.js"
+Cohesion: 0.54
+Nodes (6): focusInput(), getInput(), onInput(), onKeydown(), onPaste(), sync()
+
+### Community 213 - "radio-group.blade.php"
 Cohesion: 0.25
 Nodes (7): Accesibilidad, code:blade (<x-kore::tooltip text="Información adicional">), code:blade (<x-kore::tooltip text="Arriba" position="top">...</x-kore::t), Posiciones, Props, Tooltip, Uso básico
 
-### Community 215 - "avatar.blade.php"
+### Community 214 - "alert.blade.php"
 Cohesion: 0.25
 Nodes (7): API completa, code:php (SpotlightItem::make('Nombre del item')), code:php (// Solo incluir si hay filas seleccionadas (contexto del com), ID estable para historial, SpotlightItem — API, Tipos de acción, Visibilidad y autorización
 
-### Community 216 - "upload.blade.php"
+### Community 215 - "avatar.blade.php"
 Cohesion: 0.25
 Nodes (7): Chart Donut, code:blade (<x-kore::chart :data="$ventas" x="mes" title="Reparto">), Detalles que importan, El donut no lleva tooltip, Limitaciones, Props, Uso básico
 
-### Community 217 - "kbd.blade.php"
+### Community 216 - "upload.blade.php"
 Cohesion: 0.25
 Nodes (7): Chart Line, code:blade (<x-kore::chart :data="$ventas" x="mes">), La curva `monotone`, Limitaciones, Los huecos, Props, Uso básico
 
-### Community 218 - "boolean.blade.php"
+### Community 217 - "kbd.blade.php"
 Cohesion: 0.25
 Nodes (7): code:php ('datatable' => [), Configuracion, Cuando usar cada uno, Data — Getting Started, Density, Instalacion, Tokens CSS utilizados
 
-### Community 219 - "color-picker.blade.php"
+### Community 218 - "boolean.blade.php"
 Cohesion: 0.25
 Nodes (8): code:php (public function columns(): array), code:php (public function configure(): void), code:php (public function configure(): void), code:php (Column::make('Nombre completo', 'name')), Sort con campo personalizado, Sort por defecto, Sort por defecto con tiebreaker, Sorting
 
-### Community 220 - "time-picker.blade.php"
+### Community 219 - "color-picker.blade.php"
 Cohesion: 0.25
 Nodes (8): Busqueda, Busqueda con campo diferente, Busqueda en relaciones (dot notation), Busqueda personalizada, code:php (Column::make('Empresa', 'company.name')->searchable(),), code:php (Column::make('Nombre', 'full_name')), code:php (Column::make('Nombre', 'name')), code:php (Column::make('Nombre', 'name')->searchable(),)
 
 ### Community 221 - "input-otp.blade.php"
 Cohesion: 0.29
-Nodes (8): Accordion Component, Accordion Index Component, Accordion Item Component, Accordion Item Component, KoreAccordion Alpine Plugin, Card Component, Loading Component, LoadingTest Suite
+Nodes (8): BulkAction, BulkActionTest, kore_toast(), Select-All-Matching Operates on Filtered Query, SelectionTest, Server-Side Cross-Page Selection State (Option C), Stale .checked Morph Bug Regression Guard, TestBulkTable
 
 ### Community 222 - "loading.blade.php"
-Cohesion: 0.33
-Nodes (4): KoreFeedback(), fb, makeFeedback(), toast
+Cohesion: 0.25
+Nodes (8): BladeIconsServiceProvider (vendor), BladeLucideIconsServiceProvider (vendor), FeedbackManager, KoreUiServiceProvider, LivewireServiceProvider (vendor), Pest Bootstrap Config, Orchestra Testbench TestCase (vendor base class), TestCase Base Class
 
 ### Community 223 - "tooltip.blade.php"
 Cohesion: 0.29
 Nodes (6): calls, cleanup, handle, plot, point, rect
 
 ### Community 224 - "button-group.blade.php"
-Cohesion: 0.29
-Nodes (6): exportAs(, kore::datatable.bulk-actions, kore::datatable.column-select, kore::datatable.filters., kore::datatable.filters.inline, kore::datatable.filters.slide-down-panel
+Cohesion: 0.33
+Nodes (4): KoreFeedback(), fb, makeFeedback(), toast
 
 ### Community 225 - "theme-switch.blade.php"
 Cohesion: 0.29
+Nodes (6): exportAs(, kore::datatable.bulk-actions, kore::datatable.column-select, kore::datatable.filters., kore::datatable.filters.inline, kore::datatable.filters.slide-down-panel
+
+### Community 226 - "input.blade.php"
+Cohesion: 0.29
 Nodes (4): declared, FILES, leaked, source
 
-### Community 237 - "toggle.blade.php"
+### Community 238 - "select.blade.php"
 Cohesion: 0.38
 Nodes (3): queryString(), tablePrefix(), urlKey()
 
-### Community 238 - "select.blade.php"
+### Community 239 - "radio.blade.php"
 Cohesion: 0.29
 Nodes (6): [1.6.0] — 2026-07-14, Added, Changed, Changelog, Detalles que quizá quieras conocer, El principio que ordena todo el módulo
 
-### Community 239 - "radio.blade.php"
+### Community 240 - "empty-state.blade.php"
 Cohesion: 0.29
 Nodes (6): Badge, code:blade (<x-kore::badge label="Nuevo" />), code:blade (<x-kore::badge :dot="true" color="success" />), Dot, Props, Uso básico
 
-### Community 240 - "empty-state.blade.php"
+### Community 241 - "toolbar.blade.php"
 Cohesion: 0.29
 Nodes (6): Chart, code:blade (<x-kore::chart :data="$ventas" x="mes">), Estado vacío, Limitaciones, Props, Uso básico
 
-### Community 241 - "toolbar.blade.php"
+### Community 242 - "spotlight.blade.php"
 Cohesion: 0.29
 Nodes (6): Accesibilidad, Chart Legend, code:blade (<x-kore::chart :data="$ventas" x="mes">), Limitaciones, Props, Uso básico
 
-### Community 242 - "spotlight.blade.php"
+### Community 243 - "chip.blade.php"
 Cohesion: 0.29
 Nodes (6): Cómo funciona, Chart Tooltip, code:blade (<x-kore::chart :data="$ventas" x="mes">), Limitaciones, Props, Uso básico
 
-### Community 243 - "chip.blade.php"
-Cohesion: 0.29
-Nodes (7): code:php (public function configure(): void), code:blade (<livewire:users-table  table-name="users" />), code:block17 (?users_page=2&users_per_page=10&orders_page=1&orders_q=ana), code:php (class UsersTable extends KoreDataTable), Persistencia en URL y multiples tablas, Que se persiste en la URL, Varias tablas en la misma pagina (`table-name`)
-
 ### Community 244 - "number.blade.php"
 Cohesion: 0.29
-Nodes (7): _clamp method, _createFormatter method, _format method, _parse method, makeNumber test helper, KoreNumber JS Test Suite, Vitest Test Config
+Nodes (7): code:php (public function configure(): void), code:blade (<livewire:users-table  table-name="users" />), code:block17 (?users_page=2&users_per_page=10&orders_page=1&orders_q=ana), code:php (class UsersTable extends KoreDataTable), Persistencia en URL y multiples tablas, Que se persiste en la URL, Varias tablas en la misma pagina (`table-name`)
 
 ### Community 245 - "clipboard.blade.php"
 Cohesion: 0.33
@@ -1194,43 +1203,27 @@ Nodes (5): @alpinejs/collapse — MIT, d3-array — ISC, d3-shape — ISC, @floa
 
 ### Community 255 - "index.blade.php"
 Cohesion: 0.33
-Nodes (6): Bulk Actions, BulkAction API, code:php (use KoreUi\DataTable\Actions\BulkAction;), code:php (public function activate(array $ids): void), Definir acciones, Implementar la accion
+Nodes (6): code:php (public function configure(): void), code:blade ({{-- livewire/users/table/header.blade.php --}}), code:blade ({{-- livewire/users/table/actions.blade.php --}}), Áreas disponibles, Slots (vistas inyectables), Variables disponibles en la vista inyectada
 
 ### Community 256 - "circle.blade.php"
 Cohesion: 0.33
-Nodes (6): code:php (public function configure(): void), code:blade ({{-- livewire/users/table/header.blade.php --}}), code:blade ({{-- livewire/users/table/actions.blade.php --}}), Áreas disponibles, Slots (vistas inyectables), Variables disponibles en la vista inyectada
+Nodes (6): Bulk Actions, BulkAction API, code:php (use KoreUi\DataTable\Actions\BulkAction;), code:php (public function activate(array $ids): void), Definir acciones, Implementar la accion
 
 ### Community 257 - "index.blade.php"
 Cohesion: 0.33
 Nodes (6): code:php (public function configure(): void), code:php ('per_page_options' => [10, 25, 50, 100],), Configurar tipo, Opciones de per page, Paginacion, Paginacion custom
 
 ### Community 258 - "item.blade.php"
-Cohesion: 0.4
-Nodes (6): CSV/Formula Injection Mitigation, IDOR Protection via Query Scoping, LIKE Wildcard Literal Escaping, SecurityHardeningTest, Sort Whitelist & Direction Normalization, TestScopedEditableTable
-
-### Community 259 - "panel.blade.php"
-Cohesion: 0.33
-Nodes (6): BladeIconsServiceProvider (vendor), BladeLucideIconsServiceProvider (vendor), LivewireServiceProvider (vendor), Pest Bootstrap Config, Orchestra Testbench TestCase (vendor base class), TestCase Base Class
-
-### Community 260 - "index.blade.php"
 Cohesion: 0.47
 Nodes (6): Splitter Component, Splitter Component, KoreSplitter Alpine Factory, Splitter Panel Component, Splitter Panel Component, SplitterTest Suite
 
-### Community 261 - "index.blade.php"
-Cohesion: 0.6
-Nodes (3): isOpen(), _syncWireModel(), toggle()
-
-### Community 271 - "pagination.blade.php"
+### Community 268 - "row.blade.php"
 Cohesion: 0.4
 Nodes (5): 1. Crear la clase, 2. Usar en Blade, code:php (<?php), code:blade (<livewire:users-table />), Uso basico
 
-### Community 272 - "index.blade.php"
+### Community 269 - "empty.blade.php"
 Cohesion: 0.4
 Nodes (5): BooleanFilter, Filter base class, SelectFilter, TextFilter, FilterApplied event
-
-### Community 273 - "item.blade.php"
-Cohesion: 0.4
-Nodes (5): BreadcrumbManager singleton, <x-kore::breadcrumbs> component, JSON-LD structured data output, 20+ UI Components (v0.1.0), config: breadcrumbs defaults section
 
 ### Community 275 - "_separator.blade.php"
 Cohesion: 0.5
@@ -1240,51 +1233,59 @@ Nodes (3): clearSelection, enableSelectAllMatching, runBulk(
 Cohesion: 0.5
 Nodes (3): gotoPage({{ $page }}), nextPage, previousPage
 
-### Community 290 - "badge.blade.php"
+### Community 286 - "date.blade.php"
 Cohesion: 0.5
 Nodes (4): code:php (public function configure(): void), Comportamiento, Configurar, Seleccion de filas
 
-### Community 291 - "progress.blade.php"
-Cohesion: 0.5
-Nodes (4): Boton slide-down y filter count, Notas tecnicas, Propiedades #[Locked], wire:ignore en layouts de filtro
-
-### Community 292 - "component.blade.php"
+### Community 287 - "boolean.blade.php"
 Cohesion: 0.5
 Nodes (4): KoreDataTable API, Metodos abstractos (obligatorios), Metodos opcionales, Propiedades
 
-### Community 293 - "number.blade.php"
+### Community 288 - "image.blade.php"
 Cohesion: 0.5
 Nodes (4): code:php (Column::make('Nombre', 'name')), code:php (Column::make('Nombre Completo') // field = 'nombre_completo'), Column API, Metodos fluidos
 
-### Community 294 - "color.blade.php"
-Cohesion: 0.5
-Nodes (4): Button, ButtonTest Suite, Toolbar, Tooltip
+### Community 289 - "link.blade.php"
+Cohesion: 0.67
+Nodes (4): <x-kore::datepicker> component, Datepicker keyboard navigation, Datepicker presets sidebar, Datepicker range mode
 
-### Community 295 - "ThemeSwitchTest.php"
+### Community 290 - "badge.blade.php"
 Cohesion: 0.5
 Nodes (4): Avatar Component, Avatar Group Component, Avatar Group Component, Button Group Component
 
-### Community 296 - "Pest.php"
+### Community 291 - "progress.blade.php"
+Cohesion: 0.5
+Nodes (4): Button, ButtonTest Suite, Toolbar, Tooltip
+
+### Community 292 - "component.blade.php"
 Cohesion: 0.67
 Nodes (4): Radio Component, Radio Group Component, Textarea Component, WCAG 3.3.1 / 4.1.2 (Error Identification / Name, Role, Value)
 
-### Community 309 - "TreeTest.php"
+### Community 308 - "CardTest.php"
 Cohesion: 0.67
 Nodes (3): code:php (// Click 3 times → shows "Record saved (3)" instead of 3 sep), code:php (// Force individual (no grouping)), Grouping
+
+### Community 314 - "BooleanTest.php"
+Cohesion: 0.67
+Nodes (3): Added, Detalles que quizá quieras conocer, El principio que ordena todo el módulo
 
 ### Community 315 - "AvatarTest.php"
 Cohesion: 0.67
 Nodes (3): Added, Detalles que quizá quieras conocer, El principio que ordena todo el módulo
 
-### Community 318 - "EmptyStateTest.php"
+### Community 317 - "DividerTest.php"
 Cohesion: 0.67
-Nodes (3): Speed Dial Component, KoreSpeedDial Alpine Factory, SpeedDialTest Suite
+Nodes (3): code:php (<?php), code:blade ({{-- resources/views/products/index.blade.php --}}), Ejemplo completo
 
 ### Community 319 - "StatsTest.php"
 Cohesion: 0.67
-Nodes (3): Tree Component (x-kore::tree), KoreTree Alpine Factory, TreeTest Suite
+Nodes (3): Speed Dial Component, KoreSpeedDial Alpine Factory, SpeedDialTest Suite
 
 ### Community 320 - "SkeletonTest.php"
+Cohesion: 0.67
+Nodes (3): Tree Component (x-kore::tree), KoreTree Alpine Factory, TreeTest Suite
+
+### Community 321 - "ChipTest.php"
 Cohesion: 0.67
 Nodes (3): Timeline Component (x-kore::timeline), Timeline Item Sub-component (x-kore::timeline.item), TimelineTest Suite
 
@@ -1303,9 +1304,9 @@ Nodes (3): Timeline Component (x-kore::timeline), Timeline Item Sub-component (x
   kore-ui/tests/DataTable/Fixtures/TestBulkTable.php · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **1380 isolated node(s):** `medias`, `panels`, `gutterEls`, `startSizes`, `instances` (+1375 more)
+- **1393 isolated node(s):** `medias`, `panels`, `gutterEls`, `startSizes`, `instances` (+1388 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **173 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **174 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -1322,5 +1323,5 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **What is the exact relationship between `kore_toast()` and `TestBulkTable`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **Why does `Column Class (DataTable domain model)` connect `Alpine Plugin Registry` to `WithSorting.php`, `index.blade.php`, `item.blade.php`, `KoreDataTable Query Engine`, `DataTable Interactions (JS)`, `manager.blade.php`, `BadgeColumn`, `date.blade.php`, `text.blade.php`, `boolean.blade.php`, `date-range.blade.php`?**
-  _High betweenness centrality (0.085) - this node is a cross-community bridge._
+- **Why does `Column Class (DataTable domain model)` connect `Carousel (JS)` to `input-otp.js`, `CustomOverlay`, `number.blade.php`, `color.blade.php`, `ThemeSwitchTest.php`, `KoreDataTable Query Engine`, `DataTable Interactions (JS)`, `cell.blade.php`, `pagination.blade.php`, `index.blade.php`, `time-picker.blade.php`?**
+  _High betweenness centrality (0.083) - this node is a cross-community bridge._
