@@ -363,6 +363,38 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Chart
+    |--------------------------------------------------------------------------
+    |
+    | Defaults for the chart module.
+    |
+    | La geometría se calcula en PHP y el SVG se renderiza en el servidor. Eso hace que el
+    | morph de Livewire no sea una amenaza sino el mecanismo de actualización, que el cambio
+    | de tema no ejecute JavaScript (los colores son tokens --kore-chart-*, y el navegador
+    | los resuelve solo), y que el resize no necesite JS en absoluto.
+    |
+    */
+    'chart' => [
+        'height' => '16rem',        // longitud CSS. Con la prop `aspect` puesta, se ignora
+        'ticks' => 5,               // una PISTA: el algoritmo devuelve entre count/2 y count*2
+        'bar_padding' => 0.2,       // proporción de la banda que queda libre entre barras
+        'max_x_labels' => 12,       // por encima, se saltan etiquetas (rotarlas no es opción:
+                                    // transform:rotate() no ocupa layout y se saldrían de la caja)
+        'table_max_rows' => 500,    // tope de la tabla accesible; sin él, 10.000 filas en el DOM
+
+        'empty_text' => 'No hay datos que mostrar',
+        'empty_icon' => 'chart-line',
+
+        'format' => [
+            'decimal_separator' => ',',
+            'thousands_separator' => '.',
+            'currency' => '€',
+            'currency_after' => true,   // "12 €" (es) vs "$12" (en)
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | App Shell
     |--------------------------------------------------------------------------
     |

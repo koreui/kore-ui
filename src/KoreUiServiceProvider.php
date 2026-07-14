@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use KoreUi\Breadcrumbs\BreadcrumbManager;
+use KoreUi\Charts\ChartContext;
 use KoreUi\Feedback\ConfirmDialog;
 use KoreUi\Feedback\FeedbackManager;
 use KoreUi\Overlay\OverlayManager;
@@ -30,6 +31,11 @@ class KoreUiServiceProvider extends ServiceProvider
         // scoped, no singleton: Octane reutiliza el contenedor entre requests y el
         // registro de sidebars de una petición no debe filtrarse a la siguiente.
         $this->app->scoped(ShellContext::class);
+
+        // Mismo motivo, y además: el contador de ids de gráfico tiene que empezar en 1 en
+        // cada petición, o los ids dejarían de ser deterministas entre renders y el morph de
+        // Livewire reemplazaría los nodos en vez de actualizarlos.
+        $this->app->scoped(ChartContext::class);
     }
 
     public function boot(): void

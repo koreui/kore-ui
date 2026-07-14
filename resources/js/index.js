@@ -21,6 +21,7 @@ import KoreStats from './ui/stats.js';
 import KoreClipboard from './ui/clipboard.js';
 import KoreSpeedDial from './ui/speed-dial.js';
 import KoreSplitter from './ui/splitter.js';
+import KoreChart from './ui/chart.js';
 import KoreCarousel from './ui/carousel.js';
 import KoreTree from './ui/tree.js';
 import KoreTooltip from './ui/tooltip.js';
@@ -55,6 +56,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('KoreSpeedDial', KoreSpeedDial);
     Alpine.data('KoreSplitter', KoreSplitter);
     Alpine.data('KoreCarousel', KoreCarousel);
+    Alpine.data('KoreChart', KoreChart);
     Alpine.data('KoreTree', KoreTree);
     Alpine.data('KoreTooltip', KoreTooltip);
     Alpine.data('KoreDataTable', KoreDataTable);
