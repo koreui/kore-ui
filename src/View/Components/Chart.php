@@ -43,6 +43,7 @@ class Chart extends Component
      * @param  string|null  $aspect  proporción CSS ("16/9"). Alternativa a `height`
      * @param  bool  $grid  la rejilla horizontal, a la altura de los ticks del eje Y
      * @param  array{0: float, 1: float}|null  $window  el tramo visible, en % del dominio COMPLETO
+     * @param  string  $orientation  `vertical` (por defecto) u `horizontal`: transpone las barras
      */
     public function __construct(
         public array $data = [],
@@ -54,6 +55,7 @@ class Chart extends Component
         public ?string $id = null,
         public bool $grid = true,
         public ?array $window = null,
+        public string $orientation = 'vertical',
     ) {
         $context = app(ChartContext::class);
 
@@ -68,6 +70,12 @@ class Chart extends Component
         // del eje Y. Hasta ahora ChartFrame::$grid estaba siempre en true y nadie le escribía
         // nunca — un interruptor que no encendía nada.
         $this->frame->grid = $grid;
+
+        // La orientación es de PRESENTACIÓN, no de dato: `x` sigue siendo la categoría e `y` el
+        // valor. `horizontal` sólo transpone el dibujo —la categoría baja por la izquierda, el
+        // valor corre por abajo— para que las etiquetas largas quepan sin rotar. Cualquier otro
+        // valor cae a `vertical`, el defecto.
+        $this->frame->orientation = $orientation === 'horizontal' ? 'horizontal' : 'vertical';
     }
 
     public function render(): View

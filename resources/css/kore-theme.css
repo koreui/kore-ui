@@ -1273,6 +1273,52 @@
   border-radius: 0 0 var(--kore-radius-sm) var(--kore-radius-sm);
 }
 
+/* ---- orientación horizontal ---- */
+
+/* La rejilla se tumba: en vertical es una línea horizontal a la altura de cada tick del eje Y; en
+   horizontal, una línea vertical a la altura de cada tick del valor. Misma clase, ejes cambiados. */
+.kore-chart[data-kore-chart-orientation="horizontal"] .kore-chart-grid-line {
+  left: calc(var(--kx) * 1%);
+  right: auto;
+  top: 0;
+  bottom: 0;
+  border-top: 0;
+  border-left: 1px dashed var(--kore-border);
+}
+
+/* Las etiquetas de categoría pueden ser largas —es el motivo de existir de las barras
+   horizontales—. La canaleta las acota a su ancho (Plot::bandGutter, tope 22ch) y lo que se pase se
+   corta con puntos suspensivos, en vez de salirse por la izquierda de la tarjeta. El centrado
+   vertical sobre la banda ya lo da la regla base con `--ky` y `translate: 0 -50%`. */
+.kore-chart[data-kore-chart-orientation="horizontal"] .kore-chart-gutter-y .kore-chart-tick {
+  max-width: var(--kore-chart-gutter-y);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Un valor casi cero da un ANCHO sub-píxel (en vertical era la altura): la barra existiría y no se
+   vería. Y al pasar el ratón se aclara un punto — el único feedback que hay, porque no lleva tooltip
+   flotante, y sale gratis en CSS. */
+.kore-chart[data-kore-chart-orientation="horizontal"] .kore-chart-bar {
+  min-width: 1px;
+  transition: filter 0.12s ease;
+}
+
+.kore-chart[data-kore-chart-orientation="horizontal"] .kore-chart-bar:hover {
+  filter: brightness(1.08);
+}
+
+/* La punta de la barra —el extremo del valor— se redondea. En horizontal es el borde DERECHO (barra
+   positiva) o el IZQUIERDO (negativa), no el de arriba como en vertical. */
+.kore-chart[data-kore-chart-orientation="horizontal"] .kore-chart-bar[data-cap="true"] {
+  border-radius: 0 var(--kore-radius-sm) var(--kore-radius-sm) 0;
+}
+
+.kore-chart[data-kore-chart-orientation="horizontal"] .kore-chart-bar[data-cap="true"][data-negative="true"] {
+  border-radius: var(--kore-radius-sm) 0 0 var(--kore-radius-sm);
+}
+
 /* ---- cascada (waterfall) ---- */
 
 /* El color codifica POLARIDAD, no identidad — y por eso, y sólo aquí, una barra usa los tokens

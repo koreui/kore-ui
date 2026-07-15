@@ -36,6 +36,9 @@ final class ChartFrame
 
     public bool $grid = true;
 
+    /** `vertical` (defecto) u `horizontal`. Sólo afecta al dibujo de las barras, no al dato. */
+    public string $orientation = 'vertical';
+
     public function __construct(
         public readonly string $id,
         public readonly array $data = [],
@@ -138,6 +141,12 @@ final class ChartFrame
         }
 
         return false;
+    }
+
+    /** ¿El gráfico se dibuja transpuesto (categoría a la izquierda, valor abajo)? */
+    public function isHorizontal(): bool
+    {
+        return $this->orientation === 'horizontal';
     }
 
     /**
@@ -290,6 +299,25 @@ final class ChartFrame
                 .'barra flota sobre la suma de las anteriores, así que superponerle una línea o unas barras '
                 .'normales mezclaría dos sistemas de coordenadas. Sácalas a su propio <x-kore::chart>.'
             );
+        }
+
+        // Horizontal es una transposición de la capa de barras, no un motor nuevo: un trazo SVG (línea
+        // o área) tendría que invertir cada coordenada de su `d`, y un donut/gauge no tiene ejes que
+        // transponer. En vez de mantener dos geometrías del trazo, se acota a lo que la transposición
+        // sí sabe hacer bien: barras (sueltas, agrupadas o apiladas).
+        if ($this->isHorizontal()) {
+            $otras = array_values(array_unique(array_filter(
+                array_map(fn (Mark $mark) => $mark->type(), $this->marks()),
+                fn (string $type) => $type !== 'bar',
+            )));
+
+            if ($otras !== []) {
+                throw new InvalidArgumentException(
+                    'koreUi: `orientation="horizontal"` sólo transpone barras ('.implode(', ', $otras).' no cabe). '
+                    .'Una línea o un área tendría que invertir su trazo entero, y un donut o un gauge no tiene ejes '
+                    .'que transponer. Deja esas marcas en un gráfico vertical.'
+                );
+            }
         }
 
         if (! $this->hasDonut()) {

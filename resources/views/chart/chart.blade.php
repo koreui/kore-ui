@@ -49,6 +49,11 @@
     $funnel = collect($plot->series)->firstWhere('type', 'funnel');
     $heatmap = collect($plot->series)->firstWhere('type', 'heatmap');
     $cartesian = collect($plot->series)->reject(fn ($s) => $s['type'] === 'donut')->values()->all();
+
+    // Barras transpuestas: su propia plantilla, como el resto de tipos que rompen el eje cartesiano.
+    // Sólo lo es si NO está vacío —el estado vacío manda antes— y sólo con barras (lo garantiza
+    // ChartFrame::validate).
+    $horizontal = $plot->horizontal && ! $plot->empty;
 @endphp
 
 @php
@@ -64,15 +69,15 @@
     // no había forma de volver salvo tocar la URL a mano o recargar. Un callejón sin salida.
     //
     // Un gráfico puede quedarse sin datos que enseñar. Lo que no puede es quedarse sin salida.
-    $zoom = $donut ? null : $frame->zoom;
+    $zoom = ($donut || $horizontal) ? null : $frame->zoom;
 
     $zoomed = $plot->window !== null && ($plot->window[0] > 0.01 || $plot->window[1] < 99.99);
 
     // El stream sí vive aunque el gráfico esté vacío: es justamente lo que hace que un panel que
     // arranca sin datos se rellene solo cuando llegan.
-    $stream = $donut ? null : $frame->stream;
+    $stream = ($donut || $horizontal) ? null : $frame->stream;
 
-    $interactive = ! $donut && ! $gauge && ! $funnel && ($heatmap || $zoom || $stream || (! $plot->empty && ($frame->tooltip || $frame->legend)));
+    $interactive = ! $donut && ! $gauge && ! $funnel && ! $horizontal && ($heatmap || $zoom || $stream || (! $plot->empty && ($frame->tooltip || $frame->legend)));
 
     // El mini-gráfico de contexto necesita la serie ENTERA, no la de la ventana. Se recalcula el
     // Plot sin ventana — es PHP puro y no toca el frame. Y el resultado es UN <path> por serie:
@@ -106,6 +111,7 @@
 <div
     data-kore-chart="{{ $chartId }}"
     @if($plot->empty) data-kore-chart-empty="true" @endif
+    @if($horizontal) data-kore-chart-orientation="horizontal" @endif
     @if($zoomed ?? false) data-kore-chart-zoomed="true" @endif
     {{-- ⚠️ Las transiciones sólo se encienden si NO hay trazo.
 
@@ -134,7 +140,7 @@
     @endif
     {{-- Con el eje Y apagado la canaleta mide 0: si no, la columna del grid seguiría
          reservando su ancho y el gráfico dejaría una franja vacía a la izquierda. --}}
-    style="{{ $aspectSafe ? '--kore-chart-aspect: '.$aspectSafe.';' : '--kore-chart-height: '.$height.';' }} --kore-chart-gutter-y: {{ $plot->empty || ! $showY ? 0 : $plot->yGutter() }}ch;"
+    style="{{ $aspectSafe ? '--kore-chart-aspect: '.$aspectSafe.';' : '--kore-chart-height: '.$height.';' }} --kore-chart-gutter-y: {{ $plot->empty || ! $showY ? 0 : ($horizontal ? $plot->bandGutter() : $plot->yGutter()) }}ch;"
     {{ $attributes->except('class')->class(['kore-chart', $aspectSafe ? 'kore-chart-aspect' : null, $attributes->get('class')]) }}
 >
     @if($title)
@@ -163,6 +169,8 @@
         @include('kore::chart.funnel', ['stages' => $funnel['funnel'], 'highlight' => $funnel['highlight']])
     @elseif($heatmap)
         @include('kore::chart.heatmap', ['heatmap' => $heatmap['heatmap']])
+    @elseif($horizontal)
+        @include('kore::chart.horizontal', ['plot' => $plot, 'series' => $cartesian, 'chartId' => $chartId, 'showX' => $showX, 'showY' => $showY])
     @else
         @if($frame->legend && ($frame->legend['position'] ?? 'top') === 'top')
             @include('kore::chart.legend', ['series' => $cartesian, 'chartId' => $chartId])

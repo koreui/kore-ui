@@ -27,6 +27,18 @@ final class Plot
 
     public readonly LinearScale $y;
 
+    /** ¿El gráfico se dibuja transpuesto? Lo lee el Blade para elegir la plantilla. */
+    public readonly bool $horizontal;
+
+    /**
+     * La escala del VALOR cuando el gráfico es horizontal.
+     *
+     * En vertical el valor lo pone `$y` (0 abajo, invertida); en horizontal corre de izquierda a
+     * derecha —de ahí que sea una escala aparte, sin invertir— y `$y` pasa a llevar la banda de la
+     * categoría. `null` en vertical: nadie la mira.
+     */
+    public readonly ?LinearScale $valueX;
+
     /**
      * El eje X.
      *
@@ -130,17 +142,30 @@ final class Plot
             ? $this->waterfallBreakpoints($frame, $marks, $values)
             : $this->stackedValues($frame, $window === null ? $values : $this->maskOutside($values));
 
+        // El eje del valor pide MENOS ticks cuando es horizontal: apilados en vertical no se
+        // pisan nunca, pero tumbados en el eje X sí — ocho números «0…1.400» no caben en un móvil
+        // de 250 px. Y hay que niceear el dominio con ese mismo objetivo, o la cuenta no cuadra:
+        // [0,1400] con 5 da pasos de 200 (ocho ticks), mientras que con 4 redondea a [0,1500] con
+        // pasos de 500 (cuatro), que es lo que cabe. Ver valueTickTarget().
         $this->domain = Domain::fromSeries(
             $domainInput,
             includeZero: $frame->requiresZero(),
             min: $yMin,
             max: $yMax,
-            tickCount: $tickCount,
+            tickCount: $this->valueTickTarget(),
         );
 
         $this->empty = $frame->isEmpty() || $this->domain->empty;
 
         $this->y = LinearScale::vertical($this->domain->toArray());
+
+        // En horizontal el valor corre por el eje X: misma escala, sin invertir (el 0 a la
+        // izquierda, el máximo a la derecha). La banda de la categoría la lleva `$x`, exactamente
+        // como en vertical — sólo cambia a qué coordenada del `<div>` va cada número.
+        $this->horizontal = $frame->isHorizontal();
+        $this->valueX = $this->horizontal
+            ? LinearScale::make($this->domain->toArray(), 0.0, 100.0)
+            : null;
 
         // Las etiquetas de fila (tooltip y tabla accesible). En un eje temporal salen de la
         // escala, ya formateadas y enteras: «14 feb 2026», no «14» — un tooltip habla de un punto
@@ -420,6 +445,97 @@ final class Plot
 
         // El mínimo evita una canaleta ridícula cuando las etiquetas son de un solo dígito.
         return round(max($longest, 2.0), 2);
+    }
+
+    /**
+     * Cuántos ticks apunta el eje del VALOR.
+     *
+     * En vertical, el objetivo normal (los valores se apilan y no se pisan). En horizontal, menos:
+     * tumbados en el eje X, ocho números no caben en un móvil estrecho. Y el dominio se niceea con
+     * este mismo número para que la cuenta cuadre — ver la construcción de `$domain`.
+     */
+    private function valueTickTarget(): int
+    {
+        return $this->frame->isHorizontal() ? min($this->tickCount, 4) : $this->tickCount;
+    }
+
+    /**
+     * Los ticks del VALOR cuando el gráfico es horizontal: los mismos números que el eje Y, pero
+     * tumbados en el eje X (canaleta de abajo y rejilla vertical).
+     *
+     * Cada uno lleva su `room` —el hueco hasta el vecino— porque en horizontal los números SÍ se
+     * pisan (en vertical iban apilados): el mismo recorte que el eje X cartesiano, mismo método.
+     *
+     * @return list<array{value: float, label: string, pos: float, width: float, room: float}>
+     */
+    public function valueTicks(): array
+    {
+        if (! $this->horizontal) {
+            return [];
+        }
+
+        $count = $this->valueTickTarget();
+        $ticks = $this->domain->ticks($count);
+        $decimals = Ticks::decimals(Ticks::step($this->domain->min, $this->domain->max, $count));
+
+        return $this->addLabelRoom(array_map(function (float $value) use ($decimals) {
+            $label = $this->format->apply($value, $decimals);
+
+            return [
+                'value' => $value,
+                'label' => $label,
+                'pos' => round($this->valueX->at($value), 2),
+                'width' => TextWidth::ch($label),
+            ];
+        }, $ticks));
+    }
+
+    /**
+     * Los ticks de la CATEGORÍA cuando el gráfico es horizontal: una etiqueta por banda, a la
+     * izquierda, centrada en su fila. Se muestran todas —en horizontal las categorías bajan y no
+     * se pisan como los días de un eje temporal—; que quepan es asunto de `bandGutter()`.
+     *
+     * @return list<array{label: string, pos: float}>
+     */
+    public function bandTicks(): array
+    {
+        if (! $this->horizontal) {
+            return [];
+        }
+
+        $out = [];
+
+        foreach ($this->categories as $i => $label) {
+            $pos = $this->x->positionAt($i);
+
+            if ($pos === null) {
+                continue;
+            }
+
+            $out[] = ['label' => (string) $label, 'pos' => round($pos, 2)];
+        }
+
+        return $out;
+    }
+
+    /**
+     * El ancho de la canaleta de categorías (izquierda), en `ch`.
+     *
+     * Es el motivo de ser de las barras horizontales: una etiqueta larga cabe a la izquierda sin
+     * rotar. Pero sin tope se comería el gráfico, así que se acota — y lo que se pase, el CSS lo
+     * corta con puntos suspensivos. Mismo método que `yGutter()`: contar caracteres y dejar que el
+     * navegador convierta el `ch`.
+     */
+    public function bandGutter(): float
+    {
+        $longest = 0.0;
+
+        foreach ($this->categories as $label) {
+            $longest = max($longest, TextWidth::ch((string) $label));
+        }
+
+        // Entre 4ch (para que no quede ridícula) y 22ch (para que no se coma el área de trazado).
+        return round(max(4.0, min($longest, 22.0)), 2);
     }
 
     /**
@@ -770,7 +886,11 @@ final class Plot
         $groupKeys = array_keys($groups);
         $groupCount = max(1, count($groupKeys));
         $bandwidth = $this->x->bandwidth();
-        $slotWidth = $bandwidth / $groupCount;
+        $slot = $bandwidth / $groupCount;
+
+        // La banda de la categoría la coloca `$x` en ambas orientaciones; lo único que cambia es la
+        // escala del VALOR: vertical la lleva `$y` (0 abajo), horizontal `$valueX` (0 a la izquierda).
+        $valueScale = $this->horizontal ? $this->valueX : $this->y;
 
         $out = [];
         $offsets = [];   // acumulado por (grupo, fila) para los apilados
@@ -790,23 +910,41 @@ final class Plot
                     // el TEXTO de la categoría, y `array_flip` se queda con la última ocurrencia:
                     // dos filas con la misma etiqueta apilaban sus barras en el mismo sitio, sin
                     // avisar. Ese bug muere aquí.)
-                    $left = $center - $bandwidth / 2 + $g * $slotWidth;
+                    $bandStart = $center - $bandwidth / 2 + $g * $slot;
 
                     $base = $offsets[$key][$row] ?? 0.0;
-                    $top = $this->y->at($base + $value);
-                    $bottom = $this->y->at($base);
+                    $near = $valueScale->at($base);
+                    $far = $valueScale->at($base + $value);
 
                     $offsets[$key][$row] = $base + $value;
 
-                    $out[$markIndex][] = [
-                        'index' => $row,
-                        'x' => round($left, 2),
-                        'w' => round(max($slotWidth, 0.01), 2),
-                        'y' => round(min($top, $bottom), 2),
-                        'h' => round(abs($bottom - $top), 2),
-                        'negative' => $value < 0 ? 1 : 0,
-                        'cap' => 0,
-                    ];
+                    // El eje del valor va de `min(near,far)` con longitud `|far-near|`; el eje de la
+                    // banda, de `bandStart` con grosor `slot`. En vertical el valor es (y,h) y la
+                    // banda (x,w); en horizontal se intercambian. La geometría es UNA, transpuesta.
+                    $valueStart = round(min($near, $far), 2);
+                    $valueLen = round(abs($far - $near), 2);
+                    $bandThick = round(max($slot, 0.01), 2);
+                    $bandStart = round($bandStart, 2);
+
+                    $out[$markIndex][] = $this->horizontal
+                        ? [
+                            'index' => $row,
+                            'x' => $valueStart,
+                            'w' => $valueLen,
+                            'y' => $bandStart,
+                            'h' => $bandThick,
+                            'negative' => $value < 0 ? 1 : 0,
+                            'cap' => 0,
+                        ]
+                        : [
+                            'index' => $row,
+                            'x' => $bandStart,
+                            'w' => $bandThick,
+                            'y' => $valueStart,
+                            'h' => $valueLen,
+                            'negative' => $value < 0 ? 1 : 0,
+                            'cap' => 0,
+                        ];
 
                     // La punta de la columna es el ÚLTIMO segmento con valor, no el último
                     // declarado: si en un mes falta la serie de arriba, la punta es la de

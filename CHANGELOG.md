@@ -98,6 +98,10 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
   **El hover va por delegación** — es lo único de los cuatro tipos de negocio que toca el JavaScript. Un heatmap de 365×7 son 2.555 celdas; un listener por celda cuesta 30 ms por frame, así que hay **un solo `pointermove`** en la rejilla que lee el `data-*` de la celda bajo el ratón. El resalte, en cambio, es `:hover` de CSS puro: una pseudoclase sobre miles de nodos es barata, miles de listeners no.
 
+- **Barras horizontales (`orientation="horizontal"`)** — el mismo gráfico de barras, transpuesto. Ver [docs/chart/bar.md](docs/chart/bar.md#barras-horizontales).
+
+  Es una decisión de **presentación, no de dato**: `x` sigue siendo la categoría e `y` el valor; sólo cambia a qué coordenada del `<div>` va cada número. Por eso no hay geometría nueva — es `layoutBars()` con los ejes intercambiados —, y funciona igual con barras sueltas, agrupadas, apiladas y con negativos (crecen a la izquierda del cero). Su razón de ser son las **etiquetas de categoría largas**: caben a la izquierda sin rotar, que es donde las verticales fallan. El eje del valor pide **menos ticks** que en vertical —apilados no se pisan, tumbados sí—, así que un eje `0…1.500` sale con cuatro marcas. **Cero JavaScript**: el resalte es `:hover`, y sólo transpone barras (una línea, un donut o un gauge se rechazan).
+
 - **Guardia de peso del bundle en CI** (`npm run size`). «El JavaScript es poco» es una promesa de la documentación, y una promesa que nadie mide deja de ser verdad sin que nadie se entere.
 
 #### El principio que ordena todo el módulo

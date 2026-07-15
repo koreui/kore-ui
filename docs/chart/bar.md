@@ -48,6 +48,26 @@ Un `0` no cuenta como punta: dibuja un tramo de altura sub-píxel, y redondearlo
 
 Un `<rect rx="4">` dentro del SVG tendría las esquinas **elípticas**, porque el gráfico se estira horizontalmente y el servidor no conoce la escala en píxeles para compensarlo. Un `<div>` con `border-radius` se clampa solo, tiene `:hover` nativo y se imprime bien.
 
+## Barras horizontales
+
+`orientation="horizontal"` **en el gráfico** (no en la barra) transpone el dibujo: la categoría baja por la izquierda y el valor corre por abajo. **El dato no cambia** — `x` sigue siendo la categoría e `y` el valor; sólo gira la presentación. Es la misma geometría de `layoutBars()`, con los ejes intercambiados.
+
+```blade
+<x-kore::chart :data="$departamentos" x="depto" orientation="horizontal">
+    <x-kore::chart.bar y="tickets" />
+</x-kore::chart>
+```
+
+Su razón de ser son las **etiquetas de categoría largas**: «Atención al cliente» cabe a la izquierda tal cual, mientras que en un eje X vertical se pisaría o habría que rotarla. La canaleta se acota a 22ch y lo que se pase se corta con puntos suspensivos.
+
+Funciona igual con **agrupadas** y **apiladas** (mismo `stack`), y con **valores negativos** (crecen a la izquierda del cero). La punta que se redondea es el borde **derecho** (o el izquierdo, si es negativa).
+
+Qué **no** hace, y es a propósito:
+
+- **Sólo transpone barras.** Una línea o un área tendría que invertir su trazo entero, y un donut o un gauge no tiene ejes que transponer; se lanza una excepción si los mezclas.
+- **No lleva tooltip flotante ni zoom.** Es barras y CSS: el resalte al pasar el ratón es `:hover` puro, y el valor se lee del eje y la rejilla — como en un gráfico de barras impreso.
+- **El eje del valor pide menos ticks que en vertical.** Apilados no se pisan; tumbados sí, así que un eje `0…1.500` sale con cuatro marcas y no con ocho.
+
 ## Limitaciones
 
 **No se pueden apilar valores positivos y negativos en la misma pila.** El componente lanza una excepción en vez de dibujar algo que se lee mal.
