@@ -9,6 +9,8 @@ import KoreTimePicker from './form/time-picker.js';
 import KoreRating from './form/rating.js';
 import KoreRange from './form/range.js';
 import KoreTagInput from './form/tag-input.js';
+import KoreKeyValue from './form/key-value.js';
+import KoreRepeater from './form/repeater.js';
 import KoreColorPicker from './form/color-picker.js';
 import KoreMaskable from './form/maskable.js';
 import KorePassword from './form/password.js';
@@ -25,6 +27,8 @@ import KoreChart from './ui/chart.js';
 import KoreCarousel from './ui/carousel.js';
 import KoreTree from './ui/tree.js';
 import KoreTooltip from './ui/tooltip.js';
+import KoreTransfer from './ui/transfer.js';
+import KoreOrderList from './ui/order-list.js';
 import KoreSidebar from './ui/sidebar.js';
 import KoreDataTable from './datatable.js';
 import KoreSpotlight from './spotlight.js';
@@ -43,6 +47,8 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('KoreRating', KoreRating);
     Alpine.data('KoreRange', KoreRange);
     Alpine.data('KoreTagInput', KoreTagInput);
+    Alpine.data('KoreKeyValue', KoreKeyValue);
+    Alpine.data('KoreRepeater', KoreRepeater);
     Alpine.data('KoreColorPicker', KoreColorPicker);
     Alpine.data('KoreMaskable', KoreMaskable);
     Alpine.data('KorePassword', KorePassword);
@@ -59,6 +65,8 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('KoreChart', KoreChart);
     Alpine.data('KoreTree', KoreTree);
     Alpine.data('KoreTooltip', KoreTooltip);
+    Alpine.data('KoreTransfer', KoreTransfer);
+    Alpine.data('KoreOrderList', KoreOrderList);
     Alpine.data('KoreDataTable', KoreDataTable);
     Alpine.data('KoreSpotlight', KoreSpotlight);
 

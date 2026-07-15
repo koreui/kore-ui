@@ -108,6 +108,17 @@ return [
             'auto_clear' => false,
             'emit_formatted' => false,
         ],
+        'key_value' => [
+            'addable' => true,
+            'deletable' => true,
+            'reorderable' => false,
+            'max' => null,
+        ],
+        'repeater' => [
+            'min' => 0,
+            'max' => null,
+            'reorderable' => false,
+        ],
     ],
 
     /*
@@ -130,6 +141,26 @@ return [
         ],
         'badge' => [
             'variant' => 'soft',
+        ],
+        'descriptions' => [
+            'columns' => 1,
+            'layout' => 'horizontal',  // horizontal|vertical
+            'bordered' => false,
+            'size' => 'md',            // sm|md|lg
+        ],
+        'result' => [
+            'status' => 'info',  // success|info|warning|error|404|403|500
+        ],
+        'sortable' => [
+            'mode' => 'server',  // server (wire:sort) | client (x-sort)
+            'handle' => false,
+            'animation' => 150,
+        ],
+        'transfer' => [
+            'searchable' => true,
+        ],
+        'order-list' => [
+            'reorderable' => true,
         ],
         'card' => [
             'bordered' => true,
@@ -452,6 +483,22 @@ return [
             'sticky' => true,
             'bordered' => true,
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Kanban
+    |--------------------------------------------------------------------------
+    |
+    | Board of columns with cards draggable within and between columns. Cards
+    | are dragged with Alpine's x-sort (bundled with Livewire 4); the shared
+    | 'group' lets a card move across columns.
+    |
+    */
+    'kanban' => [
+        'group' => 'kanban',
+        'animation' => 150,
+        'column_width' => '18rem',
     ],
 
 ];

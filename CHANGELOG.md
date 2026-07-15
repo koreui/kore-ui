@@ -7,6 +7,21 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.7.0] — 2026-07-15
+
+**Sistemas compuestos (Fase 0 + Fase 1).** El foco deja de ser átomos sueltos y pasa a piezas de varios subcomponentes que resuelven un caso de uso entero: vista de detalle read-only, editores de formulario dinámicos y arrastrar-y-soltar (listas, repetidores, transfer y Kanban).
+
+### Added
+
+- **`<x-kore::descriptions>`** y **`<x-kore::descriptions.item>`** — vista de detalle read-only (pares etiqueta/valor), el espejo del formulario y compañero del DataTable. Dos APIs: subcomponentes (valores con formato: badge/boolean/avatar) y atajo data-driven `:items`. Soporta `columns` (1-3), `layout` (horizontal/vertical), `bordered` y `size`. Los items heredan del contenedor vía `@aware` (primer uso de `@aware` en la librería, justificado por ser un compuesto no interactivo). Ver [docs/ui/descriptions.md](docs/ui/descriptions.md).
+- **`<x-kore::result>`** — bloque de estado del resultado de una operación o página (`success`, `info`, `warning`, `error`, `404`, `403`, `500`), con icono y color automáticos por estado y slot `action`. Distinto del `empty-state` (sin datos): Result comunica el desenlace de una acción o una ruta. Ver [docs/ui/result.md](docs/ui/result.md).
+- **`<x-kore::key-value>`** — editor de pares clave-valor dinámicos (metadata, settings, cabeceras) con añadir/eliminar y reordenar opcional (`x-sort`). Plugin Alpine `KoreKeyValue`, mismo motor de array que `tag-input`; sincroniza un objeto `{clave: valor}` con `$wire.$set` y va en `wire:ignore`. Ver [docs/form/key-value.md](docs/form/key-value.md).
+- **`<x-kore::sortable>`** y **`<x-kore::sortable.item>`** — lista reordenable por arrastre sobre **`wire:sort`** (SortableJS ya viene embebido en Livewire 4, sin dependencias nuevas). Modo `server` (round-trip) o `client` (`x-sort`), tirador opcional y `group` para arrastrar entre listas (base de Kanban/Transfer). El estado lo pone el host. Ver [docs/ui/sortable.md](docs/ui/sortable.md).
+- **`<x-kore::repeater>`** — grupos de campos repetibles (ítems de factura, variantes) definidos por un schema `fields` (`text`/`number`/`select`), con añadir/eliminar, reordenar (`x-sort`) y `min`/`max`. Generaliza `key-value` a N campos; plugin Alpine `KoreRepeater`, sincroniza un array de objetos con `$wire.$set`. Ver [docs/form/repeater.md](docs/form/repeater.md).
+- **`<x-kore::transfer>`** — selector de doble lista (disponibles ↔ seleccionados) con casillas, búsqueda por panel y botones de mover uno/todos. Para asignar roles, permisos o columnas. Plugin Alpine `KoreTransfer`, sincroniza el array de valores seleccionados. Ver [docs/ui/transfer.md](docs/ui/transfer.md).
+- **`<x-kore::order-list>`** — lista única reordenable por arrastre (`x-sort`) o botones ↑/↓, sincroniza el array de valores en su orden. Plugin Alpine `KoreOrderList` con reconciliación de valores. Ver [docs/ui/order-list.md](docs/ui/order-list.md).
+- **Kanban** — módulo nuevo. Clase base Livewire **`KoreUi\Kanban\KoreKanban`** (se extiende como `KoreDataTable`: implementas `columns()`, `cards()`, `persistMove()`) más los componentes anónimos **`<x-kore::kanban>`**, **`kanban.column`** y **`kanban.card`** para un board data-driven. Las tarjetas se arrastran dentro y entre columnas con `x-sort` (embebido en Livewire 4, sin dependencias); el drop dispara `moveCard($cardId, $position, $toColumn)`. Ver [docs/kanban/getting-started.md](docs/kanban/getting-started.md).
+
 ## [1.6.0] — 2026-07-14
 
 **Gráficos.** Barras, líneas, áreas y donut, **sin ninguna librería de JavaScript**: la geometría se calcula en PHP y el servidor devuelve el `<svg>` ya dibujado.
