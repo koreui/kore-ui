@@ -1102,6 +1102,14 @@
   stroke: none;
 }
 
+/* Un área APILADA es otra cosa que un área suelta: las bandas son el contenido, no un relleno tenue
+   bajo una línea, y no se solapan (cada una ocupa su franja). Al 12% se verían lavadas y el borde
+   entre bandas se perdería; a 0,85 se leen como regiones sólidas —la estampa de la #27— con el
+   trazo de arriba marcando la separación. */
+.kore-chart-area[data-kore-stacked="true"] {
+  fill-opacity: 0.85;
+}
+
 .kore-chart-slice {
   fill: var(--kore-series);
   stroke: var(--kore-surface);

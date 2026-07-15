@@ -370,7 +370,10 @@ final class Plot
         $stacked = [];
 
         foreach ($marks as $i => $mark) {
-            if ($mark->type() === 'bar' && $mark->stack !== null) {
+            // Barras y áreas se apilan igual para el DOMINIO: el eje tiene que llegar a la cima de
+            // la pila (la suma), no al mayor de sus sumandos. La geometría luego difiere —barras en
+            // layoutBars(), áreas en stackAreaOffsets()—, pero el techo del eje es el mismo.
+            if (($mark->type() === 'bar' || $mark->type() === 'area') && $mark->stack !== null) {
                 foreach ($values[$i] as $row => $value) {
                     $stacked[$mark->stack][$row] = ($stacked[$mark->stack][$row] ?? 0.0) + (float) ($value ?? 0.0);
                 }
@@ -546,6 +549,7 @@ final class Plot
     private function buildSeries(array $marks, array $values): array
     {
         $bars = $this->layoutBars($marks, $values);
+        $areaStacks = $this->stackAreaOffsets($marks, $values);
         $out = [];
 
         foreach ($marks as $i => $mark) {
@@ -582,6 +586,7 @@ final class Plot
                 'points' => $points,
                 'd' => null,
                 'area' => null,
+                'stacked' => false,
                 'bars' => $bars[$i] ?? [],
                 'dots' => [],
             ];
@@ -601,8 +606,19 @@ final class Plot
             }
 
             if ($mark->type() === 'area') {
-                $serie['d'] = Path::line($points, $mark->curve);
-                $serie['area'] = Path::area($points, $this->zero, $mark->curve);
+                if (isset($areaStacks[$i])) {
+                    // Apilada: la línea base es la curva acumulada de debajo, no el cero. Los puntos
+                    // del trazo (y del tooltip) pasan a ser el borde de ARRIBA de la banda —donde se
+                    // ve—, mientras que la etiqueta sigue siendo el valor propio de la serie.
+                    ['top' => $top, 'base' => $base] = $areaStacks[$i];
+                    $serie['points'] = $top;
+                    $serie['d'] = Path::line($top, $mark->curve);
+                    $serie['area'] = Path::areaBetween($top, $base, $mark->curve);
+                    $serie['stacked'] = true;
+                } else {
+                    $serie['d'] = Path::line($points, $mark->curve);
+                    $serie['area'] = Path::area($points, $this->zero, $mark->curve);
+                }
             }
 
             if ($mark->type() === 'donut') {
@@ -963,6 +979,55 @@ final class Plot
             foreach ($rows as [$markIndex, $position]) {
                 $out[$markIndex][$position]['cap'] = 1;
             }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Las dos curvas de cada área APILADA: el borde de arriba (acumulado + valor) y el de abajo
+     * (acumulado de las bandas de debajo).
+     *
+     * Es el `layoutBars()` de las áreas: recorre las marcas en orden de registro —la primera de una
+     * pila es la de abajo— y acumula la línea base por (pila, fila). Un `null` no suma y parte la
+     * banda ahí. Un área SIN `stack` no aparece: se dibuja como siempre, desde el cero.
+     *
+     * @param  list<Mark>  $marks
+     * @param  list<list<float|null>>  $values
+     * @return array<int, array{top: list<array{0: float, 1: float}|null>, base: list<array{0: float, 1: float}|null>}>
+     */
+    private function stackAreaOffsets(array $marks, array $values): array
+    {
+        $out = [];
+        $baseline = [];   // [pila][fila] => acumulado de las bandas de debajo
+
+        foreach ($marks as $i => $mark) {
+            if ($mark->type() !== 'area' || $mark->stack === null) {
+                continue;
+            }
+
+            $key = $mark->stack;
+            $top = [];
+            $base = [];
+
+            foreach ($values[$i] as $row => $value) {
+                $x = $this->x->positionAt($row);
+                $below = $baseline[$key][$row] ?? 0.0;
+
+                if ($value === null || $x === null) {
+                    $top[] = null;
+                    $base[] = null;
+
+                    continue;   // un hueco: no suma a la pila, y parte la banda
+                }
+
+                $topValue = $below + (float) $value;
+                $top[] = [round($x, 2), round($this->y->at($topValue), 2)];
+                $base[] = [round($x, 2), round($this->y->at($below), 2)];
+                $baseline[$key][$row] = $topValue;
+            }
+
+            $out[$i] = ['top' => $top, 'base' => $base];
         }
 
         return $out;

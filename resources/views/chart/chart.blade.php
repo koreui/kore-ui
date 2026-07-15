@@ -222,6 +222,7 @@
                             @foreach($layer['series'] as $serie)
                                 @if($serie['area'])
                                     <path class="kore-chart-area" d="{{ $serie['area'] }}"
+                                          @if($serie['stacked'] ?? false) data-kore-stacked="true" @endif
                                           style="--kore-series: {{ $serie['color'] }}"
                                           data-kore-serie="{{ $serie['id'] }}"/>
                                 @endif

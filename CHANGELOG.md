@@ -102,6 +102,10 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
   Es una decisión de **presentación, no de dato**: `x` sigue siendo la categoría e `y` el valor; sólo cambia a qué coordenada del `<div>` va cada número. Por eso no hay geometría nueva — es `layoutBars()` con los ejes intercambiados —, y funciona igual con barras sueltas, agrupadas, apiladas y con negativos (crecen a la izquierda del cero). Su razón de ser son las **etiquetas de categoría largas**: caben a la izquierda sin rotar, que es donde las verticales fallan. El eje del valor pide **menos ticks** que en vertical —apilados no se pisan, tumbados sí—, así que un eje `0…1.500` sale con cuatro marcas. **Cero JavaScript**: el resalte es `:hover`, y sólo transpone barras (una línea, un donut o un gauge se rechazan).
 
+- **Área apilada (`stack` en `<x-kore::chart.area>`)** — varias áreas con el mismo `stack` se apilan. Ver [docs/chart/area.md](docs/chart/area.md#área-apilada).
+
+  Es el mismo `stack` de las barras, extendido al área: cada banda deja de apoyarse en el cero y pasa a apoyarse en la suma de las de debajo, así que se lee a la vez el **total** (la silueta de arriba) y la **composición** (cada franja). Por dentro, la línea base de la banda deja de ser plana y pasa a ser la curva acumulada (`Path::areaBetween`, el borde de arriba hacia delante y el de abajo del revés, como d3). Funciona con `curve="monotone"` —la banda de arriba se apoya exactamente en la de abajo sin inventar un máximo— y un hueco en cualquiera de los dos bordes parte la banda. **Sin `stack`, las áreas se superponen** translúcidas desde el cero, que es la lectura de comparar formas: dos preguntas distintas, ninguna es la correcta. Cero JavaScript.
+
 - **Guardia de peso del bundle en CI** (`npm run size`). «El JavaScript es poco» es una promesa de la documentación, y una promesa que nadie mide deja de ser verdad sin que nadie se entere.
 
 #### El principio que ordena todo el módulo

@@ -542,7 +542,9 @@ final class ChartFrame
         $stacks = [];
 
         foreach ($this->marks() as $mark) {
-            if ($mark->type() === 'bar' && $mark->stack !== null) {
+            // Barras y áreas se apilan (cada una con su geometría); una línea con `stack` no
+            // significa nada, así que se ignora.
+            if (($mark->type() === 'bar' || $mark->type() === 'area') && $mark->stack !== null) {
                 $stacks[$mark->stack][] = $mark;
             }
         }

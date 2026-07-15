@@ -75,6 +75,40 @@ final class Path
     }
 
     /**
+     * Una banda cerrada entre dos curvas: el borde de arriba y el de abajo.
+     *
+     * Es lo que hace posible el área APILADA. `area()` cierra contra una recta (el cero); aquí la
+     * línea base no es plana, es la curva acumulada de las bandas de debajo. Se dibuja el borde de
+     * arriba hacia delante y el de abajo **en sentido inverso**, y se cierra — igual que d3 dibuja
+     * un área con curva.
+     *
+     * Se parte donde CUALQUIERA de los dos bordes tiene un hueco: si esta banda no tiene dato en una
+     * fila, no hay banda ahí, y si la de debajo tampoco, no habría contra qué cerrar.
+     *
+     * @param  list<array{0: float, 1: float}|null>  $top   el borde de arriba (acumulado + valor)
+     * @param  list<array{0: float, 1: float}|null>  $base  el borde de abajo (acumulado de debajo)
+     */
+    public static function areaBetween(array $top, array $base, string $curve = self::LINEAR): string
+    {
+        $out = [];
+
+        foreach (self::splitPairs($top, $base) as [$topSeg, $baseSeg]) {
+            if (count($topSeg) < 2) {
+                continue;   // una banda de un solo punto no tiene superficie
+            }
+
+            $topD = self::segment($topSeg, $curve);
+            // El borde de abajo, del revés. Su `M` inicial se vuelve `L` para enlazar con el final
+            // del borde de arriba en vez de arrancar un subtrazo nuevo.
+            $baseD = self::segment(array_reverse($baseSeg), $curve);
+
+            $out[] = $topD.' L'.substr($baseD, 1).' Z';
+        }
+
+        return trim(implode(' ', $out));
+    }
+
+    /**
      * Trocea la serie por los huecos, y de paso tira los puntos no finitos.
      *
      * Un NaN en el `d` hace que el navegador descarte el <path> entero, en silencio. Más
@@ -107,6 +141,48 @@ final class Path
 
         if ($current !== []) {
             $segments[] = $current;
+        }
+
+        return $segments;
+    }
+
+    /**
+     * Trocea DOS series a la vez, cortando donde cualquiera de las dos tiene un hueco (o un valor
+     * no finito). Las dos van sincronizadas: el borde de arriba y el de abajo de la misma banda.
+     *
+     * @param  list<array{0: float, 1: float}|null>  $top
+     * @param  list<array{0: float, 1: float}|null>  $base
+     * @return list<array{0: list<array{0: float, 1: float}>, 1: list<array{0: float, 1: float}>}>
+     */
+    private static function splitPairs(array $top, array $base): array
+    {
+        $segments = [];
+        $curTop = [];
+        $curBase = [];
+        $n = max(count($top), count($base));
+
+        $finite = fn ($p) => $p !== null && is_finite((float) $p[0]) && is_finite((float) $p[1]);
+
+        for ($i = 0; $i < $n; $i++) {
+            $t = $top[$i] ?? null;
+            $b = $base[$i] ?? null;
+
+            if (! $finite($t) || ! $finite($b)) {
+                if ($curTop !== []) {
+                    $segments[] = [$curTop, $curBase];
+                    $curTop = [];
+                    $curBase = [];
+                }
+
+                continue;
+            }
+
+            $curTop[] = [(float) $t[0], (float) $t[1]];
+            $curBase[] = [(float) $b[0], (float) $b[1]];
+        }
+
+        if ($curTop !== []) {
+            $segments[] = [$curTop, $curBase];
         }
 
         return $segments;
