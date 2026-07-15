@@ -199,7 +199,7 @@ Y como el `<svg>` lo emite el servidor, **el morph de Livewire deja de ser una a
 
 - **`floating.js` acepta una referencia virtual.** El tooltip de un gráfico no cuelga de un elemento: cuelga de un punto de datos. Y como un ratón moviéndose no dispara scroll, resize ni mutación, el `cleanup` que devuelve `startFloating()` expone ahora un `update()` para pedir el reposicionamiento a mano. Los cuatro componentes que ya lo usaban no cambian.
 
-> **Limitaciones que conviene conocer.** El eje X es categórico: las fechas se pre-formatean en PHP y entran como categorías (una escala temporal de verdad es otro algoritmo entero). Los puntos de la línea son opt-in, porque son un `<div>` por dato. El techo práctico son unos 2.000 puntos por serie, y no lo pone el dibujo sino el peso del HTML. Ocultar una serie desde la leyenda no reescala los ejes. Y no hay zoom, ni pan, ni tipos exóticos.
+> **Limitaciones que conviene conocer.** Los puntos de la línea son opt-in, porque son un `<div>` por dato; el techo práctico son unos 2.000 puntos por serie, y no lo pone el dibujo sino el peso del HTML. El streaming con `wire:poll` tiene un techo honesto de ~1 Hz por el mismo motivo. Ocultar una serie **desde la leyenda** no reescala los ejes (sí lo hace `:show="false"` en el render). El zoom es de servidor, con botones y brush: **no hay rueda ni pellizco** a propósito —hacerlos bien exigiría portar la geometría a JavaScript—. Y quedan fuera, por decisión: dispersión/burbujas, treemap, velas, radar, sankey y boxplot.
 
 ---
 
