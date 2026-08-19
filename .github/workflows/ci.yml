@@ -50,8 +50,26 @@ jobs:
       - name: Run Vitest
         run: npm run test:js
 
+      # dist/kore-ui.js va versionado: el ServiceProvider lo sirve tal cual desde el paquete
+      # instalado, sin que el proyecto que usa la librería construya nada. Este paso corre
+      # ANTES del build a propósito — después, el dist siempre está fresco y no comprueba nada.
+      - name: Check dist/ is in sync with sources
+        run: npm run dist:check
+
       - name: Build assets
         run: npm run build
+
+      # Y esto atrapa lo que el chequeo semántico no ve: cambios dentro de un componente que
+      # ya estaba registrado. Si el build produce algo distinto de lo commiteado, el dist
+      # está atrasado.
+      - name: Verify committed dist/ matches the build
+        run: |
+          if ! git diff --quiet -- dist/; then
+            echo "::error::dist/kore-ui.js no coincide con el build de resources/js/."
+            echo "Ejecuta 'npm run build' y commitea dist/kore-ui.js."
+            git diff --stat -- dist/
+            exit 1
+          fi
 
       # "El JavaScript es poco" es una promesa de la documentación. Una promesa que nadie
       # mide deja de ser verdad sin que nadie se entere.

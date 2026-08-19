@@ -1,6 +1,6 @@
 {
     "name": "kore-ui",
-    "version": "1.6.0",
+    "version": "1.7.1",
     "description": "Frontend assets for koreUi - Laravel UI component library",
     "main": "resources/js/index.js",
     "license": "MIT",
@@ -8,6 +8,7 @@
         "build": "vite build",
         "dev": "vite build --watch",
         "size": "node scripts/bundle-size.mjs",
+        "dist:check": "node scripts/dist-sync.mjs",
         "test:js": "vitest run",
         "test:js:watch": "vitest"
     },

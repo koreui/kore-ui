@@ -14,7 +14,11 @@ import { readFileSync } from 'node:fs';
 // Historial de las subidas, para que la próxima también sea una decisión y no un trámite:
 //   34 kB → el módulo chart entero (tooltip, crosshair, leyenda): 1,6 kB
 //   35 kB → el zoom (brush, pan, slider, suelo de la ventana):    +0,8 kB
-const BUDGET = 35_840;   // 35 kB
+//   37 kB → repeater, key-value, transfer y order-list:           +1,3 kB
+//            No son código nuevo: estaban en resources/js/ desde la 1.7.0 y nunca llegaron
+//            al bundle versionado. El presupuesto medía un dist que no incluía cuatro
+//            componentes que la librería ya prometía. Esto es la deuda haciéndose visible.
+const BUDGET = 37_888;   // 37 kB
 
 const file = 'dist/kore-ui.js';
 const raw = readFileSync(file);

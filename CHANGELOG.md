@@ -7,6 +7,21 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [1.7.1] — 2026-08-18
+
+**El bundle que se sirve al navegador iba un día por detrás de las fuentes.** `repeater`, `key-value`, `transfer` y `order-list` se publicaron en la 1.7.0 con su Blade y su JavaScript dentro del paquete, pero `dist/kore-ui.js` — el archivo que el ServiceProvider sirve tal cual en `/vendor/kore-ui/kore-ui.js` — se había construido por última vez el día anterior al commit que añadió esos cuatro módulos. Los componentes existían en el paquete y no existían en el navegador.
+
+### Fixed
+
+- **`<x-kore::repeater>`, `<x-kore::key-value>`, `<x-kore::transfer>` y `<x-kore::order-list>` reventaban en runtime** con `Uncaught ReferenceError: KoreRepeater is not defined` y el `Alpine Expression Error` que le sigue (`rows is not defined` en el `x-for` del componente). `resources/js/index.js` sí los registraba; el `dist/` versionado no los contenía. Reconstruido: los 33 `Alpine.data` y los 2 `Alpine.store` del entry están ahora en el bundle. No hay cambios de código en los componentes — la 1.7.0 ya los traía bien escritos, solo no llegaban.
+
+### Changed
+
+- **CI verifica que `dist/` no se quede atrás.** El paso `npm run build` existía desde siempre, pero construía a un directorio de usar y tirar que nadie comparaba con el commiteado, así que un dist atrasado pasaba el CI entero sin una sola advertencia. Ahora hay dos redes: `npm run dist:check` (`scripts/dist-sync.mjs`) corre **antes** del build y comprueba que cada `Alpine.data`/`Alpine.store` del entry aparece en el bundle versionado — corre antes a propósito, porque después del build el dist siempre está fresco y la comprobación sería ciega; y un `git diff -- dist/` **después** del build atrapa lo que la comprobación semántica no ve, que son los cambios dentro de un componente ya registrado.
+- **Presupuesto de bundle: 35 kB → 37 kB gzip.** No es código nuevo entrando: son los cuatro componentes de la 1.7.0 pesando por primera vez. El presupuesto llevaba una versión midiendo un bundle al que le faltaban cuatro componentes que la librería ya prometía en su documentación.
+
+---
+
 ## [1.7.0] — 2026-07-15
 
 **Sistemas compuestos (Fase 0 + Fase 1).** El foco deja de ser átomos sueltos y pasa a piezas de varios subcomponentes que resuelven un caso de uso entero: vista de detalle read-only, editores de formulario dinámicos y arrastrar-y-soltar (listas, repetidores, transfer y Kanban).
@@ -517,6 +532,9 @@ Primera versión pre-release de kore-ui. Incluye el sistema base completo con ov
 
 ---
 
+[1.7.1]: https://github.com/koreui/kore-ui/releases/tag/v1.7.1
+[1.7.0]: https://github.com/koreui/kore-ui/releases/tag/v1.7.0
+[1.6.0]: https://github.com/koreui/kore-ui/releases/tag/v1.6.0
 [1.5.0]: https://github.com/koreui/kore-ui/releases/tag/v1.5.0
 [1.4.1]: https://github.com/koreui/kore-ui/releases/tag/v1.4.1
 [1.4.0]: https://github.com/koreui/kore-ui/releases/tag/v1.4.0
