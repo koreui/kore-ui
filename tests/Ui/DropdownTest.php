@@ -71,3 +71,39 @@ it('renders with teleport', function () {
     ');
     $view->assertSee('x-teleport="body"', false);
 });
+
+/**
+ * Un `role="menu"` sin nombre se anuncia como «menú» y nada más.
+ *
+ * No se puede apuntar al disparador con `aria-labelledby` porque es el slot del
+ * consumidor y no tiene un id fiable.
+ */
+it('nombra el menú', function () {
+    $view = $this->blade('
+        <x-kore::dropdown>
+            <x-slot:trigger>
+                <button>Abrir</button>
+            </x-slot:trigger>
+            <x-kore::dropdown.item label="Editar" />
+        </x-kore::dropdown>
+    ');
+    $view->assertSee('aria-label="Menú"', false);
+});
+
+it('admite un nombre propio', function () {
+    $view = $this->blade('
+        <x-kore::dropdown ariaLabel="Acciones de fila">
+            <x-slot:trigger>
+                <button>Abrir</button>
+            </x-slot:trigger>
+            <x-kore::dropdown.item label="Editar" />
+        </x-kore::dropdown>
+    ');
+    $view->assertSee('aria-label="Acciones de fila"', false);
+});
+
+/** Sin rol, la raya del separador es decoración que nadie anuncia. */
+it('marca el separador como tal', function () {
+    $view = $this->blade('<x-kore::dropdown.separator />');
+    $view->assertSee('role="separator"', false);
+});

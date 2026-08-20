@@ -7,6 +7,65 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [No publicado · Interacción]
+
+**Auditoría del lote de interacción en navegador.** Carrusel, listas reordenables, doble lista, tooltip, portapapeles, menú desplegable y botón de acciones rápidas probados en Chrome de escritorio y en WebKit sobre iPhone, con 31 pruebas nuevas.
+
+El reparto de los doce defectos se explica con una frase: **de los ocho componentes, solo uno se construye desde el cliente sobre HTML que el servidor también emite, y ese uno concentra cinco de los doce**.
+
+**Cualquier morph de Livewire dejaba el `<x-kore::carousel>` en blanco.** El carrusel escribe el ancho de cada diapositiva como estilo en línea, y nada de eso existe en el HTML del servidor: el morph lo borraba y las diapositivas pasaban de 768 px a unos 50 —el ancho de su contenido—. La segunda parte era peor: con los anchos borrados, «siguiente» desplazaba el carril con la cuenta vieja y la vista se quedaba vacía.
+
+El otro defecto grave es de los que no se ven en una captura: **el `<x-kore::tooltip>` no existía para un lector de pantalla.** El panel vive teleportado a `<body>`, sin `id`, y nadie apuntaba a él — así que el `role="tooltip"` no le llegaba a nadie.
+
+Informe completo en `docs/interaccion-auditoria.md`.
+
+### Added
+
+- **Botón de parar y reanudar en `<x-kore::carousel autoplay>`** — WCAG 2.2.2 pide poder detener cualquier movimiento automático de más de cinco segundos, y `pauseOnHover` solo sirve con ratón. El autoplay se para además cuando el foco entra en el carrusel.
+- **Teclado en `<x-kore::carousel>`** — flechas izquierda y derecha para moverse entre diapositivas. No había ninguno. Las flechas que el usuario escribe dentro de un campo no se tocan.
+- **`ariaLabel` en `<x-kore::carousel>` y en `<x-kore::dropdown>`** — para nombrar uno concreto cuando hay varios en la misma página.
+- **`kore-ui.ui.translations`: `carousel`, `carousel_previous`, `carousel_next`, `carousel_go_to`, `carousel_pause`, `carousel_play`, `copy`, `copied`, `menu`, `speed_dial`, `transfer_search` y `transfer_select`** — los textos de este lote que seguían en inglés, más los nombres accesibles que faltaban.
+- **Suite E2E del lote** en `demo/e2e/specs/46`–`49`: el carrusel contra el morph, las tres listas reordenables, los flotantes y una tanda en WebKit móvil. Con su banco en `demo/app/Livewire/E2e/InteraccionBed.php`.
+- **Tests de unidad de `carousel`** —el remontaje, el foco dentro de una diapositiva, `inert` y el autoplay— y del nodo JSON de `transfer` y `order-list`.
+- **Cepo `tests/Ui/RolesQueMientenTest.php`** — ningún `role="tab"` sin un `role="tabpanel"` al otro lado, y ningún `role="menuitem"` puesto en un envoltorio en vez de en el control.
+
+### Fixed
+
+- **`<x-kore::carousel>` se destruía con cualquier morph ajeno.** Ver arriba. Un `MutationObserver` sobre el carril reaplica tamaños y posición cuando el morph se los lleva, igual que hacen las barras de `<x-kore::splitter>`. Reaplicarlos vuelve a disparar el observador, pero entonces la condición ya no se cumple y no hay bucle.
+
+- **El carrusel no contaba las diapositivas que llegaban después.** `totalSlides` se calculaba en `init()`, que corre una vez: con el servidor añadiendo una, el estado se quedaba en cuatro con cinco en el DOM, la última era inalcanzable y faltaba un indicador. Ahora las recuenta el mismo observador.
+
+- **Un botón dentro de una diapositiva no recibía el foco.** El carril llevaba `x-on:pointerdown.prevent` para que arrastrar no seleccionara texto, y ese `preventDefault` impide también el enfoque: medido, `document.activeElement` se quedaba en `<body>` al pulsar. Ahora lo decide el JavaScript, que no arranca el arrastre si el gesto empieza sobre un control.
+
+- **Las diapositivas fuera de la ventana seguían en el tabulador.** Un `overflow-hidden` las recorta pero no las saca del recorrido del foco: se enfocaba un botón que nadie veía, y la página no desplazaba a ninguna parte porque el carril se mueve con `transform`. Llevan `inert` mientras están fuera.
+
+- **`<x-kore::tooltip>` no estaba conectado con el control que lo dispara.** Ver arriba. El texto va ahora en un `<span class="sr-only">` del propio componente y el JavaScript cuelga un `aria-describedby` del control que el consumidor puso en el slot — no del envoltorio, que es un `<div>` sin rol y que ningún lector anuncia. El panel flotante pasa a ser decorativo (`aria-hidden`), o el texto se leería dos veces.
+
+  **Por qué el texto no está en el panel**, que era lo natural: darle un `id` al nodo teleportado rompía el DataTable. El panel acaba en `<body>` mientras el `<template>` que lo declara sigue en su celda, así que al re-renderizar la tabla el morph emparejaba por id el nodo del HTML nuevo con el que ya colgaba de `<body>` y lo arrancaba de su ámbito de Alpine — `ReferenceError: show is not defined` con veinticinco tooltips en una página. Asignar el id desde JavaScript tampoco valía: pedir `$refs.tooltip` durante el montaje dejaba paneles sin ámbito por su cuenta. Lo cazó el censo de consola.
+
+- **`<x-kore::tooltip>` no se cerraba con `Escape`.** WCAG 1.4.13 pide poder descartar lo que aparece al pasar por encima o al enfocar, sin mover el foco. Se escucha en el elemento y la tecla solo se marca si había algo abierto, que es el contrato del `Escape` de la librería.
+
+- **`<x-kore::order-list>` y `<x-kore::transfer>` no se enteraban cuando el servidor cambiaba `:items`.** Los recibían dentro del `x-data` con `wire:ignore` en la raíz: medido, el servidor pasaba de cuatro elementos a cinco y los dos seguían enseñando cuatro para siempre. Ahora los items viajan en un nodo JSON de fuera que Livewire sí actualiza. En el `order-list`, al releer se reconcilia el orden: lo que el usuario había movido se queda donde estaba y lo nuevo se añade al final.
+
+- **El disparador de `<x-kore::dropdown>` no decía si estaba desplegado.** Ni `aria-expanded` ni `aria-haspopup`, ni siquiera con el menú abierto. Los pone el JavaScript sobre el control del slot y los reaplica al abrir y cerrar.
+
+- **Los tres botones de `<x-kore::clipboard>` no tenían nombre**, y el campo de solo lectura de la variante `input` tampoco. El de la variante `icon` se apoyaba en un `title`, que no se expone de forma fiable en táctil ni en todos los lectores. Además, **el «copiado» era solo visual**: ahora lo anuncia un `role="status"`.
+
+- **Los indicadores del carrusel decían ser pestañas.** `role="tablist"` con sus `role="tab"` y cero `role="tabpanel"` al otro lado — y con `numVisible` mayor que uno cada punto lleva a un grupo de diapositivas, así que la relación uno a uno que un `tablist` promete no puede existir. Son botones con `aria-current`. El `role="region"` del contenedor tampoco tenía nombre, y las diapositivas no eran nada: ahora son `role="group"` con `aria-roledescription="slide"` y su posición.
+
+- **Los elementos de `<x-kore::speed-dial>` envolvían a sus controles.** `role="menuitem"` estaba en el `<div>` de fuera, con el `<button>` dentro: un menuitem no puede contener un control. El rol pasa al control y el envoltorio a `role="none"`.
+
+- **El menú de `<x-kore::dropdown>` no tenía nombre y su separador no era un separador.** `role="menu"` sin `aria-label` se anuncia como «menú» y nada más; el separador era un `<div>` con un borde, decoración que nadie anunciaba.
+
+### Medido, no cambiado
+
+- **`<x-kore::sortable>` en modo servidor no tiene ni un control enfocable**, igual que el tablero. Medido: 0, frente a 10 del `order-list` y 8 del `transfer`. Añadirle teclado es una función nueva, no un arreglo; hay un test que fija el número en cero para que el día que se añada haya que actualizarlo a conciencia.
+- **`<x-kore::order-list>` y `<x-kore::transfer>` sí se operan sin ratón**, y conviene decirlo: el primero con sus botones de subir y bajar —el cambio llega al servidor, comprobado de punta a punta— y el segundo marcando con `Espacio`. Las casillas del transfer llevan `pointer-events-none`, que parece dejarlas inertes y no lo hace: el teclado no pasa por ahí.
+- **Los ids de `order-list` y `transfer` ya estaban bien.** El `x-sort:item` del primero es una expresión evaluada dentro del `x-for` y el segundo no usa `x-sort` en absoluto. Probado con ids de texto desde el principio.
+- **Tres `role` sin nombre en componentes de otros lotes**, comprobados a mano y sin tocar: el `role="dialog"` del overlay manager —el más serio: cada modal se anuncia como «diálogo» y nada más—, los dos `role="listbox"` anidados del select y el `role="menu"` del theme-switch.
+
+---
+
 ## [No publicado · Datos y visualización]
 
 **Auditoría del lote de datos y visualización en navegador.** Árbol, tablero, gráficos, contadores, barras de progreso, tabla estática, descripciones y línea de tiempo probados en Chrome de escritorio y en WebKit sobre iPhone, con 42 pruebas nuevas.

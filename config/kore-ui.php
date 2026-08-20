@@ -198,6 +198,32 @@ return [
             'tree' => 'Árbol',
             'tree_expand' => 'Abrir',
             'tree_collapse' => 'Cerrar',
+
+            // Carrusel. El `role="region"` necesita nombre —sin él no se anuncia
+            // como región—, y el botón de parar existe porque WCAG 2.2.2 pide
+            // poder detener cualquier movimiento automático: pausar al pasar el
+            // ratón por encima no sirve a quien no usa ratón.
+            'carousel' => 'Carrusel',
+            'carousel_previous' => 'Diapositiva anterior',
+            'carousel_next' => 'Diapositiva siguiente',
+            'carousel_go_to' => 'Ir al grupo',
+            'carousel_pause' => 'Parar el carrusel',
+            'carousel_play' => 'Reanudar el carrusel',
+
+            // Copiar al portapapeles. Los tres formatos del componente llevan un
+            // botón que solo tiene un icono, y ninguno tenía nombre: el de la
+            // variante `icon` se quedaba en un `title`, que no basta.
+            'copy' => 'Copiar',
+            'copied' => 'Copiado',
+
+            // Menú desplegable: `role="menu"` sin nombre no dice de qué es.
+            'menu' => 'Menú',
+            'speed_dial' => 'Acciones rápidas',
+
+            // Doble lista. Las cajas de búsqueda solo tenían `placeholder`, que
+            // desaparece en cuanto se escribe algo.
+            'transfer_search' => 'Buscar en :panel',
+            'transfer_select' => 'Elegir :item',
         ],
 
         'button' => [

@@ -48,3 +48,9 @@ Botón de acción flotante (FAB) con menú expandible de acciones rápidas.
 <x-kore::speed-dial direction="left" :items="$items" />
 <x-kore::speed-dial direction="right" :items="$items" />
 ```
+
+## Accesibilidad
+
+- El `role="menuitem"` va en el `<button>` o el `<a>` de cada acción, y el `<div>` que los coloca lleva `role="none"`. Un menuitem no puede contener un control.
+- El menú y el botón principal se nombran desde `kore-ui.ui.translations.speed_dial`.
+- `Escape` cierra el menú, y solo marca la tecla si había algo abierto: dentro de un modal, una sola pulsación no cierra las dos capas.

@@ -40,3 +40,13 @@ public array $priorityOrder = [];
 ## Notas de implementación
 
 Plugin Alpine `KoreOrderList`. La lista renderiza desde el array `order` (fuente de verdad), con `:key="item.value"` estable y `x-sort:item="item.value"` para que el reordenamiento sea por valor, no por índice.
+
+## Accesibilidad
+
+Se reordena sin ratón: cada fila lleva botones de subir y bajar además del tirador de arrastre, y el cambio viaja al servidor por el `wire:model`.
+
+## Notas de implementación
+
+Los `items` van en un `<script type="application/json">` **fuera** del `wire:ignore` de la raíz, y un `MutationObserver` los relee cuando el servidor los cambia: dentro del `x-data` se quedaban congelados en los de la primera carga.
+
+Al releerlos, el orden se reconcilia — lo que el usuario había movido se queda donde estaba y los elementos nuevos se añaden al final.

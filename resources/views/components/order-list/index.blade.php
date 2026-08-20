@@ -37,7 +37,8 @@
         return ['value' => $key, 'label' => $item];
     })->values()->all();
 
-    $jsConfig = json_encode((object) ['items' => $normalizedItems], JSON_UNESCAPED_UNICODE);
+    $itemsJson = json_encode($normalizedItems, JSON_UNESCAPED_UNICODE);
+    $itemsId = \KoreUi\Core\Support\IdContext::secuencia('kore-order-list-items');
 
     $rowClass = 'flex items-center gap-2 rounded-kore-md border border-kore-border bg-kore-surface px-3 py-2';
     $iconBtnClass = 'inline-flex items-center justify-center size-6 rounded-kore-sm text-kore-muted-fg enabled:hover:bg-kore-muted enabled:hover:text-kore-fg disabled:opacity-30 disabled:cursor-not-allowed transition-colors';
@@ -51,7 +52,13 @@
     :field-id="$fieldId"
     :required="$required"
 >
-    <div x-data="KoreOrderList({{ $jsConfig }})" wire:ignore class="{{ $disabled ? 'opacity-50 pointer-events-none' : '' }}">
+    {{-- Fuera del `wire:ignore`, para que un cambio de `:items` desde el
+         servidor llegue al componente. Dentro del `x-data` se quedaba con los de
+         la primera carga: medido, el servidor pasaba de cuatro elementos a cinco
+         y la lista seguía enseñando cuatro. Igual que las opciones del select. --}}
+    <script type="application/json" id="{{ $itemsId }}" data-kore-order-list-items>{!! $itemsJson !!}</script>
+
+    <div x-data="KoreOrderList({ itemsId: '{{ $itemsId }}' })" wire:ignore class="{{ $disabled ? 'opacity-50 pointer-events-none' : '' }}">
         <input type="hidden" x-ref="hiddenInput" {{ $wireModelAttr }} @if($name) name="{{ $name }}" @endif id="{{ $fieldId }}" />
 
         <ul @if($reorderable) x-sort="move($item, $position)" @endif class="space-y-1.5">

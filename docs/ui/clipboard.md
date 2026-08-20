@@ -65,3 +65,11 @@ En `config/kore-ui.php`:
     'variant' => 'input',
 ],
 ```
+
+## Accesibilidad
+
+- Los tres formatos llevan `aria-label` en su botón, que pasa de «Copiar» a «Copiado» tras la acción. Antes solo había un `title` en la variante `icon`, que no se expone de forma fiable en táctil ni en todos los lectores.
+- La etiqueta visible de la variante `input` es un `<label for>` de verdad; sin ella, el campo lleva `aria-label`.
+- El cambio de icono es una señal puramente visual, así que un `role="status"` con `aria-live="polite"` anuncia la copia.
+
+Los textos salen de `kore-ui.ui.translations.copy` y `.copied`.

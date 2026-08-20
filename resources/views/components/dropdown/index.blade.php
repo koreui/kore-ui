@@ -3,17 +3,19 @@
     'width' => null,
     'maxHeight' => null,
     'persistent' => false,
+    'ariaLabel' => null,
 ])
 
 @php
     $position = $position ?? config('kore-ui.ui.dropdown.position', 'bottom-start');
     $width = $width ?? config('kore-ui.ui.dropdown.width', 'auto');
     $maxHeightClass = $maxHeight ? '' : 'max-h-72';
+    $ariaLabel = $ariaLabel ?? config('kore-ui.ui.translations.menu', 'Menú');
 @endphp
 
 <div
     {{ $attributes
-        ->except(['position', 'width', 'maxHeight', 'persistent'])
+        ->except(['position', 'width', 'maxHeight', 'persistent', 'ariaLabel'])
         ->class('relative inline-flex')
     }}
     x-data="KoreDropdown({
@@ -50,6 +52,10 @@
             x-on:keydown="onKeydown($event)"
             role="menu"
             aria-orientation="vertical"
+            {{-- Un `role="menu"` sin nombre se anuncia como «menú» y nada más.
+                 El disparador es el slot del consumidor, así que no hay un id
+                 fiable al que apuntar con `aria-labelledby`. --}}
+            aria-label="{{ $ariaLabel }}"
             class="z-50 rounded-kore-md border border-kore-border bg-kore-surface shadow-lg py-1 overflow-y-auto {{ $maxHeightClass }}"
             @if($maxHeight) style="max-height: {{ $maxHeight }}" @endif
         >

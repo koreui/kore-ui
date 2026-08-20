@@ -68,3 +68,13 @@ Menú desplegable con posicionamiento inteligente, navegación por teclado y tel
     <x-kore::dropdown.item label="Cerrar sesión" icon="log-out" />
 </x-kore::dropdown>
 ```
+
+## Accesibilidad
+
+- El control que abre el menú recibe `aria-haspopup="menu"` y un `aria-expanded` que se actualiza al abrir y cerrar. Los pone el JavaScript, porque el disparador es el elemento que pones tú en el slot.
+- El panel es un `role="menu"` con nombre (`ariaLabel`, por defecto `kore-ui.ui.translations.menu`), y `<x-kore::dropdown.separator>` es un `role="separator"`.
+- Teclado: flechas para recorrer, `Enter` para activar, `Escape` para cerrar devolviendo el foco al disparador y `Tab` para salir cerrando.
+
+| Prop | Tipo | Default | Descripción |
+|------|------|---------|-------------|
+| `ariaLabel` | `string\|null` | `config(Menú)` | Nombre del menú. Ponlo cuando haya varios en la misma página |

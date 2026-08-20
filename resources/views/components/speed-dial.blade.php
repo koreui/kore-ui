@@ -92,7 +92,7 @@
                 class="inline-flex items-center justify-center rounded-full shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:ring-offset-2 ring-offset-kore-bg {{ $fabSize }} {{ $colorClasses }}"
                 :aria-expanded="open"
                 aria-haspopup="true"
-                aria-label="Speed dial menu">
+                aria-label="{{ config('kore-ui.ui.translations.speed_dial', 'Acciones rápidas') }}">
             <x-dynamic-component :component="'lucide-' . $icon"
                 class="{{ $fabIconSize }} transition-transform duration-200"
                 x-bind:class="open && 'rotate-45'" />
@@ -108,11 +108,18 @@
              x-transition:leave-start="opacity-100 scale-100"
              x-transition:leave-end="opacity-0 scale-95"
              class="flex items-center {{ $containerDirection }} gap-2"
-             role="menu">
+             role="menu"
+             aria-label="{{ config('kore-ui.ui.translations.speed_dial', 'Acciones rápidas') }}">
             @foreach($items as $index => $item)
-                <div class="relative group" role="menuitem">
+                {{-- `role="none"` en el envoltorio y `menuitem` en el control.
+                     Al revés —que es como estaba— un lector encontraba un
+                     «elemento de menú» con un botón DENTRO: un menuitem no
+                     puede contener un control, así que la relación se rompía y
+                     la acción no se anunciaba como activable. --}}
+                <div class="relative group" role="none">
                     @if(!empty($item['href']))
                         <a href="{{ $item['href'] }}"
+                           role="menuitem"
                            class="inline-flex items-center justify-center rounded-full shadow-md transition-all duration-150 bg-kore-surface text-kore-surface-fg border border-kore-border hover:bg-kore-accent hover:text-kore-accent-fg focus:outline-none focus:ring-2 focus:ring-kore-ring {{ $itemSize }}"
                            @if(!empty($item['label'])) aria-label="{{ $item['label'] }}" @endif>
                             @if(!empty($item['icon']))
@@ -121,6 +128,7 @@
                         </a>
                     @else
                         <button type="button"
+                                role="menuitem"
                                 @if(!empty($item['wireClick'])) wire:click="{{ $item['wireClick'] }}" @endif
                                 x-on:click="close()"
                                 class="inline-flex items-center justify-center rounded-full shadow-md transition-all duration-150 bg-kore-surface text-kore-surface-fg border border-kore-border hover:bg-kore-accent hover:text-kore-accent-fg focus:outline-none focus:ring-2 focus:ring-kore-ring {{ $itemSize }}"

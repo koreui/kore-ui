@@ -10,6 +10,8 @@ export default (config) => ({
     _floatingCleanup: null,
 
     init() {
+        this.$nextTick(() => this._marcarTrigger());
+
         // Permanent click-away listener — survives Livewire re-renders
         this._clickAwayHandler = (e) => {
             if (!this.open) return;
@@ -36,9 +38,34 @@ export default (config) => ({
         this.open ? this.close() : this.openDropdown();
     },
 
+    /**
+     * Estado del menú, sobre el control que lo abre.
+     *
+     * `aria-expanded` y `aria-haspopup` no estaban en ninguna parte: el
+     * disparador es el `<button>` que pone el CONSUMIDOR dentro del slot, y el
+     * envoltorio que lo rodea es un `<div>` sin rol —donde el atributo no
+     * significaría nada porque nadie lo enfoca—. Medido: `aria-expanded` a null
+     * incluso con el menú abierto, así que un lector nunca sabía si estaba
+     * desplegado.
+     *
+     * Se reaplica en cada apertura y cierre porque el HTML del servidor no trae
+     * estos atributos y un morph se los llevaría.
+     */
+    _marcarTrigger() {
+        const envoltorio = this.$refs.trigger;
+        if (! envoltorio) return;
+
+        const control = envoltorio.querySelector('button, a[href], [tabindex]:not([tabindex="-1"])');
+        if (! control) return;
+
+        control.setAttribute('aria-haspopup', 'menu');
+        control.setAttribute('aria-expanded', this.open ? 'true' : 'false');
+    },
+
     openDropdown() {
         this.open = true;
         this.highlighted = -1;
+        this._marcarTrigger();
         // Pre-apply position:fixed + visibility:hidden before $nextTick so the
         // panel never exists in normal document flow when Alpine makes it visible.
         // This prevents the ~17px scrollbar layout shift on h-screen layouts.
@@ -66,6 +93,7 @@ export default (config) => ({
         if (!this.open) return;
         this.open = false;
         this.highlighted = -1;
+        this._marcarTrigger();
         stopFloating(this._floatingCleanup);
         this._floatingCleanup = null;
     },

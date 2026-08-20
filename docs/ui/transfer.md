@@ -35,6 +35,13 @@ public array $selectedRoles = ['edit'];
 - **Búsqueda** independiente por panel (filtra por etiqueta).
 - El estado seleccionado se sincroniza con `$wire.$set(model, valores)`.
 
+## Accesibilidad
+
+- Se opera entero con el teclado: `Tab` recorre búsquedas, casillas y botones, y `Espacio` marca. Las casillas llevan `pointer-events-none`, que **no** afecta al teclado.
+- Cada casilla lleva `aria-label` con la etiqueta de su elemento, y cada caja de búsqueda con el título de su panel. El `placeholder` no vale como nombre: desaparece en cuanto se escribe algo.
+
 ## Notas de implementación
 
 Plugin Alpine `KoreTransfer`. El contenedor va con `wire:ignore`; las listas se derivan de `items` filtrando por el array `target` (fuente de verdad), así que el orden de `items` se respeta en ambos paneles.
+
+Los `items` **no viajan dentro del `x-data`**: van en un `<script type="application/json">` que vive fuera del `wire:ignore`, y un `MutationObserver` los relee cuando Livewire lo actualiza. Dentro del `x-data` se quedaban con los de la primera carga, así que un `:items` que cambiara en el servidor no llegaba nunca.

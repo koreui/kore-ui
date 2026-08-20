@@ -42,7 +42,11 @@
         return ['value' => $key, 'label' => $item];
     })->values()->all();
 
-    $jsConfig = json_encode((object) ['items' => $normalizedItems], JSON_UNESCAPED_UNICODE);
+    $itemsJson = json_encode($normalizedItems, JSON_UNESCAPED_UNICODE);
+    $itemsId = \KoreUi\Core\Support\IdContext::secuencia('kore-transfer-items');
+
+    $tBuscar = config('kore-ui.ui.translations.transfer_search', 'Buscar en :panel');
+    $tElegir = config('kore-ui.ui.translations.transfer_select', 'Elegir :item');
 
     $panelClass = 'flex flex-col rounded-kore-lg border border-kore-border bg-kore-surface overflow-hidden';
     $searchClass = 'w-full border-0 border-b border-kore-border bg-transparent px-3 py-2 text-sm text-kore-fg placeholder:text-kore-muted-fg focus:ring-0 outline-none';
@@ -58,8 +62,15 @@
     :field-id="$fieldId"
     :required="$required"
 >
+    {{-- Los items van FUERA del `wire:ignore` de abajo, en un nodo que Livewire
+         sí actualiza al hacer morph. Dentro del `x-data` se quedaban con los de
+         la primera carga: medido, el servidor pasaba de cuatro elementos a cinco
+         y el componente seguía enseñando cuatro para siempre. Es el mismo
+         arreglo que las opciones del select. --}}
+    <script type="application/json" id="{{ $itemsId }}" data-kore-transfer-items>{!! $itemsJson !!}</script>
+
     <div
-        x-data="KoreTransfer({{ $jsConfig }})"
+        x-data="KoreTransfer({ itemsId: '{{ $itemsId }}' })"
         wire:ignore
         class="grid grid-cols-[1fr_auto_1fr] items-stretch gap-3 {{ $disabled ? 'opacity-50 pointer-events-none' : '' }}"
     >
@@ -72,12 +83,18 @@
                 <span class="text-xs text-kore-muted-fg" x-text="availableCount"></span>
             </div>
             @if($searchable)
-                <input type="text" x-model="sourceSearch" placeholder="Buscar..." class="{{ $searchClass }}" />
+                {{-- El `placeholder` desaparece en cuanto se escribe algo, así
+                     que no vale como nombre del campo. --}}
+                <input type="text" x-model="sourceSearch" placeholder="Buscar..."
+                       aria-label="{{ str_replace(':panel', $titles[0], $tBuscar) }}"
+                       class="{{ $searchClass }}" />
             @endif
             <ul class="flex-1 overflow-y-auto max-h-64 divide-y divide-kore-border">
                 <template x-for="item in sourceItems" :key="item.value">
                     <li class="{{ $rowClass }}" :class="isChecked('source', item.value) && 'bg-kore-primary/5'" x-on:click="toggleCheck('source', item.value)">
-                        <input type="checkbox" :checked="isChecked('source', item.value)" class="pointer-events-none rounded-kore-sm border-kore-input text-kore-primary" />
+                        <input type="checkbox" :checked="isChecked('source', item.value)"
+                               :aria-label="@js($tElegir).replace(':item', item.label)"
+                               class="pointer-events-none rounded-kore-sm border-kore-input text-kore-primary" />
                         <span class="text-kore-fg" x-text="item.label"></span>
                     </li>
                 </template>
@@ -110,12 +127,16 @@
                 <span class="text-xs text-kore-muted-fg" x-text="selectedCount"></span>
             </div>
             @if($searchable)
-                <input type="text" x-model="targetSearch" placeholder="Buscar..." class="{{ $searchClass }}" />
+                <input type="text" x-model="targetSearch" placeholder="Buscar..."
+                       aria-label="{{ str_replace(':panel', $titles[1], $tBuscar) }}"
+                       class="{{ $searchClass }}" />
             @endif
             <ul class="flex-1 overflow-y-auto max-h-64 divide-y divide-kore-border">
                 <template x-for="item in targetItems" :key="item.value">
                     <li class="{{ $rowClass }}" :class="isChecked('target', item.value) && 'bg-kore-primary/5'" x-on:click="toggleCheck('target', item.value)">
-                        <input type="checkbox" :checked="isChecked('target', item.value)" class="pointer-events-none rounded-kore-sm border-kore-input text-kore-primary" />
+                        <input type="checkbox" :checked="isChecked('target', item.value)"
+                               :aria-label="@js($tElegir).replace(':item', item.label)"
+                               class="pointer-events-none rounded-kore-sm border-kore-input text-kore-primary" />
                         <span class="text-kore-fg" x-text="item.label"></span>
                     </li>
                 </template>

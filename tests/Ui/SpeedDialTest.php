@@ -8,7 +8,7 @@ it('renders the container', function () {
 it('renders the FAB button', function () {
     $view = $this->blade('<x-kore::speed-dial />');
     $view->assertSee('aria-haspopup="true"', false)
-        ->assertSee('Speed dial menu', false);
+        ->assertSee('Acciones rápidas', false);
 });
 
 it('renders default plus icon', function () {
@@ -72,4 +72,25 @@ it('renders primary color by default', function () {
 it('renders sm size by default', function () {
     $view = $this->blade('<x-kore::speed-dial />');
     $view->assertSee('size-10', false);
+});
+
+
+/**
+ * El `role="menuitem"` estaba en el `<div>` envoltorio, con el botón DENTRO.
+ * Un menuitem no puede contener un control: la relación se rompe y la acción no
+ * se anuncia como activable. Medido: tres `menuitem`, los tres DIV.
+ */
+it('pone el rol de item en el control, no en el envoltorio', function () {
+    $items = "[['icon' => 'plus', 'label' => 'Nuevo'], ['icon' => 'link', 'label' => 'Ir', 'href' => '#x']]";
+    $view = $this->blade("<x-kore::speed-dial :items=\"{$items}\" />");
+
+    $view->assertSee('<div class="relative group" role="none">', false)
+        ->assertSee('role="menuitem"', false);
+});
+
+/** Un `role="menu"` sin nombre se anuncia como «menú» y nada más. */
+it('nombra el menú', function () {
+    $view = $this->blade('<x-kore::speed-dial />');
+    $view->assertSee('role="menu"', false)
+        ->assertSee('aria-label="Acciones rápidas"', false);
 });
