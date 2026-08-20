@@ -1,6 +1,7 @@
 @php $props = $filter->getComponentProps(); @endphp
 <x-kore::number
     size="sm"
+    :id="$fieldId ?? null"
     :placeholder="$props['placeholder']"
     :min="$props['min']"
     :max="$props['max']"

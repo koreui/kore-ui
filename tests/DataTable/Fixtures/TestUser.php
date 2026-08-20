@@ -3,6 +3,7 @@
 namespace KoreUi\Tests\DataTable\Fixtures;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TestUser extends Model
 {
@@ -15,4 +16,9 @@ class TestUser extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(TestCompany::class, 'company_id');
+    }
 }

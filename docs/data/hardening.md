@@ -87,6 +87,15 @@ Los filtros `number` y `number-range` usan `wire:model.live.debounce.500ms` para
 
 ---
 
+## 4.b Rendimiento por render
+
+- **Definición memoizada.** `columns()`, `filters()`, `filterPresets()` y `bulkActions()` se construyen una vez por petición. `columns()` se invocaba trece veces solo desde el módulo; con `filters()` el coste no era de objetos sino de consultas, porque el patrón normal es `SelectFilter::options(Ciudad::pluck(...))`. Los cachés son `protected`, así que no se serializan: duran lo que dura el request.
+- **`hiddenIf()` se evalúa una vez por columna**, no una por cada sitio que consulta `isHidden()`.
+- **Ventana de paginación por aritmética.** Antes se recorría `1..$lastPage`: un millón de filas a 25 por página eran 40.000 vueltas por render para pintar seis botones.
+- **Una sola variante en los modos `card` y `collapse`.** El servidor no sabe el ancho del contenedor, así que la primera carga emite tabla y tarjetas y el cliente esconde la que sobra; en cuanto Alpine informa del ancho, cada render manda solo la que toca. El HTML duplicado se paga una vez, no en cada paginación.
+
+---
+
 ## 5. Cabecera, pinning y responsive
 
 - **Header sticky:** el `<thead>` permanece visible al hacer scroll vertical (`sticky top-0`, fondo opaco).
@@ -103,7 +112,12 @@ Los filtros `number` y `number-range` usan `wire:model.live.debounce.500ms` para
 - Checkboxes de selección con `aria-label`; filas con `aria-selected`.
 - Botones de cierre de pills (filtros/orden/preset) con `aria-label`.
 - Flechas de paginación (activas y deshabilitadas) con `aria-label`.
-- La navegación por teclado solo actúa cuando el datatable está enfocado o bajo el cursor — no secuestra atajos globales como `Ctrl/Cmd+A`.
+- La navegación por teclado solo actúa cuando el datatable está enfocado o bajo el cursor — no secuestra atajos globales como `Ctrl/Cmd+A`. Un `<select>` enfocado cuenta como campo de formulario, y `Escape` solo suelta el foco de un input propio.
+- Los identificadores de fila entran en las expresiones de Alpine y Livewire vía `@js()`, no interpolados: una clave primaria de tipo texto no puede romper (ni extender) la expresión.
+- El panel de filtros en modo `drawer` es un diálogo real: `role="dialog"`, `aria-modal`, `aria-labelledby` y foco atrapado dentro con `x-kore-trap`, devolviéndolo al botón que lo abrió al cerrar.
+- Cada etiqueta de filtro apunta a su campo con `for`/`id`, únicos por tabla y por filtro.
+- El recuento de resultados se anuncia con `aria-live="polite"`: filtrar o buscar ya no es un cambio silencioso.
+- La celda activa en navegación por teclado se resalta, y el recorrido horizontal se acota a la tabla visible (en modo `collapse` conviven dos).
 
 ---
 
@@ -112,6 +126,8 @@ Los filtros `number` y `number-range` usan `wire:model.live.debounce.500ms` para
 Estas protecciones son automáticas; no requieren configuración:
 
 - **Ordenamiento:** `sorts` se valida contra el whitelist de columnas `sortable()` y la dirección se normaliza a `asc|desc`. No se puede ordenar por columnas arbitrarias ni provocar errores con direcciones manipuladas.
+- **Filtros:** `filters` es igual de pública que `sorts` y recibe el mismo trato. Cada filtro implementa `sanitize()` y solo llega a la consulta lo que sobrevive: se descartan los valores con la forma equivocada (un array donde se espera un escalar era un `PDOException` y un 500), los no numéricos en filtros numéricos, las fechas no parseables, y —cuando el filtro declara `options()`— los valores fuera de esa lista. Los comodines `%` y `_` se escapan igual que en la búsqueda. Un valor rechazado no se aplica **ni se cuenta ni se pinta como pill**, para que la interfaz nunca anuncie un filtro que la consulta no está aplicando.
+- **Acciones masivas:** el identificador se resuelve contra las acciones **visibles** y se comprueba su `authorize()` justo antes de ejecutar. Los IDs que llegan del cliente se recortan a los que la `query()` de la tabla autoriza (mismo criterio que la edición inline), con un tope de `bulkSelectionLimit`. En modo "todo lo que coincide" los IDs no viajan al navegador: se resuelven de nuevo en el servidor al confirmar.
 - **Inline editing:** el registro se resuelve a través de `query()` (respeta scopes/global scopes), evitando editar filas fuera del dataset autorizado (IDOR). El valor se coerciona al tipo de la columna.
 - **Búsqueda:** los comodines `%` y `_` se escapan con cláusula `ESCAPE` explícita (consistente en MySQL/PostgreSQL/SQLite).
 - **Agregaciones:** el nombre de columna se valida y se entrecomilla antes de construir el `selectRaw`.
@@ -121,9 +137,6 @@ Estas protecciones son automáticas; no requieren configuración:
 
 ## Mejoras pendientes (opcionales, baja prioridad)
 
-Documentadas en `docs/datatable-auditoria.md`:
-
-- Reset visual de los inputs de filtro tras "Limpiar filtros" (requiere soporte de reset en `x-kore::select`, que es un componente Alpine).
-- Memoización de `query()`/`columns()` por request.
-- `selected` como `Set` (micro-optimización).
-- Indicador visual de la celda activa en navegación por teclado.
+- Export asíncrono en cola para datasets grandes. Hoy `exportMaxRows` corta el archivo y avisa con un toast, pero no hay despacho a job.
+- Acciones masivas en cola. `matchingQuery()` y `eachMatching()` permiten escribirlas sin materializar el conjunto, pero se ejecutan en el request.
+- `selected` como `Set` (micro-optimización acotada por `perPage`).

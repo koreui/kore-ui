@@ -31,9 +31,13 @@ class CsvExporter implements Exporter
                 fwrite($handle, "\xEF\xBB\xBF");
             }
 
-            // Header row
+            // Header row.
+            // escape: '' es deliberado. El valor por defecto de PHP es la barra
+            // invertida, que no forma parte de RFC 4180 y corrompe cualquier
+            // campo terminado en `\` al añadirle un escape que ningún lector de
+            // CSV espera.
             $headers = array_map(fn ($col) => $col->getLabel(), $columns);
-            fputcsv($handle, $headers, $this->delimiter, $this->enclosure);
+            fputcsv($handle, $headers, $this->delimiter, $this->enclosure, escape: '');
 
             // Data rows. A counter enforces the cap because chunk()'s forPage()
             // overrides any ->limit() set on the query before chunking.
@@ -60,7 +64,7 @@ class CsvExporter implements Exporter
                         $data[] = $this->neutralizeFormula((string) $value);
                     }
 
-                    fputcsv($handle, $data, $this->delimiter, $this->enclosure);
+                    fputcsv($handle, $data, $this->delimiter, $this->enclosure, escape: '');
                     $written++;
                 }
             });

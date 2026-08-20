@@ -30,9 +30,9 @@ trait WithFilterPresets
         return [];
     }
 
-    public function mountWithFilterPresets(): void
+    protected function applyDefaultPreset(): void
     {
-        foreach ($this->filterPresets() as $preset) {
+        foreach ($this->cachedFilterPresets() as $preset) {
             if ($preset->isDefault()) {
                 // Apply the default preset WITHOUT resetPage(): a ?page coming
                 // from the URL must be respected, and resetPage() here would
@@ -102,7 +102,7 @@ trait WithFilterPresets
      */
     public function resolveFilterPresets(): array
     {
-        return collect($this->filterPresets())
+        return collect($this->cachedFilterPresets())
             ->reject(fn (FilterPreset $preset) => $preset->isHidden())
             ->values()
             ->all();
@@ -116,7 +116,7 @@ trait WithFilterPresets
 
         $counts = [];
 
-        foreach ($this->filterPresets() as $preset) {
+        foreach ($this->cachedFilterPresets() as $preset) {
             if ($preset->hasCount()) {
                 $counts[$preset->getIdentifier()] = ($preset->getCountCallback())();
             }
@@ -138,10 +138,15 @@ trait WithFilterPresets
         $this->presetCountsLoaded = false;
     }
 
+    /**
+     * Busca un preset APLICABLE. Los ocultos quedan fuera: `applyPreset()` es un
+     * método público de Livewire, así que esconder el botón nunca fue una forma
+     * de impedir que se aplicara.
+     */
     public function findPreset(string $identifier): ?FilterPreset
     {
-        foreach ($this->filterPresets() as $preset) {
-            if ($preset->getIdentifier() === $identifier) {
+        foreach ($this->cachedFilterPresets() as $preset) {
+            if ($preset->getIdentifier() === $identifier && ! $preset->isHidden()) {
                 return $preset;
             }
         }

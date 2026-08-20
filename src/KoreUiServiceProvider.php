@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use KoreUi\Breadcrumbs\BreadcrumbManager;
 use KoreUi\Charts\ChartContext;
+use KoreUi\DataTable\Views\Contracts\SavedViewStore;
+use KoreUi\DataTable\Views\SessionSavedViewStore;
 use KoreUi\Feedback\ConfirmDialog;
 use KoreUi\Feedback\FeedbackManager;
 use KoreUi\Overlay\OverlayManager;
@@ -36,6 +38,12 @@ class KoreUiServiceProvider extends ServiceProvider
         // cada petición, o los ids dejarían de ser deterministas entre renders y el morph de
         // Livewire reemplazaría los nodos en vez de actualizarlos.
         $this->app->scoped(ChartContext::class);
+
+        // Driver por defecto de las vistas guardadas del DataTable. Se enlaza
+        // con bindIf para que una aplicación pueda registrar el suyo —contra su
+        // propia tabla, con su propio criterio de usuario— sin tener que pelear
+        // con el orden de carga de los providers.
+        $this->app->bindIf(SavedViewStore::class, fn ($app) => new SessionSavedViewStore($app['session.store']));
     }
 
     public function boot(): void

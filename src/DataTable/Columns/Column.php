@@ -35,6 +35,10 @@ class Column
 
     protected bool $copyable = false;
 
+    protected Closure|string|null $description = null;
+
+    protected string $descriptionPosition = 'below';
+
     protected ?Closure $clickableCallback = null;
 
     protected ?string $clickableUrl = null;
@@ -114,6 +118,50 @@ class Column
         return $this;
     }
 
+    /**
+     * Segunda línea de la celda, en tono secundario.
+     *
+     * Es el patrón «nombre arriba, email en gris debajo» que aparece en casi
+     * toda tabla de administración y que hasta ahora obligaba a bajar a un
+     * ComponentColumn.
+     *
+     *     Column::make('Usuario', 'name')
+     *         ->description(fn ($row) => $row->email)
+     *
+     * $position acepta 'below' (por defecto) o 'above', para el caso contrario:
+     * una etiqueta pequeña encima del valor.
+     */
+    public function description(Closure|string $description, string $position = 'below'): static
+    {
+        $this->description = $description;
+        $this->descriptionPosition = $position === 'above' ? 'above' : 'below';
+
+        return $this;
+    }
+
+    public function hasDescription(): bool
+    {
+        return $this->description !== null;
+    }
+
+    public function getDescriptionPosition(): string
+    {
+        return $this->descriptionPosition;
+    }
+
+    public function getDescription(mixed $row): ?string
+    {
+        if ($this->description === null) {
+            return null;
+        }
+
+        $value = $this->description instanceof Closure
+            ? ($this->description)($row)
+            : data_get($row, $this->description);
+
+        return $value === null || $value === '' ? null : (string) $value;
+    }
+
     public function copyable(bool $copyable = true): static
     {
         $this->copyable = $copyable;
@@ -162,8 +210,19 @@ class Column
     {
         $value = data_get($row, $this->field, $this->default);
 
+        // El callback de formato manda y recibe el valor crudo: es el único que
+        // puede querer distinguir un NULL de un valor por defecto.
         if ($this->formatCallback !== null) {
             return ($this->formatCallback)($value, $row);
+        }
+
+        // data_get() resuelve objetos con isset(), así que para un modelo con el
+        // atributo a null ya devuelve el default. Con un array no: ahí la clave
+        // existe y el null llega tal cual. Esta comprobación iguala los dos
+        // casos, para que default() no dependa de si la fila es un modelo o un
+        // array.
+        if ($value === null) {
+            return $this->default;
         }
 
         return $value;
@@ -237,6 +296,7 @@ class Column
             'editable'   => $this->isEditable(),
             'copyable'   => $this->copyable,
             'clickable'  => $this->isClickable(),
+            'description' => $this->hasDescription(),
             'pinned'     => $this->isPinned() ? $this->getPinnedSide() : null,
         ];
     }

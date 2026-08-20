@@ -56,7 +56,9 @@ it('dispatches BulkActionExecuted event on bulk action', function () {
     Event::assertDispatched(BulkActionExecuted::class, function ($event) {
         return $event->tableClass === TestBulkTable::class
             && $event->action === 'activate'
-            && $event->ids === [1, 2]
+            // resolveAuthorizedIds() normaliza a string, igual que ya hacían
+            // getAllMatchingIds() y getRowIds().
+            && $event->ids === ['1', '2']
             && $event->count === 2;
     });
 });

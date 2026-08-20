@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class MultiSelectFilter extends Filter
 {
+    use Concerns\HasOptionWhitelist;
+
     protected array $options = [];
 
     protected ?string $optionLabel = null;
@@ -16,10 +18,42 @@ class MultiSelectFilter extends Filter
 
     protected bool $searchable = false;
 
+    public function sanitize(mixed $value): mixed
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        $values = array_values(array_filter($value, 'is_scalar'));
+
+        $allowed = $this->allowedValues();
+
+        if ($allowed !== null) {
+            $values = array_values(array_filter(
+                $values,
+                fn ($item) => in_array((string) $item, $allowed, true),
+            ));
+        }
+
+        // Tope defensivo: sin él, un array de 50.000 elementos construye un
+        // IN(...) de 50.000 bindings desde el navegador.
+        if ($this->max !== null) {
+            $values = array_slice($values, 0, $this->max);
+        }
+
+        return $values;
+    }
+
     public function apply(Builder $query, mixed $value): Builder
     {
-        return $query->whereIn($this->column, (array) $value);
+        $values = (array) $value;
+
+        return $this->applyOnColumn(
+            $query,
+            fn (Builder $q, string $column) => $q->whereIn($column, $values),
+        );
     }
+
 
     public function getType(): string
     {

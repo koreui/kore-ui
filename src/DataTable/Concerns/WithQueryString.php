@@ -59,11 +59,29 @@ trait WithQueryString
         return $this->queryStringEnabled;
     }
 
-    public function mountWithQueryString(): void
+    protected function applyQueryStringConfig(): void
     {
         if (! $this->queryStringEnabled) {
             $this->queryStringEnabled = (bool) config('kore-ui.datatable.query_string', false);
         }
+    }
+
+    /**
+     * Si esta tabla sincroniza búsqueda, orden y filtros con la URL.
+     *
+     * Es un método y no una lectura de propiedad por una razón concreta: Livewire
+     * evalúa queryString() ANTES de mount(), así que en la primera carga todavía
+     * no ha corrido configure() y la propiedad vale su default. Sobreescribir
+     * este método en la tabla sí funciona desde el primer render; declarar
+     * `public bool $queryStringEnabled = true` en la subclase, también.
+     *
+     * `setQueryStringEnabled()` dentro de configure() llega tarde para esa
+     * primera evaluación — sirve para consultar el estado, no para decidirlo.
+     */
+    protected function usesQueryString(): bool
+    {
+        return $this->queryStringEnabled
+            || (bool) config('kore-ui.datatable.query_string', false);
     }
 
     /**
@@ -83,9 +101,10 @@ trait WithQueryString
             'perPage' => ['except' => (int) config('kore-ui.datatable.per_page', 25), 'as' => $this->urlKey('per_page')],
         ];
 
-        $enabled = $this->queryStringEnabled ?? (bool) config('kore-ui.datatable.query_string', false);
-
-        if (! $enabled) {
+        // Antes era `$this->queryStringEnabled ?? config(...)`, y como la
+        // propiedad es un bool no nulable el ?? nunca caía al lado derecho: la
+        // opción global no llegaba a aplicarse nunca.
+        if (! $this->usesQueryString()) {
             return $queryString;
         }
 

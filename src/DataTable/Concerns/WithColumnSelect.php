@@ -8,7 +8,7 @@ trait WithColumnSelect
 
     protected bool $columnSelectEnabled = true;
 
-    public function mountWithColumnSelect(): void
+    protected function applyColumnSelectConfig(): void
     {
         $this->columnSelectEnabled = config('kore-ui.datatable.column_select', true);
         $this->deselectedColumns = session($this->getColumnSelectSessionKey(), []);
@@ -16,7 +16,12 @@ trait WithColumnSelect
 
     public function toggleColumnVisibility(string $field): void
     {
-        if (in_array($field, $this->deselectedColumns)) {
+        // Sin esto, la sesión acumula campos inventados indefinidamente.
+        if (! collect($this->cachedColumns())->contains(fn ($column) => $column->getField() === $field)) {
+            return;
+        }
+
+        if (in_array($field, $this->deselectedColumns, true)) {
             $this->deselectedColumns = array_values(
                 array_diff($this->deselectedColumns, [$field])
             );
@@ -35,12 +40,12 @@ trait WithColumnSelect
 
     public function isColumnDeselected(string $field): bool
     {
-        return in_array($field, $this->deselectedColumns);
+        return in_array($field, $this->deselectedColumns, true);
     }
 
     public function getSelectableColumns(): array
     {
-        return collect($this->columns())
+        return collect($this->cachedColumns())
             ->reject(fn ($column) => $column->isHidden())
             ->values()
             ->all();
@@ -58,8 +63,17 @@ trait WithColumnSelect
         return $this;
     }
 
+    /**
+     * La clave incluye el prefijo de tabla igual que urlKey() y pageName(): sin
+     * él, dos instancias de la misma clase en una página compartían las columnas
+     * ocultas y esconder «Email» en una la escondía en la otra.
+     */
     protected function getColumnSelectSessionKey(): string
     {
-        return 'kore-datatable-columns:' . static::class;
+        $prefix = $this->tablePrefix();
+
+        // Sin nombre de tabla la clave no cambia, así que las sesiones abiertas
+        // conservan sus columnas ocultas.
+        return 'kore-datatable-columns:' . static::class . ($prefix === '' ? '' : ':' . $prefix);
     }
 }

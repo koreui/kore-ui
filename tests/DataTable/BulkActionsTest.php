@@ -61,12 +61,23 @@ it('executes bulk action with confirm dispatches confirm event', function () {
 });
 
 it('confirmBulkAction executes the action', function () {
+    // 'delete' lleva confirm: executeBulkAction abre el diálogo y deja la acción
+    // pendiente; confirmBulkAction es lo que llama el botón de confirmar.
     Livewire::test(TestBulkTable::class)
-        ->set('pendingBulkIdentifier', 'delete')
+        ->call('executeBulkAction', 'delete', ['1', '2'])
         ->call('confirmBulkAction', 'delete', ['1', '2'])
         ->assertDispatched('kore:datatable-clear-selection');
 
     expect(TestUser::count())->toBe(1);
+});
+
+it('rejects a confirm for an action that was never started', function () {
+    // Fijar pendingBulkIdentifier desde el navegador era la forma de saltarse
+    // el flujo entero; ahora la propiedad es #[Locked].
+    Livewire::test(TestBulkTable::class)
+        ->call('confirmBulkAction', 'delete', ['1', '2']);
+
+    expect(TestUser::count())->toBe(3);
 });
 
 it('clears selected after action', function () {
@@ -95,7 +106,7 @@ it('does not render checkboxes when no bulk actions', function () {
 
 it('bulk action delete removes records', function () {
     Livewire::test(TestBulkTable::class)
-        ->set('pendingBulkIdentifier', 'delete')
+        ->call('executeBulkAction', 'delete', ['1', '3'])
         ->call('confirmBulkAction', 'delete', ['1', '3']);
 
     expect(TestUser::count())->toBe(1)
@@ -150,14 +161,17 @@ it('clears selected even when bulk action throws', function () {
     expect($component->instance()->getSelected())->toBe([]);
 });
 
-it('ignores confirm callback for superseded action', function () {
+it('ignores a confirm for an action other than the pending one', function () {
     $component = Livewire::test(TestBulkTable::class);
-    $component->set('pendingBulkIdentifier', 'activate');
 
-    $component->call('confirmBulkAction', 'delete', [1]);
+    // Bob (id 2) empieza inactivo, así que un 'activate' colado se notaría.
+    $component->call('executeBulkAction', 'delete', [2]);
 
-    // El registro 1 no debe haberse eliminado
-    expect(TestUser::find(1))->not->toBeNull();
+    // Llega el confirm de otra acción distinta a la pendiente: se descarta.
+    $component->call('confirmBulkAction', 'activate', [2]);
+
+    expect(TestUser::find(2))->not->toBeNull()
+        ->and(TestUser::find(2)->is_active)->toBeFalse();
 });
 
 it('prevents double execution after first confirm', function () {

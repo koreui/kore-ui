@@ -2,6 +2,7 @@
 <div class="flex items-center gap-2">
     <x-kore::number
         size="sm"
+        :id="$fieldId ?? null"
         placeholder="Min"
         :min="$props['min']"
         :max="$props['max']"
@@ -11,6 +12,7 @@
     <span class="text-kore-muted-fg text-sm">—</span>
     <x-kore::number
         size="sm"
+        :id="isset($fieldId) ? $fieldId . '-max' : null"
         placeholder="Max"
         :min="$props['min']"
         :max="$props['max']"

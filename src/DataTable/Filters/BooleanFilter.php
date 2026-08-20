@@ -12,13 +12,33 @@ class BooleanFilter extends Filter
 
     protected string $allLabel = 'Todos';
 
+    public function sanitize(mixed $value): mixed
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (! is_scalar($value)) {
+            return null;
+        }
+
+        // filter_var entiende '0'/'1'/'true'/'false'/'on'; el cast directo daba
+        // true para la cadena 'false'.
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool) $value;
+    }
+
     public function apply(Builder $query, mixed $value): Builder
     {
         if ($value === '' || $value === null) {
             return $query;
         }
 
-        return $query->where($this->column, (bool) $value);
+        $flag = (bool) $value;
+
+        return $this->applyOnColumn(
+            $query,
+            fn (Builder $q, string $column) => $q->where($column, $flag),
+        );
     }
 
     public function getType(): string

@@ -1,4 +1,5 @@
 import collapse from '@alpinejs/collapse';
+import { createFocusTrap } from './utils/focus-trap.js';
 import KoreOverlay from './overlay.js';
 import KoreFeedback from './feedback.js';
 import KoreSelect from './form/select.js';
@@ -37,6 +38,30 @@ import KoreSidebarStore from './sidebar.js';
 
 document.addEventListener('alpine:init', () => {
     Alpine.plugin(collapse);
+
+    // x-kore-trap="expresion" — mantiene el tabulador dentro del elemento
+    // mientras la expresión sea verdadera, y devuelve el foco al salir.
+    // Es el sustituto propio de x-trap: @alpinejs/focus arrastra focus-trap y
+    // tabbable, que no caben en el presupuesto de bundle.
+    Alpine.directive('kore-trap', (el, { expression }, { effect, evaluateLater, cleanup }) => {
+        const trap = createFocusTrap(el);
+        const getValue = evaluateLater(expression);
+        let active = false;
+
+        effect(() => getValue((value) => {
+            if (value && !active) {
+                active = true;
+                trap.activate();
+            } else if (!value && active) {
+                active = false;
+                trap.deactivate();
+            }
+        }));
+
+        cleanup(() => {
+            if (active) trap.deactivate();
+        });
+    });
     Alpine.data('KoreOverlay', KoreOverlay);
     Alpine.data('KoreFeedback', KoreFeedback);
     Alpine.data('KoreSelect', KoreSelect);

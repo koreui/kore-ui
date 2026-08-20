@@ -22,7 +22,8 @@ class BulkAction
 
     protected ?Closure $hiddenCallback = null;
 
-    protected bool $hiddenWhenEmpty = false;
+
+    protected ?Closure $authorizeCallback = null;
 
     protected bool $separator = false;
 
@@ -70,12 +71,31 @@ class BulkAction
         return $this;
     }
 
-    public function hiddenWhenEmpty(bool $condition = true): static
+    /**
+     * Comprobación de permisos que se evalúa EN EL SERVIDOR justo antes de
+     * ejecutar la acción.
+     *
+     * `hidden()` decide qué se pinta; esto decide qué se puede ejecutar. No son
+     * lo mismo: todo método público de un componente Livewire es invocable desde
+     * el navegador, así que una acción que solo se esconde de la interfaz sigue
+     * estando al alcance de quien abra la consola.
+     */
+    public function authorize(Closure $callback): static
     {
-        $this->hiddenWhenEmpty = $condition;
+        $this->authorizeCallback = $callback;
 
         return $this;
     }
+
+    public function isAuthorized(): bool
+    {
+        if ($this->authorizeCallback === null) {
+            return true;
+        }
+
+        return (bool) ($this->authorizeCallback)();
+    }
+
 
     public function separator(bool $condition = true): static
     {
@@ -128,10 +148,6 @@ class BulkAction
         return $this->hidden;
     }
 
-    public function isHiddenWhenEmpty(): bool
-    {
-        return $this->hiddenWhenEmpty;
-    }
 
     public function hasSeparator(): bool
     {

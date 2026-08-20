@@ -1,8 +1,18 @@
 @php
     $primaryKey = $primaryKey ?? 'id';
     $collapsedColumns = $collapsedColumns ?? [];
-    $visibleColumns = collect($columns)->reject(fn ($col) => in_array($col->getField(), collect($collapsedColumns)->map(fn ($c) => $c->getField())->all()))->values();
-    $collapsedCols = collect($columns)->filter(fn ($col) => in_array($col->getField(), collect($collapsedColumns)->map(fn ($c) => $c->getField())->all()))->values();
+
+    // La lista de campos colapsados se construye UNA vez. Antes se recalculaba
+    // dentro del in_array, es decir, una vez por columna y por partición.
+    $collapsedFields = collect($collapsedColumns)->map(fn ($c) => $c->getField())->all();
+
+    $visibleColumns = collect($columns)
+        ->reject(fn ($col) => in_array($col->getField(), $collapsedFields, true))
+        ->values();
+
+    $collapsedCols = collect($columns)
+        ->filter(fn ($col) => in_array($col->getField(), $collapsedFields, true))
+        ->values();
 @endphp
 
 <table class="min-w-full divide-y divide-kore-border">
@@ -70,19 +80,19 @@
                 $rowSelected = ($selectionEnabled ?? false) && $this->isRowSelected($rowId);
             @endphp
             <tr
-                @if($selectionEnabled) wire:key="row-{{ $rowId }}" @endif
+                wire:key="row-{{ $rowId }}"
                 class="hover:bg-kore-muted/40 transition-colors {{ $rowSelected ? 'bg-kore-primary/5' : '' }}"
             >
                 @if(count($collapsedCols) > 0)
                     <td class="w-10 text-center" :class="densityClasses">
                         <button
                             type="button"
-                            x-on:click="toggleExpand('{{ $rowId }}')"
+                            x-on:click="toggleExpand(@js((string) $rowId))"
                             class="p-0.5 rounded hover:bg-kore-muted transition-colors"
                         >
                             <x-lucide-chevron-right
                                 class="size-4 text-kore-muted-fg transition-transform duration-200"
-                                x-bind:class="isExpanded('{{ $rowId }}') ? 'rotate-90' : ''"
+                                x-bind:class="isExpanded(@js((string) $rowId)) ? 'rotate-90' : ''"
                             />
                         </button>
                     </td>
@@ -96,7 +106,7 @@
                             value="{{ $rowId }}"
                             @checked($rowSelected)
                             data-checked="{{ $rowSelected ? '1' : '0' }}"
-                            x-on:click="onRowCheckboxClick('{{ $rowId }}', $event)"
+                            x-on:click="onRowCheckboxClick(@js($rowId), $event)"
                             class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
                         />
                     </td>
@@ -107,6 +117,7 @@
                         class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} text-kore-fg {{ $column->isWrap() ? '' : 'whitespace-nowrap' }}"
                         :class="densityClasses"
                     >
+                        @include('kore::datatable.cell-description', ['column' => $column, 'row' => $row, 'slot' => 'above'])
                         @if($column->getType() !== 'text')
                             @include('kore::datatable.columns.' . $column->getType(), [
                                 'column' => $column,
@@ -119,15 +130,16 @@
                         @else
                             {{ $column->getValue($row) }}
                         @endif
+                        @include('kore::datatable.cell-description', ['column' => $column, 'row' => $row, 'slot' => 'below'])
                     </td>
                 @endforeach
             </tr>
 
             {{-- Expanded row with collapsed columns --}}
             @if(count($collapsedCols) > 0)
-                <tr x-show="isExpanded('{{ $rowId }}')" x-cloak class="bg-kore-muted/20">
+                <tr wire:key="row-detail-{{ $rowId }}" x-show="isExpanded(@js((string) $rowId))" x-cloak class="bg-kore-muted/20">
                     <td colspan="{{ count($visibleColumns) + ($selectionEnabled ? 2 : 1) }}">
-                        <div class="px-6 py-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                        <dl class="px-6 py-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                             @foreach($collapsedCols as $col)
                                 <div>
                                     <dt class="text-kore-muted-fg text-xs font-medium">{{ $col->getLabel() }}</dt>
@@ -147,7 +159,7 @@
                                     </dd>
                                 </div>
                             @endforeach
-                        </div>
+                        </dl>
                     </td>
                 </tr>
             @endif

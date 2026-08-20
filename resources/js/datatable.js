@@ -102,6 +102,9 @@ export default (config = {}) => ({
     _onKeydown: null,
     _resizeObserver: null,
 
+    // null = todavía no se ha informado al servidor (ver reportViewport).
+    viewportReported: null,
+
     get densityClasses() {
         return {
             compact: 'px-3 py-1 text-sm',
@@ -165,16 +168,6 @@ export default (config = {}) => ({
         return this.expandedRows.includes(String(id));
     },
 
-    // --- Inline Editing (boolean toggle only, text editing is local x-data) ---
-
-    async toggleBooleanEdit(rowId, field, currentValue) {
-        try {
-            await this.$wire.updateCell(String(rowId), field, !currentValue);
-        } catch (e) {
-            // silent
-        }
-    },
-
     // --- Copyable ---
 
     async copyToClipboard(text, key = null) {
@@ -226,10 +219,27 @@ export default (config = {}) => ({
 
     moveRight() {
         if (this.activeRow < 0) return;
-        const totalCols = this.$root.querySelectorAll('thead th').length;
+        // Acotado a la tabla visible: en modo `collapse` conviven dos <table>, y
+        // un querySelectorAll sobre el root contaba las cabeceras de ambas.
+        const table = this.visibleTable();
+        const totalCols = table ? table.querySelectorAll('thead th').length : 0;
         if (this.activeCell < totalCols - 1) {
             this.activeCell++;
         }
+    },
+
+    visibleTable() {
+        if (!this.$root) return null;
+        const tables = Array.from(this.$root.querySelectorAll('table'));
+        return tables.find(t => t.offsetParent !== null) || tables[0] || null;
+    },
+
+    // Índice de columna activo, para que el Blade pueda resaltar la celda: sin
+    // esto la navegación horizontal era invisible.
+    isActiveCell(rowId, index) {
+        return this.keyboardMode
+            && this.activeCell === index
+            && this.activeRowId === String(rowId);
     },
 
     moveLeft() {
@@ -282,10 +292,30 @@ export default (config = {}) => ({
     // --- Responsive ---
 
     checkBreakpoint() {
-        // Compare against the container width (not the viewport) so a datatable
-        // inside a narrow panel collapses even on a wide screen.
+        // Se compara contra el ancho del CONTENEDOR, no del viewport, para que un
+        // datatable dentro de un panel estrecho colapse aunque la pantalla sea
+        // ancha.
         const width = this.$root ? this.$root.clientWidth : window.innerWidth;
-        this.isMobileView = width < this.responsiveBreakpoint;
+        const isMobile = width < this.responsiveBreakpoint;
+
+        if (isMobile === this.isMobileView && this.viewportReported) return;
+
+        this.isMobileView = isMobile;
+        this.reportViewport(isMobile);
+    },
+
+    // El servidor no sabe el ancho, así que en la primera carga emite las dos
+    // variantes (tabla y tarjetas) y aquí se esconde la que sobra. En cuanto
+    // conoce el dato, cada render manda solo una. Se informa una vez y luego
+    // solo cuando el breakpoint cambia de lado.
+    reportViewport(isMobile) {
+        if (this.viewportReported === isMobile) return;
+
+        this.viewportReported = isMobile;
+
+        if (this.$wire && typeof this.$wire.setViewport === 'function') {
+            this.$wire.setViewport(isMobile);
+        }
     },
 
     // --- Lifecycle ---
@@ -296,20 +326,32 @@ export default (config = {}) => ({
         this.rowIds = (this.rowIds || []).map(String);
 
         this._onKeydown = (e) => {
-            // Skip keyboard nav when any input is focused
+            // El listener vive en `document` (hace falta: el foco puede estar en
+            // el <body> y aun así el usuario espera que las flechas muevan la
+            // fila activa), pero solo responde cuando ESTA tabla "tiene" el
+            // teclado. Sin este guard, dos datatables en la misma página
+            // reaccionan a la vez y Ctrl/Cmd+A queda secuestrado en toda la
+            // aplicación, incluso lejos de la tabla.
+            if (!this._ownsKeyboard()) {
+                return;
+            }
+
+            // Escribiendo en un campo: solo Escape llega, y solo para soltar el
+            // foco de un input propio (nunca de uno ajeno bajo el cursor).
             if (this._isInputFocused()) {
-                if (e.key === 'Escape') {
+                if (e.key === 'Escape' && this.$root.contains(document.activeElement)) {
                     document.activeElement.blur();
                 }
                 return;
             }
 
             switch (e.key) {
-                case '/':
+                case '/': {
                     e.preventDefault();
                     const searchInput = this.$root.querySelector('[data-datatable-search]');
                     if (searchInput) searchInput.focus();
                     break;
+                }
 
                 case 'ArrowDown':
                     e.preventDefault();
@@ -420,8 +462,22 @@ export default (config = {}) => ({
         clearTimeout(this._copyTimer);
     },
 
+    // El datatable responde al teclado cuando el foco vive dentro de él o el
+    // cursor está encima. Los paneles teleportados a <body> (filtros, columnas)
+    // quedan fuera a propósito: mientras se usan, las flechas son suyas.
+    _ownsKeyboard() {
+        const root = this.$root;
+        if (!root) return false;
+        if (document.activeElement && root.contains(document.activeElement)) return true;
+        return typeof root.matches === 'function' && root.matches(':hover');
+    },
+
     _isInputFocused() {
         const el = document.activeElement;
-        return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+        if (!el) return false;
+        if (el.isContentEditable) return true;
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) return true;
+        const role = el.getAttribute && el.getAttribute('role');
+        return role === 'textbox' || role === 'combobox';
     },
 });

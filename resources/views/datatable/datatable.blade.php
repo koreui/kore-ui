@@ -43,6 +43,8 @@
         'columnSelectEnabled' => $columnSelectEnabled ?? false,
         'allColumns'          => $allColumns ?? [],
         'deselectedColumns'   => $deselectedColumns ?? [],
+        'savedViewsEnabled'   => $savedViewsEnabled ?? false,
+        'savedViews'          => $savedViews ?? [],
         'exportEnabled'       => $exportEnabled ?? false,
         'exportFormats'       => $exportFormats ?? [],
         'rowIds'              => $rowIds ?? [],
@@ -191,8 +193,11 @@
             @if($maxHeight ?? null) style="max-height: {{ $maxHeight }}px" @endif
         >
 
-            {{-- Card mode (responsive) --}}
-            @if(($responsiveMode ?? 'scroll') === 'card' && $rows !== null)
+            {{-- Card mode (responsive). El @if del servidor decide si el HTML se
+                 emite; el x-show decide si se ve. En la primera carga el
+                 servidor todavía no sabe el ancho y manda las dos variantes;
+                 desde el segundo render manda solo la que toca. --}}
+            @if(($responsiveMode ?? 'scroll') === 'card' && $rows !== null && $this->shouldRenderMobile())
                 <div x-show="isMobileView" x-cloak>
                     @include('kore::datatable.responsive.card', [
                         'columns' => $columns,
@@ -205,7 +210,7 @@
             @endif
 
             {{-- Collapse mode (responsive) --}}
-            @if(($responsiveMode ?? 'scroll') === 'collapse' && $rows !== null)
+            @if(($responsiveMode ?? 'scroll') === 'collapse' && $rows !== null && $this->shouldRenderMobile())
                 <div x-show="isMobileView" x-cloak>
                     @include('kore::datatable.responsive.collapse', [
                         'columns' => $columns,
@@ -218,6 +223,7 @@
                 </div>
             @endif
 
+            @if($this->shouldRenderTable())
             <table @if(($responsiveMode ?? 'scroll') !== 'scroll') x-show="!isMobileView" @endif class="min-w-full divide-y divide-kore-border">
                 {{-- Header (sticky: stays visible on vertical scroll; opaque bg so rows don't bleed through) --}}
                 <thead class="bg-kore-muted sticky top-0 z-20">
@@ -269,30 +275,41 @@
                                 :class="headerDensityClasses"
                                 style="{{ $pinnedStyle }}{{ $widthStyle }}"
                             >
-                                @if($column->isSortable())
-                                    @php
-                                        $sortDir = $this->getSortDirection($column->getSortField());
-                                        $sortIcon = match($sortDir) {
-                                            'asc'   => 'arrow-up',
-                                            'desc'  => 'arrow-down',
-                                            default => 'arrow-up-down',
-                                        };
-                                        $sortIconClass = $sortDir
-                                            ? 'size-3.5 text-kore-fg'
-                                            : 'size-3.5 text-kore-muted-fg/50 group-hover:text-kore-muted-fg transition-colors';
-                                    @endphp
-                                    <button
-                                        type="button"
-                                        wire:click="sortBy('{{ $column->getSortField() }}')"
-                                        aria-label="Ordenar por {{ $column->getLabel() }}"
-                                        class="inline-flex items-center gap-1 group hover:text-kore-fg transition-colors"
-                                    >
-                                        <span>{{ $column->getLabel() }}</span>
-                                        <x-dynamic-component :component="'lucide-' . $sortIcon" :class="$sortIconClass" />
-                                    </button>
-                                @else
-                                    <span>{{ $column->getLabel() }}</span>
-                                @endif
+                                <div class="inline-flex items-center gap-0.5 max-w-full">
+                                    @if($column->isSortable())
+                                        @php
+                                            $sortDir = $this->getSortDirection($column->getSortField());
+                                            $sortIcon = match($sortDir) {
+                                                'asc'   => 'arrow-up',
+                                                'desc'  => 'arrow-down',
+                                                default => 'arrow-up-down',
+                                            };
+                                            $sortIconClass = $sortDir
+                                                ? 'size-3.5 text-kore-fg'
+                                                : 'size-3.5 text-kore-muted-fg/50 group-hover:text-kore-muted-fg transition-colors';
+                                        @endphp
+                                        <button
+                                            type="button"
+                                            wire:click="sortBy(@js($column->getSortField()))"
+                                            aria-label="Ordenar por {{ $column->getLabel() }}"
+                                            class="inline-flex items-center gap-1 group hover:text-kore-fg transition-colors min-w-0"
+                                        >
+                                            <span class="truncate">{{ $column->getLabel() }}</span>
+                                            <x-dynamic-component :component="'lucide-' . $sortIcon" :class="$sortIconClass" />
+                                        </button>
+                                    @else
+                                        <span class="truncate">{{ $column->getLabel() }}</span>
+                                    @endif
+
+                                    {{-- Menú de columna: ordenar, fijar y ocultar sin salir de la cabecera --}}
+                                    @if(($columnMenuEnabled ?? false) && $column->getType() !== 'action')
+                                        @include('kore::datatable.column-menu', [
+                                            'column'              => $column,
+                                            'translations'        => $translations ?? [],
+                                            'columnSelectEnabled' => $columnSelectEnabled ?? false,
+                                        ])
+                                    @endif
+                                </div>
                             </th>
                         @endforeach
                     </tr>
@@ -323,7 +340,7 @@
                                             value="{{ $rowId }}"
                                             @checked($rowSelected)
                                             data-checked="{{ $rowSelected ? '1' : '0' }}"
-                                            x-on:click="onRowCheckboxClick('{{ $rowId }}', $event)"
+                                            x-on:click="onRowCheckboxClick(@js($rowId), $event)"
                                             class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
                                         />
                                     </td>
@@ -354,20 +371,25 @@
                                         @if($isPinned) data-pinned="{{ $pinnedSide }}" data-col-index="{{ $colIdx }}" @endif
                                         @if($cellTitle !== null) title="{{ $cellTitle }}" @endif
                                         class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} text-kore-fg {{ $cellTruncate }} {{ $isEditableCell ? 'cursor-pointer' : '' }} {{ $pinnedClasses }} relative {{ $densityClass }}"
-                                        :class="densityClasses"
+                                        {{-- El índice cuenta la columna de checkboxes cuando existe, para
+                                             que cuadre con el recorrido de moveRight(). --}}
+                                        x-bind:class="isActiveCell(@js((string) $rowId), {{ $colIdx + (($selectionEnabled ?? false) ? 1 : 0) }})
+                                            ? 'ring-2 ring-inset ring-kore-primary bg-kore-primary/10 ' + densityClasses
+                                            : densityClasses"
                                         @if($pinnedStyle || $cellWidthStyle) style="{{ $pinnedStyle }}{{ $cellWidthStyle }}" @endif
                                     >
+                                        @include('kore::datatable.cell-description', ['column' => $column, 'row' => $row, 'slot' => 'above'])
                                         @if($column->getType() === 'boolean' && $column->isEditable())
                                             {{-- Boolean editable: toggle with local state --}}
                                             <div
                                                 x-data="{ value: {{ $column->getValue($row) ? 'true' : 'false' }} }"
                                                 data-boolean-toggle
-                                                @kore:datatable-edit-error.window="if ($event.detail.rowId == '{{ $rowId }}' && $event.detail.field === '{{ $column->getField() }}') value = !value"
+                                                @kore:datatable-edit-error.window="if ($event.detail.rowId == @js((string) $rowId) && $event.detail.field === @js($column->getField())) value = !value"
                                                 wire:key="bool-{{ $rowId }}-{{ $column->getField() }}-{{ $column->getValue($row) ? '1' : '0' }}"
                                             >
                                                 <button
                                                     type="button"
-                                                    x-on:click="value = !value; $wire.updateCell('{{ $rowId }}', '{{ $column->getField() }}', value)"
+                                                    x-on:click="value = !value; $wire.updateCell(@js((string) $rowId), @js($column->getField()), value)"
                                                     class="inline-flex hover:opacity-75 transition-opacity cursor-pointer"
                                                 >
                                                     @php
@@ -412,16 +434,16 @@
                                                     @if($column->getEditableComponent() === 'textarea')
                                                         <textarea
                                                             x-ref="editInput"
-                                                            x-on:keydown.enter.prevent="$wire.updateCell('{{ $rowId }}', '{{ $column->getField() }}', $el.value); editing = false"
+                                                            x-on:keydown.enter.prevent="$wire.updateCell(@js((string) $rowId), @js($column->getField()), $el.value); editing = false"
                                                             x-on:keydown.escape.prevent="editing = false"
-                                                            x-on:blur="if(editing) { $wire.updateCell('{{ $rowId }}', '{{ $column->getField() }}', $el.value); editing = false }"
+                                                            x-on:blur="if(editing) { $wire.updateCell(@js((string) $rowId), @js($column->getField()), $el.value); editing = false }"
                                                             class="w-full rounded-kore-md border border-kore-input bg-kore-bg text-kore-fg text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary"
                                                             rows="2"
                                                         >{{ $rawValue }}</textarea>
                                                     @elseif($column->getEditableComponent() === 'select')
                                                         <select
                                                             x-ref="editInput"
-                                                            x-on:change="$wire.updateCell('{{ $rowId }}', '{{ $column->getField() }}', $el.value); editing = false"
+                                                            x-on:change="$wire.updateCell(@js((string) $rowId), @js($column->getField()), $el.value); editing = false"
                                                             x-on:keydown.escape.prevent="editing = false"
                                                             x-on:blur="if(editing) { editing = false }"
                                                             class="w-full rounded-kore-md border border-kore-input bg-kore-bg text-kore-fg text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary"
@@ -436,9 +458,9 @@
                                                             x-ref="editInput"
                                                             value="{{ e($rawValue) }}"
                                                             @if($column->getEditableInputType() === 'number') step="any" @endif
-                                                            x-on:keydown.enter.prevent="$wire.updateCell('{{ $rowId }}', '{{ $column->getField() }}', $el.value); editing = false"
+                                                            x-on:keydown.enter.prevent="$wire.updateCell(@js((string) $rowId), @js($column->getField()), $el.value); editing = false"
                                                             x-on:keydown.escape.prevent="editing = false"
-                                                            x-on:blur="if(editing) { $wire.updateCell('{{ $rowId }}', '{{ $column->getField() }}', $el.value); editing = false }"
+                                                            x-on:blur="if(editing) { $wire.updateCell(@js((string) $rowId), @js($column->getField()), $el.value); editing = false }"
                                                             class="w-full rounded-kore-md border border-kore-input bg-kore-bg text-kore-fg text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary"
                                                         />
                                                     @endif
@@ -449,7 +471,7 @@
                                             @php $cellValue = $column->getValue($row); @endphp
                                             <button
                                                 type="button"
-                                                x-on:click="copyToClipboard('{{ e(is_string($cellValue) ? $cellValue : '') }}', '{{ $rowId }}-{{ $column->getField() }}')"
+                                                x-on:click="copyToClipboard(@js(is_string($cellValue) ? $cellValue : ''), @js($rowId . '-' . $column->getField()))"
                                                 class="inline-flex items-center gap-1 group hover:text-kore-primary transition-colors"
                                             >
                                                 @if($column->getType() !== 'text')
@@ -464,8 +486,8 @@
                                                 @else
                                                     {{ $cellValue }}
                                                 @endif
-                                                <x-lucide-copy class="size-3 text-kore-muted-fg opacity-0 group-hover:opacity-100 transition-opacity shrink-0" x-show="copyFeedback !== '{{ $rowId }}-{{ $column->getField() }}'" />
-                                                <x-lucide-check class="size-3 text-kore-success shrink-0" x-show="copyFeedback === '{{ $rowId }}-{{ $column->getField() }}'" x-cloak />
+                                                <x-lucide-copy class="size-3 text-kore-muted-fg opacity-0 group-hover:opacity-100 transition-opacity shrink-0" x-show="copyFeedback !== @js($rowId . '-' . $column->getField())" />
+                                                <x-lucide-check class="size-3 text-kore-success shrink-0" x-show="copyFeedback === @js($rowId . '-' . $column->getField())" x-cloak />
                                             </button>
                                         @elseif($showClickable)
                                             {{-- Clickable cell --}}
@@ -499,6 +521,7 @@
                                         @else
                                             {{ $column->getValue($row) }}
                                         @endif
+                                        @include('kore::datatable.cell-description', ['column' => $column, 'row' => $row, 'slot' => 'below'])
                                     </td>
                                 @endforeach
                             </tr>
@@ -549,6 +572,7 @@
                     </tfoot>
                 @endif
             </table>
+            @endif
         </div>
         </div>{{-- /ancla del overlay --}}
 

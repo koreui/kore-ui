@@ -3,16 +3,27 @@
 namespace KoreUi\DataTable\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
+use KoreUi\DataTable\Filters\Concerns\NormalizesDates;
 
 class DateFilter extends Filter
 {
+    use NormalizesDates;
+
     protected ?string $minDate = null;
 
     protected ?string $maxDate = null;
 
+    public function sanitize(mixed $value): mixed
+    {
+        return $this->normalizeDate($value);
+    }
+
     public function apply(Builder $query, mixed $value): Builder
     {
-        return $query->whereDate($this->column, $value);
+        return $this->applyOnColumn(
+            $query,
+            fn (Builder $q, string $column) => $q->whereDate($column, $value),
+        );
     }
 
     public function getType(): string

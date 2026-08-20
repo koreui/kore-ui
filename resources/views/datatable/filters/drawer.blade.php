@@ -14,12 +14,18 @@
         >
             <x-lucide-filter class="size-4" />
             <span>{{ $translations['filters'] ?? 'Filtros' }}</span>
-            <template x-if="$wire.getActiveFilterCount() > 0">
-                <span
-                    class="inline-flex items-center justify-center size-5 rounded-full bg-kore-primary text-kore-primary-fg text-xs font-medium"
-                    x-text="$wire.getActiveFilterCount()"
-                ></span>
-            </template>
+            {{-- El conteo se lee de $wire, no de Blade: este trigger vive dentro
+                 del wire:ignore de este layout, así que su DOM nunca se morfea
+                 y un valor impreso por PHP se quedaría en el del primer render.
+                 $wire.filterCount es síncrono y reactivo (a diferencia de
+                 $wire.getActiveFilterCount(), que devuelve una Promise y
+                 además dispara un round-trip por evaluación). --}}
+            <span
+                x-show="$wire.filterCount > 0"
+                x-text="$wire.filterCount"
+                @if(($filterCount ?? 0) === 0) style="display: none" @endif
+                class="inline-flex items-center justify-center size-5 rounded-full bg-kore-primary text-kore-primary-fg text-xs font-medium"
+            >{{ $filterCount ?? 0 }}</span>
         </button>
 
         {{-- Backdrop --}}
@@ -35,14 +41,23 @@
                 x-transition:leave-end="opacity-0"
                 x-on:click="filtersOpen = false"
                 x-cloak
+                aria-hidden="true"
                 class="fixed inset-0 z-[60] bg-black/30 backdrop-blur-[1px]"
             ></div>
         </template>
 
-        {{-- Drawer panel --}}
+        {{-- Drawer panel.
+             Es un diálogo modal y ahora se anuncia como tal: sin role/aria-modal,
+             un lector de pantalla seguía navegando el contenido de detrás como si
+             el panel no existiera. x-kore-trap mantiene el tabulador dentro y
+             devuelve el foco al botón que lo abrió. --}}
         <template x-teleport="body">
             <div
                 data-kore-teleport
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="kore-filters-title-{{ $this->getId() }}"
+                x-kore-trap="filtersOpen"
                 x-show="filtersOpen"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="translate-x-full"
@@ -55,12 +70,13 @@
             >
                 {{-- Header --}}
                 <div class="flex items-center justify-between px-5 py-4 border-b border-kore-border">
-                    <h3 class="text-base font-semibold text-kore-fg">
+                    <h3 id="kore-filters-title-{{ $this->getId() }}" class="text-base font-semibold text-kore-fg">
                         {{ $translations['filters'] ?? 'Filtros' }}
                     </h3>
                     <button
                         type="button"
                         x-on:click="filtersOpen = false"
+                        aria-label="{{ $translations['close'] ?? 'Cerrar' }}"
                         class="text-kore-muted-fg hover:text-kore-fg transition-colors"
                     >
                         <x-lucide-x class="size-5" />

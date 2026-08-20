@@ -17,9 +17,21 @@ trait WithFiltering
     #[Locked]
     public bool $filtersExpanded = false;
 
-    public function mountWithFiltering(): void
+    /**
+     * Número de filtros con valor. Es una propiedad pública, y no solo una
+     * variable de vista, porque los layouts `popover` y `drawer` envuelven su
+     * trigger en un `wire:ignore`: ese DOM no se morfea, así que un valor
+     * impreso por Blade se quedaría congelado en el conteo del primer render.
+     * Leído desde `$wire`, en cambio, se actualiza en cada respuesta.
+     *
+     * #[Locked]: lo calcula el servidor en cada render; el cliente solo lee.
+     */
+    #[Locked]
+    public int $filterCount = 0;
+
+    protected function applyFilterDefaults(): void
     {
-        foreach ($this->filters() as $filter) {
+        foreach ($this->cachedFilters() as $filter) {
             $default = $filter->getDefault();
 
             if ($default !== null) {
@@ -44,33 +56,55 @@ trait WithFiltering
      */
     public function resolveFilters(): array
     {
-        return collect($this->filters())
+        return collect($this->cachedFilters())
             ->reject(fn (Filter $filter) => $filter->isHidden())
             ->sortBy(fn (Filter $filter) => $filter->getPosition() ?? PHP_INT_MAX)
             ->values()
             ->all();
     }
 
+    /**
+     * Quitar un filtro cambia el universo de datos igual que editarlo: hay que
+     * volver a la página 1, soltar "seleccionar todo lo que coincide" (su
+     * alcance acaba de cambiar) y desactivar el preset, que ya no describe lo
+     * que se está viendo. Los tres caminos —editar, quitar uno, quitarlos
+     * todos— comparten ahora la misma semántica.
+     */
     public function resetFilter(string $key): void
     {
         unset($this->filters[$key]);
+
+        $this->resetDataScope(deactivatePreset: true);
     }
 
     public function resetAllFilters(): void
     {
         $this->filters = [];
-        $this->resetDataScope();
+
+        $this->resetDataScope(deactivatePreset: true);
     }
 
     /**
      * Get filters that currently have an active value.
      */
+    /**
+     * Valor saneado de un filtro, tal y como llegará a la consulta.
+     *
+     * Todo lo que lee `$this->filters` debe pasar por aquí: las pills, el
+     * contador y `applyFilters()` tienen que coincidir, o la UI acabaría
+     * anunciando un filtro que la consulta no aplica.
+     */
+    protected function filterValue(Filter $filter): mixed
+    {
+        return $filter->sanitize($this->filters[$filter->getKey()] ?? null);
+    }
+
     public function getActiveFilters(): array
     {
         $active = [];
 
-        foreach ($this->filters() as $filter) {
-            $value = $this->filters[$filter->getKey()] ?? null;
+        foreach ($this->cachedFilters() as $filter) {
+            $value = $this->filterValue($filter);
 
             if ($filter->hasValue($value)) {
                 $active[] = [
@@ -92,8 +126,8 @@ trait WithFiltering
 
     protected function applyFilters(Builder $query): Builder
     {
-        foreach ($this->filters() as $filter) {
-            $value = $this->filters[$filter->getKey()] ?? null;
+        foreach ($this->cachedFilters() as $filter) {
+            $value = $this->filterValue($filter);
 
             if (! $filter->hasValue($value)) {
                 continue;

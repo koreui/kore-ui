@@ -92,18 +92,32 @@ trait WithSelection
     }
 
     /**
-     * Add a contiguous range (computed client-side for shift-click) to the
-     * selection, unioned with the existing one. This is the only entry point
-     * that trusts a client-provided ID list, and it only ever adds.
+     * Añade a la selección un rango contiguo, que el cliente calcula al hacer
+     * shift-click, en unión con lo ya seleccionado.
+     *
+     * Es la única entrada que recibe una lista de IDs del navegador, así que se
+     * recorta a los de la página visible: un rango, por definición, sale de las
+     * filas que se están viendo. Así el contador de "N seleccionados" no puede
+     * inflarse con identificadores inventados.
+     *
+     * La protección que de verdad importa está en el momento de ejecutar la
+     * acción (`resolveAuthorizedIds()` en WithBulkActions), porque la selección
+     * por sí sola no toca datos.
      */
     public function selectRange(array $ids): void
     {
+        $pageIds = $this->getRowIds($this->getRows());
+
         if ($this->selectAllMatching) {
-            $this->selected = $this->getRowIds($this->getRows());
+            $this->selected = $pageIds;
             $this->selectAllMatching = false;
         }
 
-        $ids = array_map(fn ($id) => (string) $id, $ids);
+        $ids = array_intersect(
+            array_map(fn ($id) => (string) $id, array_filter($ids, 'is_scalar')),
+            $pageIds,
+        );
+
         $this->selected = array_values(array_unique([...$this->selected, ...$ids]));
     }
 

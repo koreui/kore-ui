@@ -2,6 +2,7 @@
 <x-kore::datepicker
     size="sm"
     mode="range"
+    :id="$fieldId ?? null"
     :placeholder="$props['placeholder']"
     :min-date="$props['min-date']"
     :max-date="$props['max-date']"

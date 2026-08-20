@@ -111,7 +111,7 @@
                             :icon="$action->getIcon()"
                             :label="$action->getLabel()"
                             :style="$dropdownStyle ?: null"
-                            wire:click="{{ $action->getWireMethod() }}('{{ data_get($row, $primaryKey ?? 'id') }}')"
+                            wire:click="{{ $action->getWireMethod() }}(@js(data_get($row, $primaryKey ?? 'id')))"
                         />
                     @endif
                 @endif
@@ -132,6 +132,7 @@
                         @if($action->opensInNewTab()) target="_blank" rel="noopener noreferrer" @endif
                         class="p-1.5 rounded-kore-md transition-colors {{ $btnColorClass }}"
                         @if($btnColorStyle) style="{{ $btnColorStyle }}" @endif
+                        aria-label="{{ $action->getLabel() }}"
                         title="{{ $action->getLabel() }}"
                     >
                         @if($action->getIcon())
@@ -146,6 +147,7 @@
                         x-on:click="window.dispatchEvent(new CustomEvent('{{ $action->getDispatchEvent() }}', { detail: {{ Js::from($action->getDispatchParams($row)) }}, bubbles: true }))"
                         class="p-1.5 rounded-kore-md transition-colors {{ $btnColorClass }}"
                         @if($btnColorStyle) style="{{ $btnColorStyle }}" @endif
+                        aria-label="{{ $action->getLabel() }}"
                         title="{{ $action->getLabel() }}"
                     >
                         @if($action->getIcon())
@@ -160,10 +162,11 @@
                         @if($action->hasConfirm())
                             x-on:click="window.dispatchEvent(new CustomEvent('kore:open', { detail: {{ Js::from($action->buildKoreConfirmPayload($row, $this->getId(), $primaryKey ?? 'id')) }}, bubbles: true }))"
                         @else
-                            wire:click="{{ $action->getWireMethod() }}('{{ data_get($row, $primaryKey ?? 'id') }}')"
+                            wire:click="{{ $action->getWireMethod() }}(@js(data_get($row, $primaryKey ?? 'id')))"
                         @endif
                         class="p-1.5 rounded-kore-md transition-colors {{ $btnColorClass }}"
                         @if($btnColorStyle) style="{{ $btnColorStyle }}" @endif
+                        aria-label="{{ $action->getLabel() }}"
                         title="{{ $action->getLabel() }}"
                     >
                         @if($action->getIcon())

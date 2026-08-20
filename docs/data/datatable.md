@@ -483,6 +483,37 @@ Todos los filtros heredan de `Filter` y comparten estos metodos fluidos:
 | `hiddenIf(Closure)` | Oculta condicionalmente |
 | `pill(Closure)` | Callback para texto del pill: `fn($value) => "Label: $value"` |
 | `callback(Closure)` | Logica de query personalizada: `fn(Builder $query, $value) => ...` |
+| `sanitize(mixed)` | Normaliza el valor del cliente antes de la consulta (ver abajo) |
+
+### Filtros sobre relaciones
+
+La dot-notation se resuelve como `whereHas`, igual que la busqueda global:
+
+```php
+TextFilter::make('Empresa', 'company.name'),      // whereHas('company', …)
+SelectFilter::make('Pais', 'company.country.code'),  // relaciones anidadas
+```
+
+Solo se trata como relacion si el modelo la declara. `TextFilter::make('X', 'users.name')` con un join hecho en `query()` se sigue interpretando como columna cualificada por tabla.
+
+Los filtros de rango (`NumberRangeFilter`, `DateRangeFilter`) aplican sus dos condiciones dentro del **mismo** `whereHas`: "tiene una fila entre X e Y", no "tiene alguna >= X y alguna <= Y".
+
+### Saneado de valores (`sanitize`)
+
+`$filters` es una propiedad publica de Livewire: quien esta en el navegador controla su contenido, tanto en forma como en tipo. Antes de tocar la consulta, cada filtro pasa su valor por `sanitize()`, y lo que devuelve `null` simplemente no se aplica.
+
+| Filtro | Que acepta |
+|---|---|
+| `TextFilter` | Escalar, convertido a string. Los comodines `%` y `_` se escapan |
+| `SelectFilter` | Escalar; si hay `options()` declaradas, solo valores de esa lista |
+| `MultiSelectFilter` | Array de escalares, filtrado por `options()` y recortado a `max()` |
+| `NumberFilter` / `NumberRangeFilter` | Solo numericos (en PostgreSQL comparar una columna numerica con texto aborta la consulta) |
+| `DateFilter` / `DateRangeFilter` | Fechas parseables, normalizadas a `Y-m-d` |
+| `BooleanFilter` | `filter_var`, para que la cadena `'false'` no sea `true` |
+
+Un valor rechazado no se aplica **ni se cuenta ni aparece como pill**: la interfaz nunca anuncia un filtro que la consulta no esta aplicando.
+
+> Un filtro propio que herede de `Filter` recibe una implementacion por defecto que solo comprueba la forma (escalares y arrays planos). Si tu filtro acepta una estructura distinta, declara su `sanitize()`.
 
 ### SelectFilter API
 
@@ -685,8 +716,184 @@ public function delete(array $ids): void
 | `color(string)` | Color semantico: `primary`, `success`, `warning`, `destructive` |
 | `confirm(msg, desc)` | Muestra dialogo de confirmacion. Soporta `:count` placeholder |
 | `separator()` | Agrega separador visual antes de la accion |
-| `hidden(bool\|Closure)` | Oculta la accion |
+| `hidden(bool\|Closure)` | Oculta la accion de la interfaz (**no es autorizacion**) |
+| `authorize(Closure)` | Permiso comprobado en el servidor antes de ejecutar |
 | `hiddenWhenEmpty()` | Oculta cuando no hay seleccion |
+
+#### `hidden()` no es `authorize()`
+
+Todo metodo publico de un componente Livewire es invocable desde el navegador. Esconder un boton no impide llamar a la accion desde la consola:
+
+```php
+// Se esconde Y se protege. Lo segundo es lo que cuenta.
+BulkAction::make('deleteAll', 'Eliminar todo')
+    ->hidden(fn () => ! auth()->user()->isAdmin())
+    ->authorize(fn () => auth()->user()->isAdmin()),
+```
+
+Una accion oculta ya no se resuelve al ejecutar (`findBulkAction()` descarta las ocultas), asi que `hidden()` protege de hecho — pero solo si la condicion no depende de la fila. `authorize()` es la comprobacion explicita, se evalua en el servidor justo antes de tocar datos y responde `403` si falla. Lo mismo aplica a `RowAction`: `hidden(fn ($row) => …)` decide que se pinta; la autorizacion va en el metodo que recibe la llamada.
+
+#### Conjuntos grandes
+
+`getAllMatchingIds()` materializa un array con todas las claves primarias: sobre dos millones de filas son dos millones de strings en memoria antes de hacer nada. Para acciones que puedan tocar conjuntos asi hay dos herramientas que no materializan:
+
+```php
+public function archivar(array $ids): void
+{
+    if ($this->isActingOnAllMatching()) {
+        // Una sola consulta, sin cargar nada.
+        $this->matchingQuery()->update(['archived_at' => now()]);
+
+        return;
+    }
+
+    Registro::whereIn('id', $ids)->update(['archived_at' => now()]);
+}
+```
+
+```php
+public function notificar(array $ids): void
+{
+    // chunkById: seguro aunque el callback modifique las filas que recorre.
+    $this->eachMatching(fn ($registros) => Notificacion::queue($registros), chunkSize: 500);
+}
+```
+
+> Una accion masiva se ejecuta en el request, de forma sincrona. Diez mil borrados son un timeout: para eso, despacha un job desde el metodo de la accion.
+
+#### IDs y alcance
+
+Los identificadores que llegan del cliente se recortan a los que la `query()` de la tabla autoriza antes de ejecutar la accion, con un tope de `$bulkSelectionLimit` (5.000 por defecto, redefinible en la tabla). El metodo de la accion recibe siempre **strings**.
+
+En modo "seleccionar todo lo que coincide" los IDs no viajan al navegador: se resuelven en el servidor al confirmar.
+
+---
+
+## Segunda linea en la celda
+
+El patron «nombre arriba, correo en gris debajo» que aparece en casi toda tabla de administracion, y que antes obligaba a bajar a un `ComponentColumn`:
+
+```php
+Column::make('Usuario', 'name')
+    ->description(fn ($row) => $row->email),
+
+// Tambien acepta el nombre de un campo
+Column::make('Pedido', 'reference')
+    ->description('customer.name'),
+
+// O encima del valor, como etiqueta pequena
+Column::make('Importe', 'total')
+    ->description('currency', 'above'),
+```
+
+Se renderiza en los tres modos (tabla, `card` y `collapse`). Una descripcion que devuelva cadena vacia o `null` no pinta nada.
+
+---
+
+## Menu por cabecera de columna
+
+Cada cabecera lleva un menu con **ordenar ascendente/descendente**, **fijar a la izquierda/derecha** y **ocultar columna**. Es lo que convierte `pinned()` y el selector de columnas en algo del usuario final y no solo de quien escribe la tabla.
+
+```php
+public function configure(): void
+{
+    $this->setColumnMenuEnabled(false);   // por defecto: activado
+}
+```
+
+Tambien con `datatable.column_menu` en la configuracion global.
+
+Los fijados que elige el usuario se guardan en sesion y **mandan sobre los que declara la tabla**: una columna con `->pinned('left')` puede soltarse desde el menu. `resetColumnPins()` devuelve todas a lo que dice la definicion.
+
+| Metodo | Descripcion |
+|---|---|
+| `setSort(field, direction)` | Ordena en una direccion concreta (a diferencia de `sortBy()`, que rota) |
+| `toggleColumnPin(field, side)` | Fija o suelta; elegir el mismo lado dos veces la suelta |
+| `resetColumnPins()` | Devuelve el fijado declarado por la tabla |
+| `effectivePin(field)` | Fijado elegido por el usuario, o `null` si no ha tocado esa columna |
+
+---
+
+## Vistas guardadas
+
+Un `FilterPreset` lo declara quien escribe la tabla y es fijo. Una **vista** la crea quien la usa: guarda la combinacion de filtros, orden, busqueda, `perPage`, columnas visibles y columnas fijadas con la que esta trabajando, y vuelve a ella cuando quiere.
+
+```php
+public function configure(): void
+{
+    $this->setSavedViewsEnabled();
+}
+```
+
+O `datatable.saved_views` en la configuracion global. Aparece un boton **Vistas** en el toolbar.
+
+### Donde se guardan
+
+Por defecto en la **sesion**: cero instalacion, ambito por usuario de regalo, y las vistas se pierden al cerrar sesion.
+
+Para persistencia real se implementa el contrato y se enlaza en el contenedor. La libreria no trae modelo ni migracion a proposito: nadie deberia tener que migrar su base de datos por usar un DataTable.
+
+```php
+use KoreUi\DataTable\Views\Contracts\SavedViewStore;
+use KoreUi\DataTable\Views\SavedView;
+
+class VistasEnBaseDeDatos implements SavedViewStore
+{
+    public function all(string $tableKey): array
+    {
+        return VistaGuardada::where('user_id', auth()->id())
+            ->where('table_key', $tableKey)
+            ->get()
+            ->mapWithKeys(fn ($fila) => [$fila->uuid => SavedView::fromArray($fila->payload)])
+            ->all();
+    }
+
+    public function find(string $tableKey, string $id): ?SavedView { /* … */ }
+    public function save(string $tableKey, SavedView $view): SavedView { /* … */ }
+    public function delete(string $tableKey, string $id): void { /* … */ }
+}
+```
+
+```php
+// AppServiceProvider::register()
+$this->app->bind(SavedViewStore::class, VistasEnBaseDeDatos::class);
+```
+
+`$tableKey` identifica la tabla (clase mas nombre de instancia, para que dos tablas de la misma clase en una pagina no compartan vistas). **El ambito por usuario es cosa de la implementacion**, porque solo ella sabe que es un usuario en esa aplicacion — el driver de sesion lo consigue por serlo.
+
+### Comportamiento
+
+- Guardar deja la vista activa.
+- Editar filtros, busqueda u orden a mano **suelta** la vista: deja de describir lo que se esta viendo, igual que pasa con los presets.
+- Pulsar la vista activa sale de ella.
+- Activar una vista desactiva el preset, y al reves.
+
+---
+
+## Exportacion
+
+```php
+public function configure(): void
+{
+    $this->setExportEnabled()
+         ->setExportFormats(['csv'])
+         ->setExportFileName('usuarios.csv')
+         ->setExportMaxRows(50000);
+}
+```
+
+Tambien se activa globalmente en `config/kore-ui.php` (`datatable.export.enabled`, `.formats`, `.max_rows`); lo que ponga `configure()` gana.
+
+### Formatos propios
+
+```php
+$this->registerExporter('xlsx', XlsxExporter::class)
+     ->setExportFormats(['csv', 'xlsx']);
+```
+
+El exporter debe implementar `KoreUi\DataTable\Exports\Contracts\Exporter`. Pedir un formato sin registrar lanza `InvalidArgumentException`: antes se caia silenciosamente a CSV, asi que un boton "XLSX" descargaba un CSV con extension `.csv` sin decir nada.
+
+Cuando el conjunto supera `exportMaxRows`, el archivo se corta y se avisa con un toast. Sobreescribe `notifyExportTruncated()` para cambiar el aviso.
 
 ---
 
@@ -762,9 +969,24 @@ Las propiedades de configuracion usan el atributo `#[Locked]` de Livewire:
 - **Persistentes** — Se incluyen en el snapshot de Livewire y sobreviven entre requests
 - **Seguras** — No pueden ser modificadas desde el frontend (JavaScript)
 
-Esto es necesario porque `configure()` solo se ejecuta en `mount()` (primer request). Una propiedad `protected` se resetea a `[]` / `null` en cada request subsecuente — el slot o el sort secundario desaparecen al paginar, reordenar o filtrar. Con `#[Locked] public`, el valor se serializa en el snapshot y se restaura automáticamente.
+Una propiedad `protected` no viaja en el snapshot: se resetea a su valor por defecto en cada request subsecuente. Con `#[Locked] public`, el valor se serializa y se restaura automaticamente.
 
-> **Regla:** cualquier valor que se configure en `configure()` y deba persistir entre interacciones debe declararse como `#[Locked] public`, no `protected`.
+### `configure()` se ejecuta en cada request
+
+`configure()` se llama desde `booted()`, no desde `mount()`, asi que corre en **todas** las peticiones del componente.
+
+Esto importa: las propiedades de configuracion (`density`, `responsiveMode`, `primaryKey`, `exportEnabled`, `exportFormats`, `maxHeight`, `paginationType`…) son `protected` y no se serializan. Si `configure()` corriera solo al montar, la tabla perderia su densidad, su modo responsive, su clave primaria y hasta el export en cuanto el usuario paginara, buscara o filtrara: todo volveria a los valores por defecto de la clase.
+
+Reaplicarlo en cada request sale mas barato que serializar diecisiete propiedades en cada snapshot, y deja `configure()` como la unica fuente de verdad de la configuracion.
+
+Dos consecuencias practicas:
+
+- **`configure()` debe ser barato e idempotente.** Setters, nada de consultas ni efectos secundarios: se ejecuta en cada interaccion.
+- **Si tu tabla define `booted()`, llama a `parent::booted()`**, o la configuracion no se aplicara.
+
+El orden del primer request es `boot → mount → booted → render`; en los siguientes, `boot → booted → render`. Por eso `mount()` solo guarda el estado inicial que no depende de `configure()`: el `perPage` de la URL, los defaults de los filtros y el preset por defecto.
+
+Las propiedades de la tabla de arriba siguen siendo `#[Locked] public` porque son **estado**, no configuracion: un slot inyectado o el sort por defecto tienen que sobrevivir tal cual, sin recalcularse.
 
 ### wire:ignore en layouts de filtro
 
@@ -774,9 +996,20 @@ La sincronizacion funciona asi:
 - **Usuario → Livewire**: Alpine dispara eventos `input` en los hidden inputs → `wire:model.live` envia el update
 - **Livewire → Alpine**: `$wire.$watch()` en los componentes Alpine detecta cambios y actualiza el estado local
 
-### Boton slide-down y filter count
+Todo campo que viva dentro de un `wire:ignore` necesita ese `$watch`; si no, un reset en servidor (`resetFilter`, `resetAllFilters`, `applyPreset`, `clearPreset`) vacia `$filters` pero deja el valor escrito en pantalla. Los componentes Kore (`select`, `number`, `datepicker`) ya lo traen. El filtro de texto es un `<input>` plano y monta el suyo en `filters/types/text.blade.php`.
 
-El boton del layout slide-down usa la variable Blade `$filterCount` en vez de `$wire.getActiveFilterCount()` para mostrar el badge de filtros activos. Esto evita llamadas al servidor desde Alpine que causarian loops de re-render. El conteo se actualiza correctamente porque Livewire re-renderiza el template completo en cada request.
+### Badge de filtros activos
+
+El badge del boton de filtros **nunca** debe leerse con `$wire.getActiveFilterCount()`: en Livewire eso devuelve una `Promise`, asi que `Promise > 0` es siempre `false` (el badge no aparece nunca) y cada evaluacion reactiva dispara un round-trip al servidor.
+
+Cada layout lo resuelve segun donde viva su boton:
+
+| Layout | Fuente del conteo | Por que |
+|--------|-------------------|---------|
+| `slide-down` | Variable Blade `$filterCount` | Su boton esta **fuera** del `wire:ignore`, asi que se morfea con normalidad |
+| `popover`, `drawer` | Propiedad `$wire.filterCount` | Su trigger esta **dentro** del `wire:ignore`: ese DOM no se morfea, y un valor impreso por Blade se congelaria en el del primer render |
+
+`filterCount` es una propiedad publica `#[Locked]` que el servidor recalcula en cada `render()`. Se lee desde `$wire` de forma sincrona y reactiva, sin peticion adicional.
 
 ---
 

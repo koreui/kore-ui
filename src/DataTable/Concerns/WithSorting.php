@@ -18,6 +18,12 @@ trait WithSorting
     #[Locked]
     public array $defaultSorts = [];
 
+    /**
+     * Reordenar vuelve a la página 1: quedarse en la página 7 de un orden nuevo
+     * deja al usuario mirando registros arbitrarios. Se usa resetPage() y no
+     * resetDataScope() a propósito — el conjunto de filas no cambia al ordenar,
+     * así que una selección "todo lo que coincide" sigue siendo válida.
+     */
     public function sortBy(string $column): void
     {
         if (! in_array($column, $this->getSortableFields(), true)) {
@@ -36,6 +42,8 @@ trait WithSorting
         if ($this->sorts[$column] === null) {
             unset($this->sorts[$column]);
         }
+
+        $this->resetPage();
     }
 
     public function setDefaultSort(string $column, string $direction = 'asc'): static
@@ -62,11 +70,15 @@ trait WithSorting
     public function removeSortBy(string $column): void
     {
         unset($this->sorts[$column]);
+
+        $this->resetPage();
     }
 
     public function clearSorts(): void
     {
         $this->sorts = [];
+
+        $this->resetPage();
     }
 
     public function getActiveSorts(): array
@@ -77,7 +89,7 @@ trait WithSorting
             return [];
         }
 
-        $columnsMap = collect($this->columns())
+        $columnsMap = collect($this->cachedColumns())
             ->filter(fn ($col) => $col->isSortable())
             ->mapWithKeys(fn ($col) => [$col->getSortField() => $col->getLabel()])
             ->all();
@@ -142,7 +154,7 @@ trait WithSorting
      */
     protected function getSortableFields(): array
     {
-        return collect($this->columns())
+        return collect($this->cachedColumns())
             ->filter(fn ($col) => $col->isSortable())
             ->map(fn ($col) => $col->getSortField())
             ->values()

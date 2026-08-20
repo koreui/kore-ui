@@ -9,18 +9,31 @@
     $currentPage = $paginator->currentPage();
     $lastPage = method_exists($paginator, 'lastPage') ? $paginator->lastPage() : null;
 
-    // Build page numbers with ellipsis
+    // Ventana de páginas con elipsis. Se calcula con aritmética y no recorriendo
+    // 1..$lastPage: con un millón de filas a 25 por página eso eran 40.000
+    // vueltas por render para pintar siempre los mismos seis botones.
     $pages = [];
     if ($lastPage !== null && $lastPage > 1) {
-        $window = 2; // pages around current
+        $window = 2; // páginas a cada lado de la actual
 
-        for ($i = 1; $i <= $lastPage; $i++) {
-            if ($i === 1 || $i === $lastPage || abs($i - $currentPage) <= $window) {
-                $pages[] = $i;
-            } elseif (end($pages) !== '...') {
-                $pages[] = '...';
-            }
+        $from = max(2, $currentPage - $window);
+        $to   = min($lastPage - 1, $currentPage + $window);
+
+        $pages[] = 1;
+
+        if ($from > 2) {
+            $pages[] = '...';
         }
+
+        for ($i = $from; $i <= $to; $i++) {
+            $pages[] = $i;
+        }
+
+        if ($to < $lastPage - 1) {
+            $pages[] = '...';
+        }
+
+        $pages[] = $lastPage;
     }
 
     $btnBase = 'inline-flex items-center justify-center size-8 text-sm rounded-kore-md transition-colors focus:outline-none focus:ring-2 focus:ring-kore-ring';
@@ -30,9 +43,12 @@
 @endphp
 
 <div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-kore-border">
-    {{-- Showing text --}}
+    {{-- Showing text.
+         aria-live: al filtrar o buscar, un lector de pantalla no recibía
+         ninguna señal de que la tabla había cambiado. Este texto se reescribe
+         en cada render, así que es el sitio natural para anunciarlo. --}}
     @if($showingText)
-        <div class="text-sm text-kore-muted-fg">
+        <div class="text-sm text-kore-muted-fg" aria-live="polite" aria-atomic="true">
             {{ $showingText }}
         </div>
     @else

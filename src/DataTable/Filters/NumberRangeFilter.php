@@ -12,22 +12,42 @@ class NumberRangeFilter extends Filter
 
     protected ?float $step = null;
 
+    public function sanitize(mixed $value): mixed
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        $min = $value['min'] ?? null;
+        $max = $value['max'] ?? null;
+
+        return [
+            'min' => is_numeric($min) ? $min + 0 : null,
+            'max' => is_numeric($max) ? $max + 0 : null,
+        ];
+    }
+
     public function apply(Builder $query, mixed $value): Builder
     {
-        if (is_array($value)) {
-            $min = $value['min'] ?? null;
-            $max = $value['max'] ?? null;
+        if (! is_array($value)) {
+            return $query;
+        }
 
+        $min = $value['min'] ?? null;
+        $max = $value['max'] ?? null;
+
+        // Las dos condiciones van dentro del MISMO constraint: sobre una
+        // relación, dos whereHas separados preguntarían "tiene alguna fila ≥ min
+        // Y alguna fila ≤ max", que no es un rango.
+        return $this->applyOnColumn($query, function (Builder $q, string $column) use ($min, $max) {
             if ($min !== null && $min !== '') {
-                $query->where($this->column, '>=', $min);
+                $q->where($column, '>=', $min);
             }
 
             if ($max !== null && $max !== '') {
-                $query->where($this->column, '<=', $max);
+                $q->where($column, '<=', $max);
             }
-        }
-
-        return $query;
+        });
     }
 
     public function getType(): string

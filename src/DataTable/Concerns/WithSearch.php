@@ -3,6 +3,7 @@
 namespace KoreUi\DataTable\Concerns;
 
 use Illuminate\Database\Eloquent\Builder;
+use KoreUi\DataTable\Support\LikePattern;
 
 trait WithSearch
 {
@@ -28,7 +29,7 @@ trait WithSearch
             return $query;
         }
 
-        $columns = collect($this->columns())->filter(fn ($col) => $col->isSearchable());
+        $columns = collect($this->cachedColumns())->filter(fn ($col) => $col->isSearchable());
 
         if ($columns->isEmpty()) {
             return $query;
@@ -38,7 +39,7 @@ trait WithSearch
         // instead of acting as a wildcard (which forces a full table scan).
         // The ESCAPE character is set explicitly in whereLike() so behaviour is
         // identical across MySQL/PostgreSQL/SQLite. Callbacks get the raw term.
-        $pattern = '%' . addcslashes($term, '%_\\') . '%';
+        $pattern = LikePattern::contains($term);
 
         $query->where(function (Builder $query) use ($columns, $term, $pattern) {
             foreach ($columns as $column) {
@@ -84,12 +85,7 @@ trait WithSearch
      */
     protected function whereLike(Builder $query, string $field, string $pattern, bool $or = false): void
     {
-        $column = $query->getQuery()->getGrammar()->wrap($field);
-        $sql    = "{$column} LIKE ? ESCAPE '\\'";
-
-        $or
-            ? $query->orWhereRaw($sql, [$pattern])
-            : $query->whereRaw($sql, [$pattern]);
+        LikePattern::where($query, $field, $pattern, $or);
     }
 
     protected function parseRelationField(string $field): array

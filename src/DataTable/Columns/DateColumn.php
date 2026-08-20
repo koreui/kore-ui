@@ -3,6 +3,7 @@
 namespace KoreUi\DataTable\Columns;
 
 use Carbon\Carbon;
+use Throwable;
 
 class DateColumn extends Column
 {
@@ -54,10 +55,14 @@ class DateColumn extends Column
             return $this->default;
         }
 
-        $date = $value instanceof Carbon ? $value : Carbon::parse($value);
+        $date = $this->toCarbon($value);
 
-        if ($this->timezone) {
-            $date = $date->timezone($this->timezone);
+        // Una sola fila con '0000-00-00', una cadena vacía en una columna string
+        // o cualquier dato heredado sucio hacía saltar Carbon y tumbaba el render
+        // de la tabla entera. Se devuelve el valor tal cual: la celda queda fea,
+        // pero el dato es visible y la página funciona.
+        if ($date === null) {
+            return is_scalar($value) ? (string) $value : $this->default;
         }
 
         if ($this->diffForHumans) {
@@ -65,6 +70,21 @@ class DateColumn extends Column
         }
 
         return $date->format($this->dateFormat);
+    }
+
+    /**
+     * Convierte a Carbon aplicando la zona horaria, o null si el valor no es
+     * una fecha reconocible.
+     */
+    protected function toCarbon(mixed $value): ?Carbon
+    {
+        try {
+            $date = $value instanceof Carbon ? $value : Carbon::parse($value);
+        } catch (Throwable) {
+            return null;
+        }
+
+        return $this->timezone ? $date->timezone($this->timezone) : $date;
     }
 
     public function getTooltipValue(mixed $row): ?string
@@ -79,13 +99,9 @@ class DateColumn extends Column
             return null;
         }
 
-        $date = $value instanceof Carbon ? $value : Carbon::parse($value);
+        $date = $this->toCarbon($value);
 
-        if ($this->timezone) {
-            $date = $date->timezone($this->timezone);
-        }
-
-        return $date->format($this->tooltipFormat);
+        return $date?->format($this->tooltipFormat);
     }
 
     public function getType(): string

@@ -108,12 +108,12 @@ trait WithInlineEditing
 
     public function hasEditableColumns(): bool
     {
-        return collect($this->columns())->contains(fn (Column $col) => $col->isEditable());
+        return collect($this->cachedColumns())->contains(fn (Column $col) => $col->isEditable());
     }
 
     public function getEditableColumnsMap(): array
     {
-        return collect($this->columns())
+        return collect($this->cachedColumns())
             ->filter(fn (Column $col) => $col->isEditable())
             ->mapWithKeys(fn (Column $col) => [
                 $col->getField() => [
@@ -126,7 +126,7 @@ trait WithInlineEditing
 
     protected function findEditableColumn(string $field): ?Column
     {
-        return collect($this->columns())
+        return collect($this->cachedColumns())
             ->first(fn (Column $col) => $col->getField() === $field && $col->isEditable());
     }
 }

@@ -2,6 +2,7 @@
 
 namespace KoreUi\DataTable\Concerns;
 
+use InvalidArgumentException;
 use KoreUi\DataTable\Columns\ActionColumn;
 use KoreUi\DataTable\Exports\Contracts\Exporter;
 use KoreUi\DataTable\Exports\CsvExporter;
@@ -18,6 +19,30 @@ trait WithExport
     protected bool $exportOnlyVisible = true;
 
     protected int $exportMaxRows = 10000;
+
+    /**
+     * Formato → clase de Exporter. Una tabla puede añadir los suyos con
+     * `registerExporter()` desde configure().
+     */
+    protected array $exporters = [
+        'csv' => CsvExporter::class,
+    ];
+
+    /**
+     * Inicializa el export desde `config('kore-ui.datatable.export')`. Se llama
+     * explícitamente desde mount() ANTES de configure(), para que un
+     * setExportEnabled() de la tabla siempre gane sobre el valor global.
+     *
+     * Deliberadamente NO se llama `mountWithExport()`: Livewire invoca por su
+     * cuenta los hooks `mount{Trait}`, así que ese nombre se ejecutaría dos
+     * veces por montaje y en un orden que no controlamos respecto a configure().
+     */
+    protected function applyExportConfig(): void
+    {
+        $this->exportEnabled = (bool) config('kore-ui.datatable.export.enabled', $this->exportEnabled);
+        $this->exportFormats = (array) config('kore-ui.datatable.export.formats', $this->exportFormats);
+        $this->exportMaxRows = (int) config('kore-ui.datatable.export.max_rows', $this->exportMaxRows);
+    }
 
     public function setExportEnabled(bool $enabled = true): static
     {
@@ -73,7 +98,10 @@ trait WithExport
         abort_unless($this->isExportEnabled(), 403);
         abort_unless(in_array($format, $this->getExportFormats(), true), 404);
 
-        $query = $this->applySorts($this->baseFilteredQuery());
+        // applyEagerLoading() igual que en buildRowsQuery(): sin él, una columna
+        // con dot-notation dispara una consulta por fila exportada (N+1 sobre
+        // el dataset entero, no sobre una página).
+        $query = $this->applyEagerLoading($this->applySorts($this->baseFilteredQuery()));
 
         // chunk() pages the result set; without a deterministic, unique order a
         // non-unique sort column can skip or duplicate rows across pages. Append
@@ -88,15 +116,39 @@ trait WithExport
         $fileName = $this->exportFileName
             ?? class_basename($this) . '_' . now()->format('Y-m-d_His') . '.' . $exporter->extension();
 
-        // maxRows is enforced inside the exporter: chunk() ignores ->limit().
+        // El tope se aplica dentro del exporter porque chunk() ignora ->limit().
+        // Si de verdad recorta, se avisa: hasta ahora el usuario recibía un
+        // archivo truncado sin ninguna señal de que faltaban filas.
+        if ($this->exportMaxRows > 0 && $this->baseFilteredQuery()->count() > $this->exportMaxRows) {
+            $this->notifyExportTruncated($this->exportMaxRows);
+        }
+
         return $exporter->export($query, $columns, $fileName, $this->exportMaxRows);
+    }
+
+    /**
+     * Sobreescribible: por defecto lanza un toast si la librería de feedback
+     * está disponible en la tabla.
+     */
+    protected function notifyExportTruncated(int $maxRows): void
+    {
+        if (! method_exists($this, 'toast')) {
+            return;
+        }
+
+        $template = config(
+            'kore-ui.datatable.translations.export_truncated',
+            'La exportación se limitó a las primeras :max filas.',
+        );
+
+        $this->toast()->warning(strtr($template, [':max' => $maxRows]))->send();
     }
 
     protected function getExportColumns(): array
     {
         $columns = $this->exportOnlyVisible
             ? $this->resolveColumns()
-            : $this->columns();
+            : $this->cachedColumns();
 
         return collect($columns)
             ->reject(fn ($col) => $col instanceof ActionColumn)
@@ -104,11 +156,35 @@ trait WithExport
             ->all();
     }
 
+    /**
+     * Registra un exporter para un formato.
+     *
+     *     $this->registerExporter('xlsx', XlsxExporter::class)
+     *           ->setExportFormats(['csv', 'xlsx']);
+     */
+    public function registerExporter(string $format, string|Exporter $exporter): static
+    {
+        $this->exporters[$format] = $exporter;
+
+        return $this;
+    }
+
+    /**
+     * El `default` de antes devolvía un CsvExporter para cualquier formato
+     * desconocido: en cuanto alguien añadiera 'xlsx' a setExportFormats(), el
+     * botón habría descargado un CSV con extensión .csv sin decir nada.
+     */
     protected function resolveExporter(string $format): Exporter
     {
-        return match ($format) {
-            'csv' => new CsvExporter(),
-            default => new CsvExporter(),
-        };
+        $exporter = $this->exporters[$format] ?? null;
+
+        if ($exporter === null) {
+            throw new InvalidArgumentException(
+                "No hay ningún exporter registrado para el formato [{$format}]. "
+                . 'Regístralo con registerExporter() antes de añadirlo a setExportFormats().'
+            );
+        }
+
+        return is_string($exporter) ? new $exporter() : $exporter;
     }
 }

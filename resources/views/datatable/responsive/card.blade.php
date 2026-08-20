@@ -7,7 +7,10 @@
 
 <div class="divide-y divide-kore-border">
     @forelse($rows as $row)
-        <div class="p-4 space-y-3">
+        {{-- wire:key: sin él Livewire reutiliza las tarjetas por posición y el
+             estado Alpine de una celda en edición se queda pegado al hueco, no
+             al registro, al paginar o filtrar. --}}
+        <div wire:key="card-{{ data_get($row, $primaryKey) }}" class="p-4 space-y-3">
             {{-- Card header: first column as title + action menu --}}
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -18,13 +21,14 @@
                             value="{{ data_get($row, $primaryKey) }}"
                             @checked($this->isRowSelected(data_get($row, $primaryKey)))
                             data-checked="{{ $this->isRowSelected(data_get($row, $primaryKey)) ? '1' : '0' }}"
-                            x-on:click="onRowCheckboxClick('{{ data_get($row, $primaryKey) }}', $event)"
+                            x-on:click="onRowCheckboxClick(@js(data_get($row, $primaryKey)), $event)"
                             class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
                         />
                     @endif
 
                     @if($firstColumn)
                         <div class="font-medium text-kore-fg">
+                            @include('kore::datatable.cell-description', ['column' => $firstColumn, 'row' => $row, 'slot' => 'above'])
                             @if($firstColumn->getType() !== 'text')
                                 @include('kore::datatable.columns.' . $firstColumn->getType(), [
                                     'column' => $firstColumn,
@@ -35,6 +39,7 @@
                             @else
                                 {{ $firstColumn->getValue($row) }}
                             @endif
+                            @include('kore::datatable.cell-description', ['column' => $firstColumn, 'row' => $row, 'slot' => 'below'])
                         </div>
                     @endif
                 </div>
@@ -50,11 +55,12 @@
             </div>
 
             {{-- Card body: label:value pairs --}}
-            <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 @foreach($dataColumns as $col)
                     <div>
                         <dt class="text-kore-muted-fg text-xs">{{ $col->getLabel() }}</dt>
                         <dd class="text-kore-fg mt-0.5">
+                            @include('kore::datatable.cell-description', ['column' => $col, 'row' => $row, 'slot' => 'above'])
                             @if($col->getType() !== 'text')
                                 @include('kore::datatable.columns.' . $col->getType(), [
                                     'column' => $col,
@@ -67,10 +73,11 @@
                             @else
                                 {{ $col->getValue($row) ?? '—' }}
                             @endif
+                            @include('kore::datatable.cell-description', ['column' => $col, 'row' => $row, 'slot' => 'below'])
                         </dd>
                     </div>
                 @endforeach
-            </div>
+            </dl>
         </div>
     @empty
         <div class="p-8">

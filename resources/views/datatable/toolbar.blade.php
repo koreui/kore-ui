@@ -17,6 +17,8 @@
     $koreSlots = $koreSlots ?? [];
     $rowIds = $rowIds ?? [];
     $total = $total ?? 0;
+    $savedViewsEnabled = $savedViewsEnabled ?? false;
+    $savedViews = $savedViews ?? [];
 @endphp
 
 <div class="border-b border-kore-border">
@@ -31,7 +33,7 @@
                     size="sm"
                     :placeholder="$translations['search'] ?? 'Buscar...'"
                     :clearable="true"
-                    wire:model.live.debounce.300ms="search"
+                    wire:model.live.debounce.{{ $searchDebounce }}ms="search"
                     data-datatable-search
                 />
             </div>
@@ -87,6 +89,15 @@
                     @endif
                 @endif
 
+                {{-- Vistas guardadas --}}
+                @if($savedViewsEnabled)
+                    @include('kore::datatable.saved-views', [
+                        'savedViews'      => $savedViews,
+                        'activeSavedView' => $this->activeSavedView,
+                        'translations'    => $translations,
+                    ])
+                @endif
+
                 {{-- Column Select --}}
                 @if($columnSelectEnabled ?? false)
                     @include('kore::datatable.column-select', [
@@ -101,6 +112,7 @@
                 <span>{{ $translations['per_page'] ?? 'Por página' }}</span>
                 <select
                     wire:model.live="perPage"
+                    aria-label="{{ $translations['per_page'] ?? 'Por página' }}"
                     class="bg-kore-bg text-kore-fg border border-kore-input rounded-kore-md text-sm py-1 pl-2 pr-7 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary"
                 >
                     @foreach($perPageOptions as $option)

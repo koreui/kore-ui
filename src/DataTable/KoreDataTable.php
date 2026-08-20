@@ -18,12 +18,14 @@ abstract class KoreDataTable extends Component
     use Concerns\WithSelection;
     use Concerns\WithBulkActions;
     use Concerns\WithColumnSelect;
+    use Concerns\WithColumnMenu;
     use Concerns\WithResponsive;
     use Concerns\WithQueryString;
     use Concerns\WithFilterPresets;
     use Concerns\WithExport;
     use Concerns\WithInlineEditing;
     use Concerns\WithDeferredLoading;
+    use Concerns\WithSavedViews;
 
     public int $perPage = 25;
 
@@ -42,6 +44,59 @@ abstract class KoreDataTable extends Component
 
     #[Locked]
     public array $tableSlots = [];
+
+    /**
+     * Cachés por request de los cuatro métodos que definen la tabla.
+     *
+     * `columns()` se invoca trece veces desde el propio módulo, más las de
+     * Blade, y cada llamada reconstruye todos los objetos Column con sus
+     * closures. Con `filters()` el coste no es solo de objetos: el patrón normal
+     * es `SelectFilter::options(Ciudad::pluck(...))`, así que cuatro llamadas
+     * son cuatro consultas por render.
+     *
+     * Son `protected`, así que Livewire no las serializa: el caché dura lo que
+     * dura la petición y la siguiente vuelve a preguntar. Es justo lo que
+     * queremos — dentro de un render, la definición de la tabla no cambia.
+     */
+    protected ?array $columnCache = null;
+
+    protected ?array $filterCache = null;
+
+    protected ?array $bulkActionCache = null;
+
+    protected ?array $presetCache = null;
+
+    protected function cachedColumns(): array
+    {
+        return $this->columnCache ??= $this->columns();
+    }
+
+    protected function cachedFilters(): array
+    {
+        return $this->filterCache ??= $this->filters();
+    }
+
+    protected function cachedBulkActions(): array
+    {
+        return $this->bulkActionCache ??= $this->bulkActions();
+    }
+
+    protected function cachedFilterPresets(): array
+    {
+        return $this->presetCache ??= $this->filterPresets();
+    }
+
+    /**
+     * Descarta los cachés. Necesario si una acción cambia algo de lo que
+     * dependen las definiciones dentro del mismo request.
+     */
+    public function flushDefinitionCache(): void
+    {
+        $this->columnCache     = null;
+        $this->filterCache     = null;
+        $this->bulkActionCache = null;
+        $this->presetCache     = null;
+    }
 
     /**
      * Return the base query for the DataTable.
@@ -98,32 +153,71 @@ abstract class KoreDataTable extends Component
         return $this->tableSlots;
     }
 
+    /**
+     * Configuración de la tabla, en CADA petición.
+     *
+     * Vive en booted() y no en mount() por una razón que costaba cara: las
+     * propiedades de configuración (`density`, `responsiveMode`, `primaryKey`,
+     * `exportEnabled`…) son `protected`, así que Livewire no las serializa. Con
+     * `configure()` corriendo solo en el montaje, la tabla perdía su densidad,
+     * su modo responsive, su clave primaria y hasta el export en cuanto el
+     * usuario paginaba, buscaba o filtraba: todo volvía a los valores por
+     * defecto de la clase. Reaplicarlo aquí es más barato que serializar
+     * diecisiete propiedades en cada snapshot, y deja `configure()` como la
+     * única fuente de verdad de la configuración.
+     *
+     * Los traits NO usan hooks `mount{Trait}`: Livewire los invoca por su cuenta,
+     * así que un método con ese nombre se ejecutaría dos veces y en un orden que
+     * no controlamos respecto a `configure()`. Se llaman aquí, en secuencia.
+     *
+     * Si una tabla necesita su propio `booted()`, que llame a `parent::booted()`.
+     */
+    public function booted(): void
+    {
+        // 1 · Valores por defecto de la configuración global.
+        $this->density         = config('kore-ui.datatable.density', 'normal');
+        $this->deferredLoading = (bool) config('kore-ui.datatable.deferred_loading', false);
+        $this->applyColumnSelectConfig();
+        $this->applyColumnMenuConfig();
+        $this->applyResponsiveConfig();
+        $this->applyExportConfig();
+        $this->applyQueryStringConfig();
+        $this->applySavedViewsConfig();
+
+        // 2 · La tabla manda sobre la configuración global.
+        $this->configure();
+
+        // 3 · Sin carga diferida, los datos están listos desde el primer render.
+        //     Idempotente: si ya estaba marcado, no cambia nada.
+        if (! $this->deferredLoading) {
+            $this->dataLoaded = true;
+        }
+    }
+
+    /**
+     * Estado inicial, una sola vez.
+     *
+     * Livewire ejecuta boot → mount → booted, así que aquí `configure()` todavía
+     * no ha corrido: solo va lo que no depende de él.
+     */
     public function mount(): void
     {
-        // Respect a perPage restored from the URL (?per_page= / ?{table}_per_page=);
-        // only fall back to the configured default when it isn't present. Otherwise
-        // this would overwrite the value BaseUrl already restored from the query
-        // string, so the table ignored the URL value on reload.
+        // Se respeta un perPage que venga de la URL (?per_page= /
+        // ?{tabla}_per_page=) y solo se cae al valor de config cuando no está
+        // presente: si no, se pisaría lo que BaseUrl acaba de restaurar y la
+        // tabla ignoraría la URL al recargar.
         if (! request()->filled($this->urlKey('per_page'))) {
             $this->perPage = (int) config('kore-ui.datatable.per_page', 25);
         }
 
-        // A URL-provided perPage is untrusted: coerce it to an allowed option
-        // so e.g. ?per_page=999999 can't load the entire table at once.
+        // Un perPage venido de la URL no es de fiar: se acota a las opciones
+        // permitidas para que ?per_page=999999 no cargue la tabla entera.
         $this->normalizePerPage();
 
-        $this->density = config('kore-ui.datatable.density', 'normal');
-        $this->deferredLoading = (bool) config('kore-ui.datatable.deferred_loading', false);
-        $this->mountWithColumnSelect();
-        $this->mountWithResponsive();
-        $this->configure();
-        $this->mountWithQueryString();
-        $this->mountWithFilterPresets();
-
-        // Deferred loading: mark data as loaded if not deferred
-        if (! $this->deferredLoading) {
-            $this->dataLoaded = true;
-        }
+        // El preset por defecto va después de los defaults de filtro porque su
+        // trabajo es precisamente imponer un estado completo.
+        $this->applyFilterDefaults();
+        $this->applyDefaultPreset();
     }
 
     public function getRows()
@@ -184,6 +278,15 @@ abstract class KoreDataTable extends Component
         if ($deactivatePreset && property_exists($this, 'activePreset')) {
             $this->activePreset = null;
         }
+
+        // Una vista guardada describe un estado completo. En cuanto el usuario
+        // edita los filtros a mano deja de describir lo que se está viendo, y
+        // si siguiera marcada como activa, volver a pulsarla la interpretaría
+        // como "salir de la vista" en vez de restaurarla — justo lo contrario
+        // de lo que espera quien la creó.
+        if ($deactivatePreset && property_exists($this, 'activeSavedView')) {
+            $this->activeSavedView = null;
+        }
     }
 
     /**
@@ -193,11 +296,13 @@ abstract class KoreDataTable extends Component
      */
     public function resolveColumns(): array
     {
-        return collect($this->columns())
-            ->reject(fn (Column $column) => $column->isHidden())
-            ->reject(fn (Column $column) => $this->isColumnDeselected($column->getField()))
-            ->values()
-            ->all();
+        return $this->applyColumnPins(
+            collect($this->cachedColumns())
+                ->reject(fn (Column $column) => $column->isHidden())
+                ->reject(fn (Column $column) => $this->isColumnDeselected($column->getField()))
+                ->values()
+                ->all()
+        );
     }
 
     public function getDensity(): string
@@ -247,7 +352,7 @@ abstract class KoreDataTable extends Component
      */
     public function hasAnyAggregation(): bool
     {
-        return collect($this->columns())->contains(fn (Column $col) => $col->hasAggregation());
+        return collect($this->cachedColumns())->contains(fn (Column $col) => $col->hasAggregation());
     }
 
     /**
@@ -343,7 +448,7 @@ abstract class KoreDataTable extends Component
      */
     protected function applyEagerLoading(Builder $query): Builder
     {
-        $relations = collect($this->columns())
+        $relations = collect($this->cachedColumns())
             ->map(fn (Column $col) => $col->getField())
             ->filter(fn (string $field) => str_contains($field, '.'))
             ->map(function (string $field) {
@@ -367,6 +472,18 @@ abstract class KoreDataTable extends Component
     {
         $columns = $this->resolveColumns();
 
+        // Se publica en una propiedad para que los triggers de filtro que viven
+        // dentro de un wire:ignore puedan leerla desde $wire (ver WithFiltering).
+        $this->filterCount = $this->getActiveFilterCount();
+
+        // Livewire vuelca las propiedades públicas en el scope de la vista y
+        // ganan sobre los datos que se pasan aquí. `$filterLayout` es pública y
+        // vale null hasta que alguien llame a setFilterLayout(), así que el
+        // valor resuelto (con su fallback a config) nunca llegaba al Blade: la
+        // opción `filter_layout` de la configuración no se aplicaba nunca.
+        // Igualarlas evita que importe cuál de las dos gane.
+        $this->filterLayout = $this->getFilterLayout();
+
         // Deferred loading: pass null rows until data is loaded
         if ($this->isDeferredLoading() && ! $this->isDataLoaded()) {
             $rows = null;
@@ -375,21 +492,18 @@ abstract class KoreDataTable extends Component
         }
 
         $selectionEnabled = $this->isSelectionEnabled();
-        $rowIds = [];
-        $total = 0;
 
-        if ($selectionEnabled && $rows !== null) {
-            $rowIds = $this->getRowIds($rows);
-        }
+        // Los IDs de la página se calculan SIEMPRE, no solo cuando hay selección:
+        // Alpine los necesita para la navegación por teclado, que es una función
+        // aparte. Atarlos a isSelectionEnabled() dejaba las flechas muertas en
+        // cualquier tabla sin bulk actions.
+        $rowIds = $rows !== null ? $this->getRowIds($rows) : [];
+        $total  = ($rows !== null && method_exists($rows, 'total')) ? $rows->total() : count($rowIds);
 
-        if ($selectionEnabled) {
-            $total = ($rows !== null && method_exists($rows, 'total')) ? $rows->total() : count($rowIds);
-
-            // Keep Alpine rowIds in sync for keyboard-nav and shift-range
-            // (x-data is not re-evaluated during morph). The selection state
-            // itself is now server-side and persists via the snapshot.
-            $this->dispatch('kore:datatable-rows-updated', rowIds: $rowIds, total: $total);
-        }
+        // Mantiene sincronizados los rowIds de Alpine para el teclado y el rango
+        // con shift (x-data no se reevalúa durante el morph). El estado de
+        // selección en sí vive en el servidor y viaja en el snapshot.
+        $this->dispatch('kore:datatable-rows-updated', rowIds: $rowIds, total: $total);
 
         $columnSelectEnabled = $this->isColumnSelectEnabled();
         $allColumns = $columnSelectEnabled ? $this->getSelectableColumns() : [];
@@ -407,7 +521,7 @@ abstract class KoreDataTable extends Component
             'translations'        => config('kore-ui.datatable.translations', []),
             'filterDefs'          => $this->resolveFilters(),
             'activeFilters'       => $this->getActiveFilters(),
-            'filterCount'         => $this->getActiveFilterCount(),
+            'filterCount'         => $this->filterCount,
             'filterLayout'        => $this->getFilterLayout(),
             'filtersExpanded'     => $this->getFiltersExpanded(),
             'bulkActions'         => $this->resolveBulkActions(),
@@ -416,6 +530,9 @@ abstract class KoreDataTable extends Component
             'rowIds'              => $rowIds,
             'total'               => $total,
             'columnSelectEnabled' => $columnSelectEnabled,
+            'columnMenuEnabled'   => $this->isColumnMenuEnabled(),
+            'savedViewsEnabled'   => $this->isSavedViewsEnabled(),
+            'savedViews'          => $this->getSavedViews(),
             'allColumns'          => $allColumns,
             'deselectedColumns'   => $this->deselectedColumns,
             'responsiveMode'      => $this->getResponsiveMode(),
@@ -426,7 +543,7 @@ abstract class KoreDataTable extends Component
             'activeSorts'         => $this->getActiveSorts(),
             'presets'             => $this->resolveFilterPresets(),
             'activePreset'        => $this->activePreset,
-            'presetCounts'        => ! empty($this->filterPresets()) ? $this->getPresetCounts() : [],
+            'presetCounts'        => ! empty($this->cachedFilterPresets()) ? $this->getPresetCounts() : [],
             'exportEnabled'       => $this->isExportEnabled(),
             'exportFormats'       => $this->getExportFormats(),
             'editableColumns'     => $this->getEditableColumnsMap(),

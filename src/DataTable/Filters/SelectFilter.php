@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class SelectFilter extends Filter
 {
+    use Concerns\HasOptionWhitelist;
+
     protected array $options = [];
 
     protected ?string $optionLabel = null;
@@ -14,10 +16,32 @@ class SelectFilter extends Filter
 
     protected bool $searchable = false;
 
+    public function sanitize(mixed $value): mixed
+    {
+        if (! is_scalar($value)) {
+            return null;
+        }
+
+        // Cuando hay opciones declaradas son la lista blanca: sin esto se puede
+        // filtrar por cualquier valor de la columna, incluidos los que el select
+        // no ofrece a propósito.
+        $allowed = $this->allowedValues();
+
+        if ($allowed !== null && ! in_array((string) $value, $allowed, true)) {
+            return null;
+        }
+
+        return $value;
+    }
+
     public function apply(Builder $query, mixed $value): Builder
     {
-        return $query->where($this->column, $value);
+        return $this->applyOnColumn(
+            $query,
+            fn (Builder $q, string $column) => $q->where($column, $value),
+        );
     }
+
 
     public function getType(): string
     {

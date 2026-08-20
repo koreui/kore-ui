@@ -93,24 +93,15 @@ class NumberColumn extends Column
             return $this->default;
         }
 
-        $numericValue = (float) $value;
-
-        if ($this->currency && $this->locale) {
-            $formatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
-
-            return $formatter->formatCurrency($numericValue, $this->currency);
+        // data_get() devuelve el default en cuanto el atributo es null, porque
+        // resuelve objetos con isset(). Así que aquí puede llegar un marcador de
+        // texto —'—', 'N/D'— y castearlo a float lo convertiría en un 0 que
+        // parece un dato real. Peor que la celda vacía que se quería evitar.
+        if (! is_numeric($value)) {
+            return $value;
         }
 
-        if ($this->locale) {
-            $formatter = new NumberFormatter($this->locale, NumberFormatter::DECIMAL);
-            $formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, $this->decimals);
-
-            return ($this->prefix ?? '') . $formatter->format($numericValue) . ($this->suffix ?? '');
-        }
-
-        $formatted = number_format($numericValue, $this->decimals, $this->decimalSeparator, $this->thousandsSeparator);
-
-        return ($this->prefix ?? '') . $formatted . ($this->suffix ?? '');
+        return $this->formatNumber((float) $value, $this->decimals);
     }
 
     public function formatAggregationValue(mixed $value): string
@@ -119,24 +110,39 @@ class NumberColumn extends Column
             return '';
         }
 
-        $numericValue = (float) $value;
+        return $this->formatNumber((float) $value, $this->aggregationDecimals ?? $this->decimals);
+    }
 
-        if ($this->currency && $this->locale) {
-            $formatter = new NumberFormatter($this->locale, NumberFormatter::CURRENCY);
+    /**
+     * Punto único de formato para celdas y agregaciones.
+     *
+     * locale()/money() usan NumberFormatter, que vive en ext-intl. La extensión
+     * no viene activada por defecto en las imágenes PHP oficiales y el paquete
+     * solo la sugiere, así que aquí se degrada a number_format() en vez de
+     * lanzar "Class NumberFormatter not found" en mitad de un render.
+     */
+    protected function formatNumber(float $value, int $decimals): string
+    {
+        $hasIntl = class_exists(NumberFormatter::class);
 
-            return $formatter->formatCurrency($numericValue, $this->currency);
+        if ($this->currency && $this->locale && $hasIntl) {
+            return (new NumberFormatter($this->locale, NumberFormatter::CURRENCY))
+                ->formatCurrency($value, $this->currency);
         }
 
-        if ($this->locale) {
+        if ($this->locale && $hasIntl) {
             $formatter = new NumberFormatter($this->locale, NumberFormatter::DECIMAL);
-            $formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, $this->aggregationDecimals ?? $this->decimals);
+            $formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, $decimals);
 
-            return ($this->prefix ?? '').$formatter->format($numericValue).($this->suffix ?? '');
+            return ($this->prefix ?? '') . $formatter->format($value) . ($this->suffix ?? '');
         }
 
-        $formatted = number_format($numericValue, $this->aggregationDecimals ?? $this->decimals, $this->decimalSeparator, $this->thousandsSeparator);
+        // Fallback sin intl. Con money() se antepone el código de moneda, que es
+        // menos bonito que el símbolo localizado pero no pierde información.
+        $formatted = number_format($value, $decimals, $this->decimalSeparator, $this->thousandsSeparator);
+        $prefix    = $this->prefix ?? ($this->currency && ! $hasIntl ? $this->currency . ' ' : '');
 
-        return ($this->prefix ?? '').$formatted.($this->suffix ?? '');
+        return $prefix . $formatted . ($this->suffix ?? '');
     }
 
     public function getType(): string

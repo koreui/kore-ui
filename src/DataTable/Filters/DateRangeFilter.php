@@ -3,29 +3,50 @@
 namespace KoreUi\DataTable\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
+use KoreUi\DataTable\Filters\Concerns\NormalizesDates;
 
 class DateRangeFilter extends Filter
 {
+    use NormalizesDates;
+
     protected ?string $minDate = null;
 
     protected ?string $maxDate = null;
 
+    public function sanitize(mixed $value): mixed
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        // El datepicker en modo rango manda ['start' => …, 'end' => …] o [0, 1]
+        // según cómo se haya montado; se aceptan ambas y se normaliza a claves.
+        return [
+            'start' => $this->normalizeDate($value['start'] ?? $value[0] ?? null),
+            'end'   => $this->normalizeDate($value['end'] ?? $value[1] ?? null),
+        ];
+    }
+
     public function apply(Builder $query, mixed $value): Builder
     {
-        if (is_array($value)) {
-            $start = $value['start'] ?? $value[0] ?? null;
-            $end = $value['end'] ?? $value[1] ?? null;
+        if (! is_array($value)) {
+            return $query;
+        }
 
+        $start = $value['start'] ?? $value[0] ?? null;
+        $end   = $value['end'] ?? $value[1] ?? null;
+
+        // Ambos extremos en el mismo constraint: sobre una relación, dos
+        // whereHas separados no describen un rango (ver NumberRangeFilter).
+        return $this->applyOnColumn($query, function (Builder $q, string $column) use ($start, $end) {
             if ($start) {
-                $query->whereDate($this->column, '>=', $start);
+                $q->whereDate($column, '>=', $start);
             }
 
             if ($end) {
-                $query->whereDate($this->column, '<=', $end);
+                $q->whereDate($column, '<=', $end);
             }
-        }
-
-        return $query;
+        });
     }
 
     public function getType(): string

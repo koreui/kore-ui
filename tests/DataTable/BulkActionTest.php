@@ -56,11 +56,6 @@ it('supports hidden with closure', function () {
     expect($action->isHidden())->toBeTrue();
 });
 
-it('supports hiddenWhenEmpty', function () {
-    $action = BulkAction::make('delete', 'Eliminar')->hiddenWhenEmpty();
-
-    expect($action->isHiddenWhenEmpty())->toBeTrue();
-});
 
 it('supports separator', function () {
     $action = BulkAction::make('delete', 'Eliminar')->separator();

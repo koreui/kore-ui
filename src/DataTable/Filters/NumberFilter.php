@@ -14,9 +14,34 @@ class NumberFilter extends Filter
 
     protected string $operator = '=';
 
+    public function sanitize(mixed $value): mixed
+    {
+        // En PostgreSQL comparar una columna numérica con texto es un error de
+        // SQL, no una comparación vacía: sin esta coerción, un valor cualquiera
+        // desde el navegador es un 500.
+        return is_numeric($value) ? $value + 0 : null;
+    }
+
     public function apply(Builder $query, mixed $value): Builder
     {
-        return $query->where($this->column, $this->operator, $value);
+        $operator = $this->normalizedOperator();
+
+        return $this->applyOnColumn(
+            $query,
+            fn (Builder $q, string $column) => $q->where($column, $operator, $value),
+        );
+    }
+
+    /**
+     * El operador lo fija quien construye la tabla, no el cliente, pero se acota
+     * igualmente a la lista conocida: un typo en `operator()` produciría SQL
+     * inválido en vez de un filtro que simplemente no compara como se esperaba.
+     */
+    protected function normalizedOperator(): string
+    {
+        return in_array($this->operator, ['=', '!=', '<>', '>', '>=', '<', '<='], true)
+            ? $this->operator
+            : '=';
     }
 
     public function getType(): string
