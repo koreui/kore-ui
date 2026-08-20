@@ -897,6 +897,47 @@ Cuando el conjunto supera `exportMaxRows`, el archivo se corta y se avisa con un
 
 ---
 
+## Abrir un overlay desde la tabla
+
+Un boton que abre un modal puede costar uno o dos viajes al servidor, y la
+diferencia se nota:
+
+```php
+// Dos viajes. El primero ejecuta el metodo Y repinta la tabla entera —consulta,
+// columnas, filtros, paginacion— aunque nada de ella haya cambiado. El segundo
+// es el del overlay manager montando el modal.
+public function nuevoRegistro(): void
+{
+    $this->dispatch('kore:open', name: 'modals.mi-modal');
+}
+```
+
+```blade
+{{-- Un solo viaje: el evento sale del navegador y solo viaja la peticion del
+     overlay manager. --}}
+<x-kore::button x-on:click="$dispatch('kore:open', { name: 'modals.mi-modal' })">
+    Nuevo registro
+</x-kore::button>
+```
+
+Si el metodo tiene que existir en el servidor —por ejemplo para un `authorize()`
+previo—, al menos evita el repintado:
+
+```php
+public function nuevoRegistro(): void
+{
+    $this->authorize('registros.create');
+    $this->dispatch('kore:open', name: 'modals.mi-modal');
+
+    $this->skipRender();   // abrir un modal no cambia nada de la tabla
+}
+```
+
+> `RowAction::openOverlay()` ya usa la via del cliente: despacha `kore:open`
+> desde el navegador, sin pasar por el servidor.
+
+---
+
 ## Slots (vistas inyectables)
 
 `setSlot()` permite inyectar una vista Blade en puntos predefinidos del layout del DataTable. Se llama desde `configure()`.
