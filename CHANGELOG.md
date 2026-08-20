@@ -7,262 +7,172 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
-## [No publicado · Presentación]
+## [2.0.0] — 2026-08-20
 
-**Auditoría del lote de presentación en navegador.** Alertas, insignias, avatares, tarjetas, chips, iconos, teclas, indicadores de carga, esqueletos, estados vacíos, botones y booleanos probados en Chrome de escritorio y en WebKit sobre iPhone, con 17 pruebas nuevas. Es el último lote de componentes: con él, la librería entera queda auditada.
+**La librería entera, auditada en un navegador.** Seis lotes de componentes probados uno a uno en Chrome de escritorio y en WebKit sobre iPhone, midiendo el comportamiento real en vez de asertar clases: **67 defectos corregidos** y una suite E2E que pasa de 0 a 456 pruebas.
 
-Aquí casi nada tiene estado, así que lo que decide el lote es **el color**. Casi todos estos componentes tienen variantes que pintan texto de un color sobre un fondo del MISMO color al diez por ciento, y eso no lo ve un aserto de clases ni se aprecia en una captura: medido componiendo el fondo real capa a capa, **doce de las veintiuna combinaciones de un badge y veinticuatro de las treinta y nueve de un botón** estaban por debajo de AA.
+| Lote | Defectos | Informe |
+|---|---|---|
+| DataTable | — | `docs/datatable-auditoria.md` |
+| Formulario | 18 | `docs/formulario-auditoria.md` |
+| Overlay y feedback | 11 | `docs/overlay-auditoria.md` |
+| Navegación y layout | 9 | `docs/navegacion-auditoria.md` |
+| Datos y visualización | 8 | `docs/datos-auditoria.md` |
+| Interacción | 12 | `docs/interaccion-auditoria.md` |
+| Presentación | 9 | `docs/presentacion-auditoria.md` |
 
-Lo interesante es que **la solución ya existía en la librería y solo se había aplicado a un color de cinco**: el token `--kore-warning-text`, con una nota en el CSS diagnosticando exactamente este problema. Los que se quedaron fuera estaban peor — `success` en 3,01 frente al 2,07 que motivó el token.
+Es una versión mayor porque hay cambios visibles que no se pueden desactivar. Están todos abajo, y ninguno es gratuito: cada uno arregla algo que estaba medido y roto.
 
-Informe completo en `docs/presentacion-auditoria.md`.
+Tres hilos recorren toda la auditoría, y explican la mayoría de los defectos:
 
-### Added
+1. **Lo que el JavaScript escribe y el servidor no emite, el morph se lo lleva.** Estado de Alpine, estilos en línea, atributos puestos a mano. Costó un árbol muerto, un splitter deshecho, un carrusel en blanco y varios componentes que dejaban de enterarse de sus propios datos.
+2. **Un id que cambia en cada render rompe el morph**, y de ahí salieron siete defectos del lote de formulario a la vez.
+3. **El color de la paleta es un color de FONDO.** Usado como texto sobre su propio tinte no llega a AA, y así estaba en media librería.
 
-- **Tokens `--kore-primary-text`, `--kore-success-text`, `--kore-info-text` y `--kore-destructive-text`**, en los dos temas, junto al `--kore-warning-text` que ya existía. Los valores están calibrados midiendo: cada uno es la primera luminosidad que pasa 4,5 sobre el tinte del mismo color al 10 % y al 20 %. El método se validó solo — para `warning` reproduce el `0.52` que el token ya tenía.
-- **`live` en `<x-kore::alert>`** — `assertive`, `polite` u `off`, para decidir si el aviso interrumpe al lector.
-- **`trueLabel` y `falseLabel` en `<x-kore::boolean>`** — para cuando el booleano significa «Activo/Inactivo» y no «Sí/No».
-- **`ariaLabel` en `<x-kore::button-group>`** — nombre del grupo.
-- **`announce` en `<x-kore::loading>`** — para callarlo dentro de un componente que ya anuncia su estado.
-- **`kore-ui.ui.translations`: `yes`, `no`, `loading`, `close`, `button_group` y `presence_online` / `_offline` / `_busy` / `_away`.**
-- **Suite E2E del lote** en `demo/e2e/specs/50`–`52`: el contraste en los dos temas, la semántica y el movimiento, y una tanda en WebKit móvil. Con su banco en `demo/app/Livewire/E2e/PresentacionBed.php`.
-- **Cepo `tests/Ui/ColorComoTextoTest.php`** — ningún color de la paleta puede usarse como texto sobre su propio tinte, y los cinco tokens `-text` tienen que existir en los dos temas.
+### ⚠️ Cambios que rompen compatibilidad
 
-### Fixed
+Lo que hay que mirar antes de actualizar:
 
-- **El color base de la paleta se usaba como texto sobre su propio tinte.** Ver arriba. Las variantes `soft`, `outline`, `ghost` y `link` de `<x-kore::badge>`, `<x-kore::chip>`, `<x-kore::alert>` y `<x-kore::button>` pasan a usar el token `-text`, y también las iniciales de `<x-kore::avatar>`, que van al veinte por ciento. El mismo cambio se aplicó a once vistas de otros componentes con el mismo patrón —sidebar, stats, tree, tab, tag-input, spotlight y cuatro del DataTable—: 26 sustituciones en total.
+- **Las variantes `soft`, `outline`, `ghost` y `link` cambian de tono**, en toda la librería. Usan los tokens `-text` nuevos: más oscuros en tema claro, más claros en oscuro. Es el cambio visible más extendido — afecta a `badge`, `chip`, `alert`, `button`, `avatar`, `sidebar`, `stats`, `tree`, `tab`, `tag-input`, `spotlight` y cuatro vistas del DataTable. Se revierte apuntando los tokens `-text` al color base.
+- **Los textos por defecto pasan a español.** `Search...` → `Buscar...`, `No options found` → `Sin resultados`, `Choose file` → `Elegir archivo`, `Previous slide` → `Diapositiva anterior`, `Copy to clipboard` → `Copiar`, `Speed dial menu` → `Acciones rápidas`. Están en `kore-ui.form.translations` y `kore-ui.ui.translations`, así que se revierten por configuración sin publicar vistas.
+- **Un modal ya no centra el texto de su contenido.** Quien se apoyara en ese `text-center` heredado verá su contenido a la izquierda. No hay interruptor: se arregla poniendo `text-center` en el propio contenido.
+- **El velo de los overlays usa `--kore-backdrop`.** Quien lo personalizara sobrescribiendo `--kore-fg` tiene que mover el cambio al token nuevo. El del drawer del sidebar también, y era un negro fijo en el CSS.
+- **`<x-kore::tab>` y `<x-kore::stepper>` sin `selected` ya seleccionan el primer item.** Antes no seleccionaban ninguno y el componente salía sin contenido; si alguien contaba con que el primer panel no se viera, ahora se ve.
+- **Un `Escape` con un panel abierto dentro de un modal ya no cierra las dos capas.** Hacen falta dos pulsaciones.
+- **La raíz de `<x-kore::tree>` lleva `wire:ignore`.** Quien pintara contenido propio dentro del árbol contando con que el servidor lo actualizara tiene que sacarlo fuera.
+- **`<x-kore::alert>` ya no lleva `role="alert"` por defecto.** Interrumpía al lector aunque la alerta llevara ahí desde el principio. Para pedirlo: `live="assertive"`.
+- **`<x-kore::loading>` es `role="status"`** y añade un texto oculto cuando no tiene uno visible. Con `announce="false"` se calla.
+- **`<x-kore::boolean>` dice «Sí» y «No»** en vez de «true» y «false».
+- **`<x-kore::button-group>` es un `role="group"` con nombre.**
+- **Los indicadores del carrusel ya no son `role="tab"`**, sino botones con `aria-current` — no había ningún `tabpanel` al otro lado. Quien los localizara por rol en sus tests tiene que cambiar el selector.
+- **`<x-kore::carousel autoplay>` pinta un botón de pausa** que antes no existía, y **sus diapositivas fuera de vista llevan `inert`**: quien contara con enfocar algo dentro de una oculta tiene que moverse a ella primero.
+- **El panel del `<x-kore::tooltip>` ya no lleva `role="tooltip"`**: va `aria-hidden`, y el texto accesible lo da un `<span class="sr-only">` del componente. Quien lo localizara por `[role="tooltip"]` tiene que buscar por `[data-kore-teleport]`.
+- **`<x-kore::stats>` ya no anima con `prefers-reduced-motion` activo**, ni tampoco el spinner, los puntos, el pulso, el brillo del esqueleto o el pulso de presencia del avatar.
 
-- **`<x-kore::alert>` interrumpía al lector aunque llevara ahí desde el principio.** `role="alert"` es una región *assertive*: interrumpe lo que se esté leyendo. Medido: doce alertas estáticas en una página, las doce anunciándose de golpe al abrirla. Ahora el rol se pone solo cuando la alerta es dinámica de verdad.
+### Sigue pendiente
 
-- **`<x-kore::loading>` no se anunciaba.** Cero elementos con `role="status"` o `aria-live` en una página con cuatro indicadores: sin texto visible, la animación era la única señal de que algo estaba pasando. Trae además una prop **`announce`** para quien ya anuncia su propio estado: el DataTable la usa, porque su paginación tiene otro `aria-live` con el recuento y con los dos un lector oía «Cargando» y luego «Mostrando 1 de 1» en cada filtrado.
+Medido y sin resolver a propósito, porque son decisiones de diseño:
 
-- **Las animaciones del lote ignoraban `prefers-reduced-motion`.** El CSS ya tenía su bloque para esa preferencia; el spinner, los puntos, el pulso, el brillo del esqueleto y el pulso de presencia del avatar se habían quedado fuera. El spinner se **ralentiza** de 1 s a 3 s en vez de apagarse —es la única señal de que algo pasa—; lo demás se apaga entero.
-
-- **Dos objetivos táctiles por debajo del mínimo.** El botón de quitar de `<x-kore::chip>` medía 18×18 y el de cerrar de `<x-kore::alert>`, 20 px de ancho. WCAG 2.2 pide 24×24.
-
-- **La descripción de `<x-kore::alert>` bajaba su propio contraste** con un `opacity-90`: fallaba en once de las doce combinaciones, frente a ocho del título.
-
-- **`<x-kore::boolean>` decía «true» y «false»**, en inglés y sin significado: un lector anunciaba «imagen, true» y nada más.
-
-- **La presencia de `<x-kore::avatar>` era solo color.** Los cuatro estados sin texto ni `aria-label`: para quien no distingue el verde del rojo, «en línea» y «ocupado» se veían idénticos.
-
-- **`<x-kore::button-group>` no era un grupo** para un lector: ni `role="group"` ni nombre.
-
-### Medido, no cambiado
-
-- **Las variantes `solid` no llegan a AA**, y es la decisión pendiente que deja este lote: pintan el color `-fg` —casi blanco— sobre el color pleno, y ninguno de los cuatro pasa. Medido en tema claro: `primary` 4,41 · `destructive` 4,39 · `info` 3,42 · `success` 3,17. Arreglarlo pide mover la paleta base, y esos mismos tokens pintan gráficos, iconos, estados del sidebar y media tabla.
-- **`muted` se queda en 4,48**, a dos centésimas.
-- **El `button-group` NO se descoloca con el morph**, que era la sospecha: el cálculo de las esquinas es CSS puro, así que lo rehace el navegador solo. Medido con un cuarto botón llegando desde el servidor.
-- **El chip que el usuario oculta no resucita** con un morph ajeno.
-
----
-
-## [No publicado · Interacción]
-
-**Auditoría del lote de interacción en navegador.** Carrusel, listas reordenables, doble lista, tooltip, portapapeles, menú desplegable y botón de acciones rápidas probados en Chrome de escritorio y en WebKit sobre iPhone, con 31 pruebas nuevas.
-
-El reparto de los doce defectos se explica con una frase: **de los ocho componentes, solo uno se construye desde el cliente sobre HTML que el servidor también emite, y ese uno concentra cinco de los doce**.
-
-**Cualquier morph de Livewire dejaba el `<x-kore::carousel>` en blanco.** El carrusel escribe el ancho de cada diapositiva como estilo en línea, y nada de eso existe en el HTML del servidor: el morph lo borraba y las diapositivas pasaban de 768 px a unos 50 —el ancho de su contenido—. La segunda parte era peor: con los anchos borrados, «siguiente» desplazaba el carril con la cuenta vieja y la vista se quedaba vacía.
-
-El otro defecto grave es de los que no se ven en una captura: **el `<x-kore::tooltip>` no existía para un lector de pantalla.** El panel vive teleportado a `<body>`, sin `id`, y nadie apuntaba a él — así que el `role="tooltip"` no le llegaba a nadie.
-
-Informe completo en `docs/interaccion-auditoria.md`.
-
-### Added
-
-- **Botón de parar y reanudar en `<x-kore::carousel autoplay>`** — WCAG 2.2.2 pide poder detener cualquier movimiento automático de más de cinco segundos, y `pauseOnHover` solo sirve con ratón. El autoplay se para además cuando el foco entra en el carrusel.
-- **Teclado en `<x-kore::carousel>`** — flechas izquierda y derecha para moverse entre diapositivas. No había ninguno. Las flechas que el usuario escribe dentro de un campo no se tocan.
-- **`ariaLabel` en `<x-kore::carousel>` y en `<x-kore::dropdown>`** — para nombrar uno concreto cuando hay varios en la misma página.
-- **`kore-ui.ui.translations`: `carousel`, `carousel_previous`, `carousel_next`, `carousel_go_to`, `carousel_pause`, `carousel_play`, `copy`, `copied`, `menu`, `speed_dial`, `transfer_search` y `transfer_select`** — los textos de este lote que seguían en inglés, más los nombres accesibles que faltaban.
-- **Suite E2E del lote** en `demo/e2e/specs/46`–`49`: el carrusel contra el morph, las tres listas reordenables, los flotantes y una tanda en WebKit móvil. Con su banco en `demo/app/Livewire/E2e/InteraccionBed.php`.
-- **Tests de unidad de `carousel`** —el remontaje, el foco dentro de una diapositiva, `inert` y el autoplay— y del nodo JSON de `transfer` y `order-list`.
-- **Cepo `tests/Ui/RolesQueMientenTest.php`** — ningún `role="tab"` sin un `role="tabpanel"` al otro lado, y ningún `role="menuitem"` puesto en un envoltorio en vez de en el control.
-
-### Fixed
-
-- **`<x-kore::carousel>` se destruía con cualquier morph ajeno.** Ver arriba. Un `MutationObserver` sobre el carril reaplica tamaños y posición cuando el morph se los lleva, igual que hacen las barras de `<x-kore::splitter>`. Reaplicarlos vuelve a disparar el observador, pero entonces la condición ya no se cumple y no hay bucle.
-
-- **El carrusel no contaba las diapositivas que llegaban después.** `totalSlides` se calculaba en `init()`, que corre una vez: con el servidor añadiendo una, el estado se quedaba en cuatro con cinco en el DOM, la última era inalcanzable y faltaba un indicador. Ahora las recuenta el mismo observador.
-
-- **Un botón dentro de una diapositiva no recibía el foco.** El carril llevaba `x-on:pointerdown.prevent` para que arrastrar no seleccionara texto, y ese `preventDefault` impide también el enfoque: medido, `document.activeElement` se quedaba en `<body>` al pulsar. Ahora lo decide el JavaScript, que no arranca el arrastre si el gesto empieza sobre un control.
-
-- **Las diapositivas fuera de la ventana seguían en el tabulador.** Un `overflow-hidden` las recorta pero no las saca del recorrido del foco: se enfocaba un botón que nadie veía, y la página no desplazaba a ninguna parte porque el carril se mueve con `transform`. Llevan `inert` mientras están fuera.
-
-- **`<x-kore::tooltip>` no estaba conectado con el control que lo dispara.** Ver arriba. El texto va ahora en un `<span class="sr-only">` del propio componente y el JavaScript cuelga un `aria-describedby` del control que el consumidor puso en el slot — no del envoltorio, que es un `<div>` sin rol y que ningún lector anuncia. El panel flotante pasa a ser decorativo (`aria-hidden`), o el texto se leería dos veces.
-
-  **Por qué el texto no está en el panel**, que era lo natural: darle un `id` al nodo teleportado rompía el DataTable. El panel acaba en `<body>` mientras el `<template>` que lo declara sigue en su celda, así que al re-renderizar la tabla el morph emparejaba por id el nodo del HTML nuevo con el que ya colgaba de `<body>` y lo arrancaba de su ámbito de Alpine — `ReferenceError: show is not defined` con veinticinco tooltips en una página. Asignar el id desde JavaScript tampoco valía: pedir `$refs.tooltip` durante el montaje dejaba paneles sin ámbito por su cuenta. Lo cazó el censo de consola.
-
-- **`<x-kore::tooltip>` no se cerraba con `Escape`.** WCAG 1.4.13 pide poder descartar lo que aparece al pasar por encima o al enfocar, sin mover el foco. Se escucha en el elemento y la tecla solo se marca si había algo abierto, que es el contrato del `Escape` de la librería.
-
-- **`<x-kore::order-list>` y `<x-kore::transfer>` no se enteraban cuando el servidor cambiaba `:items`.** Los recibían dentro del `x-data` con `wire:ignore` en la raíz: medido, el servidor pasaba de cuatro elementos a cinco y los dos seguían enseñando cuatro para siempre. Ahora los items viajan en un nodo JSON de fuera que Livewire sí actualiza. En el `order-list`, al releer se reconcilia el orden: lo que el usuario había movido se queda donde estaba y lo nuevo se añade al final.
-
-- **El disparador de `<x-kore::dropdown>` no decía si estaba desplegado.** Ni `aria-expanded` ni `aria-haspopup`, ni siquiera con el menú abierto. Los pone el JavaScript sobre el control del slot y los reaplica al abrir y cerrar.
-
-- **Los tres botones de `<x-kore::clipboard>` no tenían nombre**, y el campo de solo lectura de la variante `input` tampoco. El de la variante `icon` se apoyaba en un `title`, que no se expone de forma fiable en táctil ni en todos los lectores. Además, **el «copiado» era solo visual**: ahora lo anuncia un `role="status"`.
-
-- **Los indicadores del carrusel decían ser pestañas.** `role="tablist"` con sus `role="tab"` y cero `role="tabpanel"` al otro lado — y con `numVisible` mayor que uno cada punto lleva a un grupo de diapositivas, así que la relación uno a uno que un `tablist` promete no puede existir. Son botones con `aria-current`. El `role="region"` del contenedor tampoco tenía nombre, y las diapositivas no eran nada: ahora son `role="group"` con `aria-roledescription="slide"` y su posición.
-
-- **Los elementos de `<x-kore::speed-dial>` envolvían a sus controles.** `role="menuitem"` estaba en el `<div>` de fuera, con el `<button>` dentro: un menuitem no puede contener un control. El rol pasa al control y el envoltorio a `role="none"`.
-
-- **El menú de `<x-kore::dropdown>` no tenía nombre y su separador no era un separador.** `role="menu"` sin `aria-label` se anuncia como «menú» y nada más; el separador era un `<div>` con un borde, decoración que nadie anunciaba.
-
-### Medido, no cambiado
-
-- **`<x-kore::sortable>` en modo servidor no tiene ni un control enfocable**, igual que el tablero. Medido: 0, frente a 10 del `order-list` y 8 del `transfer`. Añadirle teclado es una función nueva, no un arreglo; hay un test que fija el número en cero para que el día que se añada haya que actualizarlo a conciencia.
-- **`<x-kore::order-list>` y `<x-kore::transfer>` sí se operan sin ratón**, y conviene decirlo: el primero con sus botones de subir y bajar —el cambio llega al servidor, comprobado de punta a punta— y el segundo marcando con `Espacio`. Las casillas del transfer llevan `pointer-events-none`, que parece dejarlas inertes y no lo hace: el teclado no pasa por ahí.
-- **Los ids de `order-list` y `transfer` ya estaban bien.** El `x-sort:item` del primero es una expresión evaluada dentro del `x-for` y el segundo no usa `x-sort` en absoluto. Probado con ids de texto desde el principio.
-- **Tres `role` sin nombre en componentes de otros lotes**, comprobados a mano y sin tocar: el `role="dialog"` del overlay manager —el más serio: cada modal se anuncia como «diálogo» y nada más—, los dos `role="listbox"` anidados del select y el `role="menu"` del theme-switch.
+- **El contraste de las variantes `solid`.** Los cuatro colores fallan AA como fondo de texto blanco: `success` 3,17 · `info` 3,42 · `destructive` 4,39 · `primary` 4,41. Arreglarlo es mover la paleta base, y esos mismos tokens pintan gráficos, iconos y estados. Ver `docs/presentacion-auditoria.md` §A.1.
+- **Tres `role` sin nombre**: el `role="dialog"` del overlay manager, dos `listbox` anidados del select y el `menu` del theme-switch.
+- **Teclado para el tablero y para `<x-kore::sortable>` en modo servidor**, los dos a cero controles enfocables.
+- **Textos en inglés** que quedan fuera de los tres lotes ya barridos: `theme-switch`, `color-picker`, `time-picker`, el filtro del árbol y las migas.
 
 ---
 
-## [No publicado · Datos y visualización]
+### DataTable
 
-**Auditoría del lote de datos y visualización en navegador.** Árbol, tablero, gráficos, contadores, barras de progreso, tabla estática, descripciones y línea de tiempo probados en Chrome de escritorio y en WebKit sobre iPhone, con 42 pruebas nuevas.
+**Auditoría del DataTable completa, tres funciones nuevas y una suite E2E.** Cuarenta y ocho correcciones sobre el módulo. Dos de ellas cierran una brecha incómoda: estaban firmadas como completadas en el roadmap de la 1.2.0, publicadas en este CHANGELOG y descritas como garantías en `docs/data/hardening.md`, pero el código nunca las tuvo. `git log -S` sobre `resources/js/datatable.js` lo confirma para el guard de teclado: no existió en ninguna versión.
 
-Casi todo este lote lo pinta el servidor, así que el morph de Livewire no le hace nada — **salvo al árbol**, que es el único que se construye entero desde el cliente. Ahí estaba el defecto grave:
+#### Added
 
-**El `<x-kore::tree>` quedaba MUERTO en cuanto el servidor cambiaba sus nodos.** El árbol se pinta con un `x-for` de Alpine, y el morph reemplazaba el `<template>` por el del servidor —donde esas filas no existen—. A partir de ese momento el componente dejaba de reaccionar del todo: medido, el estado pasaba a nueve filas mientras el DOM se quedaba en siete, y ni tocando el estado a mano volvía a pintar.
+- **`Column::description()`** — segunda línea de la celda, en tono secundario. El patrón «nombre arriba, correo en gris debajo» que aparece en casi toda tabla de administración y que hasta ahora obligaba a bajar a un `ComponentColumn`. Acepta closure o nombre de campo, y se puede colocar encima del valor. Se renderiza en los tres modos (tabla, `card` y `collapse`).
+- **Menú por cabecera de columna** — ordenar ascendente/descendente, fijar a izquierda/derecha y ocultar, desde la propia columna. Es lo que convierte `pinned()` y el selector de columnas en algo del usuario final y no solo de quien escribe la tabla. Los fijados que elige el usuario se guardan en sesión y mandan sobre los que declara la tabla, así que una columna con `->pinned('left')` puede soltarse. Trae `setSort()` (fija la dirección, a diferencia de `sortBy()`, que rota), `toggleColumnPin()` y `resetColumnPins()`. Se apaga con `datatable.column_menu` o `setColumnMenuEnabled(false)`.
+- **Vistas guardadas por usuario** — un `FilterPreset` lo declara quien escribe la tabla y es fijo; una vista la crea quien la usa, guardando filtros, orden, búsqueda, `perPage`, columnas visibles y columnas fijadas. Se activan con `setSavedViewsEnabled()` o `datatable.saved_views`.
 
-El otro hallazgo tiene más recorrido del que parece: **el kanban soltaba un `ReferenceError` por cada tarjeta si los ids eran de texto**, exactamente el mismo fallo que `<x-kore::sortable>` ya tenía corregido. Con ids numéricos funcionaba de casualidad, y así llevaba desde que se escribió.
+  La persistencia es un contrato, `SavedViewStore`, con un driver de sesión por defecto: funciona sin instalar nada, y quien quiera vistas permanentes implementa la interfaz contra su propia tabla y la enlaza en el contenedor. La librería **no trae modelo ni migración** a propósito — nadie debería tener que migrar su base de datos por usar un DataTable. El ámbito por usuario queda del lado de la implementación, porque solo ella sabe qué es un usuario en esa aplicación.
+- **Directiva `x-kore-trap`** — retención de foco sin dependencias, para cualquier componente que necesite comportarse como diálogo. Nace del drawer de filtros, pero es de uso general.
 
-### Added
+#### Security
 
-- **`caption` y `captionHidden` en `<x-kore::table>`** — el nombre de la tabla. No se podía poner: `$attributes` se vuelca en el `<div>` envolvente, que no tiene rol y por tanto no acepta nombre, así que un lector anunciaba «tabla, 3 columnas, 3 filas» y nada más.
-- **Teclado completo en `<x-kore::tree>`** — flechas arriba y abajo por los nodos visibles, derecha e izquierda para abrir y cerrar ramas o subir al padre, `Home`/`End` y `Enter` para elegir. No había ninguno.
-- **`kore-ui.ui.translations.tree`, `tree_expand` y `tree_collapse`** — nombre del `role="tree"` y verbos de sus chevrones.
-- **`ariaLabel` en `<x-kore::tree>`** — para nombrar un árbol concreto cuando hay varios en la misma página.
-- **Suite E2E del lote** en `demo/e2e/specs/42`–`45`: el árbol contra el morph y su escala, el tablero, gráficos y contadores, listas, y una tanda en WebKit móvil. Con su banco en `demo/app/Livewire/E2e/DataBed.php` y `KanbanBed.php`.
-- **Tests de unidad** de `tree` —de dónde saca los nodos y cómo se recorre— y de `stats`.
+- **Los valores de filtro dejan de llegar crudos a la consulta.** `$filters` es tan pública y manipulable como `$sorts`, pero solo la segunda se validaba. Un `?filter[estado][]=x` metía un array donde `where()` espera un escalar, Eloquent lo pasaba como binding y salía un `PDOException` — es decir, un enlace que rompe la página de quien lo abra. Ahora cada filtro implementa `sanitize()` y solo llega a la consulta lo que sobrevive: se descartan las formas equivocadas, los valores no numéricos en filtros numéricos (en PostgreSQL eso aborta la consulta, no devuelve cero filas), las fechas no parseables y —cuando el filtro declara `options()`— los valores fuera de esa lista. Un valor rechazado tampoco se cuenta ni se pinta como pill, para que la interfaz no anuncie un filtro que no se está aplicando.
+- **Los filtros de texto escapan los comodines `LIKE`.** La búsqueda global lo hacía desde la 1.2.0 y los filtros no: un `%` escrito en cualquier filtro seguía actuando como comodín, y `%%%%` forzaba un escaneo completo de la tabla. Ambos comparten ahora el mismo helper (`Support\LikePattern`), con cláusula `ESCAPE` explícita para que el comportamiento sea igual en MySQL, PostgreSQL y SQLite.
+- **`hidden()` ya no se confunde con autorización en acciones y presets.** `resolveBulkActions()` descartaba las acciones ocultas para pintar el menú, pero `findBulkAction()` —por donde pasa la ejecución— no filtraba nada: una acción escondida por permisos seguía siendo ejecutable con `$wire.runBulk('deleteAll')`. Igual con `findPreset()`. Además hay un `BulkAction::authorize(Closure)` explícito, que se evalúa en el servidor justo antes de tocar datos y responde `403`.
+- **Los IDs de una acción masiva se recortan al alcance de la tabla.** `executeBulkAction()` aceptaba la lista tal cual venía del navegador, así que se podía operar sobre registros que la `query()` del componente nunca habría mostrado (el mismo IDOR que ya se cerró en la edición inline). Ahora se contrastan contra la consulta filtrada, con un tope de `$bulkSelectionLimit` (5.000, redefinible). En modo "seleccionar todo lo que coincide" los IDs dejan de viajar al navegador dentro del payload de confirmación: se resuelven de nuevo en el servidor al confirmar, que además evita mandar millones de identificadores de ida y vuelta.
+- **La clave primaria entra en las expresiones vía `@js()`.** Quince puntos entre `datatable`, `card`, `collapse` y `action` la interpolaban dentro de comillas: Blade escapa a entidades HTML, pero el parser del navegador las decodifica antes de que Alpine o Livewire evalúen la expresión, así que una PK de tipo texto con una comilla rompía la cadena y lo que viniera detrás se evaluaba como código. No era explotable con IDs enteros o UUID, pero `setPrimaryKey()` acepta slugs y códigos.
+- **`#[Locked]` en el estado de control** (`pendingBulkIdentifier`, `pendingBulkMatching`, `deferredLoading`, `dataLoaded`). Fijar `pendingBulkIdentifier` desde el navegador era la forma de saltarse el flujo de confirmación entero.
+- **`selectRange()` se acota a la página visible.** Es la única entrada que recibe una lista de IDs del cliente; un rango, por definición, sale de las filas que se están viendo.
+- **El panel de filtros en modo `drawer` es un diálogo de verdad.** Un panel teleportado a `body` con backdrop, pero sin `role="dialog"`, sin `aria-modal`, sin etiqueta y sin retención de foco: con lector de pantalla, el contenido de detrás seguía siendo navegable mientras el panel estaba abierto. Se añade además una directiva propia `x-kore-trap` — `@alpinejs/focus` arrastra `focus-trap` y `tabbable`, que no caben en el presupuesto de bundle, así que el trap son sesenta líneas sin dependencias, con su propio archivo de tests.
 
-### Fixed
+#### Changed
 
-- **`<x-kore::tree>` quedaba muerto tras un morph que cambiara sus datos.** Ver arriba. La raíz pasa a llevar `wire:ignore` para que el morph no toque los nodos que pinta Alpine, y los datos viajan en un nodo JSON aparte que Livewire sí actualiza y que el componente vigila con un `MutationObserver`. Es el mismo mecanismo que resolvió las opciones de `<x-kore::select>`. De paso, los nodos dejan de viajar **dos veces** en el HTML: estaban en el `<script>` y otra vez dentro del `x-data`, lo que en un árbol de dos mil nodos son 81 kB de más.
+- **El export hace eager loading igual que la pantalla.** `exportAs()` construía su query sin `applyEagerLoading()`, que sí está en `buildRowsQuery()`: exportar 10.000 filas con una columna en dot-notation eran 10.000 consultas extra dentro del `streamDownload`.
+- **La paginación deja de recorrer todas las páginas.** El cálculo de la ventana iteraba `1..$lastPage` para producir siempre los mismos seis botones: un millón de filas a 25 por página eran 40.000 vueltas de bucle por render. Ahora es aritmética directa, con el mismo resultado (verificado en los tests).
+- **`NumberColumn` ya no asume `ext-intl`.** `money()` y `locale()` instanciaban `NumberFormatter` sin comprobar nada, y la extensión no viene activada en las imágenes PHP oficiales: eso era un `Class "NumberFormatter" not found` en mitad de un render. Ahora degrada a `number_format()` (con el código de moneda como prefijo) y el formato de celdas y agregaciones pasa por un único método.
+- **`composer.json` declara lo que el paquete usa.** Añadidos `illuminate/database`, `illuminate/pagination`, `illuminate/validation` e `illuminate/contracts` — se usaban por transitividad, sin declararse. `ext-intl` entra como `suggest`, no como requisito duro, porque solo hace falta para `money()`/`locale()` y ahora hay fallback.
+- **Los hooks de montaje dejan de duplicarse.** Livewire invoca por su cuenta los métodos `mount{Trait}`, y `mount()` llamaba además a mano a cuatro de los cinco, así que se ejecutaban dos veces por montaje y en un orden que no controlábamos respecto a `configure()`. No era cosmético: los defaults de los filtros y el preset por defecto escriben las mismas propiedades, y la config de columnas y responsive podía deshacer lo que la tabla acababa de pedir. Ahora son métodos ordinarios (`applyColumnSelectConfig`, `applyResponsiveConfig`, `applyQueryStringConfig`, `applyFilterDefaults`, `applyDefaultPreset`), llamados una vez desde `mount()` en un orden explícito: config global → `configure()` → estado inicial derivado.
+- **El método de una acción masiva recibe siempre IDs en `string`.** Antes llegaban tal cual venían del cliente y ahora se normalizan, igual que ya hacían `getAllMatchingIds()` y `getRowIds()`. Si comparabas con `in_array($id, $ids, true)` sobre enteros, ajústalo.
+- **`setQueryStringEnabled()` dentro de `configure()` no puede activar la sincronización en la primera carga.** No es un cambio de código sino algo que estaba sin documentar: Livewire evalúa `queryString()` **antes** de `mount()`, así que en ese momento `configure()` todavía no ha corrido. Para activarlo por tabla, declara `public bool $queryStringEnabled = true` en la subclase o sobreescribe el nuevo `usesQueryString()`.
+- **La definición de la tabla se construye una vez por petición.** `columns()` se invocaba trece veces solo desde el módulo, más las de Blade, y cada llamada reconstruía todos los objetos `Column` con sus closures. Con `filters()` el coste no era de objetos sino de base de datos: se llamaba cuatro veces, y el patrón habitual es `SelectFilter::options(Ciudad::pluck(...))`. Los cachés son `protected`, así que no se serializan y duran lo que dura el request. `hiddenIf()` también se evalúa una sola vez por columna.
+- **Los modos `card` y `collapse` dejan de mandar el doble de HTML en cada render.** El servidor no sabe el ancho del contenedor, así que la primera carga emite las dos variantes y el cliente esconde la que sobra; en cuanto Alpine informa del ancho (`setViewport`), cada render manda solo la que toca. El HTML duplicado se paga una vez, no en cada paginación.
+- **Los exporters se registran en un mapa.** `resolveExporter()` tenía un `default => new CsvExporter()`: en cuanto alguien añadiera `'xlsx'` a `setExportFormats()`, el botón habría descargado un CSV con extensión `.csv` sin decir nada. Ahora un formato sin registrar lanza `InvalidArgumentException`, y hay `registerExporter()` para añadir los propios.
+- **El export avisa cuando se corta.** Al superar `exportMaxRows`, el usuario recibía un archivo truncado sin ninguna señal.
+- **CSV conforme a RFC 4180.** `fputcsv()` usaba el escape por defecto de PHP —la barra invertida—, que no es estándar y corrompe cualquier campo terminado en `\`.
+- **`matchingQuery()`, `eachMatching()` e `isActingOnAllMatching()`** para escribir acciones masivas que no materialicen el conjunto. `getAllMatchingIds()` sigue ahí, pero sobre dos millones de filas son dos millones de strings en memoria antes de hacer nada.
 
-- **`<x-kore::kanban>` soltaba un `ReferenceError` por tarjeta con ids de texto.** `x-sort:item` es una **expresión** de JavaScript para Alpine: `x-sort:item="tarea-a"` se lee como una resta de variables. Se emite con `Js::from()`, igual que en `<x-kore::sortable>`.
+#### Fixed
 
-- **`<x-kore::stats>` ignoraba `prefers-reduced-motion`.** Un número que trepa durante un segundo es justo la clase de animación que esa preferencia pide desactivar; medido con ella activa, el contador seguía subiendo desde cero. Ahora enseña el valor directamente. El resto de la librería ya la respetaba.
+- **El listener de teclado capturaba toda la página.** `Ctrl/Cmd+A` dejaba de seleccionar texto en cualquier parte de la aplicación, y con dos datatables en la misma vista una flecha movía la fila activa en las dos a la vez. Ahora el handler sigue en `document` —el foco puede estar en el `<body>` y las flechas deben funcionar igual— pero solo responde si el cursor está sobre la tabla o el foco vive dentro de ella. De paso, un `<select>` enfocado ya cuenta como campo de formulario (antes las flechas cambiaban la opción **y** movían la fila), y `Escape` solo suelta el foco de un input propio, nunca de uno ajeno. Cubierto por `tests/js/datatable-keyboard.test.js`.
+- **El badge de filtros activos no aparecía nunca, y de paso dejaba un velo de carga parpadeando sobre la tabla.** Los layouts `popover` (el valor por defecto de `filter_layout`) y `drawer` pedían el conteo con `$wire.getActiveFilterCount()` dentro de un `x-if`. Eso tiene dos consecuencias: en Livewire devuelve una `Promise`, y `Promise > 0` es `false`, así que el badge no se pintaba jamás; y como es una **llamada al servidor**, Livewire marcaba el componente como «cargando» en cuanto Alpine evaluaba la expresión.
 
-- **El tablero no tenía ninguna semántica.** Columnas y tarjetas eran `div` sin rol: para un lector de pantalla no había columnas ni tarjetas, solo texto suelto. Cada columna es ahora una `list` con el nombre de la columna, y cada tarjeta un `listitem`.
+  El segundo efecto es el que se veía: la tabla llegaba pintada del servidor y, unos milisegundos después, aparecía el overlay translúcido dejando ver las filas por detrás. Y no una vez — la respuesta hacía que Alpine reevaluara la expresión, que volvía a llamar, en un bucle de re-render. Medido en un caso real: **166 encendidos y apagados del velo en tres segundos**, con los datos visibles todo el rato.
 
-- **Los chevrones del árbol se llamaban todos «Toggle expand».** El mismo nombre para cada rama, y en inglés: un lector oía lo mismo una vez por nodo sin saber cuál estaba abriendo. Ahora dicen «Abrir Documentos» / «Cerrar Documentos».
+  El conteo se publica ahora en la propiedad `#[Locked] public int $filterCount`, que se lee desde `$wire` de forma síncrona y reactiva —sin viaje al servidor— incluso dentro del `wire:ignore` en el que viven esos triggers. `slide-down` se queda con su variable Blade: su botón está fuera del `wire:ignore`. Hay regresión en `demo/e2e/specs/14-overlay-fantasma.spec.js`, con el patrón antiguo montado al lado como control. El conteo se publica ahora en la propiedad `#[Locked] public int $filterCount`, que se lee desde `$wire` de forma síncrona y reactiva incluso dentro del `wire:ignore` en el que viven esos triggers. `slide-down` se queda con su variable Blade: su botón está fuera del `wire:ignore`.
+- **La configuración de export era letra muerta.** `datatable.export.enabled`, `.formats` y `.max_rows` existían en el archivo publicable, aparecían en la documentación y no las leía nadie: el export solo se podía activar tabla por tabla con `setExportEnabled()`. Se aplican en `mount()` antes de `configure()`, así que un ajuste de la tabla siempre gana sobre el global.
+- **`search_debounce` no tenía efecto.** El valor viajaba desde `getSearchDebounce()` hasta el toolbar y el input llevaba `debounce.300ms` escrito a mano.
+- **«Limpiar filtros» no vaciaba el campo de texto.** `TextFilter` es el único tipo que renderiza un `<input>` plano en vez de un componente Kore, así que era el único sin el `$wire.$watch` que sincroniza el `wire:ignore` de vuelta desde el servidor: `resetAllFilters()`, `resetFilter()`, `applyPreset()` y `clearPreset()` limpiaban `$filters` y dejaban el texto en pantalla, mostrando todos los resultados con el filtro todavía visible.
+- **Las celdas `copyable` copiaban entidades HTML.** La expresión pasaba el valor por `e()` dentro de un `{{ }}`, que escapa por segunda vez; el navegador decodifica el atributo una sola vez, así que al portapapeles llegaba `Sanz &amp;amp; Cía`. Ahora usa `@js()`, que es el escape correcto para contexto JavaScript — y también en la clave de feedback, porque una comilla en la clave primaria rompía la expresión entera.
+- **Ordenar mantenía la página.** `sortBy()`, `removeSortBy()` y `clearSorts()` dejaban al usuario en la página 7 de un orden nuevo. Vuelven a la 1. Se usa `resetPage()` y no `resetDataScope()` a propósito: ordenar no cambia el conjunto de filas, así que una selección «todo lo que coincide» sigue siendo válida.
+- **Filas sin `wire:key` en los modos responsive.** En modo `card` no lo llevaba ninguna tarjeta y en `collapse` solo se emitía si la tabla tenía bulk actions. Livewire reutiliza los nodos por posición, así que el estado Alpine de una celda en edición o de una fila desplegada se quedaba pegado al hueco y no al registro al paginar o filtrar.
+- **Una fecha inválida tumbaba el render completo.** `Carbon::parse()` sin protección en `DateColumn`: bastaba una fila con `'0000-00-00'`, una cadena vacía en una columna `string` o cualquier dato heredado sucio para que la tabla entera respondiera 500. Ahora la celda muestra el valor tal cual —feo, pero visible— y la página funciona.
+- **Los filtros sobre relaciones generaban SQL inválido.** `TextFilter::make('Autor', 'user.name')` producía `where('user.name', 'like', …)`. Se resuelve como `whereHas`, igual que la búsqueda global, y solo cuando el modelo declara esa relación: una columna cualificada por tabla con un join propio se sigue tratando como antes. Los filtros de rango aplican sus dos condiciones dentro del mismo `whereHas`, porque dos separados no describen un rango.
+- **La navegación por teclado no funcionaba sin acciones masivas.** `$rowIds` solo se calculaba si `isSelectionEnabled()`, que exige `hasBulkActions()`, así que en una tabla de solo lectura las flechas, `Enter` y `Espacio` no hacían nada. Son funciones independientes y ya no están atadas.
+- **Quitar un filtro no reseteaba nada.** `resetFilter()` solo hacía `unset()`: ni volvía a la página 1, ni soltaba "seleccionar todo lo que coincide", ni desactivaba el preset. Y `resetAllFilters()` dejaba el preset marcado como activo después de borrar sus filtros. Los tres caminos —editar, quitar uno, quitarlos todos— comparten ahora la misma semántica.
+- **La opción global `query_string` no se aplicaba nunca.** `$this->queryStringEnabled ?? config(...)` sobre una propiedad `bool` no nulable: el `??` era código inalcanzable.
+- **`configure()` se perdía después del primer request.** Las propiedades de configuración (`density`, `responsiveMode`, `primaryKey`, `exportEnabled`, `maxHeight`, `paginationType`…) son `protected` y Livewire no las serializa, así que con `configure()` corriendo solo en `mount()` la tabla volvía a los valores por defecto de la clase en cuanto el usuario paginaba, buscaba o filtraba. En la práctica: el modo `card` dejaba de aplicarse al pasar de página, y `exportAs()` empezaba a responder 403 porque `isExportEnabled()` era `false`. Ahora `configure()` se llama desde `booted()`, que corre en todas las peticiones. **Si tu tabla define `booted()`, tiene que llamar a `parent::booted()`.**
+- **La opción global `filter_layout` no se aplicaba nunca.** Livewire vuelca las propiedades públicas en el scope de la vista y ganan sobre los datos que pasa `render()`. `$filterLayout` es pública y vale `null` hasta que alguien llame a `setFilterLayout()`, así que el valor resuelto —con su fallback a config— no llegaba al Blade y siempre se pintaba el `popover`. Los dos valores se igualan ahora en `render()`.
+- **`moveRight()` contaba las cabeceras de las dos tablas** en modo `collapse`, donde conviven la tabla y la variante colapsada.
+- **Volver a una vista guardada la desactivaba en vez de restaurarla.** Editar filtros a mano no soltaba la vista activa, así que el siguiente clic sobre ella se interpretaba como «salir de la vista» — lo contrario de lo que espera quien la creó. Ahora `resetDataScope()` la suelta, igual que ya hacía con los presets.
+- **Dos tablas de la misma clase compartían las columnas ocultas.** La clave de sesión no incluía el nombre de instancia, así que esconder «Email» en una la escondía en la otra. La clave de las tablas sin nombre no cambia, de modo que las sesiones abiertas conservan su estado.
+- **`toggleColumnVisibility()` aceptaba campos inexistentes** y los acumulaba en la sesión indefinidamente.
+- **Un `default()` de texto se convertía en `0` en las columnas numéricas.** `data_get()` resuelve objetos con `isset()`, así que para un atributo a `null` ya devolvía el default; lo que llegaba a `NumberColumn` era el marcador (`'—'`, `'N/D'`), que se casteaba a `float` y salía como un `0` con pinta de dato real — peor que la celda vacía que se quería evitar. De paso, `Column::getValue()` iguala el caso de las filas que son arrays, donde `data_get()` sí entrega el `null` tal cual: `default()` deja de depender de si la fila es un modelo o un array.
+- **El buscador del DataTable no se renderizaba.** Regresión propia de esta misma tanda: al hacer configurable el debounce se interpoló `{{ }}` en el **nombre** del atributo (`wire:model.live.debounce.{{ $x }}ms`), y eso rompe el parser de componentes de Blade — la etiqueta `<x-kore::input>` dejaba de compilarse y acababa literal en el HTML. El test que lo cubría era un falso positivo: buscaba ese texto en el HTML, y estaba precisamente porque nadie lo había procesado. Ahora el atributo se construye en PHP y se pasa por el bag, que sí admite nombres dinámicos.
+- **El bundle JavaScript quedaba clavado en el navegador hasta un año.** `@koreScripts` servía `dist/kore-ui.js` con `Cache-Control: immutable, max-age=31536000` desde una URL sin versionar: al publicar una versión nueva de la librería, los navegadores seguían ejecutando la anterior sin forma de invalidarla. La URL lleva ahora la huella del archivo (`?id=`), y una petición sin huella se sirve revalidando.
+- **El shift-click nunca seleccionó un rango.** La feature se publicó en la 1.2.0 y no llegó a funcionar: el evento `kore:datatable-rows-updated` se emite en cada render y su manejador borraba el ancla, así que el primer clic provocaba un render, el render borraba el ancla y el shift siguiente ya no tenía desde dónde medir. Ahora solo se suelta si la página cambió de verdad.
+- **`pagination_type => 'cursor'` tumbaba la página.** Es una opción documentada, pero la vista de paginación pedía `currentPage()` al paginador y un `CursorPaginator` no lo tiene: reenvía las llamadas que no conoce a su colección, así que salía un «Method Collection::currentPage does not exist». La vista distingue ahora el caso y hay un `setCursor()` para avanzar, porque `nextPage()`/`previousPage()` suman enteros y un cursor no lo es.
+- **`Column::width()` no se respetaba.** Sin `table-layout: fixed` el navegador reparte los anchos según el contenido, así que una columna con mucho texto aplastaba a las demás y su contenido se apilaba palabra a palabra. Nuevo `setTableLayout('fixed')` (y `datatable.table_layout` en config), que además da a la tabla el ancho mínimo necesario para que los `width()` sean exactos.
+- **El selector de «por página» mostraba un valor distinto del que se usaba.** Una tabla que fije `perPage = 5` en `configure()` quedaba fuera de `per_page_options` y el desplegable enseñaba el primero de la lista. El selector incluye ahora el valor en uso; la validación sigue haciéndose contra la lista de config.
+- **`@js()` dentro del atributo de un componente Blade** no se compila en el scope del padre: la directiva llega literal al hijo y se evalúa allí, donde `$rowId` no existe. Afectaba a las celdas copiables y al desplegable de fila del modo `collapse`. Se usa `Js::from()` en esos puntos, que sí se resuelve donde toca.
+- **Las cabeceras ordenables no se veían como las demás.** Los navegadores aplican `text-transform: none` a los elementos de formulario, así que el `<span>` dentro del botón de ordenar no heredaba el `uppercase` del `<th>`: en la misma cabecera convivían «Nombre» y «EMAIL».
+- **El filtro de rango numérico salía cortado.** Los dos campos no repartían el ancho del contenedor y en el `drawer` se quedaban en 41 px, con el placeholder «Max» recortado a «Ma:». Se les da `flex-1` y se retiran los controles `+/−`, que en un filtro no aportan.
 
-- **Los nodos del árbol no se podían enfocar.** Todos los `treeitem` llevaban `tabindex="-1"` y el único enfocable de cada fila era el chevrón, así que con `selectable` no había forma de elegir un nodo sin ratón. Ahora sigue el patrón de un `tree`: una sola parada del tabulador y flechas dentro.
+#### Removed
 
-- **Al árbol le faltaba media semántica.** `role="tree"` sin nombre, `aria-level` puesto en el envoltorio en vez de en el `treeitem` —donde no significa nada— y `aria-expanded=""` vacío en los nodos sin hijos, que es un valor inválido.
+- **`BulkAction::hiddenWhenEmpty()`.** Nunca se consultó desde ninguna vista, y no podía tener efecto: el bloque de acciones masivas solo se pinta cuando hay selección, así que "ocultar cuando no hay selección" era siempre cierto.
+- **`getVisibleColumnsForCollapse()`**, sin uso. La vista `collapse` recalculaba lo mismo por su cuenta —y peor: reconstruía la lista de campos colapsados dentro del `in_array`, una vez por columna—; eso también está arreglado.
+- **`toggleBooleanEdit()`** del plugin Alpine: el Blade llama a `$wire.updateCell` directamente.
+- **`translations.no_results`** del archivo de configuración, que nadie leía. El texto del estado vacío es `empty_text`.
 
-- **La caja de filtro del árbol no tenía nombre accesible.** Solo llevaba `placeholder`, que desaparece en cuanto se escribe algo.
+#### Accessibility
 
-### Medido, no cambiado
+- `aria-label` en los botones de acción por fila del modo `inline`, que solo tenían `title` sobre un icono decorativo — `title` no es un nombre accesible fiable y no llega en navegación táctil.
+- `aria-label` en el selector de «por página», cuyo texto vivía en un `<span>` adyacente sin asociar.
+- Los pares etiqueta/valor de los modos `card` y `collapse` van dentro de un `<dl>`. Estaban sueltos en un `<div>`: HTML inválido, y sin la relación que expone el elemento a las tecnologías asistivas.
+- El drawer de filtros se anuncia como diálogo modal y atrapa el foco (ver Security).
+- Cada etiqueta de filtro apunta a su campo con `for`/`id`, únicos por tabla y por filtro. Eran `<label>` huérfanos en los cuatro layouts.
+- El recuento de resultados se anuncia con `aria-live="polite"`: filtrar o buscar dejaba de ser un cambio silencioso para un lector de pantalla.
+- La celda activa en navegación por teclado se resalta. Antes solo se marcaba la fila, así que el recorrido horizontal era invisible.
+- `aria-label` en el botón de copiar de `ColorColumn`, en el disparador del menú de acciones por fila y en el botón de copiar de celda: eran controles con solo un icono dentro. La suite E2E cuenta ahora los controles sin nombre accesible y falla si aparece alguno.
 
-- **El árbol no virtualiza.** Con 100 raíces × 20 hijos pinta **2.100 filas y 12.810 nodos de DOM** para dejar 100 a la vista, y manda 79 kB de JSON. No es un defecto —el componente no promete otra cosa— pero conviene tener el número, como se hizo con las 10.000 opciones del select.
-- **El tablero no se puede recorrer con el teclado**: cero controles enfocables dentro. Solo se opera arrastrando, así que quien no use ratón no puede mover nada. Añadir teclado es una función nueva, no un arreglo; hay un test que fija el estado actual para que el día que se añada haya que actualizarlo a conciencia.
-- **Los gráficos están bien resueltos para lectores de pantalla**: el `<svg>` va `aria-hidden` y al lado se pinta una tabla con los mismos datos, con el `aria-label` del consumidor como `<caption>`. La leyenda oculta series y lo anuncia con `aria-pressed`.
-- **Todo lo que pinta el servidor sigue a los datos** y sobrevive a un morph ajeno: gráficos, tablero, tabla, descripciones y línea de tiempo.
+#### Docs
 
----
+- Reescrita la nota **«Badge de filtros activos»** de `docs/data/datatable.md`, que documentaba el arreglo del layout `slide-down` como si cubriera los tres.
+- Ampliada la nota de `wire:ignore`: todo campo dentro de uno necesita su `$wire.$watch`, y el filtro de texto monta el suyo.
+- `docs/data/hardening.md` documenta las garantías nuevas (filtros, acciones masivas, `@js()` en la clave primaria) y su lista de pendientes refleja por fin lo que queda.
+- `docs/data/datatable.md` añade **Filtros sobre relaciones**, **Saneado de valores** y **`hidden()` no es `authorize()`**.
+- Reescrita la nota **«Propiedades `#[Locked]`»** de `docs/data/datatable.md`: su regla —"todo lo que configure `configure()` debe ser `#[Locked] public`"— dejó de ser cierta al mover `configure()` a `booted()`. La sustituye **«`configure()` se ejecuta en cada request»**, con el orden de hooks medido.
+- Nuevas secciones **Exportación** (con formatos propios) y **Conjuntos grandes** (cómo escribir una acción masiva que no materialice el conjunto).
+- `docs/data/hardening.md` añade un apartado de rendimiento por render.
+- Nuevas secciones **Segunda linea en la celda**, **Menu por cabecera de columna** y **Vistas guardadas**, esta última con el ejemplo de un `SavedViewStore` contra base de datos.
+- **Suite E2E** en `demo/e2e/`: 123 pruebas con Playwright sobre navegador real (Chrome de escritorio y WebKit en iPhone), con captura de cada estado y medición de tiempos por volumen. Ocho de los fallos corregidos en esta entrada los encontró ella, no la suite de unidad — son los que solo se ven cuando el HTML se compila, el JavaScript se ejecuta y el navegador pinta.
 
-## [No publicado · Navegación y layout]
-
-**Auditoría del lote de navegación y layout en navegador.** Shell, sidebar, navbar, breadcrumbs, acordeón, pestañas, pasos, toolbar, splitter y divider probados en Chrome de escritorio y en WebKit sobre iPhone, con 41 pruebas nuevas. Los defectos se reparten en dos familias:
-
-**Estado del cliente sobre marcado del servidor.** El sub-menú del sidebar que el usuario acababa de abrir se cerraba solo en cuanto CUALQUIER cosa de la página hablaba con el servidor: el estado vive en un atributo del DOM que el servidor también emite, y el morph lo devolvía a su valor. Y las barras del splitter, que las crea el JavaScript y por tanto no están en el HTML del servidor, el morph las borraba por sobrantes —con ellas se iba el layout entero—.
-
-**Un padre que decide antes de que existan sus hijos.** `<x-kore::tab>` y `<x-kore::stepper>` resolvían su selección inicial en un `$nextTick` dentro de `init()`, cuando la lista de items todavía está vacía. La condición no se cumplía, nadie volvía a intentarlo, y el componente se quedaba con las pestañas pintadas y NINGÚN panel debajo —o con los tres círculos del stepper apagados— hasta que el usuario pulsaba.
-
-Además, el contrato de `Escape` que estableció el lote de overlay llega a los cuatro componentes que se habían quedado fuera.
-
-### Added
-
-- **`hayDuenoPorEncima()`** en el scroll lock — el `Set` de dueños conserva el orden de inserción, así que la lista es también el orden de las capas. Es la única forma de que un componente sepa si algo lo tapa sin tener que conocerlo. La usa el drawer del sidebar para decidir si un `Escape` es suyo o de un modal abierto encima.
-- **`kore-ui.ui.translations.resize`** — nombre accesible de la barra del splitter, que se crea desde JavaScript y no tiene etiqueta en Blade donde ponerlo.
-- **Suite E2E del lote** en `demo/e2e/specs/38`–`41`: el shell completo con su sidebar de tres niveles, las secciones y el layout, el drawer móvil cruzado con un modal, y el contrato de `Escape` aplicado a los controles que escuchaban en `window`. Con su banco en `demo/app/Livewire/E2e/NavBed.php`.
-- **Tests de unidad** de la selección inicial y el teclado de `tab` y `stepper` (`tests/js/tab-stepper.test.js`), del orden de capas del scroll lock y de `closeMobileOnEscape`.
-
-### Fixed
-
-- **El sub-menú abierto del sidebar se cerraba en el primer re-render ajeno.** El estado de apertura vive en `data-kore-open`, que el servidor emite para que la rama de la ruta activa salga ya abierta sin parpadeo; a partir de ahí lo cambia el usuario. Medido: el morph **no** reemplaza el nodo, pero sí reescribe el atributo al valor del servidor —y también el `aria-expanded` del botón, así que el disclosure se anunciaba cerrado mientras el menú se veía abierto—. `wire:ignore.self` congela esos dos atributos y deja vivo todo lo demás: los labels, los badges y los sub-items que pinte el servidor se siguen actualizando, y el item activo se recalcula al navegar porque `wire:navigate` reemplaza el nodo en vez de hacerle morph. Las dos cosas están medidas y con test.
-
-- **`<x-kore::tab>` sin `selected` no mostraba ningún panel.** Ver arriba. Como `onKeydown` sale pronto cuando no hay ninguna pestaña seleccionada, tampoco funcionaban las flechas: el componente entero era inerte salvo al pulsar con el ratón. La selección inicial pasa a decidirse al registrar cada item, saltándose las deshabilitadas.
-
-- **`<x-kore::stepper>` sin `selected` no activaba ningún paso,** por lo mismo: `getStepStatus` devolvía «pending» para todos, ningún círculo salía resaltado y no se veía el contenido de ningún paso.
-
-- **El splitter se destruía en el primer re-render ajeno.** Sus barras las inserta el JavaScript, así que el morph las veía como nodos sobrantes y las borraba; los paneles colapsaban a su tamaño mínimo y no quedaba forma de recuperarlos. Se vuelven a montar en cuanto desaparecen, conservando lo que el usuario hubiera arrastrado.
-
-- **Un `Escape` cerraba el drawer del sidebar Y el modal abierto encima.** Los dos escuchan en `window`, así que reciben el mismo evento. El drawer cede cuando hay una capa por encima —alguien tomó el scroll lock después que él— y marca la tecla cuando sí es suya, que es lo que hace que el manager ceda en el caso contrario.
-
-- **Lo mismo en `theme-switch`, `speed-dial` y el drawer de filtros del DataTable.** Los tres escuchaban `Escape` en `window` y ninguno marcaba el evento. El arreglo no es marcar desde `window` —ahí el orden lo decide quién se registró antes, que es frágil— sino escuchar en el propio elemento y en el panel teleportado, donde el orden de propagación garantiza que el de más adentro ve la tecla primero.
-
-- **Los tres botones del `theme-switch` en su variante por defecto no tenían nombre accesible.** Solo llevan un icono, y sin `labels` no había ni texto ni `aria-label`: un lector de pantalla anunciaba «botón de radio» y nada más. El nombre coincide con la etiqueta visible cuando la hay, como pide WCAG 2.5.3.
-
-- **La barra del splitter no se anunciaba como lo que es.** Un `role="separator"` con `tabindex` es un «window splitter»: sin `aria-label` ni `aria-valuemin`/`max`/`now`, un lector no dice qué separa ni hacia dónde se está moviendo al pulsar las flechas. El valor sigue ahora a las flechas.
-
-### Changed
-
-- **El velo del drawer móvil del sidebar usa `--kore-backdrop`,** el mismo token que el overlay manager y el spotlight. Era un negro fijo en el CSS; ahora los tres velos de la librería se cambian en un solo sitio.
-
-### Medido, no cambiado
-
-- **El foco del drawer móvil queda atrapado** —comprobado con dieciséis tabulaciones seguidas—, y lo hace gracias a la copia de `@alpinejs/focus` que trae Livewire, no a nada que cargue KoreUi (§D.2 del informe de overlay).
-- **El orden del tabulador por el shell** es sidebar → navbar → contenido, sin saltos hacia atrás. **No hay enlace de salto al contenido**, así que quien navega con teclado recorre el menú entero en cada página: es una función que falta, no un defecto de lo que hay.
-- **El acordeón** abre, cierra, respeta `multiple` y conserva lo abierto tras un morph. **Las migas** colapsables despliegan lo que esconden y no anidan `<li>` dentro de `<li>`.
-
----
-
-## [No publicado · Overlay y feedback]
-
-**Auditoría del lote de overlay y feedback en navegador.** Modal, drawer, bottom-sheet, confirm, apilamiento, toast y spotlight probados en Chrome de escritorio y en WebKit sobre iPhone, con 44 pruebas nuevas. El lote de formulario dejó dicho dónde estaba el punto débil de la librería —el teleport a `body` frente a lo que Livewire y el navegador hacen con el DOM— y aquí se confirma: **seis de los ocho defectos vienen de que un nodo teleportado a `<body>` deja de estar donde el resto del código cree que está**.
-
-Dos merecen ir por delante:
-
-**El `<body>` se quedaba sin scroll para siempre después de cerrar cualquier modal.** No hacía falta anidar nada ni cerrar en un orden raro: abrir un modal y cerrarlo bastaba para que la página no volviera a desplazarse en toda la visita. El scroll lock lleva un conteo de dueños y el overlay manager se pasaba a sí mismo como dueño; cada expresión de Alpine evalúa sobre un **proxy nuevo** del mismo componente, así que el objeto que llegaba a `unlockScroll` nunca era el que había registrado `lockScroll` y el `Set` no lo encontraba. Sin error de consola, sin nada visible hasta que el usuario intenta bajar. La suite de unidad del scroll lock estaba entera escrita con cadenas —que sí funcionan— y por eso pasaba en verde.
-
-**Un solo `Escape` cerraba el desplegable y el modal a la vez.** El manager escucha `Escape` en `window`, así que recibía el mismo evento que el panel abierto dentro: cerrar un desplegable se llevaba por delante el formulario entero.
-
-### Added
-
-- **Token `--kore-backdrop`** — el color del velo que oscurece la página bajo un overlay, oscuro en los dos temas y configurable en un solo sitio. Lo usan el overlay manager y el spotlight, que antes llevaba un negro fijo escrito a mano en un `style`.
-- **Cepo de paneles teleportados** (`tests/Ui/PanelesTeleportadosTest.php`) — ningún panel que se mueva a `<body>` con controles dentro puede quedarse sin forma de recibir el teclado. Vale un `x-on:keydown` en el propio panel o una escucha en `window` desde la raíz; un panel sin nada enfocable dentro —un tooltip— no entra en el reparto.
-- **Tests de unidad del overlay manager** (`tests/js/overlay.test.js`) — las clases de posición de cada tipo y la toma y suelta del scroll del body, incluido el caso de que el lock y el unlock lleguen por instancias distintas del componente, que es lo que pasa en el navegador.
-- **Suite E2E del lote** en `demo/e2e/specs/33`–`37`: un formulario completo dentro de un modal, la pila de tres overlays de tipos distintos con sus órdenes de cierre, toast y confirm con su coste en viajes al servidor, el spotlight, y una tanda en WebKit móvil. Con su banco de pruebas en `demo/app/Livewire/E2e/OverlayBed.php`.
-
-### Fixed
-
-- **El `<body>` se quedaba en `position: fixed` para siempre tras cerrar un modal.** Ver arriba. El dueño del lock pasa a identificarse por una clave de cadena, y `lockScroll`/`unlockScroll` **rechazan** cualquier otra cosa en vez de aceptarla en silencio: convertir el objeto a texto habría hecho que dos dueños distintos compartieran clave y se pisaran el lock, que es un fallo todavía más difícil de ver. Regresión en `demo/e2e/specs/34-overlay-pila.spec.js`, que abre y cierra diez veces y comprueba que la rueda del ratón sigue moviendo la página.
-
-- **Un `Escape` cerraba el panel abierto Y el modal.** Ahora `closeOnEscape` descarta el evento que otro ya ha marcado con `preventDefault()` al consumirlo, que es lo que hacen todos los paneles de la librería. Es un contrato y no una lista: cualquier componente que consuma `Escape` como es debido queda cubierto sin tocar el manager. De paso, `select` y `dropdown` dejan de llamar a `preventDefault()` cuando su panel ya está cerrado —marcaban como atendido un `Escape` que no habían usado, y el segundo `Escape` no cerraba nada—.
-
-- **Un `<x-kore::select searchable>` quedaba abierto y sordo: ni flechas, ni Enter, ni Escape.** El `x-on:keydown` vivía solo en la raíz del componente, y el panel está teleportado a `<body>`: los eventos de dentro no burbujean por la raíz. Como el componente lleva el foco a la caja de búsqueda al abrir, a partir de ese momento **ninguna** tecla llegaba a `onKeydown`. La única forma de usarlo era el ratón. El panel escucha ahora el teclado él mismo.
-
-- **`<x-kore::dropdown>` se quedaba sordo tras la primera flecha,** por lo mismo: la primera pulsación mueve el foco a un item del panel teleportado y a partir de ahí ni seguía bajando ni cerraba con `Escape`. Además, al cerrar con `Escape` el foco se perdía —`$refs.trigger` es el envoltorio, un `<div>` sin `tabindex`, así que `focus()` no enfocaba nada y el siguiente tabulador volvía al principio de la página—: ahora se enfoca el control que el consumidor puso dentro.
-
-- **`<x-kore::color-picker>` no se cerraba con `Escape`.** No tenía manejador: solo se cerraba con un clic fuera, y dentro de un modal ese `Escape` sin dueño llegaba al manager y cerraba el modal entero.
-
-- **El calendario y el selector de hora se quedaban abiertos al tabular fuera del campo,** flotando sobre el formulario mientras el usuario escribía dos campos más abajo. El desplegable ya cerraba con `Tab` desde antes.
-
-- **Un modal centraba el texto de todo lo que se pintara dentro.** El contenedor que centra el panel llevaba `text-center`, y eso se hereda: las etiquetas de un formulario, los párrafos y las celdas de una tabla salían centrados sin que nadie lo hubiera pedido. El centrado horizontal lo da `justify-center` y sigue intacto —medido: quitarlo no mueve el panel ni un píxel—. El diálogo de confirmación, que sí quiere su texto centrado, lo pide en su propia vista y no se ve afectado.
-
-- **En tema oscuro, el velo de un modal ACLARABA la página en vez de atenuarla.** Estaba pintado con `--kore-fg`, que es el color de *texto* y se invierte con el tema: en oscuro salía blanco al 50 % y el fondo acababa más claro que el propio modal. Medido con la luminancia efectiva: 7 → 119 antes, 7 → 3 ahora.
-
-- **El spotlight dejaba desplazarse la página de detrás.** Es modal en todo lo demás —velo, `aria-modal`, foco atrapado— pero el panel se quedaba quieto mientras el contenido pasaba de largo con la rueda. Ahora toma el mismo scroll lock que el overlay manager.
-
-- **La caja de búsqueda del spotlight no tenía nombre accesible.** Era el único control del panel y solo llevaba un `placeholder`, que además cambia según el paso de la búsqueda y desaparece en cuanto se escribe algo.
-
-### Medido, no cambiado
-
-- **Abrir un overlay cuesta dos viajes al servidor** —uno para abrirlo y otro para que el manager limpie su estado al cerrar— y **un diálogo de confirmación, cinco**: dos para abrirlo (la acción del consumidor y el montaje del diálogo) y tres para responder. Es inherente a que el manager sea un componente Livewire aparte. Un toast cuesta uno desde el servidor y **cero** desde el navegador; el spotlight, cero. Los números están fijados en la suite para que nadie los empeore sin enterarse.
-- **La pila funciona y conserva el estado**: tres overlays de tipos distintos, cerrados en cualquier orden, dejan intacto lo escrito en los de abajo y sueltan el body al cerrar el último.
-- **El foco queda atrapado** en el modal y en el spotlight, y el panel de un select abierto dentro de un modal queda por encima del velo y sin marcar como inerte.
-
----
-
-## [No publicado · Formulario]
+### Formulario
 
 **Auditoría del lote de formulario en navegador, y la suite E2E extendida a él.** Veintiún componentes probados en un navegador de verdad —Chrome de escritorio y WebKit en iPhone— con 145 pruebas nuevas. Los fallos de abajo son los que solo aparecen cuando el HTML se compila, el JavaScript se ejecuta y el navegador pinta: ninguno lo veía la suite de unidad, y varios llevaban versiones ahí.
 
 Dos de ellos tienen la misma raíz y merece la pena decirlo antes que nada: **los `id` de los campos sin `name` se generaban con `uniqid()`, así que cambiaban en cada render**. El morph de Livewire empareja los nodos por `id`; si cambia, no reconoce el nodo, lo sustituye por otro y Alpine arranca el componente desde cero. Eso es lo que cerraba el desplegable, el calendario y el selector de color cada vez que **cualquier otro** componente de la página hablaba con el servidor. La librería ya había resuelto exactamente este problema para los gráficos —`ChartContext` y su comentario lo explican— y no se había aplicado a los campos.
 
-### Added
+#### Added
 
 - **`IdContext`** — ids de campo deterministas para los componentes sin `name`, con un contador por petición acotado al componente Livewire que lo pide. Sustituye a `uniqid()` en los veintiún componentes de formulario. Ver el porqué arriba.
 - **`kore-ui.form.translations` y `kore-ui.ui.translations`** — los nombres accesibles de los controles que solo llevan un icono, y los textos visibles que estaban escritos a pelo dentro de las vistas. Son el único nombre que recibe quien navega con lector de pantalla, así que tienen que poder traducirse sin publicar las vistas.
@@ -270,7 +180,7 @@ Dos de ellos tienen la misma raíz y merece la pena decirlo antes que nada: **lo
 - **Censo de consola** (`demo/e2e/specs/32-censo-consola.spec.js`) — recorre **todas** las rutas GET del demo y falla si alguna registra un error de consola o no devuelve 200. Existe porque encontró algo que ningún test de componente podía encontrar: al layout del demo le faltaba `@koreScripts`, así que 92 de las 100 rutas se servían **sin el bundle de la librería**. Ningún plugin Alpine quedaba registrado y todo `x-data="KoreAlgo(...)"` reventaba al iniciar. Es el bloque más lento de la suite (~3 min) y vale lo que cuesta.
 - **Suite E2E del lote de formulario** en `demo/e2e/specs/20`–`31`: render y variantes de props de los veintiún componentes, ida y vuelta al servidor, teclado, dos instancias del mismo componente en una página, estado a medio hacer durante un re-render ajeno, escala, invariantes de accesibilidad y una tanda en WebKit móvil.
 
-### Fixed
+#### Fixed
 
 - **El desplegable, el calendario y el selector de color se cerraban solos.** Bastaba con que cualquier otro componente de la página hablara con el servidor: el `wire:model.live` de un campo de al lado, un botón, un `poll`. El desplegable se cerraba, la búsqueda a medio escribir se borraba y el calendario volvía al mes de hoy. La causa es la de la cabecera —el `id` no determinista—, no el morph en sí. Con `IdContext` el nodo se actualiza en vez de sustituirse y el estado sobrevive. Regresión en `demo/e2e/specs/28-form-contagio.spec.js`, con el patrón roto montado al lado como control: un componente Alpine cuyo `id` se sortea en cada render, que tiene que seguir perdiendo su estado.
 
@@ -315,7 +225,7 @@ Dos de ellos tienen la misma raíz y merece la pena decirlo antes que nada: **lo
 
 - **El selector de color desbordaba cualquier contenedor estrecho.** Dos motivos independientes: las muestras tenían un tamaño fijo, así que ocho columnas imponían un mínimo de unos 266 px; y el campo del color a mano llevaba `flex-1` sin `min-w-0`, que deja el ancho mínimo en `auto` y no le permite encogerse por debajo de su anchura intrínseca. Medido: 121 px de desborde en una columna de un formulario a dos columnas en un iPhone 13.
 
-### Changed
+#### Changed
 
 - **Diez componentes de formulario emiten ahora los atributos que reciben.** `datepicker`, `time-picker`, `color-picker`, `input-otp`, `tag-input`, `key-value`, `upload`, `rating`, `maskable` y `repeater` no volcaban `$attributes` en ninguna parte, `select` solo lo hacía en modo nativo y `radio-group` filtraba todo menos `class`. Un `data-*`, un `class`, un `style`, un `aria-describedby` o un `x-on:` escrito en la etiqueta se quedaba en el bag y no llegaba al DOM: sin error, sin aviso y sin forma de notarlo salvo mirando el HTML. Se vuelcan en la raíz del componente, excepto `id` —que ya lo usa `$fieldId` sobre el control— y `wire:model`, que vive en el input oculto.
 
@@ -325,7 +235,7 @@ Dos de ellos tienen la misma raíz y merece la pena decirlo antes que nada: **lo
 
 - **El id derivado de un `name` con corchetes se normaliza.** `items[0]` daba `kore-items[0]`, que obliga a escapar en cualquier selector CSS y en cualquier `label[for]`. Ahora es `kore-items-0`.
 
-### Accessibility
+#### Accessibility
 
 - **`aria-label` en los controles que solo llevan un icono**, que hasta ahora eran botones sin nombre: los dos botones de paso de `number`, el de limpiar de `input`, `select` y `datepicker`, el aspa de cada chip de un `select` múltiple y de cada etiqueta de un `tag-input`, las muestras del `color-picker` (con su color, y con `aria-pressed`), el asa de arrastre y los dos campos de cada par de `key-value`, los botones de reintentar y quitar de `upload`, el de quitar de `chip`, las flechas de mes y de década del calendario y las cuatro del reloj. `title` no cuenta como sustituto: no se expone de forma fiable en navegación táctil ni en todos los lectores.
 - **Cada casilla de un `<x-kore::input-otp>` tiene su nombre** («Dígito 1», «Dígito 2»…). Eran seis campos de un carácter, sin etiqueta y sin nada que los distinguiera.
@@ -336,120 +246,251 @@ Dos de ellos tienen la misma raíz y merece la pena decirlo antes que nada: **lo
 - **El calendario empotrado dejaba una etiqueta huérfana**: sin disparador no había ningún elemento con el id del campo. El panel lo recibe y se anuncia como `role="group"`.
 - **Las estrellas de un `rating` de solo lectura o deshabilitado** salen del recorrido de tabulación y del árbol de accesibilidad. Eran botones tabulables que no hacían nada y que además solo recibían `aria-label` en modo interactivo.
 
-### Docs
+#### Docs
 
 - Nueva sección **«Atributos, `id` y morph»** en `docs/form/getting-started.md`: dónde aterriza lo que se escribe en la etiqueta, por qué el `id` tiene que ser estable y qué pasa con `:options` dinámicos.
 - `docs/form/number.md` avisa de que **`prefix` y `suffix` son props de moneda**, aunque el nombre no lo diga: en modo `decimal` se aceptan y no se pintan, y el campo sale sin adorno y sin ningún aviso. La tabla los listaba bajo «Currency Props», que es fácil pasar por alto.
 - `docs/form/select.md` documenta el nodo de opciones y el coste de un conjunto grande.
 - `docs/form/number.md` corrige lo que decía sobre `precision` en modo moneda.
 
----
+### Overlay y feedback
 
-## [No publicado · DataTable]
+**Auditoría del lote de overlay y feedback en navegador.** Modal, drawer, bottom-sheet, confirm, apilamiento, toast y spotlight probados en Chrome de escritorio y en WebKit sobre iPhone, con 44 pruebas nuevas. El lote de formulario dejó dicho dónde estaba el punto débil de la librería —el teleport a `body` frente a lo que Livewire y el navegador hacen con el DOM— y aquí se confirma: **seis de los ocho defectos vienen de que un nodo teleportado a `<body>` deja de estar donde el resto del código cree que está**.
 
-**Auditoría del DataTable completa, tres funciones nuevas y una suite E2E.** Cuarenta y ocho correcciones sobre el módulo. Dos de ellas cierran una brecha incómoda: estaban firmadas como completadas en el roadmap de la 1.2.0, publicadas en este CHANGELOG y descritas como garantías en `docs/data/hardening.md`, pero el código nunca las tuvo. `git log -S` sobre `resources/js/datatable.js` lo confirma para el guard de teclado: no existió en ninguna versión.
+Dos merecen ir por delante:
 
-### Added
+**El `<body>` se quedaba sin scroll para siempre después de cerrar cualquier modal.** No hacía falta anidar nada ni cerrar en un orden raro: abrir un modal y cerrarlo bastaba para que la página no volviera a desplazarse en toda la visita. El scroll lock lleva un conteo de dueños y el overlay manager se pasaba a sí mismo como dueño; cada expresión de Alpine evalúa sobre un **proxy nuevo** del mismo componente, así que el objeto que llegaba a `unlockScroll` nunca era el que había registrado `lockScroll` y el `Set` no lo encontraba. Sin error de consola, sin nada visible hasta que el usuario intenta bajar. La suite de unidad del scroll lock estaba entera escrita con cadenas —que sí funcionan— y por eso pasaba en verde.
 
-- **`Column::description()`** — segunda línea de la celda, en tono secundario. El patrón «nombre arriba, correo en gris debajo» que aparece en casi toda tabla de administración y que hasta ahora obligaba a bajar a un `ComponentColumn`. Acepta closure o nombre de campo, y se puede colocar encima del valor. Se renderiza en los tres modos (tabla, `card` y `collapse`).
-- **Menú por cabecera de columna** — ordenar ascendente/descendente, fijar a izquierda/derecha y ocultar, desde la propia columna. Es lo que convierte `pinned()` y el selector de columnas en algo del usuario final y no solo de quien escribe la tabla. Los fijados que elige el usuario se guardan en sesión y mandan sobre los que declara la tabla, así que una columna con `->pinned('left')` puede soltarse. Trae `setSort()` (fija la dirección, a diferencia de `sortBy()`, que rota), `toggleColumnPin()` y `resetColumnPins()`. Se apaga con `datatable.column_menu` o `setColumnMenuEnabled(false)`.
-- **Vistas guardadas por usuario** — un `FilterPreset` lo declara quien escribe la tabla y es fijo; una vista la crea quien la usa, guardando filtros, orden, búsqueda, `perPage`, columnas visibles y columnas fijadas. Se activan con `setSavedViewsEnabled()` o `datatable.saved_views`.
+**Un solo `Escape` cerraba el desplegable y el modal a la vez.** El manager escucha `Escape` en `window`, así que recibía el mismo evento que el panel abierto dentro: cerrar un desplegable se llevaba por delante el formulario entero.
 
-  La persistencia es un contrato, `SavedViewStore`, con un driver de sesión por defecto: funciona sin instalar nada, y quien quiera vistas permanentes implementa la interfaz contra su propia tabla y la enlaza en el contenedor. La librería **no trae modelo ni migración** a propósito — nadie debería tener que migrar su base de datos por usar un DataTable. El ámbito por usuario queda del lado de la implementación, porque solo ella sabe qué es un usuario en esa aplicación.
-- **Directiva `x-kore-trap`** — retención de foco sin dependencias, para cualquier componente que necesite comportarse como diálogo. Nace del drawer de filtros, pero es de uso general.
+#### Added
 
-### Security
+- **Token `--kore-backdrop`** — el color del velo que oscurece la página bajo un overlay, oscuro en los dos temas y configurable en un solo sitio. Lo usan el overlay manager y el spotlight, que antes llevaba un negro fijo escrito a mano en un `style`.
+- **Cepo de paneles teleportados** (`tests/Ui/PanelesTeleportadosTest.php`) — ningún panel que se mueva a `<body>` con controles dentro puede quedarse sin forma de recibir el teclado. Vale un `x-on:keydown` en el propio panel o una escucha en `window` desde la raíz; un panel sin nada enfocable dentro —un tooltip— no entra en el reparto.
+- **Tests de unidad del overlay manager** (`tests/js/overlay.test.js`) — las clases de posición de cada tipo y la toma y suelta del scroll del body, incluido el caso de que el lock y el unlock lleguen por instancias distintas del componente, que es lo que pasa en el navegador.
+- **Suite E2E del lote** en `demo/e2e/specs/33`–`37`: un formulario completo dentro de un modal, la pila de tres overlays de tipos distintos con sus órdenes de cierre, toast y confirm con su coste en viajes al servidor, el spotlight, y una tanda en WebKit móvil. Con su banco de pruebas en `demo/app/Livewire/E2e/OverlayBed.php`.
 
-- **Los valores de filtro dejan de llegar crudos a la consulta.** `$filters` es tan pública y manipulable como `$sorts`, pero solo la segunda se validaba. Un `?filter[estado][]=x` metía un array donde `where()` espera un escalar, Eloquent lo pasaba como binding y salía un `PDOException` — es decir, un enlace que rompe la página de quien lo abra. Ahora cada filtro implementa `sanitize()` y solo llega a la consulta lo que sobrevive: se descartan las formas equivocadas, los valores no numéricos en filtros numéricos (en PostgreSQL eso aborta la consulta, no devuelve cero filas), las fechas no parseables y —cuando el filtro declara `options()`— los valores fuera de esa lista. Un valor rechazado tampoco se cuenta ni se pinta como pill, para que la interfaz no anuncie un filtro que no se está aplicando.
-- **Los filtros de texto escapan los comodines `LIKE`.** La búsqueda global lo hacía desde la 1.2.0 y los filtros no: un `%` escrito en cualquier filtro seguía actuando como comodín, y `%%%%` forzaba un escaneo completo de la tabla. Ambos comparten ahora el mismo helper (`Support\LikePattern`), con cláusula `ESCAPE` explícita para que el comportamiento sea igual en MySQL, PostgreSQL y SQLite.
-- **`hidden()` ya no se confunde con autorización en acciones y presets.** `resolveBulkActions()` descartaba las acciones ocultas para pintar el menú, pero `findBulkAction()` —por donde pasa la ejecución— no filtraba nada: una acción escondida por permisos seguía siendo ejecutable con `$wire.runBulk('deleteAll')`. Igual con `findPreset()`. Además hay un `BulkAction::authorize(Closure)` explícito, que se evalúa en el servidor justo antes de tocar datos y responde `403`.
-- **Los IDs de una acción masiva se recortan al alcance de la tabla.** `executeBulkAction()` aceptaba la lista tal cual venía del navegador, así que se podía operar sobre registros que la `query()` del componente nunca habría mostrado (el mismo IDOR que ya se cerró en la edición inline). Ahora se contrastan contra la consulta filtrada, con un tope de `$bulkSelectionLimit` (5.000, redefinible). En modo "seleccionar todo lo que coincide" los IDs dejan de viajar al navegador dentro del payload de confirmación: se resuelven de nuevo en el servidor al confirmar, que además evita mandar millones de identificadores de ida y vuelta.
-- **La clave primaria entra en las expresiones vía `@js()`.** Quince puntos entre `datatable`, `card`, `collapse` y `action` la interpolaban dentro de comillas: Blade escapa a entidades HTML, pero el parser del navegador las decodifica antes de que Alpine o Livewire evalúen la expresión, así que una PK de tipo texto con una comilla rompía la cadena y lo que viniera detrás se evaluaba como código. No era explotable con IDs enteros o UUID, pero `setPrimaryKey()` acepta slugs y códigos.
-- **`#[Locked]` en el estado de control** (`pendingBulkIdentifier`, `pendingBulkMatching`, `deferredLoading`, `dataLoaded`). Fijar `pendingBulkIdentifier` desde el navegador era la forma de saltarse el flujo de confirmación entero.
-- **`selectRange()` se acota a la página visible.** Es la única entrada que recibe una lista de IDs del cliente; un rango, por definición, sale de las filas que se están viendo.
-- **El panel de filtros en modo `drawer` es un diálogo de verdad.** Un panel teleportado a `body` con backdrop, pero sin `role="dialog"`, sin `aria-modal`, sin etiqueta y sin retención de foco: con lector de pantalla, el contenido de detrás seguía siendo navegable mientras el panel estaba abierto. Se añade además una directiva propia `x-kore-trap` — `@alpinejs/focus` arrastra `focus-trap` y `tabbable`, que no caben en el presupuesto de bundle, así que el trap son sesenta líneas sin dependencias, con su propio archivo de tests.
+#### Fixed
 
-### Changed
+- **El `<body>` se quedaba en `position: fixed` para siempre tras cerrar un modal.** Ver arriba. El dueño del lock pasa a identificarse por una clave de cadena, y `lockScroll`/`unlockScroll` **rechazan** cualquier otra cosa en vez de aceptarla en silencio: convertir el objeto a texto habría hecho que dos dueños distintos compartieran clave y se pisaran el lock, que es un fallo todavía más difícil de ver. Regresión en `demo/e2e/specs/34-overlay-pila.spec.js`, que abre y cierra diez veces y comprueba que la rueda del ratón sigue moviendo la página.
 
-- **El export hace eager loading igual que la pantalla.** `exportAs()` construía su query sin `applyEagerLoading()`, que sí está en `buildRowsQuery()`: exportar 10.000 filas con una columna en dot-notation eran 10.000 consultas extra dentro del `streamDownload`.
-- **La paginación deja de recorrer todas las páginas.** El cálculo de la ventana iteraba `1..$lastPage` para producir siempre los mismos seis botones: un millón de filas a 25 por página eran 40.000 vueltas de bucle por render. Ahora es aritmética directa, con el mismo resultado (verificado en los tests).
-- **`NumberColumn` ya no asume `ext-intl`.** `money()` y `locale()` instanciaban `NumberFormatter` sin comprobar nada, y la extensión no viene activada en las imágenes PHP oficiales: eso era un `Class "NumberFormatter" not found` en mitad de un render. Ahora degrada a `number_format()` (con el código de moneda como prefijo) y el formato de celdas y agregaciones pasa por un único método.
-- **`composer.json` declara lo que el paquete usa.** Añadidos `illuminate/database`, `illuminate/pagination`, `illuminate/validation` e `illuminate/contracts` — se usaban por transitividad, sin declararse. `ext-intl` entra como `suggest`, no como requisito duro, porque solo hace falta para `money()`/`locale()` y ahora hay fallback.
-- **Los hooks de montaje dejan de duplicarse.** Livewire invoca por su cuenta los métodos `mount{Trait}`, y `mount()` llamaba además a mano a cuatro de los cinco, así que se ejecutaban dos veces por montaje y en un orden que no controlábamos respecto a `configure()`. No era cosmético: los defaults de los filtros y el preset por defecto escriben las mismas propiedades, y la config de columnas y responsive podía deshacer lo que la tabla acababa de pedir. Ahora son métodos ordinarios (`applyColumnSelectConfig`, `applyResponsiveConfig`, `applyQueryStringConfig`, `applyFilterDefaults`, `applyDefaultPreset`), llamados una vez desde `mount()` en un orden explícito: config global → `configure()` → estado inicial derivado.
-- **El método de una acción masiva recibe siempre IDs en `string`.** Antes llegaban tal cual venían del cliente y ahora se normalizan, igual que ya hacían `getAllMatchingIds()` y `getRowIds()`. Si comparabas con `in_array($id, $ids, true)` sobre enteros, ajústalo.
-- **`setQueryStringEnabled()` dentro de `configure()` no puede activar la sincronización en la primera carga.** No es un cambio de código sino algo que estaba sin documentar: Livewire evalúa `queryString()` **antes** de `mount()`, así que en ese momento `configure()` todavía no ha corrido. Para activarlo por tabla, declara `public bool $queryStringEnabled = true` en la subclase o sobreescribe el nuevo `usesQueryString()`.
-- **La definición de la tabla se construye una vez por petición.** `columns()` se invocaba trece veces solo desde el módulo, más las de Blade, y cada llamada reconstruía todos los objetos `Column` con sus closures. Con `filters()` el coste no era de objetos sino de base de datos: se llamaba cuatro veces, y el patrón habitual es `SelectFilter::options(Ciudad::pluck(...))`. Los cachés son `protected`, así que no se serializan y duran lo que dura el request. `hiddenIf()` también se evalúa una sola vez por columna.
-- **Los modos `card` y `collapse` dejan de mandar el doble de HTML en cada render.** El servidor no sabe el ancho del contenedor, así que la primera carga emite las dos variantes y el cliente esconde la que sobra; en cuanto Alpine informa del ancho (`setViewport`), cada render manda solo la que toca. El HTML duplicado se paga una vez, no en cada paginación.
-- **Los exporters se registran en un mapa.** `resolveExporter()` tenía un `default => new CsvExporter()`: en cuanto alguien añadiera `'xlsx'` a `setExportFormats()`, el botón habría descargado un CSV con extensión `.csv` sin decir nada. Ahora un formato sin registrar lanza `InvalidArgumentException`, y hay `registerExporter()` para añadir los propios.
-- **El export avisa cuando se corta.** Al superar `exportMaxRows`, el usuario recibía un archivo truncado sin ninguna señal.
-- **CSV conforme a RFC 4180.** `fputcsv()` usaba el escape por defecto de PHP —la barra invertida—, que no es estándar y corrompe cualquier campo terminado en `\`.
-- **`matchingQuery()`, `eachMatching()` e `isActingOnAllMatching()`** para escribir acciones masivas que no materialicen el conjunto. `getAllMatchingIds()` sigue ahí, pero sobre dos millones de filas son dos millones de strings en memoria antes de hacer nada.
+- **Un `Escape` cerraba el panel abierto Y el modal.** Ahora `closeOnEscape` descarta el evento que otro ya ha marcado con `preventDefault()` al consumirlo, que es lo que hacen todos los paneles de la librería. Es un contrato y no una lista: cualquier componente que consuma `Escape` como es debido queda cubierto sin tocar el manager. De paso, `select` y `dropdown` dejan de llamar a `preventDefault()` cuando su panel ya está cerrado —marcaban como atendido un `Escape` que no habían usado, y el segundo `Escape` no cerraba nada—.
 
-### Fixed
+- **Un `<x-kore::select searchable>` quedaba abierto y sordo: ni flechas, ni Enter, ni Escape.** El `x-on:keydown` vivía solo en la raíz del componente, y el panel está teleportado a `<body>`: los eventos de dentro no burbujean por la raíz. Como el componente lleva el foco a la caja de búsqueda al abrir, a partir de ese momento **ninguna** tecla llegaba a `onKeydown`. La única forma de usarlo era el ratón. El panel escucha ahora el teclado él mismo.
 
-- **El listener de teclado capturaba toda la página.** `Ctrl/Cmd+A` dejaba de seleccionar texto en cualquier parte de la aplicación, y con dos datatables en la misma vista una flecha movía la fila activa en las dos a la vez. Ahora el handler sigue en `document` —el foco puede estar en el `<body>` y las flechas deben funcionar igual— pero solo responde si el cursor está sobre la tabla o el foco vive dentro de ella. De paso, un `<select>` enfocado ya cuenta como campo de formulario (antes las flechas cambiaban la opción **y** movían la fila), y `Escape` solo suelta el foco de un input propio, nunca de uno ajeno. Cubierto por `tests/js/datatable-keyboard.test.js`.
-- **El badge de filtros activos no aparecía nunca, y de paso dejaba un velo de carga parpadeando sobre la tabla.** Los layouts `popover` (el valor por defecto de `filter_layout`) y `drawer` pedían el conteo con `$wire.getActiveFilterCount()` dentro de un `x-if`. Eso tiene dos consecuencias: en Livewire devuelve una `Promise`, y `Promise > 0` es `false`, así que el badge no se pintaba jamás; y como es una **llamada al servidor**, Livewire marcaba el componente como «cargando» en cuanto Alpine evaluaba la expresión.
+- **`<x-kore::dropdown>` se quedaba sordo tras la primera flecha,** por lo mismo: la primera pulsación mueve el foco a un item del panel teleportado y a partir de ahí ni seguía bajando ni cerraba con `Escape`. Además, al cerrar con `Escape` el foco se perdía —`$refs.trigger` es el envoltorio, un `<div>` sin `tabindex`, así que `focus()` no enfocaba nada y el siguiente tabulador volvía al principio de la página—: ahora se enfoca el control que el consumidor puso dentro.
 
-  El segundo efecto es el que se veía: la tabla llegaba pintada del servidor y, unos milisegundos después, aparecía el overlay translúcido dejando ver las filas por detrás. Y no una vez — la respuesta hacía que Alpine reevaluara la expresión, que volvía a llamar, en un bucle de re-render. Medido en un caso real: **166 encendidos y apagados del velo en tres segundos**, con los datos visibles todo el rato.
+- **`<x-kore::color-picker>` no se cerraba con `Escape`.** No tenía manejador: solo se cerraba con un clic fuera, y dentro de un modal ese `Escape` sin dueño llegaba al manager y cerraba el modal entero.
 
-  El conteo se publica ahora en la propiedad `#[Locked] public int $filterCount`, que se lee desde `$wire` de forma síncrona y reactiva —sin viaje al servidor— incluso dentro del `wire:ignore` en el que viven esos triggers. `slide-down` se queda con su variable Blade: su botón está fuera del `wire:ignore`. Hay regresión en `demo/e2e/specs/14-overlay-fantasma.spec.js`, con el patrón antiguo montado al lado como control. El conteo se publica ahora en la propiedad `#[Locked] public int $filterCount`, que se lee desde `$wire` de forma síncrona y reactiva incluso dentro del `wire:ignore` en el que viven esos triggers. `slide-down` se queda con su variable Blade: su botón está fuera del `wire:ignore`.
-- **La configuración de export era letra muerta.** `datatable.export.enabled`, `.formats` y `.max_rows` existían en el archivo publicable, aparecían en la documentación y no las leía nadie: el export solo se podía activar tabla por tabla con `setExportEnabled()`. Se aplican en `mount()` antes de `configure()`, así que un ajuste de la tabla siempre gana sobre el global.
-- **`search_debounce` no tenía efecto.** El valor viajaba desde `getSearchDebounce()` hasta el toolbar y el input llevaba `debounce.300ms` escrito a mano.
-- **«Limpiar filtros» no vaciaba el campo de texto.** `TextFilter` es el único tipo que renderiza un `<input>` plano en vez de un componente Kore, así que era el único sin el `$wire.$watch` que sincroniza el `wire:ignore` de vuelta desde el servidor: `resetAllFilters()`, `resetFilter()`, `applyPreset()` y `clearPreset()` limpiaban `$filters` y dejaban el texto en pantalla, mostrando todos los resultados con el filtro todavía visible.
-- **Las celdas `copyable` copiaban entidades HTML.** La expresión pasaba el valor por `e()` dentro de un `{{ }}`, que escapa por segunda vez; el navegador decodifica el atributo una sola vez, así que al portapapeles llegaba `Sanz &amp;amp; Cía`. Ahora usa `@js()`, que es el escape correcto para contexto JavaScript — y también en la clave de feedback, porque una comilla en la clave primaria rompía la expresión entera.
-- **Ordenar mantenía la página.** `sortBy()`, `removeSortBy()` y `clearSorts()` dejaban al usuario en la página 7 de un orden nuevo. Vuelven a la 1. Se usa `resetPage()` y no `resetDataScope()` a propósito: ordenar no cambia el conjunto de filas, así que una selección «todo lo que coincide» sigue siendo válida.
-- **Filas sin `wire:key` en los modos responsive.** En modo `card` no lo llevaba ninguna tarjeta y en `collapse` solo se emitía si la tabla tenía bulk actions. Livewire reutiliza los nodos por posición, así que el estado Alpine de una celda en edición o de una fila desplegada se quedaba pegado al hueco y no al registro al paginar o filtrar.
-- **Una fecha inválida tumbaba el render completo.** `Carbon::parse()` sin protección en `DateColumn`: bastaba una fila con `'0000-00-00'`, una cadena vacía en una columna `string` o cualquier dato heredado sucio para que la tabla entera respondiera 500. Ahora la celda muestra el valor tal cual —feo, pero visible— y la página funciona.
-- **Los filtros sobre relaciones generaban SQL inválido.** `TextFilter::make('Autor', 'user.name')` producía `where('user.name', 'like', …)`. Se resuelve como `whereHas`, igual que la búsqueda global, y solo cuando el modelo declara esa relación: una columna cualificada por tabla con un join propio se sigue tratando como antes. Los filtros de rango aplican sus dos condiciones dentro del mismo `whereHas`, porque dos separados no describen un rango.
-- **La navegación por teclado no funcionaba sin acciones masivas.** `$rowIds` solo se calculaba si `isSelectionEnabled()`, que exige `hasBulkActions()`, así que en una tabla de solo lectura las flechas, `Enter` y `Espacio` no hacían nada. Son funciones independientes y ya no están atadas.
-- **Quitar un filtro no reseteaba nada.** `resetFilter()` solo hacía `unset()`: ni volvía a la página 1, ni soltaba "seleccionar todo lo que coincide", ni desactivaba el preset. Y `resetAllFilters()` dejaba el preset marcado como activo después de borrar sus filtros. Los tres caminos —editar, quitar uno, quitarlos todos— comparten ahora la misma semántica.
-- **La opción global `query_string` no se aplicaba nunca.** `$this->queryStringEnabled ?? config(...)` sobre una propiedad `bool` no nulable: el `??` era código inalcanzable.
-- **`configure()` se perdía después del primer request.** Las propiedades de configuración (`density`, `responsiveMode`, `primaryKey`, `exportEnabled`, `maxHeight`, `paginationType`…) son `protected` y Livewire no las serializa, así que con `configure()` corriendo solo en `mount()` la tabla volvía a los valores por defecto de la clase en cuanto el usuario paginaba, buscaba o filtraba. En la práctica: el modo `card` dejaba de aplicarse al pasar de página, y `exportAs()` empezaba a responder 403 porque `isExportEnabled()` era `false`. Ahora `configure()` se llama desde `booted()`, que corre en todas las peticiones. **Si tu tabla define `booted()`, tiene que llamar a `parent::booted()`.**
-- **La opción global `filter_layout` no se aplicaba nunca.** Livewire vuelca las propiedades públicas en el scope de la vista y ganan sobre los datos que pasa `render()`. `$filterLayout` es pública y vale `null` hasta que alguien llame a `setFilterLayout()`, así que el valor resuelto —con su fallback a config— no llegaba al Blade y siempre se pintaba el `popover`. Los dos valores se igualan ahora en `render()`.
-- **`moveRight()` contaba las cabeceras de las dos tablas** en modo `collapse`, donde conviven la tabla y la variante colapsada.
-- **Volver a una vista guardada la desactivaba en vez de restaurarla.** Editar filtros a mano no soltaba la vista activa, así que el siguiente clic sobre ella se interpretaba como «salir de la vista» — lo contrario de lo que espera quien la creó. Ahora `resetDataScope()` la suelta, igual que ya hacía con los presets.
-- **Dos tablas de la misma clase compartían las columnas ocultas.** La clave de sesión no incluía el nombre de instancia, así que esconder «Email» en una la escondía en la otra. La clave de las tablas sin nombre no cambia, de modo que las sesiones abiertas conservan su estado.
-- **`toggleColumnVisibility()` aceptaba campos inexistentes** y los acumulaba en la sesión indefinidamente.
-- **Un `default()` de texto se convertía en `0` en las columnas numéricas.** `data_get()` resuelve objetos con `isset()`, así que para un atributo a `null` ya devolvía el default; lo que llegaba a `NumberColumn` era el marcador (`'—'`, `'N/D'`), que se casteaba a `float` y salía como un `0` con pinta de dato real — peor que la celda vacía que se quería evitar. De paso, `Column::getValue()` iguala el caso de las filas que son arrays, donde `data_get()` sí entrega el `null` tal cual: `default()` deja de depender de si la fila es un modelo o un array.
-- **El buscador del DataTable no se renderizaba.** Regresión propia de esta misma tanda: al hacer configurable el debounce se interpoló `{{ }}` en el **nombre** del atributo (`wire:model.live.debounce.{{ $x }}ms`), y eso rompe el parser de componentes de Blade — la etiqueta `<x-kore::input>` dejaba de compilarse y acababa literal en el HTML. El test que lo cubría era un falso positivo: buscaba ese texto en el HTML, y estaba precisamente porque nadie lo había procesado. Ahora el atributo se construye en PHP y se pasa por el bag, que sí admite nombres dinámicos.
-- **El bundle JavaScript quedaba clavado en el navegador hasta un año.** `@koreScripts` servía `dist/kore-ui.js` con `Cache-Control: immutable, max-age=31536000` desde una URL sin versionar: al publicar una versión nueva de la librería, los navegadores seguían ejecutando la anterior sin forma de invalidarla. La URL lleva ahora la huella del archivo (`?id=`), y una petición sin huella se sirve revalidando.
-- **El shift-click nunca seleccionó un rango.** La feature se publicó en la 1.2.0 y no llegó a funcionar: el evento `kore:datatable-rows-updated` se emite en cada render y su manejador borraba el ancla, así que el primer clic provocaba un render, el render borraba el ancla y el shift siguiente ya no tenía desde dónde medir. Ahora solo se suelta si la página cambió de verdad.
-- **`pagination_type => 'cursor'` tumbaba la página.** Es una opción documentada, pero la vista de paginación pedía `currentPage()` al paginador y un `CursorPaginator` no lo tiene: reenvía las llamadas que no conoce a su colección, así que salía un «Method Collection::currentPage does not exist». La vista distingue ahora el caso y hay un `setCursor()` para avanzar, porque `nextPage()`/`previousPage()` suman enteros y un cursor no lo es.
-- **`Column::width()` no se respetaba.** Sin `table-layout: fixed` el navegador reparte los anchos según el contenido, así que una columna con mucho texto aplastaba a las demás y su contenido se apilaba palabra a palabra. Nuevo `setTableLayout('fixed')` (y `datatable.table_layout` en config), que además da a la tabla el ancho mínimo necesario para que los `width()` sean exactos.
-- **El selector de «por página» mostraba un valor distinto del que se usaba.** Una tabla que fije `perPage = 5` en `configure()` quedaba fuera de `per_page_options` y el desplegable enseñaba el primero de la lista. El selector incluye ahora el valor en uso; la validación sigue haciéndose contra la lista de config.
-- **`@js()` dentro del atributo de un componente Blade** no se compila en el scope del padre: la directiva llega literal al hijo y se evalúa allí, donde `$rowId` no existe. Afectaba a las celdas copiables y al desplegable de fila del modo `collapse`. Se usa `Js::from()` en esos puntos, que sí se resuelve donde toca.
-- **Las cabeceras ordenables no se veían como las demás.** Los navegadores aplican `text-transform: none` a los elementos de formulario, así que el `<span>` dentro del botón de ordenar no heredaba el `uppercase` del `<th>`: en la misma cabecera convivían «Nombre» y «EMAIL».
-- **El filtro de rango numérico salía cortado.** Los dos campos no repartían el ancho del contenedor y en el `drawer` se quedaban en 41 px, con el placeholder «Max» recortado a «Ma:». Se les da `flex-1` y se retiran los controles `+/−`, que en un filtro no aportan.
+- **El calendario y el selector de hora se quedaban abiertos al tabular fuera del campo,** flotando sobre el formulario mientras el usuario escribía dos campos más abajo. El desplegable ya cerraba con `Tab` desde antes.
 
-### Removed
+- **Un modal centraba el texto de todo lo que se pintara dentro.** El contenedor que centra el panel llevaba `text-center`, y eso se hereda: las etiquetas de un formulario, los párrafos y las celdas de una tabla salían centrados sin que nadie lo hubiera pedido. El centrado horizontal lo da `justify-center` y sigue intacto —medido: quitarlo no mueve el panel ni un píxel—. El diálogo de confirmación, que sí quiere su texto centrado, lo pide en su propia vista y no se ve afectado.
 
-- **`BulkAction::hiddenWhenEmpty()`.** Nunca se consultó desde ninguna vista, y no podía tener efecto: el bloque de acciones masivas solo se pinta cuando hay selección, así que "ocultar cuando no hay selección" era siempre cierto.
-- **`getVisibleColumnsForCollapse()`**, sin uso. La vista `collapse` recalculaba lo mismo por su cuenta —y peor: reconstruía la lista de campos colapsados dentro del `in_array`, una vez por columna—; eso también está arreglado.
-- **`toggleBooleanEdit()`** del plugin Alpine: el Blade llama a `$wire.updateCell` directamente.
-- **`translations.no_results`** del archivo de configuración, que nadie leía. El texto del estado vacío es `empty_text`.
+- **En tema oscuro, el velo de un modal ACLARABA la página en vez de atenuarla.** Estaba pintado con `--kore-fg`, que es el color de *texto* y se invierte con el tema: en oscuro salía blanco al 50 % y el fondo acababa más claro que el propio modal. Medido con la luminancia efectiva: 7 → 119 antes, 7 → 3 ahora.
 
-### Accessibility
+- **El spotlight dejaba desplazarse la página de detrás.** Es modal en todo lo demás —velo, `aria-modal`, foco atrapado— pero el panel se quedaba quieto mientras el contenido pasaba de largo con la rueda. Ahora toma el mismo scroll lock que el overlay manager.
 
-- `aria-label` en los botones de acción por fila del modo `inline`, que solo tenían `title` sobre un icono decorativo — `title` no es un nombre accesible fiable y no llega en navegación táctil.
-- `aria-label` en el selector de «por página», cuyo texto vivía en un `<span>` adyacente sin asociar.
-- Los pares etiqueta/valor de los modos `card` y `collapse` van dentro de un `<dl>`. Estaban sueltos en un `<div>`: HTML inválido, y sin la relación que expone el elemento a las tecnologías asistivas.
-- El drawer de filtros se anuncia como diálogo modal y atrapa el foco (ver Security).
-- Cada etiqueta de filtro apunta a su campo con `for`/`id`, únicos por tabla y por filtro. Eran `<label>` huérfanos en los cuatro layouts.
-- El recuento de resultados se anuncia con `aria-live="polite"`: filtrar o buscar dejaba de ser un cambio silencioso para un lector de pantalla.
-- La celda activa en navegación por teclado se resalta. Antes solo se marcaba la fila, así que el recorrido horizontal era invisible.
-- `aria-label` en el botón de copiar de `ColorColumn`, en el disparador del menú de acciones por fila y en el botón de copiar de celda: eran controles con solo un icono dentro. La suite E2E cuenta ahora los controles sin nombre accesible y falla si aparece alguno.
+- **La caja de búsqueda del spotlight no tenía nombre accesible.** Era el único control del panel y solo llevaba un `placeholder`, que además cambia según el paso de la búsqueda y desaparece en cuanto se escribe algo.
 
-### Docs
+#### Medido, no cambiado
 
-- Reescrita la nota **«Badge de filtros activos»** de `docs/data/datatable.md`, que documentaba el arreglo del layout `slide-down` como si cubriera los tres.
-- Ampliada la nota de `wire:ignore`: todo campo dentro de uno necesita su `$wire.$watch`, y el filtro de texto monta el suyo.
-- `docs/data/hardening.md` documenta las garantías nuevas (filtros, acciones masivas, `@js()` en la clave primaria) y su lista de pendientes refleja por fin lo que queda.
-- `docs/data/datatable.md` añade **Filtros sobre relaciones**, **Saneado de valores** y **`hidden()` no es `authorize()`**.
-- Reescrita la nota **«Propiedades `#[Locked]`»** de `docs/data/datatable.md`: su regla —"todo lo que configure `configure()` debe ser `#[Locked] public`"— dejó de ser cierta al mover `configure()` a `booted()`. La sustituye **«`configure()` se ejecuta en cada request»**, con el orden de hooks medido.
-- Nuevas secciones **Exportación** (con formatos propios) y **Conjuntos grandes** (cómo escribir una acción masiva que no materialice el conjunto).
-- `docs/data/hardening.md` añade un apartado de rendimiento por render.
-- Nuevas secciones **Segunda linea en la celda**, **Menu por cabecera de columna** y **Vistas guardadas**, esta última con el ejemplo de un `SavedViewStore` contra base de datos.
-- **Suite E2E** en `demo/e2e/`: 123 pruebas con Playwright sobre navegador real (Chrome de escritorio y WebKit en iPhone), con captura de cada estado y medición de tiempos por volumen. Ocho de los fallos corregidos en esta entrada los encontró ella, no la suite de unidad — son los que solo se ven cuando el HTML se compila, el JavaScript se ejecuta y el navegador pinta.
+- **Abrir un overlay cuesta dos viajes al servidor** —uno para abrirlo y otro para que el manager limpie su estado al cerrar— y **un diálogo de confirmación, cinco**: dos para abrirlo (la acción del consumidor y el montaje del diálogo) y tres para responder. Es inherente a que el manager sea un componente Livewire aparte. Un toast cuesta uno desde el servidor y **cero** desde el navegador; el spotlight, cero. Los números están fijados en la suite para que nadie los empeore sin enterarse.
+- **La pila funciona y conserva el estado**: tres overlays de tipos distintos, cerrados en cualquier orden, dejan intacto lo escrito en los de abajo y sueltan el body al cerrar el último.
+- **El foco queda atrapado** en el modal y en el spotlight, y el panel de un select abierto dentro de un modal queda por encima del velo y sin marcar como inerte.
+
+### Navegación y layout
+
+**Auditoría del lote de navegación y layout en navegador.** Shell, sidebar, navbar, breadcrumbs, acordeón, pestañas, pasos, toolbar, splitter y divider probados en Chrome de escritorio y en WebKit sobre iPhone, con 41 pruebas nuevas. Los defectos se reparten en dos familias:
+
+**Estado del cliente sobre marcado del servidor.** El sub-menú del sidebar que el usuario acababa de abrir se cerraba solo en cuanto CUALQUIER cosa de la página hablaba con el servidor: el estado vive en un atributo del DOM que el servidor también emite, y el morph lo devolvía a su valor. Y las barras del splitter, que las crea el JavaScript y por tanto no están en el HTML del servidor, el morph las borraba por sobrantes —con ellas se iba el layout entero—.
+
+**Un padre que decide antes de que existan sus hijos.** `<x-kore::tab>` y `<x-kore::stepper>` resolvían su selección inicial en un `$nextTick` dentro de `init()`, cuando la lista de items todavía está vacía. La condición no se cumplía, nadie volvía a intentarlo, y el componente se quedaba con las pestañas pintadas y NINGÚN panel debajo —o con los tres círculos del stepper apagados— hasta que el usuario pulsaba.
+
+Además, el contrato de `Escape` que estableció el lote de overlay llega a los cuatro componentes que se habían quedado fuera.
+
+#### Added
+
+- **`hayDuenoPorEncima()`** en el scroll lock — el `Set` de dueños conserva el orden de inserción, así que la lista es también el orden de las capas. Es la única forma de que un componente sepa si algo lo tapa sin tener que conocerlo. La usa el drawer del sidebar para decidir si un `Escape` es suyo o de un modal abierto encima.
+- **`kore-ui.ui.translations.resize`** — nombre accesible de la barra del splitter, que se crea desde JavaScript y no tiene etiqueta en Blade donde ponerlo.
+- **Suite E2E del lote** en `demo/e2e/specs/38`–`41`: el shell completo con su sidebar de tres niveles, las secciones y el layout, el drawer móvil cruzado con un modal, y el contrato de `Escape` aplicado a los controles que escuchaban en `window`. Con su banco en `demo/app/Livewire/E2e/NavBed.php`.
+- **Tests de unidad** de la selección inicial y el teclado de `tab` y `stepper` (`tests/js/tab-stepper.test.js`), del orden de capas del scroll lock y de `closeMobileOnEscape`.
+
+#### Fixed
+
+- **El sub-menú abierto del sidebar se cerraba en el primer re-render ajeno.** El estado de apertura vive en `data-kore-open`, que el servidor emite para que la rama de la ruta activa salga ya abierta sin parpadeo; a partir de ahí lo cambia el usuario. Medido: el morph **no** reemplaza el nodo, pero sí reescribe el atributo al valor del servidor —y también el `aria-expanded` del botón, así que el disclosure se anunciaba cerrado mientras el menú se veía abierto—. `wire:ignore.self` congela esos dos atributos y deja vivo todo lo demás: los labels, los badges y los sub-items que pinte el servidor se siguen actualizando, y el item activo se recalcula al navegar porque `wire:navigate` reemplaza el nodo en vez de hacerle morph. Las dos cosas están medidas y con test.
+
+- **`<x-kore::tab>` sin `selected` no mostraba ningún panel.** Ver arriba. Como `onKeydown` sale pronto cuando no hay ninguna pestaña seleccionada, tampoco funcionaban las flechas: el componente entero era inerte salvo al pulsar con el ratón. La selección inicial pasa a decidirse al registrar cada item, saltándose las deshabilitadas.
+
+- **`<x-kore::stepper>` sin `selected` no activaba ningún paso,** por lo mismo: `getStepStatus` devolvía «pending» para todos, ningún círculo salía resaltado y no se veía el contenido de ningún paso.
+
+- **El splitter se destruía en el primer re-render ajeno.** Sus barras las inserta el JavaScript, así que el morph las veía como nodos sobrantes y las borraba; los paneles colapsaban a su tamaño mínimo y no quedaba forma de recuperarlos. Se vuelven a montar en cuanto desaparecen, conservando lo que el usuario hubiera arrastrado.
+
+- **Un `Escape` cerraba el drawer del sidebar Y el modal abierto encima.** Los dos escuchan en `window`, así que reciben el mismo evento. El drawer cede cuando hay una capa por encima —alguien tomó el scroll lock después que él— y marca la tecla cuando sí es suya, que es lo que hace que el manager ceda en el caso contrario.
+
+- **Lo mismo en `theme-switch`, `speed-dial` y el drawer de filtros del DataTable.** Los tres escuchaban `Escape` en `window` y ninguno marcaba el evento. El arreglo no es marcar desde `window` —ahí el orden lo decide quién se registró antes, que es frágil— sino escuchar en el propio elemento y en el panel teleportado, donde el orden de propagación garantiza que el de más adentro ve la tecla primero.
+
+- **Los tres botones del `theme-switch` en su variante por defecto no tenían nombre accesible.** Solo llevan un icono, y sin `labels` no había ni texto ni `aria-label`: un lector de pantalla anunciaba «botón de radio» y nada más. El nombre coincide con la etiqueta visible cuando la hay, como pide WCAG 2.5.3.
+
+- **La barra del splitter no se anunciaba como lo que es.** Un `role="separator"` con `tabindex` es un «window splitter»: sin `aria-label` ni `aria-valuemin`/`max`/`now`, un lector no dice qué separa ni hacia dónde se está moviendo al pulsar las flechas. El valor sigue ahora a las flechas.
+
+#### Changed
+
+- **El velo del drawer móvil del sidebar usa `--kore-backdrop`,** el mismo token que el overlay manager y el spotlight. Era un negro fijo en el CSS; ahora los tres velos de la librería se cambian en un solo sitio.
+
+#### Medido, no cambiado
+
+- **El foco del drawer móvil queda atrapado** —comprobado con dieciséis tabulaciones seguidas—, y lo hace gracias a la copia de `@alpinejs/focus` que trae Livewire, no a nada que cargue KoreUi (§D.2 del informe de overlay).
+- **El orden del tabulador por el shell** es sidebar → navbar → contenido, sin saltos hacia atrás. **No hay enlace de salto al contenido**, así que quien navega con teclado recorre el menú entero en cada página: es una función que falta, no un defecto de lo que hay.
+- **El acordeón** abre, cierra, respeta `multiple` y conserva lo abierto tras un morph. **Las migas** colapsables despliegan lo que esconden y no anidan `<li>` dentro de `<li>`.
+
+### Datos y visualización
+
+**Auditoría del lote de datos y visualización en navegador.** Árbol, tablero, gráficos, contadores, barras de progreso, tabla estática, descripciones y línea de tiempo probados en Chrome de escritorio y en WebKit sobre iPhone, con 42 pruebas nuevas.
+
+Casi todo este lote lo pinta el servidor, así que el morph de Livewire no le hace nada — **salvo al árbol**, que es el único que se construye entero desde el cliente. Ahí estaba el defecto grave:
+
+**El `<x-kore::tree>` quedaba MUERTO en cuanto el servidor cambiaba sus nodos.** El árbol se pinta con un `x-for` de Alpine, y el morph reemplazaba el `<template>` por el del servidor —donde esas filas no existen—. A partir de ese momento el componente dejaba de reaccionar del todo: medido, el estado pasaba a nueve filas mientras el DOM se quedaba en siete, y ni tocando el estado a mano volvía a pintar.
+
+El otro hallazgo tiene más recorrido del que parece: **el kanban soltaba un `ReferenceError` por cada tarjeta si los ids eran de texto**, exactamente el mismo fallo que `<x-kore::sortable>` ya tenía corregido. Con ids numéricos funcionaba de casualidad, y así llevaba desde que se escribió.
+
+#### Added
+
+- **`caption` y `captionHidden` en `<x-kore::table>`** — el nombre de la tabla. No se podía poner: `$attributes` se vuelca en el `<div>` envolvente, que no tiene rol y por tanto no acepta nombre, así que un lector anunciaba «tabla, 3 columnas, 3 filas» y nada más.
+- **Teclado completo en `<x-kore::tree>`** — flechas arriba y abajo por los nodos visibles, derecha e izquierda para abrir y cerrar ramas o subir al padre, `Home`/`End` y `Enter` para elegir. No había ninguno.
+- **`kore-ui.ui.translations.tree`, `tree_expand` y `tree_collapse`** — nombre del `role="tree"` y verbos de sus chevrones.
+- **`ariaLabel` en `<x-kore::tree>`** — para nombrar un árbol concreto cuando hay varios en la misma página.
+- **Suite E2E del lote** en `demo/e2e/specs/42`–`45`: el árbol contra el morph y su escala, el tablero, gráficos y contadores, listas, y una tanda en WebKit móvil. Con su banco en `demo/app/Livewire/E2e/DataBed.php` y `KanbanBed.php`.
+- **Tests de unidad** de `tree` —de dónde saca los nodos y cómo se recorre— y de `stats`.
+
+#### Fixed
+
+- **`<x-kore::tree>` quedaba muerto tras un morph que cambiara sus datos.** Ver arriba. La raíz pasa a llevar `wire:ignore` para que el morph no toque los nodos que pinta Alpine, y los datos viajan en un nodo JSON aparte que Livewire sí actualiza y que el componente vigila con un `MutationObserver`. Es el mismo mecanismo que resolvió las opciones de `<x-kore::select>`. De paso, los nodos dejan de viajar **dos veces** en el HTML: estaban en el `<script>` y otra vez dentro del `x-data`, lo que en un árbol de dos mil nodos son 81 kB de más.
+
+- **`<x-kore::kanban>` soltaba un `ReferenceError` por tarjeta con ids de texto.** `x-sort:item` es una **expresión** de JavaScript para Alpine: `x-sort:item="tarea-a"` se lee como una resta de variables. Se emite con `Js::from()`, igual que en `<x-kore::sortable>`.
+
+- **`<x-kore::stats>` ignoraba `prefers-reduced-motion`.** Un número que trepa durante un segundo es justo la clase de animación que esa preferencia pide desactivar; medido con ella activa, el contador seguía subiendo desde cero. Ahora enseña el valor directamente. El resto de la librería ya la respetaba.
+
+- **El tablero no tenía ninguna semántica.** Columnas y tarjetas eran `div` sin rol: para un lector de pantalla no había columnas ni tarjetas, solo texto suelto. Cada columna es ahora una `list` con el nombre de la columna, y cada tarjeta un `listitem`.
+
+- **Los chevrones del árbol se llamaban todos «Toggle expand».** El mismo nombre para cada rama, y en inglés: un lector oía lo mismo una vez por nodo sin saber cuál estaba abriendo. Ahora dicen «Abrir Documentos» / «Cerrar Documentos».
+
+- **Los nodos del árbol no se podían enfocar.** Todos los `treeitem` llevaban `tabindex="-1"` y el único enfocable de cada fila era el chevrón, así que con `selectable` no había forma de elegir un nodo sin ratón. Ahora sigue el patrón de un `tree`: una sola parada del tabulador y flechas dentro.
+
+- **Al árbol le faltaba media semántica.** `role="tree"` sin nombre, `aria-level` puesto en el envoltorio en vez de en el `treeitem` —donde no significa nada— y `aria-expanded=""` vacío en los nodos sin hijos, que es un valor inválido.
+
+- **La caja de filtro del árbol no tenía nombre accesible.** Solo llevaba `placeholder`, que desaparece en cuanto se escribe algo.
+
+#### Medido, no cambiado
+
+- **El árbol no virtualiza.** Con 100 raíces × 20 hijos pinta **2.100 filas y 12.810 nodos de DOM** para dejar 100 a la vista, y manda 79 kB de JSON. No es un defecto —el componente no promete otra cosa— pero conviene tener el número, como se hizo con las 10.000 opciones del select.
+- **El tablero no se puede recorrer con el teclado**: cero controles enfocables dentro. Solo se opera arrastrando, así que quien no use ratón no puede mover nada. Añadir teclado es una función nueva, no un arreglo; hay un test que fija el estado actual para que el día que se añada haya que actualizarlo a conciencia.
+- **Los gráficos están bien resueltos para lectores de pantalla**: el `<svg>` va `aria-hidden` y al lado se pinta una tabla con los mismos datos, con el `aria-label` del consumidor como `<caption>`. La leyenda oculta series y lo anuncia con `aria-pressed`.
+- **Todo lo que pinta el servidor sigue a los datos** y sobrevive a un morph ajeno: gráficos, tablero, tabla, descripciones y línea de tiempo.
+
+### Interacción
+
+**Auditoría del lote de interacción en navegador.** Carrusel, listas reordenables, doble lista, tooltip, portapapeles, menú desplegable y botón de acciones rápidas probados en Chrome de escritorio y en WebKit sobre iPhone, con 31 pruebas nuevas.
+
+El reparto de los doce defectos se explica con una frase: **de los ocho componentes, solo uno se construye desde el cliente sobre HTML que el servidor también emite, y ese uno concentra cinco de los doce**.
+
+**Cualquier morph de Livewire dejaba el `<x-kore::carousel>` en blanco.** El carrusel escribe el ancho de cada diapositiva como estilo en línea, y nada de eso existe en el HTML del servidor: el morph lo borraba y las diapositivas pasaban de 768 px a unos 50 —el ancho de su contenido—. La segunda parte era peor: con los anchos borrados, «siguiente» desplazaba el carril con la cuenta vieja y la vista se quedaba vacía.
+
+El otro defecto grave es de los que no se ven en una captura: **el `<x-kore::tooltip>` no existía para un lector de pantalla.** El panel vive teleportado a `<body>`, sin `id`, y nadie apuntaba a él — así que el `role="tooltip"` no le llegaba a nadie.
+
+Informe completo en `docs/interaccion-auditoria.md`.
+
+#### Added
+
+- **Botón de parar y reanudar en `<x-kore::carousel autoplay>`** — WCAG 2.2.2 pide poder detener cualquier movimiento automático de más de cinco segundos, y `pauseOnHover` solo sirve con ratón. El autoplay se para además cuando el foco entra en el carrusel.
+- **Teclado en `<x-kore::carousel>`** — flechas izquierda y derecha para moverse entre diapositivas. No había ninguno. Las flechas que el usuario escribe dentro de un campo no se tocan.
+- **`ariaLabel` en `<x-kore::carousel>` y en `<x-kore::dropdown>`** — para nombrar uno concreto cuando hay varios en la misma página.
+- **`kore-ui.ui.translations`: `carousel`, `carousel_previous`, `carousel_next`, `carousel_go_to`, `carousel_pause`, `carousel_play`, `copy`, `copied`, `menu`, `speed_dial`, `transfer_search` y `transfer_select`** — los textos de este lote que seguían en inglés, más los nombres accesibles que faltaban.
+- **Suite E2E del lote** en `demo/e2e/specs/46`–`49`: el carrusel contra el morph, las tres listas reordenables, los flotantes y una tanda en WebKit móvil. Con su banco en `demo/app/Livewire/E2e/InteraccionBed.php`.
+- **Tests de unidad de `carousel`** —el remontaje, el foco dentro de una diapositiva, `inert` y el autoplay— y del nodo JSON de `transfer` y `order-list`.
+- **Cepo `tests/Ui/RolesQueMientenTest.php`** — ningún `role="tab"` sin un `role="tabpanel"` al otro lado, y ningún `role="menuitem"` puesto en un envoltorio en vez de en el control.
+
+#### Fixed
+
+- **`<x-kore::carousel>` se destruía con cualquier morph ajeno.** Ver arriba. Un `MutationObserver` sobre el carril reaplica tamaños y posición cuando el morph se los lleva, igual que hacen las barras de `<x-kore::splitter>`. Reaplicarlos vuelve a disparar el observador, pero entonces la condición ya no se cumple y no hay bucle.
+
+- **El carrusel no contaba las diapositivas que llegaban después.** `totalSlides` se calculaba en `init()`, que corre una vez: con el servidor añadiendo una, el estado se quedaba en cuatro con cinco en el DOM, la última era inalcanzable y faltaba un indicador. Ahora las recuenta el mismo observador.
+
+- **Un botón dentro de una diapositiva no recibía el foco.** El carril llevaba `x-on:pointerdown.prevent` para que arrastrar no seleccionara texto, y ese `preventDefault` impide también el enfoque: medido, `document.activeElement` se quedaba en `<body>` al pulsar. Ahora lo decide el JavaScript, que no arranca el arrastre si el gesto empieza sobre un control.
+
+- **Las diapositivas fuera de la ventana seguían en el tabulador.** Un `overflow-hidden` las recorta pero no las saca del recorrido del foco: se enfocaba un botón que nadie veía, y la página no desplazaba a ninguna parte porque el carril se mueve con `transform`. Llevan `inert` mientras están fuera.
+
+- **`<x-kore::tooltip>` no estaba conectado con el control que lo dispara.** Ver arriba. El texto va ahora en un `<span class="sr-only">` del propio componente y el JavaScript cuelga un `aria-describedby` del control que el consumidor puso en el slot — no del envoltorio, que es un `<div>` sin rol y que ningún lector anuncia. El panel flotante pasa a ser decorativo (`aria-hidden`), o el texto se leería dos veces.
+
+  **Por qué el texto no está en el panel**, que era lo natural: darle un `id` al nodo teleportado rompía el DataTable. El panel acaba en `<body>` mientras el `<template>` que lo declara sigue en su celda, así que al re-renderizar la tabla el morph emparejaba por id el nodo del HTML nuevo con el que ya colgaba de `<body>` y lo arrancaba de su ámbito de Alpine — `ReferenceError: show is not defined` con veinticinco tooltips en una página. Asignar el id desde JavaScript tampoco valía: pedir `$refs.tooltip` durante el montaje dejaba paneles sin ámbito por su cuenta. Lo cazó el censo de consola.
+
+- **`<x-kore::tooltip>` no se cerraba con `Escape`.** WCAG 1.4.13 pide poder descartar lo que aparece al pasar por encima o al enfocar, sin mover el foco. Se escucha en el elemento y la tecla solo se marca si había algo abierto, que es el contrato del `Escape` de la librería.
+
+- **`<x-kore::order-list>` y `<x-kore::transfer>` no se enteraban cuando el servidor cambiaba `:items`.** Los recibían dentro del `x-data` con `wire:ignore` en la raíz: medido, el servidor pasaba de cuatro elementos a cinco y los dos seguían enseñando cuatro para siempre. Ahora los items viajan en un nodo JSON de fuera que Livewire sí actualiza. En el `order-list`, al releer se reconcilia el orden: lo que el usuario había movido se queda donde estaba y lo nuevo se añade al final.
+
+- **El disparador de `<x-kore::dropdown>` no decía si estaba desplegado.** Ni `aria-expanded` ni `aria-haspopup`, ni siquiera con el menú abierto. Los pone el JavaScript sobre el control del slot y los reaplica al abrir y cerrar.
+
+- **Los tres botones de `<x-kore::clipboard>` no tenían nombre**, y el campo de solo lectura de la variante `input` tampoco. El de la variante `icon` se apoyaba en un `title`, que no se expone de forma fiable en táctil ni en todos los lectores. Además, **el «copiado» era solo visual**: ahora lo anuncia un `role="status"`.
+
+- **Los indicadores del carrusel decían ser pestañas.** `role="tablist"` con sus `role="tab"` y cero `role="tabpanel"` al otro lado — y con `numVisible` mayor que uno cada punto lleva a un grupo de diapositivas, así que la relación uno a uno que un `tablist` promete no puede existir. Son botones con `aria-current`. El `role="region"` del contenedor tampoco tenía nombre, y las diapositivas no eran nada: ahora son `role="group"` con `aria-roledescription="slide"` y su posición.
+
+- **Los elementos de `<x-kore::speed-dial>` envolvían a sus controles.** `role="menuitem"` estaba en el `<div>` de fuera, con el `<button>` dentro: un menuitem no puede contener un control. El rol pasa al control y el envoltorio a `role="none"`.
+
+- **El menú de `<x-kore::dropdown>` no tenía nombre y su separador no era un separador.** `role="menu"` sin `aria-label` se anuncia como «menú» y nada más; el separador era un `<div>` con un borde, decoración que nadie anunciaba.
+
+#### Medido, no cambiado
+
+- **`<x-kore::sortable>` en modo servidor no tiene ni un control enfocable**, igual que el tablero. Medido: 0, frente a 10 del `order-list` y 8 del `transfer`. Añadirle teclado es una función nueva, no un arreglo; hay un test que fija el número en cero para que el día que se añada haya que actualizarlo a conciencia.
+- **`<x-kore::order-list>` y `<x-kore::transfer>` sí se operan sin ratón**, y conviene decirlo: el primero con sus botones de subir y bajar —el cambio llega al servidor, comprobado de punta a punta— y el segundo marcando con `Espacio`. Las casillas del transfer llevan `pointer-events-none`, que parece dejarlas inertes y no lo hace: el teclado no pasa por ahí.
+- **Los ids de `order-list` y `transfer` ya estaban bien.** El `x-sort:item` del primero es una expresión evaluada dentro del `x-for` y el segundo no usa `x-sort` en absoluto. Probado con ids de texto desde el principio.
+- **Tres `role` sin nombre en componentes de otros lotes**, comprobados a mano y sin tocar: el `role="dialog"` del overlay manager —el más serio: cada modal se anuncia como «diálogo» y nada más—, los dos `role="listbox"` anidados del select y el `role="menu"` del theme-switch.
+
+### Presentación
+
+**Auditoría del lote de presentación en navegador.** Alertas, insignias, avatares, tarjetas, chips, iconos, teclas, indicadores de carga, esqueletos, estados vacíos, botones y booleanos probados en Chrome de escritorio y en WebKit sobre iPhone, con 17 pruebas nuevas. Es el último lote de componentes: con él, la librería entera queda auditada.
+
+Aquí casi nada tiene estado, así que lo que decide el lote es **el color**. Casi todos estos componentes tienen variantes que pintan texto de un color sobre un fondo del MISMO color al diez por ciento, y eso no lo ve un aserto de clases ni se aprecia en una captura: medido componiendo el fondo real capa a capa, **doce de las veintiuna combinaciones de un badge y veinticuatro de las treinta y nueve de un botón** estaban por debajo de AA.
+
+Lo interesante es que **la solución ya existía en la librería y solo se había aplicado a un color de cinco**: el token `--kore-warning-text`, con una nota en el CSS diagnosticando exactamente este problema. Los que se quedaron fuera estaban peor — `success` en 3,01 frente al 2,07 que motivó el token.
+
+Informe completo en `docs/presentacion-auditoria.md`.
+
+#### Added
+
+- **Tokens `--kore-primary-text`, `--kore-success-text`, `--kore-info-text` y `--kore-destructive-text`**, en los dos temas, junto al `--kore-warning-text` que ya existía. Los valores están calibrados midiendo: cada uno es la primera luminosidad que pasa 4,5 sobre el tinte del mismo color al 10 % y al 20 %. El método se validó solo — para `warning` reproduce el `0.52` que el token ya tenía.
+- **`live` en `<x-kore::alert>`** — `assertive`, `polite` u `off`, para decidir si el aviso interrumpe al lector.
+- **`trueLabel` y `falseLabel` en `<x-kore::boolean>`** — para cuando el booleano significa «Activo/Inactivo» y no «Sí/No».
+- **`ariaLabel` en `<x-kore::button-group>`** — nombre del grupo.
+- **`announce` en `<x-kore::loading>`** — para callarlo dentro de un componente que ya anuncia su estado.
+- **`kore-ui.ui.translations`: `yes`, `no`, `loading`, `close`, `button_group` y `presence_online` / `_offline` / `_busy` / `_away`.**
+- **Suite E2E del lote** en `demo/e2e/specs/50`–`52`: el contraste en los dos temas, la semántica y el movimiento, y una tanda en WebKit móvil. Con su banco en `demo/app/Livewire/E2e/PresentacionBed.php`.
+- **Cepo `tests/Ui/ColorComoTextoTest.php`** — ningún color de la paleta puede usarse como texto sobre su propio tinte, y los cinco tokens `-text` tienen que existir en los dos temas.
+
+#### Fixed
+
+- **El color base de la paleta se usaba como texto sobre su propio tinte.** Ver arriba. Las variantes `soft`, `outline`, `ghost` y `link` de `<x-kore::badge>`, `<x-kore::chip>`, `<x-kore::alert>` y `<x-kore::button>` pasan a usar el token `-text`, y también las iniciales de `<x-kore::avatar>`, que van al veinte por ciento. El mismo cambio se aplicó a once vistas de otros componentes con el mismo patrón —sidebar, stats, tree, tab, tag-input, spotlight y cuatro del DataTable—: 26 sustituciones en total.
+
+- **`<x-kore::alert>` interrumpía al lector aunque llevara ahí desde el principio.** `role="alert"` es una región *assertive*: interrumpe lo que se esté leyendo. Medido: doce alertas estáticas en una página, las doce anunciándose de golpe al abrirla. Ahora el rol se pone solo cuando la alerta es dinámica de verdad.
+
+- **`<x-kore::loading>` no se anunciaba.** Cero elementos con `role="status"` o `aria-live` en una página con cuatro indicadores: sin texto visible, la animación era la única señal de que algo estaba pasando. Trae además una prop **`announce`** para quien ya anuncia su propio estado: el DataTable la usa, porque su paginación tiene otro `aria-live` con el recuento y con los dos un lector oía «Cargando» y luego «Mostrando 1 de 1» en cada filtrado.
+
+- **Las animaciones del lote ignoraban `prefers-reduced-motion`.** El CSS ya tenía su bloque para esa preferencia; el spinner, los puntos, el pulso, el brillo del esqueleto y el pulso de presencia del avatar se habían quedado fuera. El spinner se **ralentiza** de 1 s a 3 s en vez de apagarse —es la única señal de que algo pasa—; lo demás se apaga entero.
+
+- **Dos objetivos táctiles por debajo del mínimo.** El botón de quitar de `<x-kore::chip>` medía 18×18 y el de cerrar de `<x-kore::alert>`, 20 px de ancho. WCAG 2.2 pide 24×24.
+
+- **La descripción de `<x-kore::alert>` bajaba su propio contraste** con un `opacity-90`: fallaba en once de las doce combinaciones, frente a ocho del título.
+
+- **`<x-kore::boolean>` decía «true» y «false»**, en inglés y sin significado: un lector anunciaba «imagen, true» y nada más.
+
+- **La presencia de `<x-kore::avatar>` era solo color.** Los cuatro estados sin texto ni `aria-label`: para quien no distingue el verde del rojo, «en línea» y «ocupado» se veían idénticos.
+
+- **`<x-kore::button-group>` no era un grupo** para un lector: ni `role="group"` ni nombre.
+
+#### Medido, no cambiado
+
+- **Las variantes `solid` no llegan a AA**, y es la decisión pendiente que deja este lote: pintan el color `-fg` —casi blanco— sobre el color pleno, y ninguno de los cuatro pasa. Medido en tema claro: `primary` 4,41 · `destructive` 4,39 · `info` 3,42 · `success` 3,17. Arreglarlo pide mover la paleta base, y esos mismos tokens pintan gráficos, iconos, estados del sidebar y media tabla.
+- **`muted` se queda en 4,48**, a dos centésimas.
+- **El `button-group` NO se descoloca con el morph**, que era la sospecha: el cálculo de las esquinas es CSS puro, así que lo rehace el navegador solo. Medido con un cuarto botón llegando desde el servidor.
+- **El chip que el usuario oculta no resucita** con un morph ajeno.
 
 ---
 
@@ -978,6 +1019,7 @@ Primera versión pre-release de kore-ui. Incluye el sistema base completo con ov
 
 ---
 
+[2.0.0]: https://github.com/koreui/kore-ui/releases/tag/v2.0.0
 [1.7.1]: https://github.com/koreui/kore-ui/releases/tag/v1.7.1
 [1.7.0]: https://github.com/koreui/kore-ui/releases/tag/v1.7.0
 [1.6.0]: https://github.com/koreui/kore-ui/releases/tag/v1.6.0
