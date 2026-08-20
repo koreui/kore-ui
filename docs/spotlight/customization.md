@@ -61,8 +61,11 @@ El Spotlight usa tokens existentes de `kore-theme.css`. No requiere tokens nuevo
 | `--color-kore-primary` | Ítem seleccionado (10% opacity) |
 | `--color-kore-muted-fg` | Headers de grupo, placeholder |
 | `--color-kore-fg` | Texto de ítems |
+| `--kore-backdrop` | Velo que oscurece la página de detrás |
 | `--radius-kore-lg` | Border radius del panel |
 | `--shadow-kore-xl` | Sombra del panel |
+
+`--kore-backdrop` es el mismo token que usa el overlay manager, así que el velo de un modal y el del Spotlight se cambian en un solo sitio. Es un token propio y **no** `--kore-fg`: el color de texto se invierte con el tema, y un velo pintado con él salía casi blanco en modo oscuro, aclarando la página en vez de atenuarla.
 
 Dark mode funciona automáticamente con `.dark` o `[data-theme="dark"]` en `<html>`.
 

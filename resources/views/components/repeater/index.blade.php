@@ -35,9 +35,21 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     $wireModelAttr = $attributes->whereStartsWith('wire:model');
+
+    // Un campo sin `key` reventaba aquí con «Undefined array key» apuntando a
+    // esta línea del paquete: un 500 en toda la página por un error de quien
+    // declara el schema, y sin decir cuál de los campos es. Se comprueba antes.
+    foreach ($fields as $indice => $campo) {
+        if (! is_array($campo) || ! array_key_exists('key', $campo)) {
+            throw new \InvalidArgumentException(
+                "kore::repeater: el campo #{$indice} de `fields` no declara `key`. "
+                . 'Cada entrada necesita al menos [\'key\' => \'nombre\'].'
+            );
+        }
+    }
 
     $fieldKeys = array_values(array_map(fn ($f) => $f['key'], $fields));
 
@@ -47,6 +59,15 @@
         'max' => $max,
         'default' => ! empty($default) ? $default : null,
     ], fn ($v) => $v !== null), JSON_UNESCAPED_UNICODE);
+
+    // Los atributos que el consumidor escribe en la etiqueta y que ningún
+    // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
+    // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
+    // simplemente no existían. Se vuelcan en la raíz del componente.
+    // `id` se excluye porque ya lo usa $fieldId sobre el control, y `wire:model`
+    // porque vive en el input oculto: duplicarlos daría dos ids iguales y dos
+    // enlaces al mismo modelo.
+    $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
 @endphp
 
 <x-kore::field
@@ -60,7 +81,7 @@
     <div
         x-data="KoreRepeater({{ $jsConfig }})"
         wire:ignore
-        class="space-y-3 {{ $disabled ? 'opacity-50 pointer-events-none' : '' }}"
+        {{ $atributosRaiz->merge(['class' => 'space-y-3 ' . ($disabled ? 'opacity-50 pointer-events-none' : '')]) }}
     >
         {{-- Hidden input for wire:model --}}
         <input

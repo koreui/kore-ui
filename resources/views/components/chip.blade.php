@@ -65,6 +65,7 @@
 
     @if($removable)
         <button type="button" x-on:click="visible = false; $dispatch('chip-removed')"
+            aria-label="{{ config('kore-ui.ui.translations.remove', 'Quitar') }}"
             class="ml-0.5 -mr-1 rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
             <x-lucide-x class="{{ $iconSize }}" />
         </button>

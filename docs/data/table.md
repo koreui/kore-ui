@@ -33,6 +33,20 @@ Componente Blade estatico para tablas simples. Recibe arrays o collections y ren
 | `density` | `string\|null` | `config(normal)` | Densidad: `compact`, `normal`, `relaxed` |
 | `emptyText` | `string\|null` | `config` | Texto cuando no hay filas |
 | `emptyIcon` | `string\|null` | `config(inbox)` | Icono del estado vacio (Lucide) |
+| `caption` | `string\|null` | `null` | Nombre de la tabla, en un `<caption>` |
+| `captionHidden` | `bool` | `false` | Deja el caption solo para lectores de pantalla |
+
+### Nombrar la tabla
+
+Un `aria-label` escrito en la etiqueta **no** nombra la tabla: `$attributes` se vuelca en el `<div>` envolvente, que no tiene rol y por tanto no acepta nombre. Sin `caption`, un lector de pantalla anuncia «tabla, 3 columnas, 3 filas» y nada más.
+
+```blade
+{{-- Visible, encima de la tabla --}}
+<x-kore::table caption="Altas del equipo" :headers="$headers" :rows="$rows" />
+
+{{-- Solo para lectores de pantalla --}}
+<x-kore::table caption="Altas del equipo" :captionHidden="true" :headers="$headers" :rows="$rows" />
+```
 
 ---
 

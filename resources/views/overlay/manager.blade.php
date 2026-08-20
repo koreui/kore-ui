@@ -1,6 +1,9 @@
 <div
     x-data="KoreOverlay()"
-    x-on:keydown.escape.window="closeOnEscape()"
+    {{-- Con el $event: `closeOnEscape` necesita saber si alguien ya ha
+         consumido este Escape (un select abierto, un calendario, un dropdown)
+         para no cerrar el modal además del panel. --}}
+    x-on:keydown.escape.window="closeOnEscape($event)"
     x-show="show"
     x-cloak
     class="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden"
@@ -16,7 +19,11 @@
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
         x-on:click="closeOnClickAway()"
-        class="fixed inset-0 bg-kore-fg/50 transition-opacity"
+        {{-- `--kore-backdrop` y no `--kore-fg`: el color de texto se invierte con
+             el tema, así que en modo oscuro este velo salía casi blanco y
+             ACLARABA la página en vez de atenuarla —el fondo acababa más claro
+             que el propio modal—. --}}
+        class="fixed inset-0 bg-kore-backdrop/50 transition-opacity"
         x-bind:class="backdropBlur ? 'backdrop-blur-sm' : ''"
         aria-hidden="true"
     ></div>

@@ -34,7 +34,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     $defaultColors = [
         '#ef4444', '#f97316', '#f59e0b', '#eab308',
@@ -47,10 +47,16 @@
 
     $palette = $colors ?? $defaultColors;
 
+    // Ancho máximo, no ancho fijo: la rejilla reparte `$columns` columnas con
+    // `1fr`, pero una muestra de tamaño fijo no puede encogerse por debajo de
+    // ese tamaño, así que ocho columnas imponían un mínimo de unos 266 px y
+    // desbordaban cualquier contenedor más estrecho —una columna de un
+    // formulario a dos columnas en un móvil, por ejemplo—. Con `w-full` y un
+    // tope, la muestra se encoge cuando hace falta y mantiene el cuadrado.
     $swatchDim = match($size) {
-        'sm' => 'size-6',
-        'lg' => 'size-9',
-        default => 'size-7',
+        'sm' => 'w-full max-w-6 aspect-square',
+        'lg' => 'w-full max-w-9 aspect-square',
+        default => 'w-full max-w-7 aspect-square',
     };
 
     $sizeClasses = match($size) {
@@ -84,6 +90,15 @@
         $b = hexdec(substr($c, 4, 2));
         return (0.299 * $r + 0.587 * $g + 0.114 * $b) / 255 > 0.6;
     };
+
+    // Los atributos que el consumidor escribe en la etiqueta y que ningún
+    // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
+    // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
+    // simplemente no existían. Se vuelcan en la raíz del componente.
+    // `id` se excluye porque ya lo usa $fieldId sobre el control, y `wire:model`
+    // porque vive en el input oculto: duplicarlos daría dos ids iguales y dos
+    // enlaces al mismo modelo.
+    $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
 @endphp
 
 <x-kore::field
@@ -96,7 +111,8 @@
 >
     <div
         x-data="KoreColorPicker({{ $jsConfig }})"
-        class="{{ $disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}"
+        x-on:keydown.escape="onEscape($event)"
+        {{ $atributosRaiz->merge(['class' => $disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '']) }}
     >
         {{-- Hidden input for wire:model --}}
         <input
@@ -158,6 +174,8 @@
                             class="{{ $swatchDim }} rounded-kore-sm border border-kore-border/50 flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-kore-ring"
                             style="background-color: {{ $hex }}"
                             x-on:click="selectColor('{{ $hex }}')"
+                            aria-label="{{ config('kore-ui.form.translations.pick_color', 'Elegir color') }} {{ $hex }}"
+                            x-bind:aria-pressed="value === @js($hex) ? 'true' : 'false'"
                         >
                             <x-lucide-check
                                 class="size-3.5 {{ $checkColor }}"
@@ -178,7 +196,8 @@
                             type="text"
                             x-model="customHex"
                             placeholder="#000000"
-                            class="flex-1 text-sm bg-kore-bg text-kore-fg border border-kore-input rounded-kore-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary"
+                            aria-label="{{ config('kore-ui.form.translations.custom_color', 'Color personalizado') }}"
+                            class="flex-1 min-w-0 text-sm bg-kore-bg text-kore-fg border border-kore-input rounded-kore-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary"
                             x-on:keydown.enter.prevent="applyCustom()"
                             maxlength="7"
                         />
@@ -206,6 +225,10 @@
                     x-transition:leave="transition ease-in duration-75"
                     x-transition:leave-start="opacity-100 scale-100"
                     x-transition:leave-end="opacity-0 scale-95"
+                    {{-- También aquí: el panel está teleportado a `<body>`, así
+                         que las teclas pulsadas con el foco dentro no burbujean
+                         hasta la raíz que lleva el otro manejador. --}}
+                    x-on:keydown.escape="onEscape($event)"
                     class="rounded-kore-md border border-kore-border bg-kore-bg shadow-lg p-3 z-50"
                     style="position: fixed"
                 >
@@ -218,6 +241,8 @@
                                 class="{{ $swatchDim }} rounded-kore-sm border border-kore-border/50 flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-kore-ring"
                                 style="background-color: {{ $hex }}"
                                 x-on:click="selectColor('{{ $hex }}')"
+                                aria-label="{{ config('kore-ui.form.translations.pick_color', 'Elegir color') }} {{ $hex }}"
+                                x-bind:aria-pressed="value === @js($hex) ? 'true' : 'false'"
                             >
                                 <x-lucide-check
                                     class="size-3.5 {{ $checkColor }}"
@@ -238,7 +263,8 @@
                                 type="text"
                                 x-model="customHex"
                                 placeholder="#000000"
-                                class="flex-1 text-sm bg-kore-bg text-kore-fg border border-kore-input rounded-kore-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary"
+                                aria-label="{{ config('kore-ui.form.translations.custom_color', 'Color personalizado') }}"
+                                class="flex-1 min-w-0 text-sm bg-kore-bg text-kore-fg border border-kore-input rounded-kore-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary"
                                 x-on:keydown.enter.prevent="applyCustom()"
                                 maxlength="7"
                             />

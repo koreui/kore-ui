@@ -31,7 +31,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     $inputSize = match($size) {
         'sm' => 'size-8 text-sm',
@@ -49,6 +49,15 @@
     ])->filter()->implode(' ');
 
     $wireModelAttr = $attributes->whereStartsWith('wire:model');
+
+    // Los atributos que el consumidor escribe en la etiqueta y que ningún
+    // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
+    // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
+    // simplemente no existían. Se vuelcan en la raíz del componente.
+    // `id` se excluye porque ya lo usa $fieldId sobre el control, y `wire:model`
+    // porque vive en el input oculto: duplicarlos daría dos ids iguales y dos
+    // enlaces al mismo modelo.
+    $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
 @endphp
 
 <x-kore::field
@@ -64,7 +73,7 @@
             length: {{ $length }},
             numeric: {{ $numeric ? 'true' : 'false' }},
         })"
-        class="flex items-center gap-2"
+        {{ $atributosRaiz->merge(['class' => "flex items-center gap-2"]) }}
     >
         {{-- Hidden input for wire:model --}}
         <input
@@ -72,7 +81,6 @@
             x-ref="hiddenInput"
             {{ $wireModelAttr }}
             @if($name) name="{{ $name }}" @endif
-            id="{{ $fieldId }}"
         />
 
         @for($i = 0; $i < $length; $i++)
@@ -83,6 +91,8 @@
             <input
                 type="{{ $masked ? 'password' : 'text' }}"
                 x-ref="digit{{ $i }}"
+                @if($i === 0) id="{{ $fieldId }}" @endif
+                aria-label="{{ config('kore-ui.form.translations.digit', 'Dígito') }} {{ $i + 1 }}"
                 maxlength="1"
                 @if($numeric) inputmode="numeric" pattern="[0-9]*" @endif
                 x-on:input="onInput({{ $i }}, $event)"

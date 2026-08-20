@@ -5,7 +5,13 @@
 @endphp
 
 @if(count($filterDefs) > 0)
-    <div wire:ignore x-data="{ filtersOpen: false }" x-on:keydown.escape.window="filtersOpen = false">
+    {{-- El Escape se escucha en el elemento y en el panel, no en `window`: en
+         window este manejador recibía el mismo evento que el overlay manager y
+         una sola pulsación cerraba el drawer Y el modal que lo contuviera. Con
+         el orden de propagación decidiendo, el `preventDefault()` avisa de que
+         la tecla ya está atendida. --}}
+    <div wire:ignore x-data="{ filtersOpen: false }"
+         x-on:keydown.escape="if (filtersOpen) { $event.preventDefault(); filtersOpen = false }">
         {{-- Trigger --}}
         <button
             type="button"
@@ -57,6 +63,10 @@
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="kore-filters-title-{{ $this->getId() }}"
+                {{-- Aquí es donde de verdad llega la tecla: el trap mantiene el
+                     foco dentro de este panel, que está teleportado a `<body>` y
+                     no burbujea por la raíz del componente. --}}
+                x-on:keydown.escape="if (filtersOpen) { $event.preventDefault(); filtersOpen = false }"
                 x-kore-trap="filtersOpen"
                 x-show="filtersOpen"
                 x-transition:enter="transition ease-out duration-300"

@@ -63,6 +63,23 @@ export default (config) => ({
         this._cleanup();
     },
 
+    /**
+     * Escape cierra el panel.
+     *
+     * No lo hacía: el panel solo se cerraba con un clic fuera, y dentro de un
+     * modal ese Escape sin dueño llegaba al overlay manager, que cerraba el
+     * modal entero. El `preventDefault()` es lo que marca el evento como
+     * atendido para que el manager lo descarte, y por eso solo se llama cuando
+     * hay algo que cerrar de verdad.
+     */
+    onEscape(e) {
+        if (!this.open) return;
+
+        e.preventDefault();
+        this.close();
+        this.$refs.trigger?.focus();
+    },
+
     _cleanup() {
         stopFloating(this._floatingCleanup);
         this._floatingCleanup = null;

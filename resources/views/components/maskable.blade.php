@@ -38,7 +38,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     // Associate the field's hint/error with the control (WCAG 3.3.1 / 4.1.2).
     $describedBy = $hasError ? $fieldId . '-error' : ($hint ? $fieldId . '-hint' : null);
@@ -86,6 +86,15 @@
         'emitFormatted' => $emitFormatted ?: null,
         'autoClear' => $autoClear ?: null,
     ], fn($v) => $v !== null));
+
+    // Los atributos que el consumidor escribe en la etiqueta y que ningún
+    // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
+    // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
+    // simplemente no existían. Se vuelcan en la raíz del componente.
+    // `id` se excluye porque ya lo usa $fieldId sobre el control, y `wire:model`
+    // porque vive en el input oculto: duplicarlos daría dos ids iguales y dos
+    // enlaces al mismo modelo.
+    $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
 @endphp
 
 <x-kore::field
@@ -98,7 +107,7 @@
 >
     <div
         x-data="KoreMaskable({{ $jsConfig }})"
-        class="relative"
+        {{ $atributosRaiz->merge(['class' => "relative"]) }}
     >
         @if($icon)
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">

@@ -16,7 +16,10 @@
         x-transition:leave-end="opacity-0"
         @click="close()"
         class="fixed inset-0"
-        style="background-color: oklch(0% 0 0 / 0.5); z-index: 69"
+        {{-- El mismo token que el overlay manager: el velo se cambia en un solo
+             sitio y los dos sistemas se ven igual. Antes era un negro fijo
+             escrito aquí a mano. --}}
+        style="background-color: color-mix(in oklab, var(--kore-backdrop) 50%, transparent); z-index: 69"
         aria-hidden="true"
         x-cloak
     ></div>
@@ -70,6 +73,11 @@
                     aria-autocomplete="list"
                     :aria-activedescendant="activeItemId"
                     aria-controls="kore-spotlight-results"
+                    {{-- El placeholder no es nombre accesible: cambia según el
+                         paso en que esté la búsqueda y desaparece en cuanto se
+                         escribe algo. El único control del panel se quedaba sin
+                         nombre. --}}
+                    aria-label="Buscar"
                     x-ref="input"
                     x-model="query"
                     @keydown.arrow-down.prevent="moveDown()"

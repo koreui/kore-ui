@@ -4,17 +4,18 @@ export default (config) => ({
     steps: [],
     variant: config.variant ?? 'horizontal',
 
-    init() {
-        this.$nextTick(() => {
-            if (!this.selected && this.steps.length > 0) {
-                this.selected = this.steps[0].id;
-            }
-        });
-    },
-
     registerStep(step) {
         if (!this.steps.find(s => s.id === step.id)) {
             this.steps.push(step);
+        }
+
+        // El paso activo se decide AQUÍ y no en init(), por lo mismo que en
+        // `tab.js`: cuando el padre inicializa, los pasos todavía no se han
+        // registrado. Sin esto, `getStepStatus` devolvía «pending» para todos
+        // —ningún círculo resaltado, ningún contenido a la vista— hasta que el
+        // usuario pulsaba un paso.
+        if (this.selected === null) {
+            this.selected = step.id;
         }
     },
 

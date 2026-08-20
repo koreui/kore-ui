@@ -256,8 +256,17 @@ export default function KoreSidebar(config = {}) {
 
         onKeydown(event) {
             if (event.key === 'Escape') {
+                // El flyout es local a este sidebar: si había uno abierto, la
+                // tecla es suya sin discusión y se marca como consumida.
+                if (flyouts.length > 0) {
+                    event.preventDefault();
+                    this.closeFloating();
+
+                    return;
+                }
+
                 this.closeFloating();
-                this.$store.koreSidebar.closeMobile(this.id);
+                this.$store.koreSidebar.closeMobileOnEscape(this.id, event);
 
                 return;
             }

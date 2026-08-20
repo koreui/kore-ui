@@ -6,18 +6,44 @@
     'selectedKeys' => [],
     'filter' => false,
     'filterPlaceholder' => 'Filter...',
+    'ariaLabel' => null,
 ])
 
+@php
+    $ariaLabel = $ariaLabel ?? config('kore-ui.ui.translations.tree', 'Árbol');
+@endphp
+
+{{-- Los nodos viajan en un nodo JSON APARTE, fuera del `wire:ignore`.
+
+     El árbol se pinta entero con `x-for` desde el cliente, y el morph de
+     Livewire reemplazaba el `<template>` por el del servidor: a partir de ahí el
+     `x-for` quedaba muerto —el estado decía nueve filas y el DOM se quedaba en
+     siete, sin reaccionar ni tocando el estado a mano—. Con `wire:ignore` el
+     morph no lo toca, y este `<script>` es la vía por la que el componente se
+     entera de que el servidor cambió los datos. Mismo mecanismo que las
+     opciones de `<x-kore::select>`. --}}
+<script type="application/json" data-kore-tree-nodes>@json($nodes)</script>
+
 <div {{ $attributes->class(['w-full']) }}
+     wire:ignore
      x-data="KoreTree({
-        nodes: @js($nodes),
+        {{-- Los nodos NO viajan aquí: van en el <script> de arriba y el
+             componente los lee al iniciar. Con los dos sitios, un árbol de dos
+             mil nodos mandaba el JSON por duplicado —medido: 81 kB de más—. --}}
         selectable: {{ $selectable ? 'true' : 'false' }},
         selectionMode: '{{ $selectionMode }}',
         expandedKeys: @js($expandedKeys),
         selectedKeys: @js($selectedKeys),
         filter: {{ $filter ? 'true' : 'false' }},
+        labels: {
+            expand: @js(config('kore-ui.ui.translations.tree_expand', 'Abrir')),
+            collapse: @js(config('kore-ui.ui.translations.tree_collapse', 'Cerrar')),
+        },
      })"
-     role="tree">
+     role="tree"
+     {{-- Un `role="tree"` sin nombre se anuncia como «árbol» y nada más. --}}
+     aria-label="{{ $ariaLabel }}"
+     x-on:keydown="onKeydown($event)">
 
     {{-- Filter --}}
     @if($filter)
@@ -26,6 +52,10 @@
                 <x-lucide-search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-kore-muted-fg" />
                 <input type="text"
                        x-model.debounce.200ms="filterText"
+                       {{-- El placeholder no es nombre accesible: desaparece en
+                            cuanto se escribe algo, y era lo único que tenía
+                            este campo. --}}
+                       aria-label="{{ $filterPlaceholder }}"
                        placeholder="{{ $filterPlaceholder }}"
                        class="w-full pl-9 pr-3 py-2 text-sm rounded-kore-md border border-kore-border bg-kore-bg text-kore-fg placeholder:text-kore-muted-fg focus:outline-none focus:ring-2 focus:ring-kore-ring" />
             </div>
@@ -35,22 +65,38 @@
     {{-- Flat-rendered nodes --}}
     <div class="space-y-0.5" role="group">
         <template x-for="item in flatNodes" :key="item.node.key">
-            <div x-show="item.visible" class="select-none"
-                 :aria-level="item.level + 1">
-                <div class="flex items-center gap-1 py-1 px-2 rounded-kore-sm cursor-pointer transition-colors hover:bg-kore-accent/50"
+            <div x-show="item.visible" class="select-none">
+                {{-- El `aria-level` va AQUÍ, en el elemento con `role="treeitem"`,
+                     y no en el envoltorio: en un `div` sin rol no significa nada
+                     y el nivel no se anunciaba.
+
+                     `tabindex` sigue el patrón de un tree: uno solo entra en el
+                     tabulador y las flechas mueven el foco dentro. Antes todos
+                     valían -1 y no había forma de llegar a un nodo con el
+                     teclado —ni, por tanto, de seleccionar nada sin ratón—. --}}
+                <div class="flex items-center gap-1 py-1 px-2 rounded-kore-sm cursor-pointer transition-colors hover:bg-kore-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring"
                      :class="isSelected(item.node.key) && 'bg-kore-primary/10 text-kore-primary'"
                      :style="'padding-left: ' + (item.level * 20 + 8) + 'px'"
-                     x-on:click="onNodeClick(item.node)"
+                     x-on:click="onNodeClick(item.node); focusKey = item.node.key"
                      role="treeitem"
-                     :aria-expanded="item.hasChildren ? isExpanded(item.node.key) : undefined"
-                     :aria-selected="selectable ? isSelected(item.node.key) : undefined">
+                     :data-kore-tree-key="item.node.key"
+                     :tabindex="esFoco(item.node.key) ? 0 : -1"
+                     :aria-level="item.level + 1"
+                     :aria-expanded="item.hasChildren ? String(isExpanded(item.node.key)) : null"
+                     :aria-selected="selectable ? String(isSelected(item.node.key)) : null">
 
                     {{-- Expand/collapse chevron --}}
                     <template x-if="item.hasChildren">
                         <button type="button"
                                 x-on:click.stop="toggleExpand(item.node.key)"
                                 class="inline-flex items-center justify-center size-5 rounded-kore-sm hover:bg-kore-accent transition-colors"
-                                aria-label="Toggle expand">
+                                {{-- Con un nombre fijo, un lector anuncia lo mismo
+                                     en cada rama y no dice cuál está abriendo.
+                                     `tabindex=-1` porque quien recorre el árbol
+                                     es el treeitem: el chevrón duplicaba paradas
+                                     del tabulador sin aportar destino. --}}
+                                tabindex="-1"
+                                :aria-label="etiquetaDeChevron(item)">
                             <svg class="size-3.5 transition-transform duration-150"
                                  :class="isExpanded(item.node.key) && 'rotate-90'"
                                  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"

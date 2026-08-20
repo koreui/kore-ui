@@ -37,7 +37,18 @@
     x-on:focusin="focused = true"
     x-on:focusout="focused = false; filled = $event.target.value?.length > 0"
     x-on:input="filled = $event.target.value?.length > 0"
-    x-init="$nextTick(() => { let input = $el.querySelector('input, textarea, select'); if (input && input.value) filled = true; })"
+    x-init="$nextTick(() => {
+        // El control lo pone quien usa el componente, así que el id no se puede
+        // escribir en el Blade: se busca en tiempo de ejecución. Sin este enlace
+        // la etiqueta no nombra a nada —no tenía ni `for` ni envolvía al input—
+        // y el campo se anunciaba sin nombre, que es justo lo contrario de lo
+        // que hace un float-label.
+        let input = $el.querySelector('input:not([type=hidden]), textarea, select');
+        if (! input) return;
+        if (! input.id) input.id = 'kore-float-' + Math.random().toString(36).slice(2, 9);
+        if ($refs.etiqueta && ! $refs.etiqueta.htmlFor) $refs.etiqueta.htmlFor = input.id;
+        if (input.value) filled = true;
+    })"
     class="kore-float-label relative {{ $inputPadding }}"
 >
     <div class="relative">
@@ -45,6 +56,7 @@
 
         @if($label)
             <label
+                x-ref="etiqueta"
                 class="absolute pointer-events-none text-kore-muted-fg transition-all duration-200 origin-top-left {{ $restClasses }}"
                 x-bind:class="(focused || filled) && '{{ $activeClasses }}'"
             >

@@ -9,7 +9,13 @@
 ])
 
 @php
-    $id = $id ?? 'tab-' . uniqid();
+    // No `uniqid()`. Aquí el síntoma es más callado que en el acordeón: el id del
+    // panel lo pinta Alpine con `x-bind:id`, así que en el DOM queda congelado
+    // en el de la primera carga; pero el `aria-controls` del botón lo emite el
+    // servidor y estrena valor en cada render. Resultado: la pestaña sigue
+    // funcionando a la vista y la relación botón→panel se rompe a partir del
+    // segundo render, con una referencia rota más cada vez. Ver IdContext.
+    $id = $id ?? \KoreUi\Core\Support\IdContext::secuencia('tab');
 @endphp
 
 {{-- Icon template for auto-registration --}}

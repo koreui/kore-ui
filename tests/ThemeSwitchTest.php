@@ -56,9 +56,30 @@ it('shows labels when prop is true', function () {
 it('hides labels by default', function () {
     $view = $this->blade('<x-kore::theme-switch />');
 
-    $view->assertDontSee('Light')
-        ->assertDontSee('System')
-        ->assertDontSee('Dark');
+    // Sin `labels` no hay texto VISIBLE, pero el nombre accesible sigue estando:
+    // los botones solo llevan un icono, y sin `aria-label` un lector de pantalla
+    // los anuncia como «botón de radio» y nada más.
+    $view->assertDontSee('<span>Light</span>', false)
+        ->assertDontSee('<span>System</span>', false)
+        ->assertDontSee('<span>Dark</span>', false);
+});
+
+it('names the icon-only buttons even without visible labels', function () {
+    $view = $this->blade('<x-kore::theme-switch />');
+
+    $view->assertSee('aria-label="Light"', false)
+        ->assertSee('aria-label="System"', false)
+        ->assertSee('aria-label="Dark"', false);
+});
+
+it('uses the custom labels as accessible names too', function () {
+    // WCAG 2.5.3: el nombre accesible tiene que coincidir con la etiqueta
+    // visible cuando la hay.
+    $view = $this->blade('<x-kore::theme-switch :labels="true" light-label="Claro" dark-label="Oscuro" system-label="Auto" />');
+
+    $view->assertSee('aria-label="Claro"', false)
+        ->assertSee('aria-label="Oscuro"', false)
+        ->assertSee('aria-label="Auto"', false);
 });
 
 it('accepts custom labels', function () {

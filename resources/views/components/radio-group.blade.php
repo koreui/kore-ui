@@ -26,7 +26,11 @@
 
     // Group-level id so field.blade.php can id the hint/error and the radiogroup
     // can reference them via aria-describedby (WCAG 3.3.1 / 4.1.2).
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : null);
+    // Sin `name` esto devolvía null, y sin id no hay `aria-labelledby`: el
+    // role="radiogroup" se quedaba sin nombre accesible. Y es justo el caso del
+    // ejemplo de la documentación, donde el `wire:model` va en cada radio y el
+    // grupo no lleva `name`.
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
     $describedBy = $hasError ? ($fieldId ? $fieldId . '-error' : null) : ($hint && $fieldId ? $fieldId . '-hint' : null);
 @endphp
 
@@ -37,12 +41,20 @@
     :error-message="$errorMessage"
     :field-id="$fieldId"
     :required="$required"
+    :labelable="false"
 >
     <div
         role="radiogroup"
+        @if($fieldId) id="{{ $fieldId }}" @endif
+        @if($fieldId && $label) aria-labelledby="{{ $fieldId }}-label" @endif
         @if($hasError) aria-invalid="true" @endif
         @if($describedBy) aria-describedby="{{ $describedBy }}" @endif
-        {{ $attributes->only('class')->merge(['class' => $inline ? 'flex flex-wrap gap-4' : 'space-y-2']) }}
+        {{-- `only('class')` descartaba todo lo demás: un `data-*`, un `x-on:` o un
+             `aria-describedby` escrito en la etiqueta no llegaba al DOM y no
+             había forma de saberlo. Solo se quedan fuera el `id` —ya lo lleva el
+             grupo— y el `wire:model`, que aquí sirve únicamente para localizar
+             el error y no para enlazar nada. --}}
+        {{ $attributes->whereDoesntStartWith('wire:model')->except(['id'])->merge(['class' => $inline ? 'flex flex-wrap gap-4' : 'space-y-2']) }}
     >
         {{ $slot }}
     </div>

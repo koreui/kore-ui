@@ -66,6 +66,19 @@ Formatted currency input using `Intl.NumberFormat`. Shows the raw numeric value 
 | `prefix` | string | null | Custom prefix (alternative to currency) |
 | `suffix` | string | null | Custom suffix (e.g. `' kg'`) |
 
+> **Sobre `precision` y `step`.** En modo `decimal`, un `step` entero implica
+> `precision => 0`: es lo que quiere un contador de unidades, y de paso bloquea
+> la tecla del separador decimal. En modo `currency` **no**: ahí `step` es cuánto
+> mueven las flechas —un euro por clic es lo normal— y no tiene nada que ver con
+> los decimales del importe, que salen de la configuración (2 por defecto). Para
+> importes sin céntimos, `:precision="0"` explícito.
+
+> **`prefix` y `suffix` son props de moneda**, aunque el nombre no lo diga: los
+> lee el formateador de `mode="currency"`. En modo `decimal` se aceptan y no se
+> pintan — el campo sale sin adorno y sin ningún aviso. Para poner un símbolo
+> junto a un número corriente, usa `<x-kore::input>` con su `prefix`/`suffix`,
+> que sí los renderiza en cualquier caso.
+
 ### Different Currencies
 
 ```html

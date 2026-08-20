@@ -10,6 +10,8 @@
     'density' => null,
     'emptyText' => null,
     'emptyIcon' => null,
+    'caption' => null,
+    'captionHidden' => false,
 ])
 
 @php
@@ -48,6 +50,20 @@
     'overflow-x-auto' => $responsive,
 ]) }}>
     <table class="min-w-full divide-y divide-kore-border">
+        {{-- El nombre de la tabla.
+
+             Sin él, un lector de pantalla anuncia «tabla, 3 columnas, 3 filas» y
+             ya: no hay forma de saber de qué son esos datos. Un `aria-label`
+             escrito en la etiqueta tampoco servía, porque `$attributes` se
+             vuelca en el `<div>` envolvente, que no tiene rol y por tanto no
+             acepta nombre. `captionHidden` lo deja solo para lectores. --}}
+        @if($caption)
+            <caption @class([
+                'text-sm text-kore-muted-fg px-4 py-2 text-left' => ! $captionHidden,
+                'sr-only' => $captionHidden,
+            ])>{{ $caption }}</caption>
+        @endif
+
         @unless($headerless)
             <thead class="bg-kore-muted/50">
                 <tr>

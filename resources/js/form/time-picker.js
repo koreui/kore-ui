@@ -241,5 +241,12 @@ export default (config) => ({
             this.close();
             this.$refs.trigger?.focus();
         }
+
+        // Igual que el calendario: al tabular, el foco se va del campo y el
+        // panel se quedaba abierto encima del formulario. Sin `preventDefault`,
+        // que la tabulación tiene que seguir su camino.
+        if (e.key === 'Tab') {
+            this.close();
+        }
     },
 });

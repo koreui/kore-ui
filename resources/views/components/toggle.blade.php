@@ -29,7 +29,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     // Associate the error/description with the control (WCAG 3.3.1 / 4.1.2).
     $describedBy = $hasError ? $fieldId . '-error' : ($description ? $fieldId . '-description' : null);

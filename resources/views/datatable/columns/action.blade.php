@@ -111,7 +111,7 @@
                             :icon="$action->getIcon()"
                             :label="$action->getLabel()"
                             :style="$dropdownStyle ?: null"
-                            wire:click="{{ $action->getWireMethod() }}(@js(data_get($row, $primaryKey ?? 'id')))"
+                            wire:click="{{ $action->getWireMethod() }}({{ Js::from(data_get($row, $primaryKey ?? 'id')) }})"
                         />
                     @endif
                 @endif
@@ -162,6 +162,12 @@
                         @if($action->hasConfirm())
                             x-on:click="window.dispatchEvent(new CustomEvent('kore:open', { detail: {{ Js::from($action->buildKoreConfirmPayload($row, $this->getId(), $primaryKey ?? 'id')) }}, bubbles: true }))"
                         @else
+                            {{-- `@js()` aquí sí, porque esto es un <button> normal y la
+                                 directiva se compila en ESTA vista. En la rama del
+                                 desplegable de arriba el mismo atributo va sobre un
+                                 <x-kore::dropdown.item>: allí la directiva llega literal
+                                 al hijo y acaba en el DOM sin compilar, así que se usa
+                                 Js::from(). No unificar copiando esta línea. --}}
                             wire:click="{{ $action->getWireMethod() }}(@js(data_get($row, $primaryKey ?? 'id')))"
                         @endif
                         class="p-1.5 rounded-kore-md transition-colors {{ $btnColorClass }}"

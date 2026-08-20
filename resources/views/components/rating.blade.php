@@ -31,7 +31,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     $starSize = match($size) {
         'sm' => 'size-4',
@@ -53,6 +53,15 @@
         'readonly' => ($readonly || $disabled) ?: null,
         'clearable' => $clearable ? null : false,
     ], fn($v) => $v !== null));
+
+    // Los atributos que el consumidor escribe en la etiqueta y que ningún
+    // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
+    // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
+    // simplemente no existían. Se vuelcan en la raíz del componente.
+    // `id` se excluye porque ya lo usa $fieldId sobre el control, y `wire:model`
+    // porque vive en el input oculto: duplicarlos daría dos ids iguales y dos
+    // enlaces al mismo modelo.
+    $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
 @endphp
 
 <x-kore::field
@@ -70,9 +79,9 @@
             aria-label="Rating"
         @else
             role="radiogroup"
-            aria-label="{{ $label ?? 'Rating' }}"
+            aria-label="{{ $label ?? config('kore-ui.form.translations.rating', 'Valoración') }}"
         @endif
-        class="inline-flex items-center {{ $gapClass }} {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
+        {{ $atributosRaiz->merge(['class' => 'inline-flex items-center ' . $gapClass . ' ' . ($disabled ? 'opacity-50 cursor-not-allowed' : '')]) }}
         @if(!$readonly && !$disabled)
             x-on:mouseleave="clearPreview()"
         @endif
@@ -89,6 +98,8 @@
         @for($i = 1; $i <= $stars; $i++)
             <button
                 type="button"
+                @if($readonly || $disabled) tabindex="-1" aria-hidden="true" @endif
+                @if($disabled) disabled @endif
                 class="relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring rounded-sm {{ $disabled || $readonly ? 'pointer-events-none' : '' }}"
                 @if(!$readonly && !$disabled)
                     x-on:click="rate({{ $i }})"
@@ -98,7 +109,7 @@
                     @endif
                     role="radio"
                     :aria-checked="displayValue >= {{ $i }} ? 'true' : 'false'"
-                    aria-label="{{ $i }} de {{ $stars }} estrellas"
+                    aria-label="{{ $i }} de {{ $stars }} {{ config('kore-ui.form.translations.stars', 'estrellas') }}"
                 @endif
             >
                 {{-- Background star (empty) --}}

@@ -16,6 +16,9 @@
         orientation: '{{ $orientation }}',
         gutterSize: {{ $gutterSize }},
         stateKey: @js($stateKey),
+        {{-- La barra se crea desde JavaScript, así que su nombre accesible tiene
+             que viajar hasta ahí: no hay etiqueta en Blade donde ponerlo. --}}
+        resizeLabel: @js(config('kore-ui.ui.translations.resize', 'Redimensionar paneles')),
      })"
      role="group">
     {{ $slot }}

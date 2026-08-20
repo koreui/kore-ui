@@ -139,6 +139,23 @@
     @if($hasChildren)
         data-kore-has-children
         data-kore-open="{{ $isOpen ? 'true' : 'false' }}"
+        {{-- `.self` congela los atributos de ESTE <li> y deja vivos a sus hijos.
+
+             El estado de apertura vive en el DOM y lo emite el servidor (para que
+             la rama de la ruta activa salga ya abierta, sin parpadeo), pero a
+             partir de ahí lo cambia el usuario con setAttribute. Sin esto, el
+             morph de Livewire devolvía `data-kore-open` al valor del servidor y
+             el sub-menú se cerraba solo en cuanto CUALQUIER cosa de la página
+             hablaba con el servidor. Medido: el nodo no se reemplaza, el morph
+             reescribe el atributo.
+
+             El precio es que los atributos propios del <li> —`data-kore-active`—
+             dejan de actualizarse por morph. No se pierde nada: el item activo
+             lo decide la ruta, y cambiar de ruta con wire:navigate REEMPLAZA el
+             nodo en vez de hacerle morph (comprobado en navegador). Lo que el
+             servidor pinta DENTRO —labels, badges, sub-items— se sigue
+             actualizando con normalidad. --}}
+        wire:ignore.self
     @endif
     {{ $attributes->except(['class', 'smart'])->class(['relative', $attributes->get('class')]) }}
 >
@@ -148,6 +165,10 @@
             type="button"
             x-on:click="toggleItem($event)"
             aria-expanded="{{ $isOpen ? 'true' : 'false' }}"
+            {{-- Por lo mismo que el <li>: el morph devolvía este `aria-expanded`
+                 al valor del servidor y el disclosure se anunciaba cerrado
+                 mientras el sub-menú se veía abierto. --}}
+            wire:ignore.self
             @if($disabled) disabled aria-disabled="true" @endif
             @class($linkClasses)
         >

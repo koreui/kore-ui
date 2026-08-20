@@ -56,7 +56,7 @@ it('renders searchable input', function () {
     ');
 
     $view->assertSee('x-ref="search"', false)
-        ->assertSee('placeholder="Search..."', false);
+        ->assertSee('placeholder="Buscar..."', false);
 });
 
 it('renders clearable button', function () {

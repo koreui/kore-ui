@@ -7,7 +7,14 @@
 ])
 
 @php
-    $id = $id ?? 'accordion-' . uniqid();
+    // No `uniqid()`: el id va literal en el `id` y el `aria-controls` que emite
+    // el servidor, así que uno nuevo en cada render significa que el morph de
+    // Livewire no reconoce el nodo, lo sustituye y Alpine pierde qué panel
+    // estaba abierto. Y los `aria-controls` se van quedando apuntando a paneles
+    // que ya no existen, uno más en cada render. Medido: el acordeón abierto se
+    // cierra solo en el primer morph ajeno, y tras dos hay dos referencias
+    // rotas. Ver IdContext.
+    $id = $id ?? \KoreUi\Core\Support\IdContext::secuencia('accordion');
 @endphp
 
 <div

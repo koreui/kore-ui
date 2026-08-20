@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use KoreUi\Breadcrumbs\BreadcrumbManager;
 use KoreUi\Charts\ChartContext;
+use KoreUi\Core\Support\IdContext;
 use KoreUi\DataTable\Views\Contracts\SavedViewStore;
 use KoreUi\DataTable\Views\SessionSavedViewStore;
 use KoreUi\Feedback\ConfirmDialog;
@@ -38,6 +39,12 @@ class KoreUiServiceProvider extends ServiceProvider
         // cada petición, o los ids dejarían de ser deterministas entre renders y el morph de
         // Livewire reemplazaría los nodos en vez de actualizarlos.
         $this->app->scoped(ChartContext::class);
+
+        // Y el mismo motivo para los ids de los campos de formulario sin `name`:
+        // con `uniqid()` cambiaban en cada render, y la etiqueta —que vive fuera
+        // del `wire:ignore` del control— acababa apuntando a un id que ya no
+        // existía. Ver IdContext.
+        $this->app->scoped(IdContext::class);
 
         // Driver por defecto de las vistas guardadas del DataTable. Se enlaza
         // con bindIf para que una aplicación pueda registrar el suyo —contra su

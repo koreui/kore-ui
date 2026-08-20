@@ -109,3 +109,55 @@ Form components are **anonymous Blade components** registered via `Blade::anonym
 - Alpine.js handles interactivity (Select, InputOtp)
 - `$attributes->merge()` passes `wire:model` and other attributes directly to the native input
 - The `<x-kore::field>` component wraps all inputs with label, error, and hint
+
+---
+
+## Atributos, `id` y morph
+
+Tres cosas que conviene saber si los componentes de formulario van dentro de un componente Livewire, porque explican casi todo lo raro que puede pasar.
+
+### Dónde aterriza lo que escribes en la etiqueta
+
+Un atributo que ningún `@props` declara —`class`, `data-*`, `style`, `aria-*`, `x-on:*`— se emite en el DOM, pero **no siempre en el mismo sitio**:
+
+| Componentes | Dónde va |
+|---|---|
+| `input`, `textarea`, `number` (decimal), `password`, `checkbox`, `radio`, `toggle`, `range`, `select` nativo | En **el control** (`<input>`, `<select>`, `<textarea>`) |
+| `datepicker`, `time-picker`, `color-picker`, `input-otp`, `tag-input`, `key-value`, `upload`, `rating`, `maskable`, `repeater`, `select` (modo Alpine), `radio-group` | En **la raíz** del componente |
+
+La diferencia no es caprichosa: los primeros envuelven un control nativo y lo natural es que un `placeholder` o un `autocomplete` acaben en él; los segundos son widgets compuestos, donde el «control» son varios elementos y no hay uno solo al que apuntar.
+
+`class` se **suma** a las clases del componente, no las sustituye. Dos atributos se quedan siempre fuera de ese volcado: `id`, que ya se usa para el propio campo, y `wire:model`, que vive en el input oculto.
+
+```blade
+{{-- El data-* llega, y la clase se suma a las del componente --}}
+<x-kore::datepicker label="Fecha" wire:model="fecha" class="w-64" data-cy="fecha-alta" />
+```
+
+### El `id` de un campo tiene que ser estable
+
+Si no le pasas `name` ni `wire:model`, el componente se inventa un `id`. Ese id **es el mismo en cada render** de la misma vista, y no es un detalle estético.
+
+El morph de Livewire empareja los nodos viejos con los nuevos por `id`. Si el id cambia, no reconoce el nodo: lo quita, pone otro en su lugar y Alpine arranca el componente desde cero. En la práctica eso significa que el desplegable se cierra solo, el calendario vuelve al mes de hoy y la búsqueda a medio escribir se borra — cada vez que **cualquier otro** componente de la página habla con el servidor.
+
+Es la misma razón por la que los gráficos numeran sus ids (`ChartContext`). Si generas ids a mano para pasárselos a un componente, que sean deterministas:
+
+```blade
+{{-- Mal: distinto en cada render --}}
+<x-kore::select :id="'pais-'.uniqid()" :options="$paises" />
+
+{{-- Bien: derivado de algo estable --}}
+<x-kore::select :id="'pais-'.$fila->id" :options="$paises" />
+```
+
+### `:options` que cambian desde el servidor
+
+Funcionan, pero por un camino concreto. El panel de un `<x-kore::select>` se teleporta a `body` para escapar de los `overflow:hidden`, y ahí el morph de Livewire ya no lo alcanza. Por eso las opciones no viajan dentro del `x-data` —que Alpine evalúa una sola vez— sino en un nodo JSON aparte que el componente vigila:
+
+```blade
+{{-- Provincia según país: al cambiar $pais, el panel se actualiza --}}
+<x-kore::select wire:model.live="pais" :options="$paises" />
+<x-kore::select wire:model="provincia" :options="$this->provinciasDe($pais)" />
+```
+
+Con muchas opciones esto deja de compensar: el componente **no virtualiza**, así que las pinta todas. Diez mil opciones son unos 120.000 nodos en el DOM y algo más de un segundo hasta que el panel se abre. A partir de unos pocos cientos, usa `async` y deja que el servidor filtre.

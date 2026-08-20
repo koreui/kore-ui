@@ -65,6 +65,7 @@ function makeStore({ collapsed = false, mobile = false } = {}) {
         isMobile: () => mobile,
         isOpen: () => false,
         closeMobile: vi.fn(),
+        closeMobileOnEscape: vi.fn(),
         unwatchViewport: vi.fn(),
     };
 }
@@ -483,16 +484,31 @@ describe('el tooltip no se queda colgado', () => {
 });
 
 describe('Escape', () => {
-    it('cierra el flyout y el drawer', () => {
+    // Una capa por pulsación. Antes, un solo Escape cerraba el flyout Y el
+    // drawer de golpe; ahora el flyout consume la tecla —marcándola, para que
+    // el overlay manager tampoco cierre nada— y el drawer espera su turno.
+
+    it('con un flyout abierto, cierra el flyout y nada más', () => {
         mount({ collapsed: true });
 
         const parent = nav.querySelector('[data-kore-has-children]');
         const submenu = parent.querySelector('.kore-sidebar-submenu');
 
         component.onItemEnter({ currentTarget: parent });
-        keydown('Escape');
+        const evento = keydown('Escape');
 
         expect(submenu.hasAttribute('data-flyout')).toBe(false);
-        expect(store.closeMobile).toHaveBeenCalledWith('main');
+        expect(evento.preventDefault, 'la tecla queda marcada como consumida').toHaveBeenCalled();
+        expect(store.closeMobileOnEscape, 'el drawer no se toca todavía').not.toHaveBeenCalled();
+    });
+
+    it('sin flyout abierto, el Escape pasa al drawer', () => {
+        mount({ collapsed: true });
+
+        const evento = keydown('Escape');
+
+        // Quien decide si la tecla es suya es el store: puede haber un modal
+        // por encima que la reclame antes.
+        expect(store.closeMobileOnEscape).toHaveBeenCalledWith('main', evento);
     });
 });

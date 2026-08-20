@@ -28,8 +28,18 @@
     // Auto-derive precision=0 from an integer step when not explicitly set.
     // :step="1" → blocks decimals; :step="0.5" → uses config default.
     // An explicit :precision prop always wins.
+    //
+    // Pero NO en modo moneda. Ahí `step` es cuánto mueven las flechas —un euro
+    // por clic es lo normal— y no tiene nada que ver con cuántos decimales
+    // admite el importe. Con el `step` por defecto (1), la deducción dejaba
+    // `precision` a 0 en TODA moneda: el campo formateaba sin céntimos y, de
+    // paso, `_onKeydown` bloqueaba la tecla del separador decimal, así que no
+    // había forma de escribirlos. La documentación promete 2 y ofrece
+    // `:precision="0"` para el caso contrario, que es justo al revés.
     $isIntegerStep = is_numeric($step) && fmod((float) $step, 1) === 0.0;
-    $precision = $precision ?? ($isIntegerStep ? 0 : config('kore-ui.form.number.precision', 2));
+    $precision = $precision ?? (($isCurrency || ! $isIntegerStep)
+        ? config('kore-ui.form.number.precision', 2)
+        : 0);
     $blockDecimals = (int) $precision === 0;
 
     $name = $name ?? $attributes->whereStartsWith('wire:model')->first();
@@ -47,7 +57,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     // Associate the field's hint/error with the control (WCAG 3.3.1 / 4.1.2).
     $describedBy = $hasError ? $fieldId . '-error' : ($hint ? $fieldId . '-hint' : null);
@@ -122,7 +132,7 @@
     >
         {{-- Hidden input for wire:model (raw numeric value) --}}
         <input type="hidden" x-ref="hiddenInput" {{ $wireModelAttr }}
-            @if($name) name="{{ $name }}" @endif id="{{ $fieldId }}" />
+            @if($name) name="{{ $name }}" @endif />
 
         @if($controls)
             <button
@@ -132,6 +142,7 @@
                 x-on:mouseleave="stopHold()"
                 x-on:touchstart.prevent="startHold(() => decrement())"
                 x-on:touchend="stopHold()"
+                aria-label="{{ config('kore-ui.form.translations.decrement', 'Restar') }}"
                 class="{{ $buttonWidth }} inline-flex items-center justify-center shrink-0 rounded-l-kore-md border border-kore-input bg-kore-bg text-kore-muted-fg hover:bg-kore-muted hover:text-kore-fg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 @if($disabled) disabled @endif
             >
@@ -142,17 +153,21 @@
         <input
             type="text"
             x-ref="input"
-            class="{{ $currencyInputClasses }}"
             x-on:focus="_onFocus($event)"
             x-on:blur="_onBlur()"
             x-on:input="_onInput($event)"
             x-on:keydown="_onKeydown($event)"
-            @if($disabled) disabled @endif
-            @if($readonly) readonly @endif
             autocomplete="off"
             inputmode="{{ $blockDecimals ? 'numeric' : 'decimal' }}"
-            @if($hasError) aria-invalid="true" @endif
-            @if($describedBy) aria-describedby="{{ $describedBy }}" @endif
+            {{ $attributes->whereDoesntStartWith('wire:model')->merge([
+                'id' => $fieldId,
+                'disabled' => $disabled,
+                'readonly' => $readonly,
+                'required' => $required,
+                'aria-invalid' => $hasError ? 'true' : null,
+                'aria-describedby' => $describedBy,
+                'class' => $currencyInputClasses,
+            ]) }}
         />
 
         @if($controls)
@@ -163,6 +178,7 @@
                 x-on:mouseleave="stopHold()"
                 x-on:touchstart.prevent="startHold(() => increment())"
                 x-on:touchend="stopHold()"
+                aria-label="{{ config('kore-ui.form.translations.increment', 'Sumar') }}"
                 class="{{ $buttonWidth }} inline-flex items-center justify-center shrink-0 rounded-r-kore-md border border-kore-input bg-kore-bg text-kore-muted-fg hover:bg-kore-muted hover:text-kore-fg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 @if($disabled) disabled @endif
             >
@@ -208,8 +224,15 @@
                 let input = $refs.input;
                 let step = {{ $step }};
                 let min = {{ $min !== null ? $min : '-Infinity' }};
+                /* Sobre un campo vacío se arranca desde el mismo sitio que
+                   increment() —el mínimo, o cero si no hay— y no desde `min`.
+                   Con min sin declarar, `min` es -Infinity: el campo recibía
+                   «-Infinity», el navegador lo rechaza por no ser un número
+                   válido y lo deja vacío, así que pulsar «−» no hacía
+                   absolutamente nada mientras «+» sí daba 0. */
+                let arranque = {{ $min !== null ? $min : '0' }};
                 let val = parseFloat(input.value);
-                let next = isNaN(val) ? min : Math.round((val - step) * 1e10) / 1e10;
+                let next = isNaN(val) ? arranque : Math.round((val - step) * 1e10) / 1e10;
                 if (next >= min) {
                     input.value = next;
                     input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -242,6 +265,7 @@
                 x-on:mouseleave="stopHold()"
                 x-on:touchstart.prevent="startHold(() => decrement())"
                 x-on:touchend="stopHold()"
+                aria-label="{{ config('kore-ui.form.translations.decrement', 'Restar') }}"
                 class="{{ $buttonWidth }} inline-flex items-center justify-center shrink-0 rounded-l-kore-md border border-kore-input bg-kore-bg text-kore-muted-fg hover:bg-kore-muted hover:text-kore-fg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 @if($disabled) disabled @endif
             >
@@ -276,6 +300,7 @@
                 x-on:mouseleave="stopHold()"
                 x-on:touchstart.prevent="startHold(() => increment())"
                 x-on:touchend="stopHold()"
+                aria-label="{{ config('kore-ui.form.translations.increment', 'Sumar') }}"
                 class="{{ $buttonWidth }} inline-flex items-center justify-center shrink-0 rounded-r-kore-md border border-kore-input bg-kore-bg text-kore-muted-fg hover:bg-kore-muted hover:text-kore-fg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 @if($disabled) disabled @endif
             >

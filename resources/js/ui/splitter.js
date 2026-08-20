@@ -6,10 +6,12 @@ export default (config = {}) => {
     let startPos = 0;
     let startSizes = [];
     let resizeObserver = null;
+    let morphObserver = null;
 
     const orientation = config.orientation || 'horizontal';
     const gutterSize = config.gutterSize || 8;
     const stateKey = config.stateKey || null;
+    const resizeLabel = config.resizeLabel || 'Resize panels';
     const isHorizontal = orientation === 'horizontal';
 
     function collectPanels(el) {
@@ -37,6 +39,12 @@ export default (config = {}) => {
         panels.forEach((panel) => {
             const px = Math.round((panel.size / 100) * available);
             panel.el.style.flex = '0 0 ' + px + 'px';
+        });
+
+        // Cada barra anuncia el tamaño del panel que tiene delante, que es lo
+        // que mueven sus flechas.
+        gutterEls.forEach((gutter, i) => {
+            gutter.setAttribute('aria-valuenow', String(Math.round(panels[i]?.size ?? 0)));
         });
     }
 
@@ -154,6 +162,12 @@ export default (config = {}) => {
             gutter.setAttribute('role', 'separator');
             gutter.setAttribute('aria-orientation', orientation);
             gutter.setAttribute('tabindex', '0');
+            // Un `separator` enfocable es un «window splitter»: sin nombre y sin
+            // valores, un lector de pantalla lo anuncia como «separador» y no
+            // dice hacia dónde se está moviendo al pulsar las flechas.
+            gutter.setAttribute('aria-label', resizeLabel);
+            gutter.setAttribute('aria-valuemin', '0');
+            gutter.setAttribute('aria-valuemax', '100');
 
             gutter.addEventListener('mouseenter', () => {
                 if (dragging === null) {
@@ -201,21 +215,56 @@ export default (config = {}) => {
         } catch (e) { /* silent */ }
     }
 
+    /**
+     * Monta (o vuelve a montar) las barras y los tamaños.
+     *
+     * `conservarTamanos` mantiene lo que el usuario haya arrastrado: al
+     * remontar tras un morph, `collectPanels` vuelve a leer los `data-panel-size`
+     * del servidor y el panel saltaría a su tamaño inicial.
+     */
+    function montar(el, conservarTamanos = false) {
+        const previos = conservarTamanos ? panels.map((p) => p.size) : [];
+
+        gutterEls.forEach((g) => g.remove());
+        gutterEls = [];
+
+        collectPanels(el);
+
+        if (previos.length === panels.length) {
+            panels.forEach((p, i) => { p.size = previos[i]; });
+        } else {
+            restoreState();
+        }
+
+        insertGutters(el);
+        applyPanelSizes(el);
+    }
+
     return {
         init() {
             const el = this.$el;
 
-            this.$nextTick(() => {
-                collectPanels(el);
-                insertGutters(el);
-                restoreState();
-                applyPanelSizes(el);
-            });
+            this.$nextTick(() => montar(el));
 
             resizeObserver = new ResizeObserver(() => {
                 if (panels.length > 0) applyPanelSizes(el);
             });
             resizeObserver.observe(el);
+
+            // Las barras las crea este JavaScript, así que NO están en el HTML
+            // que emite el servidor: el morph de Livewire las veía como nodos
+            // sobrantes y las borraba. Con ellas se iba el layout entero —los
+            // paneles colapsaban a su tamaño mínimo— en cuanto cualquier cosa
+            // de la página hablaba con el servidor. Se vuelven a montar en
+            // cuanto desaparecen, conservando lo que el usuario hubiera
+            // arrastrado. Reinsertarlas dispara este mismo observador, pero la
+            // condición ya no se cumple y no hay bucle.
+            morphObserver = new MutationObserver(() => {
+                if (gutterEls.length > 0 && !el.contains(gutterEls[0])) {
+                    montar(el, true);
+                }
+            });
+            morphObserver.observe(el, { childList: true });
         },
 
         destroy() {
@@ -224,6 +273,10 @@ export default (config = {}) => {
             if (resizeObserver) {
                 resizeObserver.disconnect();
                 resizeObserver = null;
+            }
+            if (morphObserver) {
+                morphObserver.disconnect();
+                morphObserver = null;
             }
         },
     };

@@ -32,7 +32,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     // Associate the field's hint/error with the control for assistive tech
     // (WCAG 3.3.1 / 4.1.2). The hint id is stable whether the hint is rendered by

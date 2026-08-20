@@ -8,7 +8,14 @@
 ])
 
 @php
-    $id = $id ?? 'step-' . uniqid();
+    // Mismo motivo que en accordion y tab: el id viaja en un `x-ref` literal y en
+    // la propia identidad del paso, así que uno nuevo en cada render deja al
+    // padre buscando refs que ya no existen. Ver IdContext.
+    //
+    // OJO: esto NO arregla los 63 errores de consola que suelta `/ui/stepper`
+    // («Cannot read properties of undefined (reading 'mode')»). Son otra cosa y
+    // van con el lote de navegación.
+    $id = $id ?? \KoreUi\Core\Support\IdContext::secuencia('step');
 @endphp
 
 {{-- Icon template for auto-registration --}}

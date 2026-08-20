@@ -41,6 +41,13 @@
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
             x-cloak
+            {{-- El panel escucha el teclado por su cuenta: está teleportado a
+                 `<body>`, así que los eventos NO burbujean hasta la raíz que
+                 lleva el otro `x-on:keydown`. Y la primera flecha mueve el foco
+                 real a un item de aquí dentro, de modo que a partir de ese
+                 momento el menú se quedaba sordo: ni seguía bajando ni cerraba
+                 con Escape. --}}
+            x-on:keydown="onKeydown($event)"
             role="menu"
             aria-orientation="vertical"
             class="z-50 rounded-kore-md border border-kore-border bg-kore-surface shadow-lg py-1 overflow-y-auto {{ $maxHeightClass }}"

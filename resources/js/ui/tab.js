@@ -4,18 +4,21 @@ export default (config) => ({
     variant: config.variant ?? 'line',
     orientation: config.orientation ?? 'horizontal',
 
-    init() {
-        this.$nextTick(() => {
-            if (!this.selected && this.tabs.length > 0) {
-                this.selected = this.tabs.find(t => !t.disabled)?.id ?? null;
-            }
-        });
-    },
-
     registerTab(tab) {
         // Avoid duplicate registration
         if (!this.tabs.find(t => t.id === tab.id)) {
             this.tabs.push(tab);
+        }
+
+        // La selección por defecto se decide AQUÍ y no en init().
+        //
+        // Estaba en un `$nextTick` dentro de `init()`, que corre antes de que
+        // los items se hayan registrado: `this.tabs` seguía vacío, la condición
+        // no se cumplía y nadie volvía a intentarlo. Un `<x-kore::tab>` sin
+        // `selected` se quedaba con las pestañas pintadas y NINGÚN panel debajo,
+        // para siempre, hasta que el usuario pulsaba una.
+        if (this.selected === null && !tab.disabled) {
+            this.selected = tab.id;
         }
     },
 

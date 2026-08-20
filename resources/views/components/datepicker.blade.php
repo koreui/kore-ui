@@ -61,7 +61,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     $sizeClasses = match($size) {
         'sm' => 'text-xs py-1.5 px-2.5',
@@ -108,6 +108,15 @@
         'manualInput' => $manualInput ?: null,
         'requiresConfirmation' => $requiresConfirmation ?: null,
     ], fn ($v) => $v !== null));
+
+    // Los atributos que el consumidor escribe en la etiqueta y que ningún
+    // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
+    // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
+    // simplemente no existían. Se vuelcan en la raíz del componente.
+    // `id` se excluye porque ya lo usa $fieldId sobre el control, y `wire:model`
+    // porque vive en el input oculto: duplicarlos daría dos ids iguales y dos
+    // enlaces al mismo modelo.
+    $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
 @endphp
 
 <x-kore::field
@@ -117,12 +126,17 @@
     :error-message="$errorMessage"
     :field-id="$fieldId"
     :required="$required"
+    :labelable="! $inline"
 >
     <div
         x-data="KoreDatePicker({{ $jsConfig }})"
         x-on:keydown="onKeydown($event)"
+        {{-- Solo donde el valor no cabe en el input oculto. Que el calendario se
+             cerrase en cada re-render ajeno no era cosa del morph sino del `id`
+             del campo, que cambiaba entre renders: el morph veía otro nodo y lo
+             reemplazaba. Ver IdContext. --}}
         @if($mode === 'range' || $mode === 'multiple' || $withTime) wire:ignore @endif
-        class="relative"
+        {{ $atributosRaiz->merge(['class' => "relative"]) }}
     >
         {{-- Hidden input for wire:model --}}
         <input
@@ -153,6 +167,7 @@
                             x-show="hasValue"
                             x-cloak
                             x-on:click.stop="clear()"
+                            aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
                             class="text-kore-muted-fg hover:text-kore-fg transition-colors"
                         >
                             <x-lucide-x class="{{ $iconSizeClasses }}" />
@@ -183,6 +198,7 @@
                                 <button
                                     type="button"
                                     x-on:click.stop="clear()"
+                                    aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
                                     class="text-kore-muted-fg hover:text-kore-fg transition-colors"
                                 >
                                     <x-lucide-x class="{{ $iconSizeClasses }}" />
@@ -197,7 +213,15 @@
 
         {{-- Calendar panel --}}
         @if($inline)
-            <div class="rounded-kore-lg border border-kore-border bg-kore-bg text-kore-fg p-3">
+            {{-- Empotrado no hay trigger, así que el id del campo no existía en
+                 ninguna parte y el `<label for>` del field quedaba huérfano.
+                 Lo recibe el panel, que es lo que el usuario ve y opera. --}}
+            <div
+                id="{{ $fieldId }}"
+                role="group"
+                @if($label) aria-labelledby="{{ $fieldId }}-label" @endif
+                class="rounded-kore-lg border border-kore-border bg-kore-bg text-kore-fg p-3"
+            >
                 @include('kore::components._datepicker-panel')
             </div>
         @else
@@ -213,10 +237,17 @@
                     x-transition:leave="transition ease-in duration-75"
                     x-transition:leave-start="opacity-100 scale-100"
                     x-transition:leave-end="opacity-0 scale-95"
+                    {{-- El panel escucha el teclado él mismo: teleportado a
+                         `<body>`, los eventos de dentro no burbujean por la raíz
+                         del componente. Hoy el foco no suele entrar aquí —el
+                         calendario se maneja con foco virtual desde el
+                         disparador— pero sus botones son tabulables, y si el
+                         foco llega el teclado tiene que seguir funcionando. --}}
+                    x-on:keydown="onKeydown($event)"
                     x-on:mousedown.stop
                     class="fixed z-[9999] rounded-kore-lg border border-kore-border bg-kore-bg text-kore-fg shadow-lg p-3"
                     role="dialog"
-                    aria-label="Choose date"
+                    aria-label="{{ config('kore-ui.form.translations.choose_date', 'Elegir fecha') }}"
                 >
                     @include('kore::components._datepicker-panel')
                 </div>

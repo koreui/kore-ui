@@ -141,7 +141,10 @@
     <div
         class="kore-sidebar-backdrop"
         x-on:click="$store.koreSidebar.closeMobile(@js($id))"
-        x-on:keydown.escape.window="$store.koreSidebar.closeMobile(@js($id))"
+        {{-- Por `closeMobileOnEscape` y no por `closeMobile` a secas: el drawer
+             y el overlay manager escuchan los dos en `window`, así que con un
+             modal abierto encima una sola pulsación cerraba las dos cosas. --}}
+        x-on:keydown.escape.window="$store.koreSidebar.closeMobileOnEscape(@js($id), $event)"
         aria-hidden="true"
     ></div>
 @endif

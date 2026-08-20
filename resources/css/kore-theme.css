@@ -16,6 +16,7 @@
   --color-kore-info-fg: var(--kore-info-fg);
   --color-kore-bg: var(--kore-bg);
   --color-kore-fg: var(--kore-fg);
+  --color-kore-backdrop: var(--kore-backdrop);
   --color-kore-muted: var(--kore-muted);
   --color-kore-muted-fg: var(--kore-muted-fg);
   --color-kore-border: var(--kore-border);
@@ -80,6 +81,12 @@
     --kore-info-fg: oklch(0.98 0 0);
     --kore-bg: oklch(1 0 0);
     --kore-fg: oklch(0.15 0 0);
+    /* El velo que oscurece la página bajo un overlay. Token propio y NO
+       --kore-fg: el color de texto se invierte con el tema, así que en modo
+       oscuro el velo salía casi blanco e ILUMINABA la página en lugar de
+       atenuarla —el fondo quedaba más claro que el propio modal—. Un backdrop
+       oscurece en los dos temas por definición. */
+    --kore-backdrop: oklch(0.15 0 0);
     --kore-muted: oklch(0.97 0 0);
     --kore-muted-fg: oklch(0.55 0 0);
     --kore-border: oklch(0.92 0 0);
@@ -195,6 +202,9 @@
     --kore-info-fg: oklch(0.98 0 0);
     --kore-bg: oklch(0.13 0 0);
     --kore-fg: oklch(0.93 0 0);
+    /* Más oscuro que en claro, no más claro: la página ya es oscura y el velo
+       tiene que seguir separándola del overlay. */
+    --kore-backdrop: oklch(0.05 0 0);
     --kore-muted: oklch(0.20 0 0);
     --kore-muted-fg: oklch(0.65 0 0);
     --kore-border: oklch(0.25 0 0);
@@ -705,7 +715,9 @@
   inset: 0;
   z-index: var(--kore-sidebar-backdrop-z);
   display: none;
-  background-color: rgb(0 0 0 / 0.4);
+  /* El mismo token que el overlay manager y el spotlight: los tres velos de la
+     librería se cambian en un solo sitio. Era un negro fijo escrito aquí. */
+  background-color: color-mix(in oklab, var(--kore-backdrop) 40%, transparent);
   opacity: 0;
   transition: opacity var(--kore-sidebar-duration) ease;
 }

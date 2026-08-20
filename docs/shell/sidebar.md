@@ -121,6 +121,27 @@ Cada uno recuerda su estado por separado, y el shell reserva el espacio de ambos
 
 En un sidebar a la derecha, `←` y `→` se invierten.
 
+## Convivencia con Livewire
+
+El estado de apertura de un sub-menú vive en el DOM (`data-kore-open`) y **lo emite el servidor**: la rama que contiene la ruta activa sale ya abierta, sin el parpadeo de abrirse de golpe cuando arranca el JavaScript. A partir de ahí lo cambia el usuario.
+
+Eso obliga a proteger ese atributo del morph, y por eso los items con hijos llevan `wire:ignore.self`. Congela los atributos del propio `<li>` y del botón que lo abre; **no** congela su contenido:
+
+| Qué | ¿Se sigue actualizando desde el servidor? |
+|---|---|
+| Labels, badges e iconos de los sub-items | Sí |
+| Sub-items que aparecen o desaparecen | Sí |
+| Estado de apertura (`data-kore-open`) | No: manda el usuario |
+| Item activo (`data-kore-active`) | No por morph, pero sí al cambiar de ruta |
+
+Lo último no es una pérdida: el item activo lo decide la ruta, y navegar con `wire:navigate` **reemplaza** el nodo en vez de hacerle morph, así que se recalcula entero.
+
+## `Escape` y las capas
+
+El drawer móvil escucha `Escape` en `window`, igual que el overlay manager, así que los dos reciben el mismo evento. Para que una pulsación no cierre las dos cosas, el drawer solo se queda la tecla si es la capa de arriba —nadie tomó el scroll lock después que él— y en ese caso la marca con `preventDefault()`, que es lo que hace que el manager ceda.
+
+Con un modal abierto sobre el drawer hacen falta dos pulsaciones: la primera cierra el modal y la segunda el drawer. Es el mismo contrato que siguen los paneles flotantes de la librería (ver `docs/overlay/behavior.md`).
+
 ## Store de Alpine
 
 El estado vive en `$store.koreSidebar`, así que se puede leer y cambiar **desde cualquier parte de la página**, sin estar anidado dentro del sidebar.

@@ -220,6 +220,65 @@ describe('drawer móvil', () => {
         expect(document.body.style.position).toBeUndefined();
     });
 
+    it('con Escape cierra el drawer, y marca la tecla como consumida', async () => {
+        globalThis.__mobile = true;
+        await loadStore();
+
+        store.register({ id: 'main', collapsed: false, overlay: true });
+        store.openMobile('main');
+
+        const evento = { defaultPrevented: false, preventDefault: vi.fn() };
+        store.closeMobileOnEscape('main', evento);
+
+        expect(store.isOpen('main')).toBe(false);
+        expect(evento.preventDefault, 'para que el overlay manager no cierre además el modal')
+            .toHaveBeenCalled();
+    });
+
+    it('cede el Escape si hay una capa por encima', async () => {
+        // El caso real: drawer abierto y un modal encima. Los dos escuchan en
+        // `window` y reciben el MISMO evento; sin esto, una sola pulsación
+        // cerraba las dos cosas. Quien tomó el scroll lock después está arriba.
+        globalThis.__mobile = true;
+        const mod = await import('../../resources/js/utils/scroll-lock.js');
+        await loadStore();
+
+        store.register({ id: 'main', collapsed: false, overlay: true });
+        store.openMobile('main');
+        mod.lockScroll('overlay');   // el modal, encima del drawer
+
+        const evento = { defaultPrevented: false, preventDefault: vi.fn() };
+        store.closeMobileOnEscape('main', evento);
+
+        expect(store.isOpen('main'), 'el drawer se queda abierto').toBe(true);
+        expect(evento.preventDefault, 'y no toca la tecla').not.toHaveBeenCalled();
+    });
+
+    it('cede el Escape que otro ya ha consumido', async () => {
+        globalThis.__mobile = true;
+        await loadStore();
+
+        store.register({ id: 'main', collapsed: false, overlay: true });
+        store.openMobile('main');
+
+        store.closeMobileOnEscape('main', { defaultPrevented: true, preventDefault: vi.fn() });
+
+        expect(store.isOpen('main')).toBe(true);
+    });
+
+    it('control: con el drawer cerrado no hace nada', async () => {
+        globalThis.__mobile = true;
+        await loadStore();
+
+        store.register({ id: 'main', collapsed: false, overlay: true });
+
+        const evento = { defaultPrevented: false, preventDefault: vi.fn() };
+        store.closeMobileOnEscape('main', evento);
+
+        expect(evento.preventDefault, 'marcar una tecla que no se usa la roba a quien la esperaba')
+            .not.toHaveBeenCalled();
+    });
+
     // handleToggle es lo que espera cualquier botón hamburguesa: hacer lo correcto
     // según dónde esté. Van en tests separados porque el store es un singleton del
     // módulo (uno por página en la vida real) y no se puede reusar entre viewports.

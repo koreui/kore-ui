@@ -42,9 +42,11 @@ If you do not override the method, the type defaults to the value in `config/kor
 Centered on screen with a scale-up + translate animation. Ideal for forms, detail views, and general-purpose dialogs.
 
 ```
-Position classes: items-end justify-center p-4 text-center sm:items-center sm:p-0
-Container:        rounded-kore-lg max-h-[90dvh] overflow-y-auto
+Position classes: min-h-dvh items-start justify-center p-4 sm:py-8
+Container:        my-auto rounded-kore-lg
 ```
+
+The container carries **no** `text-center`. It used to, and the alignment was inherited by everything the consumer rendered inside -- form labels, paragraphs, table cells came out centred without anyone asking. Horizontal centring comes from `justify-center`; vertical centring from `my-auto` on the panel.
 
 ```php
 public static function overlayType(): string
@@ -58,8 +60,8 @@ public static function overlayType(): string
 Slides in from the right edge (or left, if overridden). Full viewport height. Ideal for settings panels, navigation, and detail sidebars.
 
 ```
-Position classes (right): items-stretch justify-end
-Position classes (left):  items-stretch justify-start
+Position classes (right): h-full items-stretch justify-end
+Position classes (left):  h-full items-stretch justify-start
 Container:                h-full overflow-y-auto
 ```
 
@@ -75,9 +77,12 @@ public static function overlayType(): string
 Centered with a quick scale animation. Compact container without scrolling by default. Ideal for confirmation prompts, alerts, and simple yes/no decisions.
 
 ```
-Position classes: items-end justify-center p-4 text-center sm:items-center sm:p-0
-Container:        rounded-kore-lg
+Position classes: min-h-dvh items-start justify-center p-4 sm:py-8
+Container:        my-auto rounded-kore-lg
 ```
+
+The confirm dialog centres its own text in its own view, so it looks the same as before.
+
 
 ```php
 public static function overlayType(): string
@@ -91,7 +96,7 @@ public static function overlayType(): string
 Slides up from the bottom of the viewport. Rounded top corners. Capped at 80% of viewport height. Ideal for mobile-friendly actions, pickers, and option lists.
 
 ```
-Position classes: items-end justify-center p-4 sm:p-0
+Position classes: h-full items-end justify-center
 Container:        rounded-t-kore-xl max-h-[80dvh] overflow-y-auto
 ```
 
@@ -107,7 +112,7 @@ public static function overlayType(): string
 Fills the entire viewport with a fade animation. No rounded corners. Ideal for immersive views, large editors, and media preview.
 
 ```
-Position classes: items-stretch
+Position classes: h-full items-stretch
 Container:        min-h-screen overflow-y-auto
 ```
 

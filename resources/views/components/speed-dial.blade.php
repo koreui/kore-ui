@@ -74,9 +74,17 @@
     };
 @endphp
 
+{{-- El Escape se escucha AQUÍ y no en `window`.
+
+     En window este manejador recibía el mismo evento que el overlay manager y
+     ninguno de los dos lo marcaba, así que con el speed-dial abierto dentro de
+     un modal una sola pulsación cerraba las dos cosas. Escuchando en el propio
+     elemento, el orden de propagación decide solo: el evento pasa por aquí
+     antes de llegar a window, y el `preventDefault()` le dice al manager que la
+     tecla ya está atendida. Se marca únicamente si había algo que cerrar. --}}
 <div {{ $attributes->class(['inline-flex', $positionClasses]) }}
      x-data="KoreSpeedDial({ direction: '{{ $direction }}' })"
-     x-on:keydown.escape.window="close()">
+     x-on:keydown.escape="if (open) { $event.preventDefault(); close() }">
     <div class="flex items-center {{ $containerDirection }} gap-2">
         {{-- FAB Button --}}
         <button type="button"

@@ -119,6 +119,57 @@ return [
             'max' => null,
             'reorderable' => false,
         ],
+
+        /*
+        | Nombres accesibles de los controles que solo llevan un icono.
+        |
+        | Van aquí y no incrustados en el Blade porque son el ÚNICO nombre que
+        | recibe quien navega con lector de pantalla: un botón con una «×»
+        | dentro no dice nada por sí mismo, y `title` no se expone de forma
+        | fiable en táctil. Al ser texto de interfaz, tienen que poder
+        | traducirse sin publicar la vista.
+        */
+        'translations' => [
+            'increment'       => 'Sumar',
+            'decrement'       => 'Restar',
+            'clear'           => 'Limpiar',
+            'remove'          => 'Quitar',
+            'remove_tag'      => 'Quitar etiqueta',
+            'remove_file'     => 'Quitar archivo',
+            'retry_upload'    => 'Reintentar la subida',
+            'dismiss_error'   => 'Descartar el aviso',
+            'reorder'         => 'Arrastrar para reordenar',
+            'previous_month'  => 'Mes anterior',
+            'next_month'      => 'Mes siguiente',
+            'previous_decade' => 'Década anterior',
+            'next_decade'     => 'Década siguiente',
+            'toggle_period'   => 'Cambiar entre AM y PM',
+            'increment_hour'  => 'Subir la hora',
+            'decrement_hour'  => 'Bajar la hora',
+            'increment_minute' => 'Subir los minutos',
+            'decrement_minute' => 'Bajar los minutos',
+            'choose_date'     => 'Elegir fecha',
+            'pick_color'      => 'Elegir color',
+            'digit'           => 'Dígito',
+            'rating'          => 'Valoración',
+            'range_min'       => 'mínimo',
+            'range_max'       => 'máximo',
+            'star'            => 'estrella',
+            'stars'           => 'estrellas',
+            'custom_color'    => 'Color personalizado',
+
+            // Textos visibles. Estaban escritos en inglés dentro de las vistas,
+            // mientras el resto de la librería respondía en español: una misma
+            // pantalla mezclaba «Añadir» con «No options found». Aquí se pueden
+            // cambiar sin publicar las vistas.
+            'loading'         => 'Cargando…',
+            'no_options'      => 'Sin resultados',
+            'search'          => 'Buscar',
+            'choose_file'     => 'Elegir archivo',
+            'retry'           => 'Reintento',
+            'invalid_type'    => '«{name}» no es un tipo de archivo admitido.',
+            'invalid_size'    => '«{name}» ({size}) supera el límite de {maxSize}.',
+        ],
     ],
 
     /*
@@ -132,6 +183,23 @@ return [
     */
     'ui' => [
         'size' => 'md',
+
+        // Mismo motivo que en `form.translations`: nombre accesible de los
+        // controles que solo llevan un icono.
+        'translations' => [
+            'remove' => 'Quitar',
+            // La barra del splitter es enfocable (`role="separator"` con
+            // tabindex), así que necesita nombre: sin él un lector la anuncia
+            // como «separador» y nada más.
+            'resize' => 'Redimensionar paneles',
+            // Nombre del `role="tree"` y verbos de sus chevrones: sin ellos, un
+            // lector anuncia «árbol» y luego «Toggle expand» una vez por rama,
+            // sin decir de cuál.
+            'tree' => 'Árbol',
+            'tree_expand' => 'Abrir',
+            'tree_collapse' => 'Cerrar',
+        ],
+
         'button' => [
             'variant' => 'solid',
             'color' => 'primary',

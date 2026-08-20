@@ -98,13 +98,35 @@ export default (config) => ({
                 }
                 break;
             case 'Escape':
+                // Con el menú ya cerrado no hay nada que consumir, y llamar a
+                // preventDefault() aquí dejaba el Escape marcado como atendido:
+                // dentro de un modal, quien lo esperaba —el overlay manager— lo
+                // descartaba y no se cerraba nada.
+                if (! this.open) return;
+
                 e.preventDefault();
                 this.close();
-                this.$refs.trigger?.focus();
+                this._focusTrigger();
                 break;
             case 'Tab':
                 this.close();
                 break;
         }
+    },
+
+    /**
+     * Devuelve el foco al control que abrió el menú.
+     *
+     * `$refs.trigger` es el envoltorio —un `<div>` sin tabindex—, así que
+     * llamarle `focus()` no enfocaba nada: al cerrar con Escape el foco se
+     * perdía y el siguiente Tab volvía al principio de la página. Lo que hay que
+     * enfocar es el control que el consumidor puso dentro.
+     */
+    _focusTrigger() {
+        const envoltorio = this.$refs.trigger;
+        if (! envoltorio) return;
+
+        const control = envoltorio.querySelector('button, a[href], [tabindex]:not([tabindex="-1"])');
+        (control ?? envoltorio).focus();
     },
 });

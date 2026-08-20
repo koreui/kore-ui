@@ -33,9 +33,12 @@ it('forwards wire:model on file input', function () {
 // --- Variants ---
 
 it('renders button variant', function () {
+    // El texto sale ahora de `kore-ui.form.translations.choose_file`: estaba
+    // escrito en inglés dentro de la vista mientras el resto de la librería
+    // respondía en español.
     $view = $this->blade('<x-kore::upload label="File" name="file" variant="button" />');
 
-    $view->assertSee('Choose file')
+    $view->assertSee('Elegir archivo')
         ->assertDontSee('Drag & drop');
 });
 

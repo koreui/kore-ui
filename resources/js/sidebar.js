@@ -1,5 +1,5 @@
 import { readCookie, writeCookie } from './utils/cookie.js';
-import { lockScroll, unlockScroll } from './utils/scroll-lock.js';
+import { hayDuenoPorEncima, lockScroll, unlockScroll } from './utils/scroll-lock.js';
 
 /**
  * Store global del sidebar (`$store.koreSidebar`).
@@ -154,6 +154,30 @@ export default {
 
     toggleMobile(id) {
         this.isOpen(id) ? this.closeMobile(id) : this.openMobile(id);
+    },
+
+    /**
+     * Cerrar el drawer con Escape, pero solo si el Escape es suyo.
+     *
+     * El drawer y el overlay manager escuchan los dos en `window`, así que
+     * reciben el MISMO evento: con un modal abierto encima del drawer, una sola
+     * pulsación cerraba las dos cosas. Dos comprobaciones lo evitan:
+     *
+     *   - si otro ya ha consumido la tecla (`defaultPrevented`), no es nuestra;
+     *   - si hay una capa por encima —alguien tomó el scroll lock después que
+     *     nosotros—, tampoco.
+     *
+     * Y al consumirla se marca, que es lo que hace que el overlay manager ceda
+     * cuando el drawer sí es la capa de arriba. Es el mismo contrato que siguen
+     * los paneles flotantes de la librería.
+     */
+    closeMobileOnEscape(id, event) {
+        if (!this.isOpen(id)) return;
+        if (event?.defaultPrevented) return;
+        if (hayDuenoPorEncima(`sidebar:${id}`)) return;
+
+        event?.preventDefault();
+        this.closeMobile(id);
     },
 
     /**

@@ -1,5 +1,18 @@
 import { lockScroll, unlockScroll } from './utils/scroll-lock.js';
 
+/**
+ * Clave del dueño del scroll lock.
+ *
+ * Constante, y no `this`: cada expresión de Alpine evalúa sobre un proxy nuevo
+ * del componente, así que el `this` de `unlockScroll()` —invocado desde
+ * `x-on:keydown.escape`— nunca era el mismo objeto que el de `lockScroll()`
+ * —invocado desde el listener de Livewire—. El `Set` de dueños no lo
+ * encontraba, no soltaba nunca, y el body se quedaba en `position: fixed` para
+ * el resto de la visita. Que sea una constante y no un id por instancia es
+ * correcto porque el manager se monta una sola vez por página.
+ */
+const CLAVE_SCROLL = 'overlay';
+
 export default function KoreOverlay() {
     return {
         show: false,
@@ -177,8 +190,16 @@ export default function KoreOverlay() {
             }
         },
 
-        closeOnEscape() {
+        closeOnEscape(event) {
             if (!this.current) return;
+
+            // El Escape que ya ha atendido otro: el panel de un select, un
+            // calendario, un dropdown, una celda en edición. Todos marcan el
+            // evento con preventDefault() al consumirlo, y el manager escucha
+            // en `window`, así que sin esta comprobación recibía el MISMO
+            // Escape y cerraba el modal además del panel. Cerrar un desplegable
+            // se llevaba por delante el formulario entero.
+            if (event?.defaultPrevented) return;
 
             const attrs = this.attr(this.current);
             if (!attrs?.closesOnEscape) return;
@@ -237,11 +258,11 @@ export default function KoreOverlay() {
         // utils/scroll-lock.js cuenta dueños para que el primero en cerrarse no
         // devuelva el scroll al body mientras el otro sigue abierto.
         lockScroll() {
-            lockScroll(this);
+            lockScroll(CLAVE_SCROLL);
         },
 
         unlockScroll() {
-            unlockScroll(this);
+            unlockScroll(CLAVE_SCROLL);
         },
 
         updateAttributes(id) {
@@ -277,7 +298,14 @@ export default function KoreOverlay() {
             // Vertical centering via my-auto on each panel (OverlayDefaults).
             // items-start prevents stretch; my-auto safely centres small modals
             // and top-aligns tall ones so the header stays reachable.
-            return 'min-h-dvh items-start justify-center p-4 text-center sm:py-8';
+            //
+            // Sin `text-center`: centraba el panel, sí, pero también heredaba la
+            // alineación a TODO lo que el consumidor pintara dentro —etiquetas,
+            // párrafos, celdas de tabla—. El centrado horizontal lo da
+            // `justify-center`, no la alineación de texto; medido quitándolo, el
+            // panel no se mueve un píxel. El confirm, que sí quiere su texto
+            // centrado, lo pide por su cuenta en su propia vista.
+            return 'min-h-dvh items-start justify-center p-4 sm:py-8';
         },
 
         // --- Bottom-sheet swipe-to-close ---

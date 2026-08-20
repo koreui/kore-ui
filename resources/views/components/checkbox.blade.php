@@ -28,7 +28,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     // Associate the error/description with the control (WCAG 3.3.1 / 4.1.2).
     $describedBy = $hasError ? $fieldId . '-error' : ($description ? $fieldId . '-description' : null);
@@ -54,7 +54,26 @@
         'focus:outline-none focus:ring-2 focus:ring-kore-ring focus:ring-offset-2 ring-offset-kore-bg',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         $hasError ? 'border-kore-destructive' : 'border-kore-input',
-        "checked:bg-[url(\"data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e\")] checked:bg-center checked:bg-no-repeat",
+        // Sin comillas dentro de url(), y los espacios como %20.
+        //
+        // Tailwind v4 extrae las clases del texto del archivo partiendo por
+        // espacios en blanco, así que un valor arbitrario que contenga espacios
+        // —y un SVG en línea los tiene: `viewBox='0 0 16 16'`— se corta en el
+        // primero y la utilidad no llega a generarse. Las comillas escapadas
+        // (\") del original tenían el mismo efecto: la barra invertida entra en
+        // el candidato y lo invalida. Ni error de compilación ni nada en el CSS
+        // — la casilla marcada se quedaba en un cuadrado de color liso, sin
+        // palomita, y llevaba así desde que se escribió el componente. Hay un
+        // cepo en tests/Ui/ClasesArbitrariasTest.php para el próximo.
+        'checked:bg-[url(data:image/svg+xml,%3csvg%20viewBox=%270%200%2016%2016%27%20fill=%27white%27%20xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath%20d=%27M12.207%204.793a1%201%200%20010%201.414l-5%205a1%201%200%2001-1.414%200l-2-2a1%201%200%20011.414-1.414L6.5%209.086l4.293-4.293a1%201%200%20011.414%200z%27/%3e%3c/svg%3e)] checked:bg-center checked:bg-no-repeat',
+        // El estado indeterminado tampoco se veía: `appearance-none` quita el
+        // guion que pinta el navegador y solo había estilos para `checked`, así
+        // que una casilla en «mixto» era indistinguible de una sin marcar. La
+        // propiedad sí estaba puesta —y por eso el árbol de accesibilidad la
+        // anunciaba como «mixed»— pero a la vista no había nada.
+        'indeterminate:bg-kore-primary indeterminate:border-kore-primary',
+        'indeterminate:bg-[url(data:image/svg+xml,%3csvg%20viewBox=%270%200%2016%2016%27%20fill=%27white%27%20xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath%20d=%27M4%207h8v2H4z%27/%3e%3c/svg%3e)] indeterminate:bg-center indeterminate:bg-no-repeat',
+
     ])->filter()->implode(' ');
 @endphp
 

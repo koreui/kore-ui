@@ -71,34 +71,41 @@
         {{ $left }}
     @endisset
 
-    <ol class="flex items-center flex-wrap {{ $s['gap'] }}">
+    {{-- El `x-data` vive en el <ol> y no en un <li> envolvente.
+
+         Antes, el bloque colapsable metía los <li> del separador y de los items
+         ocultos DENTRO de otro <li>, y eso es HTML inválido: el parser del
+         navegador cierra el <li> exterior al encontrarse el interior, así que el
+         botón y los `<template>` acababan como hermanos FUERA del elemento que
+         llevaba el `x-data`. Resultado: `expanded is not defined` en cada
+         expresión, y el desplegable de breadcrumbs sin funcionar. No daba error
+         de compilación —el HTML que emite Blade es el que se escribió— y solo
+         se ve mirando el DOM ya parseado. --}}
+    <ol x-data="{ expanded: false }" class="flex items-center flex-wrap {{ $s['gap'] }}">
         @if ($showCollapsible)
             {{-- First item --}}
             @include('kore::components.breadcrumbs._item', ['item' => $visibleStart->first()])
 
-            {{-- Separator + Ellipsis --}}
-            <li class="flex items-center {{ $s['gap'] }}" x-data="{ expanded: false }">
-                @include('kore::components.breadcrumbs._separator')
+            {{-- Separador + puntos suspensivos, como hermanos del <ol> --}}
+            @include('kore::components.breadcrumbs._separator')
 
+            <li x-show="!expanded" class="flex items-center {{ $s['gap'] }}">
                 <button
-                    x-show="!expanded"
+                    type="button"
                     x-on:click="expanded = true"
                     class="flex items-center text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded px-1 transition-colors"
                     aria-label="Mostrar breadcrumbs ocultos"
                 >
                     <x-lucide-ellipsis class="{{ $s['icon'] }}" />
                 </button>
-
-                {{-- Hidden items --}}
-                @foreach ($hidden as $hiddenItem)
-                    <template x-if="expanded">
-                        <span class="contents">
-                            @include('kore::components.breadcrumbs._separator')
-                            @include('kore::components.breadcrumbs._item', ['item' => $hiddenItem])
-                        </span>
-                    </template>
-                @endforeach
             </li>
+
+            {{-- Items ocultos: `x-show` en cada <li>, sin envolturas ni
+                 `<template>`, que aquí obligarían a anidar otra vez. --}}
+            @foreach ($hidden as $hiddenItem)
+                @include('kore::components.breadcrumbs._separator', ['extra' => 'x-show="expanded" x-cloak'])
+                @include('kore::components.breadcrumbs._item', ['item' => $hiddenItem, 'extra' => 'x-show="expanded" x-cloak'])
+            @endforeach
 
             {{-- Last visible items --}}
             @foreach ($visibleEnd as $item)

@@ -34,7 +34,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     $wireModelAttr = $attributes->whereStartsWith('wire:model');
 
@@ -53,6 +53,15 @@
     $jsConfig = json_encode((object) array_filter([
         'max' => $max,
     ], fn($v) => $v !== null));
+
+    // Los atributos que el consumidor escribe en la etiqueta y que ningún
+    // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
+    // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
+    // simplemente no existían. Se vuelcan en la raíz del componente.
+    // `id` se excluye porque ya lo usa $fieldId sobre el control, y `wire:model`
+    // porque vive en el input oculto: duplicarlos daría dos ids iguales y dos
+    // enlaces al mismo modelo.
+    $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
 @endphp
 
 <x-kore::field
@@ -66,7 +75,7 @@
     <div
         x-data="KoreKeyValue({{ $jsConfig }})"
         wire:ignore
-        class="space-y-2 {{ $disabled ? 'opacity-50 pointer-events-none' : '' }}"
+        {{ $atributosRaiz->merge(['class' => 'space-y-2 ' . ($disabled ? 'opacity-50 pointer-events-none' : '')]) }}
     >
         {{-- Hidden input for wire:model --}}
         <input
@@ -82,7 +91,7 @@
             <template x-for="(pair, index) in pairs" :key="index">
                 <div class="flex items-center gap-2" @if($reorderable) x-sort:item="index" @endif>
                     @if($reorderable)
-                        <button type="button" x-sort:handle class="shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg">
+                        <button type="button" x-sort:handle aria-label="{{ config('kore-ui.form.translations.reorder', 'Arrastrar para reordenar') }}" class="shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg">
                             <x-lucide-grip-vertical class="size-4" />
                         </button>
                     @endif
@@ -92,6 +101,7 @@
                         x-model="pair.key"
                         x-on:change="_sync()"
                         placeholder="{{ $keyPlaceholder }}"
+                        x-bind:aria-label="@js($keyPlaceholder) + ' ' + (index + 1)"
                         @if($disabled) disabled @endif
                         class="{{ $inputClasses }}"
                     />
@@ -101,6 +111,7 @@
                         x-model="pair.value"
                         x-on:change="_sync()"
                         placeholder="{{ $valuePlaceholder }}"
+                        x-bind:aria-label="@js($valuePlaceholder) + ' ' + (index + 1)"
                         @if($disabled) disabled @endif
                         class="{{ $inputClasses }}"
                     />

@@ -1,3 +1,12 @@
+import { lockScroll, unlockScroll } from './utils/scroll-lock.js';
+
+/**
+ * Clave del dueño del scroll lock. Cadena y no `this`: cada expresión de Alpine
+ * evalúa sobre un proxy nuevo del componente, así que un objeto no sirve para
+ * identificar al dueño entre el lock y el unlock (ver `utils/scroll-lock.js`).
+ */
+const CLAVE_SCROLL = 'spotlight';
+
 // ─── Fuzzy search (~35 lines) ─────────────────────────────────────────────
 
 function fuzzyMatch(pattern, str) {
@@ -161,6 +170,12 @@ export default function KoreSpotlight(initialItems = [], config = {}) {
                 this.query = options.query;
             }
 
+            // El panel es modal —backdrop, aria-modal, foco atrapado— pero la
+            // página seguía desplazándose por detrás con la rueda del ratón: el
+            // panel quedaba quieto mientras el contenido pasaba de largo. El
+            // modal sí lo bloqueaba desde siempre; esto era la incoherencia.
+            lockScroll(CLAVE_SCROLL);
+
             this.$nextTick(() => {
                 this.$refs.input?.focus();
             });
@@ -179,6 +194,8 @@ export default function KoreSpotlight(initialItems = [], config = {}) {
             this.currentItem = null;
             this.currentDependencyIndex = 0;
             clearTimeout(this._debounceTimer);
+
+            unlockScroll(CLAVE_SCROLL);
 
             this.$nextTick(() => {
                 this.previousFocusEl?.focus();

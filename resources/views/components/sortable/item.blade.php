@@ -14,13 +14,25 @@
     $isServer = $mode === 'server';
     $p = $isServer ? 'wire:sort' : 'x-sort';
 
-    // A stable id is required for server-side persistence (use the model id). The uniqid
-    // fallback only keeps client-only reordering working when no id is given.
-    $id = $id ?? 'sortable-' . uniqid();
+    // Para persistir el orden en el servidor hace falta un id de verdad (el del
+    // modelo). Lo de abajo es solo el respaldo para reordenar en cliente, pero
+    // con `uniqid()` ni siquiera eso funcionaba bien: el id va en el `wire:key`,
+    // y un `wire:key` distinto en cada render obliga a Livewire a reemplazar
+    // TODOS los items en cada ida y vuelta, en vez de actualizarlos. Medido: las
+    // claves cambiaban enteras en cada morph. Ver IdContext.
+    $id = $id ?? \KoreUi\Core\Support\IdContext::secuencia('sortable');
 @endphp
 
 <div
-    {{ $p }}:item="{{ $id }}"
+    {{-- En modo cliente esto es `x-sort:item`, y Alpine lo evalúa como una
+         EXPRESIÓN de JavaScript: un id de texto sin comillas se lee como una
+         resta de variables y suelta un ReferenceError en cada item. En modo
+         servidor es `wire:sort:item`, que sí es un valor plano y no se toca. --}}
+    @if($isServer)
+        {{ $p }}:item="{{ $id }}"
+    @else
+        {{ $p }}:item="{{ Js::from($id) }}"
+    @endif
     wire:key="kore-sortable-{{ $id }}"
     {{ $attributes->except(['id'])->class([
         'flex items-center gap-2 rounded-kore-md border border-kore-border bg-kore-surface px-3 py-2',

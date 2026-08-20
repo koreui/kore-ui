@@ -1,10 +1,31 @@
 import { startFloating, stopFloating } from '../utils/floating.js';
 
+/** Lee y parsea el nodo JSON de opciones. Ante un JSON roto, lista vacía. */
+function parsearOpciones(nodo) {
+    try {
+        const crudo = (nodo.textContent || '').trim();
+        const datos = crudo ? JSON.parse(crudo) : [];
+        return Array.isArray(datos) ? datos : [];
+    } catch (e) {
+        console.error('KoreSelect: opciones ilegibles', e);
+        return [];
+    }
+}
+
+/** Opciones iniciales: del nodo JSON si existe, del config si no (tests). */
+function leerOpciones(config) {
+    if (config.options) return config.options;
+    if (typeof document === 'undefined' || ! config.optionsId) return [];
+
+    const nodo = document.getElementById(config.optionsId);
+    return nodo ? parsearOpciones(nodo) : [];
+}
+
 export default (config) => ({
     open: false,
     search: '',
     selected: config.multiple ? (config.value ?? []) : (config.value ?? null),
-    options: config.options ?? [],
+    options: leerOpciones(config),
     highlighted: -1,
     loading: false,
     abortController: null,
@@ -14,8 +35,11 @@ export default (config) => ({
     _floatingCleanup: null,
     _boundMousedown: null,
     _debounceTimer: null,
+    _observadorOpciones: null,
 
     init() {
+        this._vigilarOpciones();
+
         const input = this.$refs.hiddenInput;
 
         if (config.multiple && input) {
@@ -280,13 +304,29 @@ export default (config) => ({
                 break;
             case 'Enter':
                 e.preventDefault();
-                if (this.open && this.highlighted >= 0 && opts[this.highlighted]) {
+                // Con el desplegable cerrado, Enter tiene que abrirlo. Antes
+                // caía aquí, se comía el evento con preventDefault() y no hacía
+                // nada más: el disparador es un <button>, así que sin ese
+                // preventDefault el navegador habría disparado el click por su
+                // cuenta. Resultado: desde el teclado solo se podía abrir con
+                // las flechas, y quien pulsaba Enter —lo que hace cualquiera
+                // sobre un botón— se quedaba sin respuesta y sin señal.
+                if (! this.open) { this.openDropdown(); return; }
+
+                if (this.highlighted >= 0 && opts[this.highlighted]) {
                     this.select(opts[this.highlighted]);
-                } else if (this.open && this.showCreateOption && this.highlighted === opts.length) {
+                } else if (this.showCreateOption && this.highlighted === opts.length) {
                     this.createFromSearch();
                 }
                 break;
             case 'Escape':
+                // Solo si hay algo que cerrar. Con el desplegable ya cerrado
+                // seguía llamando a preventDefault(), y ese Escape «consumido»
+                // no llegaba a quien de verdad le tocaba: dentro de un modal, el
+                // primer Escape cerraba el panel y el segundo no cerraba nada,
+                // porque el select se lo quedaba otra vez.
+                if (! this.open) return;
+
                 e.preventDefault();
                 this.close();
                 this.$refs.trigger?.focus();
@@ -302,6 +342,49 @@ export default (config) => ({
             const el = this.$refs.dropdown?.querySelector(`[data-index="${this.highlighted}"]`);
             el?.scrollIntoView({ block: 'nearest' });
         });
+    },
+
+    /**
+     * Vuelve a leer las opciones cuando el servidor las cambia.
+     *
+     * La raíz del componente lleva `wire:ignore`, así que su `x-data` se queda
+     * con lo de la primera carga. Las opciones viven fuera, en un nodo JSON que
+     * Livewire sí actualiza al hacer morph; esto se entera de ese cambio.
+     *
+     * Sin ello, un select dependiente —provincia según país— seguía enseñando
+     * la lista original: el estado del componente sí cambiaba, pero el panel
+     * está teleportado a `body` y nunca volvía a pintarse.
+     */
+    _vigilarOpciones() {
+        if (config.async) return;   // en modo async las opciones las trae fetch
+
+        if (typeof MutationObserver === 'undefined') return;
+
+        // Se vigila el CONTENEDOR, no el nodo de opciones: al hacer morph
+        // Livewire sustituye el <script> entero, así que un observador colgado
+        // de él se queda mirando un nodo ya desconectado. Por eso también se
+        // vuelve a resolver por id en cada aviso.
+        const contenedor = this.$el.parentElement;
+        if (! contenedor) return;
+
+        // Se busca por atributo dentro del propio campo y no por id: para un
+        // select sin `name` el id sale de `uniqid()`, que cambia en cada render,
+        // así que el id que quedó congelado en el `x-data` deja de existir en
+        // cuanto el servidor vuelve a pintar.
+        const releer = () => {
+            const nodo = contenedor.querySelector('script[data-kore-select-options]');
+            if (! nodo) return;
+            const nuevas = parsearOpciones(nodo);
+            if (JSON.stringify(nuevas) !== JSON.stringify(this.options)) this.options = nuevas;
+        };
+
+        this._observadorOpciones = new MutationObserver(releer);
+        this._observadorOpciones.observe(contenedor, { childList: true, characterData: true, subtree: true });
+    },
+
+    destroy() {
+        this._observadorOpciones?.disconnect();
+        this._observadorOpciones = null;
     },
 
     // Async search

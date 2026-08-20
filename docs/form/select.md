@@ -149,3 +149,45 @@ Combine with `multiple` for tagging interfaces:
 ```
 
 > **Note:** `creatable` is ignored in `native` mode since native selects don't support dynamic options.
+
+
+---
+
+## Opciones que cambian desde el servidor
+
+El panel se teleporta a `body` para escapar de los `overflow:hidden`, y ahí el
+morph de Livewire ya no lo alcanza. Por eso las opciones **no viajan dentro del
+`x-data`** —que Alpine evalúa una sola vez— sino en un nodo JSON aparte:
+
+```html
+<script type="application/json" id="kore-pais-options" data-kore-select-options>[…]</script>
+<div x-data="KoreSelect({ optionsId: 'kore-pais-options', … })">…</div>
+```
+
+Livewire actualiza ese nodo como cualquier otro trozo de la vista, y el
+componente lo vigila con un `MutationObserver`. Eso es lo que hace funcionar el
+select dependiente:
+
+```blade
+<x-kore::select wire:model.live="pais" :options="$paises" />
+<x-kore::select wire:model="provincia" :options="$this->provinciasDe($pais)" />
+```
+
+Se vigila el **contenedor** y no el propio `<script>`: al hacer morph, Livewire
+sustituye el nodo entero en vez de editarlo, así que un observador colgado de él
+se quedaría mirando algo ya desconectado.
+
+En modo `async` no hay nodo ni observador: ahí las opciones las trae `fetch`.
+
+## Cuántas opciones caben
+
+El componente **no virtualiza**: pinta todas las opciones, abiertas o no. Medido
+en Chrome de escritorio:
+
+| Opciones | Nodos en el DOM | Abrir el panel |
+|---|---|---|
+| 5 | ~90 | inmediato |
+| 10.000 | ~120.000 | ~1,2 s |
+
+A partir de unos pocos cientos, `async` sale mucho más barato: el servidor filtra
+y el navegador solo pinta lo que se ve.

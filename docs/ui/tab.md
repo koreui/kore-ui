@@ -25,6 +25,8 @@ Sistema de pestañas para organizar contenido en paneles con navegación. Usa Al
 | Prop | Tipo | Default | Descripción |
 |------|------|---------|-------------|
 | `selected` | `string\|null` | `null` | ID de la pestaña activa inicial |
+
+Sin `selected`, se abre **la primera pestaña habilitada**: un `<x-kore::tab>` nunca se queda con las pestañas pintadas y ningún panel debajo. Las deshabilitadas no pueden ser la inicial.
 | `variant` | `string` | `line` | Variante visual: `line`, `pill`, `enclosed` |
 | `orientation` | `string` | `horizontal` | Orientación: `horizontal`, `vertical` |
 | `scrollable` | `bool` | `false` | Habilita scroll horizontal cuando las pestañas desbordan |

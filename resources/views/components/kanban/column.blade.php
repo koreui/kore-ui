@@ -34,7 +34,13 @@
         <span class="text-xs text-kore-muted-fg tabular-nums">{{ $cards->count() }}</span>
     </header>
 
+    {{-- Sin `role`, un tablero es un montón de `div` anidados: un lector de
+         pantalla no anuncia cuántas tarjetas hay en cada columna ni dónde
+         empieza una y acaba otra. La lista lleva el nombre de la columna porque
+         la cabecera de arriba es hermana, no ancestro, y no la nombra. --}}
     <div
+        role="list"
+        aria-label="{{ $column['label'] ?? $columnId }}"
         x-sort:group="{{ $group }}"
         x-sort="$wire.{{ $handler }}($item, $position, '{{ $columnId }}')"
         x-sort:config="{ animation: {{ (int) $animation }} }"

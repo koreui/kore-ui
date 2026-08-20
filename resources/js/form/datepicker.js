@@ -39,7 +39,7 @@ export default (config) => ({
         this._syncFromInput(input);
 
         if (!this.viewDate) {
-            this.viewDate = new Date();
+            this.viewDate = this._mesDeArranque();
         }
         this.viewDate = new Date(this.viewDate.getFullYear(), this.viewDate.getMonth(), 1);
         this.focusedDate = this.selected ? new Date(this.selected) : new Date();
@@ -191,6 +191,27 @@ export default (config) => ({
             if (this.ampm === 'AM' && h === 12) h = 0;
         }
         return `${iso} ${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+    },
+
+    /**
+     * El mes por el que se abre el calendario.
+     *
+     * Hoy, salvo que hoy caiga fuera de [minDate, maxDate]: entonces, el mes del
+     * límite más cercano. Abrirse siempre por hoy dejaba al usuario delante de
+     * una rejilla en la que TODOS los días estaban deshabilitados, sin ninguna
+     * pista de hacia dónde navegar —y con un rango de marzo abierto en agosto,
+     * eran cinco clics a ciegas en la flecha de mes.
+     */
+    _mesDeArranque() {
+        const hoy = new Date();
+
+        const min = config.minDate ? this._parseDate(config.minDate) : null;
+        if (min && hoy < min) return min;
+
+        const max = config.maxDate ? this._parseDate(config.maxDate) : null;
+        if (max && hoy > max) return max;
+
+        return hoy;
     },
 
     _parseDate(str) {
@@ -950,6 +971,13 @@ export default (config) => ({
                     this.focusedDate = new Date(this.focusedDate.getFullYear(), this.focusedDate.getMonth() + 1, this.focusedDate.getDate());
                 }
                 this.buildCalendar();
+                break;
+            case 'Tab':
+                // Tabular saca el foco del campo, así que el calendario ya no
+                // pinta nada ahí: se quedaba abierto y flotando encima del
+                // formulario mientras el usuario escribía dos campos más abajo.
+                // Sin `preventDefault`, que la tabulación tiene que seguir.
+                this.close();
                 break;
         }
     },

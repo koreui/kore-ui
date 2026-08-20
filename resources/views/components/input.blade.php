@@ -34,7 +34,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     // Associate the field's hint/error (rendered with these ids in field.blade.php)
     // with the control for assistive tech (WCAG 3.3.1 / 4.1.2).
@@ -140,6 +140,7 @@
                                 x-show="v.length > 0"
                                 x-cloak
                                 x-on:click="v = ''; $refs.input.value = ''; $refs.input.dispatchEvent(new Event('input', { bubbles: true })); $refs.input.focus()"
+                                aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
                                 class="text-kore-muted-fg hover:text-kore-fg transition-colors"
                             >
                                 <x-lucide-x class="{{ $iconSizeClasses }}" />
@@ -196,6 +197,7 @@
                             x-show="v.length > 0"
                             x-cloak
                             x-on:click="v = ''; $refs.input.value = ''; $refs.input.dispatchEvent(new Event('input', { bubbles: true })); $refs.input.focus()"
+                            aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
                             class="text-kore-muted-fg hover:text-kore-fg transition-colors"
                         >
                             <x-lucide-x class="{{ $iconSizeClasses }}" />

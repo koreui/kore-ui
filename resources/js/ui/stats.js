@@ -5,7 +5,15 @@ export default (config) => ({
     _observed: false,
 
     init() {
-        if (!this.animated) {
+        // Un contador que sube durante un segundo es justo lo que
+        // `prefers-reduced-motion` pide desactivar, y no lo miraba nadie:
+        // medido, con la preferencia activa seguía contando desde cero. El
+        // resto de la librería sí la respeta (ver `feedback.js`).
+        const sinMovimiento = typeof window !== 'undefined'
+            && typeof window.matchMedia === 'function'
+            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (!this.animated || sinMovimiento) {
             this.displayValue = this._formatNumber(this.value);
             return;
         }

@@ -33,7 +33,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     $trackHeight = match($size) {
         'sm' => 'h-1',
@@ -113,6 +113,7 @@
                     step="{{ $step }}"
                     x-model.number="low"
                     x-on:input="onLowInput()"
+                    aria-label="{{ trim(($label ? $label . ' — ' : '') . config('kore-ui.form.translations.range_min', 'mínimo')) }}"
                     {{ $disabled ? 'disabled' : '' }}
                 />
 
@@ -125,6 +126,7 @@
                     step="{{ $step }}"
                     x-model.number="high"
                     x-on:input="onHighInput()"
+                    aria-label="{{ trim(($label ? $label . ' — ' : '') . config('kore-ui.form.translations.range_max', 'máximo')) }}"
                     {{ $disabled ? 'disabled' : '' }}
                 />
             </div>

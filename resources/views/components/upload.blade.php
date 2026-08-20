@@ -50,7 +50,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     $wireModelAttr = $attributes->whereStartsWith('wire:model');
 
@@ -66,13 +66,25 @@
         'disabled' => $disabled ?: null,
         'static' => $static ?: null,
         'staticFiles' => $static && $staticFiles ? $staticFiles : null,
-        'invalidSizeMessage' => $invalidSizeMessage,
-        'invalidTypeMessage' => $invalidTypeMessage,
+        // Con `?? config(...)` en vez de `?? null`: el mensaje por defecto del
+        // plugin estaba escrito en inglés dentro del JavaScript, donde no hay
+        // forma de tocarlo sin recompilar el bundle.
+        'invalidSizeMessage' => $invalidSizeMessage ?? config('kore-ui.form.translations.invalid_size'),
+        'invalidTypeMessage' => $invalidTypeMessage ?? config('kore-ui.form.translations.invalid_type'),
         'autoUpload' => !$autoUpload ? false : null,
         'retryable' => $retryable ?: null,
         'maxRetries' => $retryable ? $maxRetries : null,
         'retryDelay' => $retryable ? $retryDelay : null,
     ], fn ($v) => $v !== null));
+
+    // Los atributos que el consumidor escribe en la etiqueta y que ningún
+    // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
+    // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
+    // simplemente no existían. Se vuelcan en la raíz del componente.
+    // `id` se excluye porque ya lo usa $fieldId sobre el control, y `wire:model`
+    // porque vive en el input oculto: duplicarlos daría dos ids iguales y dos
+    // enlaces al mismo modelo.
+    $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
 @endphp
 
 <x-kore::field
@@ -86,7 +98,7 @@
     <div
         x-data="KoreUpload({{ $jsConfig }})"
         x-on:paste.prevent="onPaste($event)"
-        class="relative"
+        {{ $atributosRaiz->merge(['class' => "relative"]) }}
     >
         {{-- File input for selection --}}
         <input
@@ -130,7 +142,7 @@
                     @if($disabled) disabled @endif
                 >
                     <x-lucide-upload class="size-4" />
-                    <span>Choose file</span>
+                    <span>{{ config('kore-ui.form.translations.choose_file', 'Elegir archivo') }}</span>
                 </button>
             @else
                 {{-- Dropzone variant (default) --}}
@@ -208,7 +220,7 @@
                                 @if($retryable)
                                     <button type="button" x-on:click="retryFile(file.id)"
                                         class="text-kore-muted-fg hover:text-kore-warning transition-colors"
-                                        title="Retry upload">
+                                        x-bind:aria-label="@js(config('kore-ui.form.translations.retry_upload', 'Reintentar la subida')) + ': ' + file.name">
                                         <x-lucide-refresh-cw class="size-4" />
                                     </button>
                                 @endif
@@ -217,14 +229,15 @@
                         <template x-if="file.status === 'retrying'">
                             <div class="flex items-center gap-1.5 shrink-0">
                                 <x-lucide-loader-2 class="size-5 text-kore-warning animate-spin" />
-                                <span class="text-xs text-kore-muted-fg" x-text="'Retry ' + file.retries + '/{{ $maxRetries }}'"></span>
+                                <span class="text-xs text-kore-muted-fg" x-text="@js(config('kore-ui.form.translations.retry', 'Reintento')) + ' ' + file.retries + '/{{ $maxRetries }}'"></span>
                             </div>
                         </template>
 
                         {{-- Delete button --}}
                         @if($deletable)
                             <button type="button" x-on:click="removeFile(file.id)"
-                                class="text-kore-muted-fg hover:text-kore-destructive transition-colors shrink-0">
+                                class="text-kore-muted-fg hover:text-kore-destructive transition-colors shrink-0"
+                                x-bind:aria-label="@js(config('kore-ui.form.translations.remove_file', 'Quitar archivo')) + ': ' + file.name">
                                 <x-lucide-trash-2 class="size-4" />
                             </button>
                         @endif

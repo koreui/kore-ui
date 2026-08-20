@@ -100,6 +100,70 @@ public static function backdropBlur(): bool
 }
 ```
 
+### Backdrop colour
+
+The veil is painted with the `--kore-backdrop` token, which is dark in **both** themes. Override it in your own CSS to change it everywhere at once -- the Spotlight uses the same token:
+
+```css
+:root { --kore-backdrop: oklch(0.15 0.05 250); }   /* a tinted veil */
+```
+
+Do not point it at `--kore-fg`. That is the *text* colour and it flips with the theme, so in dark mode the veil comes out almost white and **lightens** the page instead of dimming it -- the background ends up brighter than the modal itself.
+
+## Escape and Nested Panels
+
+The overlay manager listens for Escape on `window`, so it receives the key no matter where the focus is. That means an overlay and any floating panel opened **inside** it -- a select dropdown, a date picker calendar, a colour panel -- see the very same event.
+
+The rule that keeps them from fighting over it:
+
+> **Whoever consumes Escape marks it with `preventDefault()`.** The manager skips any Escape that is already `defaultPrevented`.
+
+Every floating component in KoreUi follows it, so a select open inside a modal takes two presses: the first closes the dropdown, the second closes the modal. Before this contract existed, one press closed both and the user lost the whole form by dismissing a dropdown.
+
+If you build your own floating panel meant to live inside an overlay, do the same -- and only when there is something to close:
+
+```js
+onKeydown(e) {
+    if (e.key !== 'Escape') return;
+    if (! this.open) return;      // nothing to consume: let it through
+
+    e.preventDefault();           // this is what tells the manager to stand down
+    this.close();
+}
+```
+
+Calling `preventDefault()` on an Escape you did not actually use is worse than not calling it at all: the manager will discard the key and nothing closes.
+
+### Panels teleported to `<body>`
+
+`x-teleport` keeps Alpine's *scope* but not the DOM tree. A panel moved to `<body>` no longer bubbles its events through the component root, so an `x-on:keydown` placed only on the root stops receiving anything the moment focus enters the panel. Put the handler on the teleported node as well:
+
+```blade
+<template x-teleport="body">
+    <div data-kore-teleport x-show="open" x-on:keydown="onKeydown($event)">
+        ...
+    </div>
+</template>
+```
+
+`tests/Ui/PanelesTeleportadosTest.php` enforces this for every teleported panel that contains focusable controls.
+
+## Cost in Server Round-Trips
+
+The overlay manager is a separate Livewire component, so opening an overlay is two components talking to each other. Measured in `demo/e2e/specs/34-overlay-pila.spec.js` and `35-overlay-feedback.spec.js`:
+
+| Action | Round-trips |
+|---|---|
+| Open an overlay by dispatching `kore:open` from the browser | 1 |
+| Close it (the manager resets its own state) | 1 |
+| Open a confirm dialog from a server action | 2 |
+| Answer it (response + callback + manager cleanup) | 3 |
+| Show a toast from the server | 1 |
+| Show a toast from JavaScript (`window.dispatchEvent`) | 0 |
+| Open the spotlight | 0 |
+
+Opening an overlay from a `wire:click` costs one more trip than dispatching `kore:open` in the browser, because the click has to reach the server first. When the overlay needs no server state, dispatch it client-side.
+
 ## Default Values Summary
 
 From `config/kore-ui.php`:

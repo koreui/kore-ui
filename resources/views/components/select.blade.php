@@ -50,7 +50,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     $sizeClasses = match($size) {
         'sm' => 'text-xs py-1.5 px-2.5',
@@ -82,7 +82,23 @@
         return [$optionValue => $key, $optionLabel => $item];
     })->values()->toJson();
 
+    // Las opciones viajan en un nodo JSON aparte y no dentro del `x-data`.
+    //
+    // El motivo: la raíz lleva `wire:ignore` para que un re-render ajeno no
+    // cierre el desplegable ni borre lo que el usuario estaba escribiendo. Pero
+    // `wire:ignore` congela también el `x-data`, así que unas opciones metidas
+    // ahí quedarían fijadas en las de la primera carga. Sacándolas a un nodo
+    // que Livewire sí actualiza, el componente puede vigilarlo y enterarse.
+    $optionsId = $fieldId . '-options';
+
     $wireModelAttr = $attributes->whereStartsWith('wire:model');
+
+    // En modo nativo los atributos del consumidor se mergean en el <select>. En
+    // el modo por defecto —el Alpine— no se mergeaban en ninguna parte: un
+    // `class`, un `data-*` o un `x-on:` escrito en la etiqueta desaparecía sin
+    // dar error. `id` no entra porque ya lo lleva el control vía $fieldId, y
+    // `wire:model` porque vive en el input oculto.
+    $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
 @endphp
 
 <x-kore::field
@@ -130,9 +146,14 @@
         </select>
     @else
         {{-- Custom Alpine select --}}
+
+        {{-- Opciones: fuera del wire:ignore a propósito, para que un cambio de
+             `:options` desde el servidor llegue al componente. --}}
+        <script type="application/json" id="{{ $optionsId }}" data-kore-select-options>{!! $jsOptions !!}</script>
+
         <div
             x-data="KoreSelect({
-                options: {{ $jsOptions }},
+                optionsId: '{{ $optionsId }}',
                 multiple: {{ $multiple ? 'true' : 'false' }},
                 max: {{ $max ?? 'null' }},
                 optionLabel: '{{ $optionLabel }}',
@@ -146,8 +167,16 @@
                 creatable: {{ $creatable ? 'true' : 'false' }},
             })"
             x-on:keydown="onKeydown($event)"
+            {{-- Solo en `multiple`, como estaba: el valor es un array y no cabe
+                 en el input oculto, así que ahí el morph sí molesta. Para el
+                 resto NO hace falta —lo que cerraba el desplegable en cada
+                 re-render ajeno no era el morph en sí, sino que el `id` del
+                 campo cambiaba entre renders y el morph trataba el nodo como
+                 uno distinto: lo reemplazaba y Alpine volvía a arrancar desde
+                 cero. Con `IdContext` el id es estable y el nodo se
+                 actualiza en vez de sustituirse. --}}
             @if($multiple) wire:ignore @endif
-            class="relative"
+            {{ $atributosRaiz->merge(['class' => 'relative']) }}
         >
             {{-- Hidden input for wire:model --}}
             <input
@@ -179,6 +208,7 @@
                                         <button
                                             type="button"
                                             x-on:click.stop="deselect(opt.value)"
+                                            x-bind:aria-label="@js(config('kore-ui.form.translations.remove', 'Quitar')) + ': ' + opt.label"
                                             class="text-kore-muted-fg hover:text-kore-fg"
                                         >
                                             <x-lucide-x class="size-3" />
@@ -202,6 +232,7 @@
                             <button
                                 type="button"
                                 x-on:click.stop="clear()"
+                                aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
                                 class="text-kore-muted-fg hover:text-kore-fg transition-colors"
                             >
                                 <x-lucide-x class="{{ $iconSizeClasses }}" />
@@ -229,6 +260,18 @@
                 x-transition:leave-start="opacity-100 scale-100"
                 x-transition:leave-end="opacity-0 scale-95"
                 x-on:mousedown.stop
+                {{-- El panel escucha el teclado por su cuenta.
+
+                     El `x-on:keydown` de la raíz no le servía: los eventos DOM
+                     burbujean por el árbol REAL, y este panel está teleportado a
+                     `<body>`, fuera de la raíz. Con `searchable` el componente
+                     lleva el foco a la caja de búsqueda que hay aquí dentro, así
+                     que a partir de ese momento ninguna tecla llegaba a
+                     `onKeydown`: ni las flechas movían el resaltado, ni Enter
+                     elegía, ni Escape cerraba. El desplegable quedaba abierto y
+                     sordo. No hay doble manejo: cuando el foco está en el
+                     disparador el evento pasa por la raíz y no por aquí. --}}
+                x-on:keydown="onKeydown($event)"
                 class="fixed z-[9999] rounded-kore-md border border-kore-border bg-kore-surface text-kore-fg shadow-lg overflow-hidden"
                 role="listbox"
             >
@@ -238,8 +281,9 @@
                             type="text"
                             x-ref="search"
                             x-model="search"
+                            aria-label="{{ config('kore-ui.form.translations.search', 'Buscar') }}"
                             @if($async) x-on:input="onSearch()" @endif
-                            placeholder="Search..."
+                            placeholder="{{ config('kore-ui.form.translations.search', 'Buscar') }}..."
                             class="w-full rounded-kore-sm border border-kore-input bg-kore-bg px-2.5 py-1.5 text-sm text-kore-fg placeholder:text-kore-muted-fg focus:outline-none focus:ring-1 focus:ring-kore-ring"
                         />
                     </div>
@@ -249,7 +293,7 @@
                 <template x-if="loading">
                     <div class="px-3 py-4 text-center text-sm text-kore-muted-fg">
                         <x-lucide-loader-2 class="size-4 animate-spin inline-block mr-1" />
-                        Loading...
+                        {{ config('kore-ui.form.translations.loading', 'Cargando…') }}
                     </div>
                 </template>
 
@@ -260,7 +304,7 @@
                     role="listbox"
                 >
                     <template x-if="filteredOptions.length === 0 && !loading && !showCreateOption">
-                        <li class="px-3 py-2 text-sm text-kore-muted-fg text-center">No options found</li>
+                        <li class="px-3 py-2 text-sm text-kore-muted-fg text-center">{{ config('kore-ui.form.translations.no_options', 'Sin resultados') }}</li>
                     </template>
 
                     <template x-for="(opt, index) in filteredOptions" :key="getValue(opt)">

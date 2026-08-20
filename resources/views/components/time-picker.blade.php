@@ -33,7 +33,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     $sizeClasses = match($size) {
         'sm' => 'text-xs py-1.5 px-2.5',
@@ -62,6 +62,15 @@
         'timeFormat' => $timeFormat,
         'minuteStep' => $minuteStep > 1 ? $minuteStep : null,
     ], fn ($v) => $v !== null));
+
+    // Los atributos que el consumidor escribe en la etiqueta y que ningún
+    // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
+    // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
+    // simplemente no existían. Se vuelcan en la raíz del componente.
+    // `id` se excluye porque ya lo usa $fieldId sobre el control, y `wire:model`
+    // porque vive en el input oculto: duplicarlos daría dos ids iguales y dos
+    // enlaces al mismo modelo.
+    $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
 @endphp
 
 <x-kore::field
@@ -76,7 +85,7 @@
         x-data="KoreTimePicker({{ $jsConfig }})"
         x-on:keydown="onKeydown($event)"
         wire:ignore
-        class="relative"
+        {{ $atributosRaiz->merge(['class' => "relative"]) }}
     >
         {{-- Hidden input for wire:model --}}
         <input
@@ -132,6 +141,10 @@
                 x-transition:leave="transition ease-in duration-75"
                 x-transition:leave-start="opacity-100 scale-100"
                 x-transition:leave-end="opacity-0 scale-95"
+                {{-- El panel escucha el teclado él mismo: teleportado a
+                     `<body>`, los eventos de dentro no burbujean por la raíz del
+                     componente, y aquí hay botones tabulables. --}}
+                x-on:keydown="onKeydown($event)"
                 x-on:mousedown.stop
                 class="fixed z-[9999] rounded-kore-lg border border-kore-border bg-kore-bg text-kore-fg shadow-lg p-4"
                 role="dialog"
@@ -147,6 +160,7 @@
                             x-on:mouseleave="stopHold()"
                             x-on:touchstart.prevent="startHold(() => incrementHour())"
                             x-on:touchend="stopHold()"
+                            aria-label="{{ config('kore-ui.form.translations.increment_hour', 'Subir la hora') }}"
                             class="p-1 text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded-kore-sm transition-colors"
                         >
                             <x-lucide-chevron-up class="size-5" />
@@ -162,6 +176,7 @@
                             x-on:mouseleave="stopHold()"
                             x-on:touchstart.prevent="startHold(() => decrementHour())"
                             x-on:touchend="stopHold()"
+                            aria-label="{{ config('kore-ui.form.translations.decrement_hour', 'Bajar la hora') }}"
                             class="p-1 text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded-kore-sm transition-colors"
                         >
                             <x-lucide-chevron-down class="size-5" />
@@ -179,6 +194,7 @@
                             x-on:mouseleave="stopHold()"
                             x-on:touchstart.prevent="startHold(() => incrementMinute())"
                             x-on:touchend="stopHold()"
+                            aria-label="{{ config('kore-ui.form.translations.increment_minute', 'Subir los minutos') }}"
                             class="p-1 text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded-kore-sm transition-colors"
                         >
                             <x-lucide-chevron-up class="size-5" />
@@ -194,6 +210,7 @@
                             x-on:mouseleave="stopHold()"
                             x-on:touchstart.prevent="startHold(() => decrementMinute())"
                             x-on:touchend="stopHold()"
+                            aria-label="{{ config('kore-ui.form.translations.decrement_minute', 'Bajar los minutos') }}"
                             class="p-1 text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded-kore-sm transition-colors"
                         >
                             <x-lucide-chevron-down class="size-5" />

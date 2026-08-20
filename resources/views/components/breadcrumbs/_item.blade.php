@@ -1,4 +1,4 @@
-<li class="flex items-center {{ $s['gap'] }}">
+<li {!! $extra ?? '' !!} class="flex items-center {{ $s['gap'] }}">
     @if ($item->current || $item->url === null)
         <span
             class="flex items-center {{ $s['gap'] }} {{ $s['text'] }} text-kore-fg font-medium"

@@ -105,6 +105,12 @@
                 this.open = true;
             },
         }"
+        {{-- El Escape se escucha aquí y en el panel, no en `window`: en window
+             llegaba al mismo tiempo que al overlay manager y una sola pulsación
+             cerraba el menú Y el modal que lo contenía. Al escuchar en el
+             elemento, el orden de propagación decide y el `preventDefault()`
+             avisa al manager de que la tecla ya está atendida. --}}
+        x-on:keydown.escape="if (open) { $event.preventDefault(); open = false }"
         {{ $attributes->class(['kore-theme-switch relative inline-block']) }}
     >
         {{-- Trigger --}}
@@ -143,7 +149,9 @@
             x-show="open"
             x-cloak
             x-on:click.outside="open = false"
-            x-on:keydown.escape.window="open = false"
+            {{-- También aquí: el panel está teleportado a `<body>`, así que las
+                 teclas pulsadas con el foco dentro no burbujean por la raíz. --}}
+            x-on:keydown.escape="if (open) { $event.preventDefault(); open = false }"
             x-transition:enter="transition ease-out duration-100"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
@@ -209,6 +217,11 @@
         <button
             type="button"
             role="radio"
+            {{-- El `aria-label` va SIEMPRE, no solo cuando `labels` está activo:
+                 sin él, un botón que es únicamente un icono se anuncia como
+                 «botón de radio» y nada más. Coincide con la etiqueta visible
+                 cuando la hay, que es lo que pide WCAG 2.5.3. --}}
+            aria-label="{{ $lightLabel }}"
             x-bind:aria-checked="($store.koreTheme.mode === 'light').toString()"
             x-on:click="$store.koreTheme.setMode('light')"
             class="{{ $buttonPadding }} inline-flex items-center gap-1.5 rounded-kore-md {{ $labelSize }} font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring"
@@ -224,6 +237,7 @@
         <button
             type="button"
             role="radio"
+            aria-label="{{ $systemLabel }}"
             x-bind:aria-checked="($store.koreTheme.mode === 'system').toString()"
             x-on:click="$store.koreTheme.setMode('system')"
             class="{{ $buttonPadding }} inline-flex items-center gap-1.5 rounded-kore-md {{ $labelSize }} font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring"
@@ -239,6 +253,7 @@
         <button
             type="button"
             role="radio"
+            aria-label="{{ $darkLabel }}"
             x-bind:aria-checked="($store.koreTheme.mode === 'dark').toString()"
             x-on:click="$store.koreTheme.setMode('dark')"
             class="{{ $buttonPadding }} inline-flex items-center gap-1.5 rounded-kore-md {{ $labelSize }} font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring"

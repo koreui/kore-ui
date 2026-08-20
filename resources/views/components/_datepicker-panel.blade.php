@@ -26,6 +26,7 @@
                                 type="button"
                                 x-show="ci === 0"
                                 x-on:click="prevMonth()"
+                                aria-label="{{ config('kore-ui.form.translations.previous_month', 'Mes anterior') }}"
                                 class="p-1 rounded-kore-sm hover:bg-kore-muted text-kore-muted-fg hover:text-kore-fg transition-colors"
                             >
                                 <x-lucide-chevron-left class="size-4" />
@@ -41,6 +42,7 @@
                                 type="button"
                                 x-show="ci === calendars.length - 1"
                                 x-on:click="nextMonth()"
+                                aria-label="{{ config('kore-ui.form.translations.next_month', 'Mes siguiente') }}"
                                 class="p-1 rounded-kore-sm hover:bg-kore-muted text-kore-muted-fg hover:text-kore-fg transition-colors"
                             >
                                 <x-lucide-chevron-right class="size-4" />
@@ -104,6 +106,7 @@
                     <button
                         type="button"
                         x-on:click="currentView === 'year' ? viewDate = new Date(viewDate.getFullYear() - 10, viewDate.getMonth(), 1) : prevMonth()"
+                        x-bind:aria-label="currentView === 'year' ? @js(config('kore-ui.form.translations.previous_decade', 'Década anterior')) : @js(config('kore-ui.form.translations.previous_month', 'Mes anterior'))"
                         class="p-1 rounded-kore-sm hover:bg-kore-muted text-kore-muted-fg hover:text-kore-fg transition-colors"
                     >
                         <x-lucide-chevron-left class="size-4" />
@@ -119,6 +122,7 @@
                     <button
                         type="button"
                         x-on:click="currentView === 'year' ? viewDate = new Date(viewDate.getFullYear() + 10, viewDate.getMonth(), 1) : nextMonth()"
+                        x-bind:aria-label="currentView === 'year' ? @js(config('kore-ui.form.translations.next_decade', 'Década siguiente')) : @js(config('kore-ui.form.translations.next_month', 'Mes siguiente'))"
                         class="p-1 rounded-kore-sm hover:bg-kore-muted text-kore-muted-fg hover:text-kore-fg transition-colors"
                     >
                         <x-lucide-chevron-right class="size-4" />

@@ -8,12 +8,12 @@ function stubDom(scrollY = 0) {
     globalThis.window = { scrollY, scrollTo: vi.fn() };
 }
 
-let lockScroll, unlockScroll, releaseScrollLock, isScrollLocked;
+let lockScroll, unlockScroll, releaseScrollLock, isScrollLocked, hayDuenoPorEncima;
 
 beforeEach(async () => {
     stubDom(250);
     vi.resetModules(); // el módulo tiene estado a nivel de módulo (owners, savedScrollY)
-    ({ lockScroll, unlockScroll, releaseScrollLock, isScrollLocked } = await import('../../resources/js/utils/scroll-lock.js'));
+    ({ lockScroll, unlockScroll, releaseScrollLock, isScrollLocked, hayDuenoPorEncima } = await import('../../resources/js/utils/scroll-lock.js'));
 });
 
 describe('lock y unlock', () => {
@@ -80,6 +80,82 @@ describe('varios dueños', () => {
         unlockScroll('sidebar');
 
         expect(window.scrollTo).toHaveBeenCalledWith(0, 250);
+    });
+});
+
+describe('la clave del dueño', () => {
+    // Esta suite estaba entera escrita con cadenas, así que pasaba en verde
+    // mientras el overlay manager pasaba `this` —un proxy de Alpine distinto en
+    // cada evaluación— y dejaba el body fijo para siempre.
+
+    it('rechaza un objeto en lugar de aceptarlo en silencio', () => {
+        // El patrón roto, tal cual estaba: dos objetos EQUIVALENTES pero
+        // distintos. Con el Set original el lock quedaba huérfano sin avisar.
+        expect(() => lockScroll({ soy: 'un componente Alpine' })).toThrow(TypeError);
+        expect(() => unlockScroll({ soy: 'un componente Alpine' })).toThrow(TypeError);
+        expect(isScrollLocked()).toBe(false);
+    });
+
+    it('acepta símbolos, que también se comparan por identidad estable', () => {
+        const clave = Symbol('overlay');
+
+        lockScroll(clave);
+        expect(isScrollLocked()).toBe(true);
+
+        unlockScroll(clave);
+        expect(isScrollLocked()).toBe(false);
+    });
+
+    it('control: dos objetos equivalentes NO son el mismo dueño', () => {
+        // Si esto dejara de ser cierto, el test de arriba ya no probaría nada.
+        expect(new Set([{ a: 1 }, { a: 1 }]).size).toBe(2);
+    });
+});
+
+describe('quién está por encima de quién', () => {
+    // El `Set` conserva el orden de inserción, así que la lista de dueños es
+    // también el orden de las capas. Lo usa el drawer del sidebar para decidir
+    // si un Escape es suyo o de un modal abierto encima: sin esto, los dos
+    // escuchaban en `window` y una sola pulsación cerraba las dos cosas.
+
+    it('el último en tomar el lock no tiene a nadie encima', () => {
+        lockScroll('sidebar:main');
+        lockScroll('overlay');
+
+        expect(hayDuenoPorEncima('overlay')).toBe(false);
+        expect(hayDuenoPorEncima('sidebar:main')).toBe(true);
+    });
+
+    it('el único dueño tampoco', () => {
+        lockScroll('sidebar:main');
+
+        expect(hayDuenoPorEncima('sidebar:main')).toBe(false);
+    });
+
+    it('quien no tiene el lock cede ante quien sí', () => {
+        // El caso del drawer con `overlay: false`: no bloquea el scroll, así que
+        // no está en la lista. Si algo tiene el body tomado, está por encima.
+        lockScroll('overlay');
+
+        expect(hayDuenoPorEncima('sidebar:main')).toBe(true);
+    });
+
+    it('sin nadie con el lock, no hay capa por encima', () => {
+        expect(hayDuenoPorEncima('sidebar:main')).toBe(false);
+    });
+
+    it('al soltar la capa de arriba, la de abajo pasa a mandar', () => {
+        lockScroll('sidebar:main');
+        lockScroll('overlay');
+        expect(hayDuenoPorEncima('sidebar:main')).toBe(true);
+
+        unlockScroll('overlay');
+
+        expect(hayDuenoPorEncima('sidebar:main')).toBe(false);
+    });
+
+    it('exige una clave estable, igual que lock y unlock', () => {
+        expect(() => hayDuenoPorEncima({ soy: 'un componente' })).toThrow(TypeError);
     });
 });
 

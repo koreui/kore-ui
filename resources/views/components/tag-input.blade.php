@@ -33,7 +33,7 @@
         }
     }
 
-    $fieldId = $attributes->get('id', $name ? 'kore-' . str_replace('.', '-', $name) : 'kore-' . uniqid());
+    $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     $sizeClasses = match($size) {
         'sm' => 'text-xs py-1 px-2',
@@ -65,6 +65,15 @@
         'allowDuplicate' => $allowDuplicate ?: null,
         'addOnBlur' => !$addOnBlur ? false : null,
     ], fn($v) => $v !== null));
+
+    // Los atributos que el consumidor escribe en la etiqueta y que ningún
+    // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
+    // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
+    // simplemente no existían. Se vuelcan en la raíz del componente.
+    // `id` se excluye porque ya lo usa $fieldId sobre el control, y `wire:model`
+    // porque vive en el input oculto: duplicarlos daría dos ids iguales y dos
+    // enlaces al mismo modelo.
+    $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
 @endphp
 
 <x-kore::field
@@ -78,7 +87,7 @@
     <div
         x-data="KoreTagInput({{ $jsConfig }})"
         wire:ignore
-        class="flex flex-wrap items-center gap-1.5 rounded-kore-md border {{ $borderClasses }} focus-within:ring-2 bg-kore-bg {{ $sizeClasses }} {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
+        {{ $atributosRaiz->merge(['class' => 'flex flex-wrap items-center gap-1.5 rounded-kore-md border ' . $borderClasses . ' focus-within:ring-2 bg-kore-bg ' . $sizeClasses . ' ' . ($disabled ? 'opacity-50 cursor-not-allowed' : '')]) }}
         x-on:click="$refs.textInput.focus()"
     >
         {{-- Hidden input for wire:model --}}
@@ -87,7 +96,6 @@
             x-ref="hiddenInput"
             {{ $wireModelAttr }}
             @if($name) name="{{ $name }}" @endif
-            id="{{ $fieldId }}"
         />
 
         {{-- Tag chips --}}
@@ -98,6 +106,7 @@
                     <button
                         type="button"
                         x-on:click.stop="removeTag(index)"
+                        x-bind:aria-label="@js(config('kore-ui.form.translations.remove_tag', 'Quitar etiqueta')) + ': ' + tag"
                         class="text-kore-primary/60 hover:text-kore-primary transition-colors"
                     >
                         <x-lucide-x class="{{ $iconSize }}" />
@@ -110,6 +119,7 @@
         <input
             type="text"
             x-ref="textInput"
+            id="{{ $fieldId }}"
             class="flex-1 min-w-[80px] bg-transparent border-0 outline-none focus:ring-0 p-0 text-kore-fg placeholder:text-kore-muted-fg {{ match($size) { 'sm' => 'text-xs', 'lg' => 'text-base', default => 'text-sm' } }}"
             @if($placeholder) placeholder="{{ $placeholder }}" @endif
             @if($disabled) disabled @endif

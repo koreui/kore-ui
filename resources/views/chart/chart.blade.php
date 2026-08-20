@@ -77,7 +77,15 @@
     // arranca sin datos se rellene solo cuando llegan.
     $stream = ($donut || $horizontal) ? null : $frame->stream;
 
-    $interactive = ! $donut && ! $gauge && ! $funnel && ! $horizontal && ($heatmap || $zoom || $stream || (! $plot->empty && ($frame->tooltip || $frame->legend)));
+    // El horizontal salía de aquí junto al donut, el gauge y el funnel, pero con
+    // una diferencia: a él sí se le pinta la leyenda, y la leyenda son BOTONES
+    // que ocultan series (`x-on:click="toggleSeries(...)"`). Sin el componente
+    // montado no eran botones muertos y ya: cada uno soltaba un
+    // `ReferenceError: isHidden is not defined` al evaluar su `aria-pressed`.
+    // El donut se queda fuera a propósito —su interacción es CSS puro—, y los
+    // otros dos no pintan leyenda.
+    $interactive = ! $donut && ! $gauge && ! $funnel
+        && ($heatmap || $zoom || $stream || (! $plot->empty && ($frame->tooltip || $frame->legend)));
 
     // El mini-gráfico de contexto necesita la serie ENTERA, no la de la ventana. Se recalcula el
     // Plot sin ventana — es PHP puro y no toca el frame. Y el resultado es UN <path> por serie:
