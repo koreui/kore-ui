@@ -10,6 +10,12 @@
 @php
     $variant = $variant ?? config('kore-ui.ui.badge.variant', 'soft');
 
+    // Las variantes que pintan el color COMO TEXTO —soft, outline y ghost— usan
+    // el token `-text`, no el color base. El base está pensado para ser un
+    // FONDO: sobre su propio tinte al diez por ciento se queda muy por debajo de
+    // AA. Medido en un navegador, antes: success 3,01 · info 3,24 ·
+    // destructive 3,91 · primary 4,08. Ver la nota de `--kore-warning-text` en
+    // kore-theme.css, que ya lo resolvía para un color de cinco.
     $colorClasses = match($variant) {
         'solid' => match($color) {
             'primary' => 'bg-kore-primary text-kore-primary-fg',
@@ -22,24 +28,24 @@
             default => 'bg-kore-primary text-kore-primary-fg',
         },
         'outline' => match($color) {
-            'primary' => 'border border-kore-primary text-kore-primary',
+            'primary' => 'border border-kore-primary text-kore-primary-text',
             'secondary' => 'border border-kore-border text-kore-fg',
-            'success' => 'border border-kore-success text-kore-success',
+            'success' => 'border border-kore-success text-kore-success-text',
             'warning' => 'border border-kore-warning text-kore-warning-text',
-            'destructive' => 'border border-kore-destructive text-kore-destructive',
-            'info' => 'border border-kore-info text-kore-info',
+            'destructive' => 'border border-kore-destructive text-kore-destructive-text',
+            'info' => 'border border-kore-info text-kore-info-text',
             'muted' => 'border border-kore-border text-kore-muted-fg',
-            default => 'border border-kore-primary text-kore-primary',
+            default => 'border border-kore-primary text-kore-primary-text',
         },
         default => match($color) {
-            'primary' => 'bg-kore-primary/10 text-kore-primary',
+            'primary' => 'bg-kore-primary/10 text-kore-primary-text',
             'secondary' => 'bg-kore-secondary text-kore-secondary-fg',
-            'success' => 'bg-kore-success/10 text-kore-success',
+            'success' => 'bg-kore-success/10 text-kore-success-text',
             'warning' => 'bg-kore-warning/10 text-kore-warning-text',
-            'destructive' => 'bg-kore-destructive/10 text-kore-destructive',
-            'info' => 'bg-kore-info/10 text-kore-info',
+            'destructive' => 'bg-kore-destructive/10 text-kore-destructive-text',
+            'info' => 'bg-kore-info/10 text-kore-info-text',
             'muted' => 'bg-kore-muted text-kore-muted-fg',
-            default => 'bg-kore-primary/10 text-kore-primary',
+            default => 'bg-kore-primary/10 text-kore-primary-text',
         },
     };
 

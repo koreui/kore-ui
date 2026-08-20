@@ -43,3 +43,10 @@ Indicador de carga con 3 tipos, soporte para overlay y texto.
     <x-kore::loading overlay blur />
 </div>
 ```
+
+## Accesibilidad
+
+- El contenedor es `role="status"` con `aria-live="polite"`. Sin `text` propio dice «Cargando» en un `sr-only`: sin texto visible, la animación era la única señal de que algo estaba pasando.
+- Con `prefers-reduced-motion` **el spinner se ralentiza** de 1 s a 3 s en vez de apagarse —es la única señal de que algo pasa—, mientras que los puntos y el pulso se apagan del todo.
+
+Los textos salen de `kore-ui.ui.translations.loading`.

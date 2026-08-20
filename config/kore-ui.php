@@ -220,6 +220,25 @@ return [
             'menu' => 'Menú',
             'speed_dial' => 'Acciones rápidas',
 
+            // Nombre por defecto de un grupo de botones.
+            'button_group' => 'Acciones',
+
+            // Cierre de una alerta descartable.
+            'close' => 'Cerrar',
+
+            // Lo que anuncia un indicador de carga sin texto visible: sin esto,
+            // la animación era la única señal de que algo estaba pasando.
+            'loading' => 'Cargando',
+
+            // Estado de un booleano y presencia de un avatar. El booleano decía
+            // literalmente «true» y «false», en inglés y sin significado.
+            'yes' => 'Sí',
+            'no' => 'No',
+            'presence_online' => 'En línea',
+            'presence_offline' => 'Desconectado',
+            'presence_busy' => 'Ocupado',
+            'presence_away' => 'Ausente',
+
             // Doble lista. Las cajas de búsqueda solo tenían `placeholder`, que
             // desaparece en cuanto se escribe algo.
             'transfer_search' => 'Buscar en :panel',

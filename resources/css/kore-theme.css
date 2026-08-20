@@ -7,13 +7,17 @@
   --color-kore-accent-fg: var(--kore-accent-fg);
   --color-kore-destructive: var(--kore-destructive);
   --color-kore-destructive-fg: var(--kore-destructive-fg);
+  --color-kore-destructive-text: var(--kore-destructive-text);
   --color-kore-success: var(--kore-success);
   --color-kore-success-fg: var(--kore-success-fg);
+  --color-kore-success-text: var(--kore-success-text);
   --color-kore-warning: var(--kore-warning);
   --color-kore-warning-fg: var(--kore-warning-fg);
   --color-kore-warning-text: var(--kore-warning-text);
   --color-kore-info: var(--kore-info);
   --color-kore-info-fg: var(--kore-info-fg);
+  --color-kore-info-text: var(--kore-info-text);
+  --color-kore-primary-text: var(--kore-primary-text);
   --color-kore-bg: var(--kore-bg);
   --color-kore-fg: var(--kore-fg);
   --color-kore-backdrop: var(--kore-backdrop);
@@ -64,21 +68,36 @@
     --kore-spring-duration: 500ms;
     --kore-primary: oklch(0.55 0.25 250);
     --kore-primary-fg: oklch(0.98 0 0);
+    /* Ver la nota de --kore-warning-text, más abajo: el mismo problema y la
+       misma solución, extendida al resto de la paleta. */
+    --kore-primary-text: oklch(0.48 0.25 250);
     --kore-secondary: oklch(0.97 0.01 260);
     --kore-secondary-fg: oklch(0.20 0.02 260);
     --kore-accent: oklch(0.92 0.01 260);
     --kore-accent-fg: oklch(0.20 0.02 260);
     --kore-destructive: oklch(0.58 0.25 27);
     --kore-destructive-fg: oklch(0.98 0 0);
+    --kore-destructive-text: oklch(0.46 0.25 27);
     --kore-success: oklch(0.62 0.19 145);
     --kore-success-fg: oklch(0.98 0 0);
+    --kore-success-text: oklch(0.48 0.19 145);
     --kore-warning: oklch(0.75 0.18 85);
     --kore-warning-fg: oklch(0.20 0 0);
-    /* Darker shade for warning AS TEXT on light/tinted backgrounds (AA). The
-       base --kore-warning is too light to read as foreground on bg-warning/10. */
+    /* Tono más oscuro para usar el color COMO TEXTO sobre fondos claros o
+       tintados (AA). El color base es demasiado claro para leerse encima de un
+       un fondo del mismo color al diez por ciento.
+
+       Esta nota estaba solo en `warning`, y el resto de la paleta se quedó sin
+       su token: medido en un navegador, `success` daba 3,01 e `info` 3,24 sobre
+       su propio fondo al diez por ciento —peor que el 2,07 del warning que
+       motivó este token—. Las luminosidades de abajo están calibradas midiendo,
+       no a ojo: cada una es la primera que pasa 4,5 sobre el fondo al 10 % y al
+       20 % (que es el que usan las iniciales del avatar). El método reproduce
+       exactamente el 0.52 que ya tenía `warning`. */
     --kore-warning-text: oklch(0.52 0.13 85);
     --kore-info: oklch(0.62 0.15 250);
     --kore-info-fg: oklch(0.98 0 0);
+    --kore-info-text: oklch(0.50 0.15 250);
     --kore-bg: oklch(1 0 0);
     --kore-fg: oklch(0.15 0 0);
     /* El velo que oscurece la página bajo un overlay. Token propio y NO
@@ -186,20 +205,29 @@
   .dark, [data-theme="dark"] {
     --kore-primary: oklch(0.70 0.20 250);
     --kore-primary-fg: oklch(0.15 0 0);
+    /* En oscuro el color base ya se lee bien sobre su propio tinte (6,58
+       medido), así que el token existe por coherencia de la API y vale lo
+       mismo. */
+    --kore-primary-text: oklch(0.70 0.20 250);
     --kore-secondary: oklch(0.25 0.01 260);
     --kore-secondary-fg: oklch(0.90 0 0);
     --kore-accent: oklch(0.30 0.01 260);
     --kore-accent-fg: oklch(0.90 0 0);
     --kore-destructive: oklch(0.55 0.25 27);
     --kore-destructive-fg: oklch(0.98 0 0);
+    /* En oscuro hay que SUBIR la luminosidad, no bajarla: el fondo tintado es
+       oscuro. Medido: el color base daba 3,83. */
+    --kore-destructive-text: oklch(0.64 0.25 27);
     --kore-success: oklch(0.58 0.19 145);
     --kore-success-fg: oklch(0.98 0 0);
+    --kore-success-text: oklch(0.61 0.19 145);
     --kore-warning: oklch(0.70 0.18 85);
     --kore-warning-fg: oklch(0.20 0 0);
     /* On dark surfaces the tinted bg is dark, so warning text must be lighter. */
     --kore-warning-text: oklch(0.84 0.15 85);
     --kore-info: oklch(0.58 0.15 250);
     --kore-info-fg: oklch(0.98 0 0);
+    --kore-info-text: oklch(0.62 0.15 250);
     --kore-bg: oklch(0.13 0 0);
     --kore-fg: oklch(0.93 0 0);
     /* Más oscuro que en claro, no más claro: la página ya es oscura y el velo
@@ -997,6 +1025,22 @@
 
   .kore-progress-animated,
   .kore-progress-indeterminate {
+    animation: none !important;
+  }
+
+  /* Lo que anima mientras se espera.
+     
+     El spinner NO se apaga: se ralentiza. Es la única señal de que algo está
+     pasando, y quitarla del todo deja un círculo quieto que no dice nada. Los
+     puntos, el pulso y el brillo del esqueleto sí se apagan: el elemento sigue
+     visible y no aportaban información, solo movimiento. Y para quien no vea
+     ninguna de las dos cosas está el `role="status"` del propio componente. */
+  .kore-anim-spinner {
+    animation-duration: 3s !important;
+  }
+
+  .kore-anim-suave,
+  .kore-skeleton-shimmer::after {
     animation: none !important;
   }
 

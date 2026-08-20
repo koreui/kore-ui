@@ -18,7 +18,7 @@
                 wire:click="applyPreset('{{ $preset->getIdentifier() }}')"
                 class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-kore-md border whitespace-nowrap transition-colors
                     {{ $isActive
-                        ? 'bg-kore-primary/10 text-kore-primary border-kore-primary'
+                        ? 'bg-kore-primary/10 text-kore-primary-text border-kore-primary'
                         : 'text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted border-transparent'
                     }}"
             >
@@ -29,7 +29,7 @@
                 <span>{{ $preset->getLabel() }}</span>
 
                 @if($count !== null)
-                    <span class="inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs rounded-full {{ $isActive ? 'bg-kore-primary/20 text-kore-primary' : 'bg-kore-muted text-kore-muted-fg' }}">
+                    <span class="inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs rounded-full {{ $isActive ? 'bg-kore-primary/20 text-kore-primary-text' : 'bg-kore-muted text-kore-muted-fg' }}">
                         {{ $count }}
                     </span>
                 @endif

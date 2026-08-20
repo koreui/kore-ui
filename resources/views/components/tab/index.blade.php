@@ -73,7 +73,7 @@
                 <span x-show="tab.iconHtml" x-html="tab.iconHtml" class="size-4 shrink-0 [&>svg]:size-4"></span>
                 <span x-text="tab.label"></span>
                 <template x-if="tab.badge !== null && tab.badge !== undefined">
-                    <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-semibold rounded-full bg-kore-primary/10 text-kore-primary" x-text="tab.badge"></span>
+                    <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-semibold rounded-full bg-kore-primary/10 text-kore-primary-text" x-text="tab.badge"></span>
                 </template>
                 <template x-if="tab.closeable">
                     <button

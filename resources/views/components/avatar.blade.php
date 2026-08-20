@@ -32,6 +32,14 @@
         default => 'rounded-full',
     };
 
+    // El punto de presencia era color y nada más: medido, ni texto ni
+    // `aria-label` en ninguno de los cuatro estados, así que «en línea» y
+    // «ocupado» se veían idénticos para quien no distingue el verde del rojo.
+    $presenceLabel = $presence ? config(
+        'kore-ui.ui.translations.presence_'.$presence,
+        ucfirst((string) $presence)
+    ) : null;
+
     $presenceColor = match($presence) {
         'online' => 'bg-kore-success',
         'offline' => 'bg-kore-muted-fg',
@@ -58,13 +66,19 @@
         }
     }
 
-    // Hash-based background color for name
+    // Color de fondo a partir del nombre.
+    //
+    // Es el mismo caso que las variantes `soft`, pero al VEINTE por ciento: el
+    // color base como texto sobre su propio tinte no llega a AA. Medido antes,
+    // las cinco combinaciones fallaban —de 2,67 a 3,52—, así que las iniciales
+    // usan el token `-text`. Los tonos están calibrados para pasar también a
+    // este porcentaje, no solo al diez.
     $bgColors = [
-        'bg-kore-primary/20 text-kore-primary',
-        'bg-kore-success/20 text-kore-success',
-        'bg-kore-warning/20 text-kore-warning',
-        'bg-kore-info/20 text-kore-info',
-        'bg-kore-destructive/20 text-kore-destructive',
+        'bg-kore-primary/20 text-kore-primary-text',
+        'bg-kore-success/20 text-kore-success-text',
+        'bg-kore-warning/20 text-kore-warning-text',
+        'bg-kore-info/20 text-kore-info-text',
+        'bg-kore-destructive/20 text-kore-destructive-text',
     ];
     $bgClass = $name ? $bgColors[abs(crc32($name)) % count($bgColors)] : 'bg-kore-muted text-kore-muted-fg';
 @endphp
@@ -93,8 +107,11 @@
 
     @if($presence)
         <span class="absolute bottom-0 right-0 block {{ $presenceSize }} {{ $presenceColor }} {{ $shape === 'square' ? 'rounded-sm' : 'rounded-full' }} ring-2 ring-kore-surface">
+            <span class="sr-only">{{ $presenceLabel }}</span>
             @if($presencePulse && $presence === 'online')
-                <span class="absolute inset-0 rounded-full {{ $presenceColor }} animate-ping opacity-75"></span>
+                {{-- El pulso es decoración pura: el punto de color sigue ahí sin
+                     él, así que con `prefers-reduced-motion` se apaga entero. --}}
+                <span class="absolute inset-0 rounded-full {{ $presenceColor }} animate-ping kore-anim-suave opacity-75"></span>
             @endif
         </span>
     @endif

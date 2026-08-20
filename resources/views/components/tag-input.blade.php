@@ -100,7 +100,7 @@
 
         {{-- Tag chips --}}
         <template x-for="(tag, index) in tags" :key="index">
-            <span class="inline-flex items-center gap-1 rounded-kore-sm bg-kore-primary/10 text-kore-primary {{ $chipSize }}">
+            <span class="inline-flex items-center gap-1 rounded-kore-sm bg-kore-primary/10 text-kore-primary-text {{ $chipSize }}">
                 <span x-text="tag"></span>
                 @if(!$disabled)
                     <button

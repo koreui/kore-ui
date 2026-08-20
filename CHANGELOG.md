@@ -7,6 +7,56 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [No publicado · Presentación]
+
+**Auditoría del lote de presentación en navegador.** Alertas, insignias, avatares, tarjetas, chips, iconos, teclas, indicadores de carga, esqueletos, estados vacíos, botones y booleanos probados en Chrome de escritorio y en WebKit sobre iPhone, con 17 pruebas nuevas. Es el último lote de componentes: con él, la librería entera queda auditada.
+
+Aquí casi nada tiene estado, así que lo que decide el lote es **el color**. Casi todos estos componentes tienen variantes que pintan texto de un color sobre un fondo del MISMO color al diez por ciento, y eso no lo ve un aserto de clases ni se aprecia en una captura: medido componiendo el fondo real capa a capa, **doce de las veintiuna combinaciones de un badge y veinticuatro de las treinta y nueve de un botón** estaban por debajo de AA.
+
+Lo interesante es que **la solución ya existía en la librería y solo se había aplicado a un color de cinco**: el token `--kore-warning-text`, con una nota en el CSS diagnosticando exactamente este problema. Los que se quedaron fuera estaban peor — `success` en 3,01 frente al 2,07 que motivó el token.
+
+Informe completo en `docs/presentacion-auditoria.md`.
+
+### Added
+
+- **Tokens `--kore-primary-text`, `--kore-success-text`, `--kore-info-text` y `--kore-destructive-text`**, en los dos temas, junto al `--kore-warning-text` que ya existía. Los valores están calibrados midiendo: cada uno es la primera luminosidad que pasa 4,5 sobre el tinte del mismo color al 10 % y al 20 %. El método se validó solo — para `warning` reproduce el `0.52` que el token ya tenía.
+- **`live` en `<x-kore::alert>`** — `assertive`, `polite` u `off`, para decidir si el aviso interrumpe al lector.
+- **`trueLabel` y `falseLabel` en `<x-kore::boolean>`** — para cuando el booleano significa «Activo/Inactivo» y no «Sí/No».
+- **`ariaLabel` en `<x-kore::button-group>`** — nombre del grupo.
+- **`announce` en `<x-kore::loading>`** — para callarlo dentro de un componente que ya anuncia su estado.
+- **`kore-ui.ui.translations`: `yes`, `no`, `loading`, `close`, `button_group` y `presence_online` / `_offline` / `_busy` / `_away`.**
+- **Suite E2E del lote** en `demo/e2e/specs/50`–`52`: el contraste en los dos temas, la semántica y el movimiento, y una tanda en WebKit móvil. Con su banco en `demo/app/Livewire/E2e/PresentacionBed.php`.
+- **Cepo `tests/Ui/ColorComoTextoTest.php`** — ningún color de la paleta puede usarse como texto sobre su propio tinte, y los cinco tokens `-text` tienen que existir en los dos temas.
+
+### Fixed
+
+- **El color base de la paleta se usaba como texto sobre su propio tinte.** Ver arriba. Las variantes `soft`, `outline`, `ghost` y `link` de `<x-kore::badge>`, `<x-kore::chip>`, `<x-kore::alert>` y `<x-kore::button>` pasan a usar el token `-text`, y también las iniciales de `<x-kore::avatar>`, que van al veinte por ciento. El mismo cambio se aplicó a once vistas de otros componentes con el mismo patrón —sidebar, stats, tree, tab, tag-input, spotlight y cuatro del DataTable—: 26 sustituciones en total.
+
+- **`<x-kore::alert>` interrumpía al lector aunque llevara ahí desde el principio.** `role="alert"` es una región *assertive*: interrumpe lo que se esté leyendo. Medido: doce alertas estáticas en una página, las doce anunciándose de golpe al abrirla. Ahora el rol se pone solo cuando la alerta es dinámica de verdad.
+
+- **`<x-kore::loading>` no se anunciaba.** Cero elementos con `role="status"` o `aria-live` en una página con cuatro indicadores: sin texto visible, la animación era la única señal de que algo estaba pasando. Trae además una prop **`announce`** para quien ya anuncia su propio estado: el DataTable la usa, porque su paginación tiene otro `aria-live` con el recuento y con los dos un lector oía «Cargando» y luego «Mostrando 1 de 1» en cada filtrado.
+
+- **Las animaciones del lote ignoraban `prefers-reduced-motion`.** El CSS ya tenía su bloque para esa preferencia; el spinner, los puntos, el pulso, el brillo del esqueleto y el pulso de presencia del avatar se habían quedado fuera. El spinner se **ralentiza** de 1 s a 3 s en vez de apagarse —es la única señal de que algo pasa—; lo demás se apaga entero.
+
+- **Dos objetivos táctiles por debajo del mínimo.** El botón de quitar de `<x-kore::chip>` medía 18×18 y el de cerrar de `<x-kore::alert>`, 20 px de ancho. WCAG 2.2 pide 24×24.
+
+- **La descripción de `<x-kore::alert>` bajaba su propio contraste** con un `opacity-90`: fallaba en once de las doce combinaciones, frente a ocho del título.
+
+- **`<x-kore::boolean>` decía «true» y «false»**, en inglés y sin significado: un lector anunciaba «imagen, true» y nada más.
+
+- **La presencia de `<x-kore::avatar>` era solo color.** Los cuatro estados sin texto ni `aria-label`: para quien no distingue el verde del rojo, «en línea» y «ocupado» se veían idénticos.
+
+- **`<x-kore::button-group>` no era un grupo** para un lector: ni `role="group"` ni nombre.
+
+### Medido, no cambiado
+
+- **Las variantes `solid` no llegan a AA**, y es la decisión pendiente que deja este lote: pintan el color `-fg` —casi blanco— sobre el color pleno, y ninguno de los cuatro pasa. Medido en tema claro: `primary` 4,41 · `destructive` 4,39 · `info` 3,42 · `success` 3,17. Arreglarlo pide mover la paleta base, y esos mismos tokens pintan gráficos, iconos, estados del sidebar y media tabla.
+- **`muted` se queda en 4,48**, a dos centésimas.
+- **El `button-group` NO se descoloca con el morph**, que era la sospecha: el cálculo de las esquinas es CSS puro, así que lo rehace el navegador solo. Medido con un cuarto botón llegando desde el servidor.
+- **El chip que el usuario oculta no resucita** con un morph ajeno.
+
+---
+
 ## [No publicado · Interacción]
 
 **Auditoría del lote de interacción en navegador.** Carrusel, listas reordenables, doble lista, tooltip, portapapeles, menú desplegable y botón de acciones rápidas probados en Chrome de escritorio y en WebKit sobre iPhone, con 31 pruebas nuevas.

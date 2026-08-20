@@ -32,3 +32,16 @@ Indicador visual de valores booleanos con iconos y colores semánticos. Ideal pa
 ```blade
 <x-kore::boolean :value="true" trueIcon="check-circle" falseIcon="x-circle" />
 ```
+
+## Accesibilidad
+
+Se anuncia como `role="img"` con el nombre en el idioma de la interfaz. Decía literalmente «true» y «false», en inglés y sin significado.
+
+| Prop | Tipo | Default | Descripción |
+|------|------|---------|-------------|
+| `trueLabel` | `string\|null` | `config(Sí)` | Qué se anuncia cuando el valor es cierto |
+| `falseLabel` | `string\|null` | `config(No)` | Y cuando es falso |
+
+```blade
+<x-kore::boolean :value="$factura->pagada" trueLabel="Pagada" falseLabel="Pendiente" />
+```

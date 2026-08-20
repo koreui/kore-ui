@@ -59,7 +59,7 @@
         'kore-sidebar-link group relative w-full rounded-kore-md py-2 text-sm transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring/50',
         $isActive
-            ? 'bg-kore-primary/10 font-medium text-kore-primary'
+            ? 'bg-kore-primary/10 font-medium text-kore-primary-text'
             : 'text-kore-fg hover:bg-kore-muted',
         $disabled ? 'pointer-events-none opacity-50' : '',
     ];
@@ -80,19 +80,19 @@
     $pillClass = match ($badgeColor) {
         'destructive', 'danger' => $badgeVariant === 'solid'
             ? 'bg-kore-destructive text-kore-destructive-fg'
-            : 'bg-kore-destructive/15 text-kore-destructive',
+            : 'bg-kore-destructive/15 text-kore-destructive-text',
         'success' => $badgeVariant === 'solid'
             ? 'bg-kore-success text-kore-success-fg'
-            : 'bg-kore-success/15 text-kore-success',
+            : 'bg-kore-success/15 text-kore-success-text',
         'warning' => $badgeVariant === 'solid'
             ? 'bg-kore-warning text-kore-warning-fg'
             : 'bg-kore-warning/15 text-kore-warning-text',
         'info' => $badgeVariant === 'solid'
             ? 'bg-kore-info text-kore-info-fg'
-            : 'bg-kore-info/15 text-kore-info',
+            : 'bg-kore-info/15 text-kore-info-text',
         default => $badgeVariant === 'solid'
             ? 'bg-kore-primary text-kore-primary-fg'
-            : 'bg-kore-primary/15 text-kore-primary',
+            : 'bg-kore-primary/15 text-kore-primary-text',
     };
 
     // El contador de la esquina va siempre en sólido: en 10px, un fondo suave no se lee.

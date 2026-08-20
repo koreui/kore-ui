@@ -22,11 +22,11 @@
     }
 
     $iconBgColor = match($color) {
-        'success' => 'bg-kore-success/10 text-kore-success',
-        'warning' => 'bg-kore-warning/10 text-kore-warning',
-        'destructive' => 'bg-kore-destructive/10 text-kore-destructive',
-        'info' => 'bg-kore-info/10 text-kore-info',
-        default => 'bg-kore-primary/10 text-kore-primary',
+        'success' => 'bg-kore-success/10 text-kore-success-text',
+        'warning' => 'bg-kore-warning/10 text-kore-warning-text',
+        'destructive' => 'bg-kore-destructive/10 text-kore-destructive-text',
+        'info' => 'bg-kore-info/10 text-kore-info-text',
+        default => 'bg-kore-primary/10 text-kore-primary-text',
     };
 
     $trendColor = match($trendDirection) {

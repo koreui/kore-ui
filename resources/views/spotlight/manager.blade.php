@@ -52,7 +52,7 @@
                 {{-- Pills (completed steps) --}}
                 <div class="flex items-center gap-1 flex-wrap" x-show="steps.length > 0">
                     <template x-for="(step, i) in steps" :key="i">
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-kore-primary/10 text-kore-primary border border-kore-primary/20">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-kore-primary/10 text-kore-primary-text border border-kore-primary/20">
                             <span x-text="step.label"></span>
                             <button
                                 type="button"
@@ -148,7 +148,7 @@
                                             :aria-selected="activeIndex === item._index"
                                             @click="selectItem(item)"
                                             @mouseenter="activeIndex = item._index ?? -1"
-                                            :class="activeIndex === item._index ? 'bg-kore-primary/10 text-kore-primary' : 'text-kore-fg hover:bg-kore-surface-hover'"
+                                            :class="activeIndex === item._index ? 'bg-kore-primary/10 text-kore-primary-text' : 'text-kore-fg hover:bg-kore-surface-hover'"
                                             class="flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors duration-75 group"
                                         >
                                             <span class="size-5 flex items-center justify-center text-kore-muted-fg group-hover:text-inherit shrink-0">
@@ -185,7 +185,7 @@
                                             :aria-selected="activeIndex === item._index"
                                             @click="selectItem(item)"
                                             @mouseenter="activeIndex = item._index"
-                                            :class="activeIndex === item._index ? 'bg-kore-primary/10 text-kore-primary' : 'text-kore-fg hover:bg-kore-surface-hover'"
+                                            :class="activeIndex === item._index ? 'bg-kore-primary/10 text-kore-primary-text' : 'text-kore-fg hover:bg-kore-surface-hover'"
                                             class="flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors duration-75 group"
                                         >
                                             {{-- Icon --}}

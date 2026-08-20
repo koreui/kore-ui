@@ -4,6 +4,8 @@
     'falseIcon' => null,
     'trueColor' => null,
     'falseColor' => null,
+    'trueLabel' => null,
+    'falseLabel' => null,
     'size' => 'md',
 ])
 
@@ -12,6 +14,11 @@
     $falseIcon = $falseIcon ?? config('kore-ui.ui.boolean.false_icon', 'x');
     $trueColor = $trueColor ?? config('kore-ui.ui.boolean.true_color', 'success');
     $falseColor = $falseColor ?? config('kore-ui.ui.boolean.false_color', 'destructive');
+
+    // Decía literalmente «true» y «false»: en inglés, y sin significado para
+    // quien lo oye. Un lector anunciaba «imagen, true» y nada más.
+    $trueLabel = $trueLabel ?? config('kore-ui.ui.translations.yes', 'Sí');
+    $falseLabel = $falseLabel ?? config('kore-ui.ui.translations.no', 'No');
 
     $icon = $value ? $trueIcon : $falseIcon;
     $activeColor = $value ? $trueColor : $falseColor;
@@ -33,7 +40,9 @@
     };
 @endphp
 
-<span {{ $attributes->class(['inline-flex items-center justify-center', $colorClass]) }}
-    role="img" aria-label="{{ $value ? 'true' : 'false' }}">
+<span {{ $attributes
+        ->except(['value', 'trueIcon', 'falseIcon', 'trueColor', 'falseColor', 'trueLabel', 'falseLabel', 'size'])
+        ->class(['inline-flex items-center justify-center', $colorClass]) }}
+    role="img" aria-label="{{ $value ? $trueLabel : $falseLabel }}">
     <x-dynamic-component :component="'lucide-' . $icon" class="{{ $sizeClass }}" />
 </span>

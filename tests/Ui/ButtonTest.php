@@ -109,3 +109,25 @@ it('renders button group', function () {
     $view->assertSee('A')
         ->assertSee('B');
 });
+
+/**
+ * Las variantes soft, outline, ghost y link pintan el color COMO TEXTO, así que
+ * usan el token `-text`. El botón se había quedado fuera del arreglo que ya
+ * tenían el badge y el chip para `warning`: medido, `soft warning` daba 2,06.
+ */
+it('usa los tokens de texto donde el color es el texto', function () {
+    foreach (['soft', 'outline', 'ghost'] as $variante) {
+        foreach (['primary', 'success', 'info', 'destructive', 'warning'] as $color) {
+            $this->blade('<x-kore::button variant="'.$variante.'" color="'.$color.'" label="X" />')
+                ->assertSee('text-kore-'.$color.'-text', false);
+        }
+    }
+});
+
+/** El spinner es decorativo y se atenúa con `prefers-reduced-motion`. */
+it('marca el spinner para reduced-motion y lo oculta al lector', function () {
+    $view = $this->blade('<x-kore::button label="X" :loading="true" />');
+    $view->assertSee('kore-anim-spinner', false)
+        ->assertSee('aria-hidden="true"', false)
+        ->assertSee('aria-busy="true"', false);
+});

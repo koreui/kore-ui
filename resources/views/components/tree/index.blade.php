@@ -75,7 +75,7 @@
                      valían -1 y no había forma de llegar a un nodo con el
                      teclado —ni, por tanto, de seleccionar nada sin ratón—. --}}
                 <div class="flex items-center gap-1 py-1 px-2 rounded-kore-sm cursor-pointer transition-colors hover:bg-kore-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring"
-                     :class="isSelected(item.node.key) && 'bg-kore-primary/10 text-kore-primary'"
+                     :class="isSelected(item.node.key) && 'bg-kore-primary/10 text-kore-primary-text'"
                      :style="'padding-left: ' + (item.level * 20 + 8) + 'px'"
                      x-on:click="onNodeClick(item.node); focusKey = item.node.key"
                      role="treeitem"

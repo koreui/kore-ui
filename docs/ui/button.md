@@ -91,3 +91,10 @@ Botón versátil con soporte para variantes, colores, tamaños, iconos, estados 
     ],
 ],
 ```
+
+## Accesibilidad
+
+- Las variantes `soft`, `outline`, `ghost` y `link` usan el token `text-kore-{color}-text`. El botón se había quedado fuera del arreglo que `badge` y `chip` ya tenían para `warning`: medido, `soft warning` daba 2,06.
+- El spinner de `loading` va `aria-hidden` y se ralentiza con `prefers-reduced-motion`; el botón lleva `aria-busy` y queda deshabilitado de verdad.
+
+> La variante `solid` todavía no llega a AA en ninguno de los cuatro colores. Ver la nota de `badge`.

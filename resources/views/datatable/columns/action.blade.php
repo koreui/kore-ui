@@ -13,11 +13,11 @@
      */
     $resolveColor = function (string $color): array {
         $semantic = [
-            'primary'     => 'text-kore-primary hover:bg-kore-primary/10',
-            'destructive' => 'text-kore-destructive hover:bg-kore-destructive/10',
-            'success'     => 'text-kore-success hover:bg-kore-success/10',
-            'warning'     => 'text-kore-warning hover:bg-kore-warning/10',
-            'info'        => 'text-kore-info hover:bg-kore-info/10',
+            'primary'     => 'text-kore-primary-text hover:bg-kore-primary/10',
+            'destructive' => 'text-kore-destructive-text hover:bg-kore-destructive/10',
+            'success'     => 'text-kore-success-text hover:bg-kore-success/10',
+            'warning'     => 'text-kore-warning-text hover:bg-kore-warning/10',
+            'info'        => 'text-kore-info-text hover:bg-kore-info/10',
             'muted'       => 'text-kore-muted-fg hover:bg-kore-muted/50',
         ];
 

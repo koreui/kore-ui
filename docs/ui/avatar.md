@@ -49,3 +49,9 @@ Avatar con imagen, iniciales auto-generadas, icono fallback, indicador de presen
 <x-kore::avatar name="Pedro" presence="away" />
 <x-kore::avatar name="Ana" presence="offline" />
 ```
+
+## Accesibilidad
+
+- **La presencia se dice con palabras**, no solo con color: cada estado lleva su texto en un `sr-only` (`kore-ui.ui.translations.presence_*`). Para quien no distingue el verde del rojo, «en línea» y «ocupado» se veían idénticos.
+- Las iniciales usan el token `text-kore-{color}-text`, calibrado también para el tinte al veinte por ciento que usan. Medido antes: las cinco combinaciones fallaban, de 2,67 a 3,52.
+- El pulso de `presencePulse` se apaga con `prefers-reduced-motion`: es decoración, el punto de color sigue ahí.

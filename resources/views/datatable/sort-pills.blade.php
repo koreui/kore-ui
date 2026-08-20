@@ -10,7 +10,7 @@
         </span>
 
         @foreach($activeSorts as $sort)
-            <span class="inline-flex items-center gap-1 rounded-full bg-kore-info/10 text-kore-info px-2.5 py-0.5 text-xs font-medium">
+            <span class="inline-flex items-center gap-1 rounded-full bg-kore-info/10 text-kore-info-text px-2.5 py-0.5 text-xs font-medium">
                 {{ $sort['label'] }}
                 @if($sort['direction'] === 'asc')
                     <x-lucide-arrow-up class="size-3" />

@@ -6,7 +6,7 @@
 @if(count($activeFilters) > 0)
     <div class="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-kore-border bg-kore-muted/30 max-h-28 overflow-y-auto">
         @foreach($activeFilters as $filter)
-            <span class="inline-flex items-center gap-1 rounded-full bg-kore-primary/10 text-kore-primary px-2.5 py-0.5 text-xs font-medium">
+            <span class="inline-flex items-center gap-1 rounded-full bg-kore-primary/10 text-kore-primary-text px-2.5 py-0.5 text-xs font-medium">
                 {{ $filter['pill'] }}
                 <button
                     type="button"

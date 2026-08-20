@@ -4,6 +4,7 @@
     'text' => null,
     'overlay' => false,
     'blur' => false,
+    'announce' => true,
 ])
 
 @php
@@ -26,34 +27,47 @@
         'lg' => 'text-base',
         default => 'text-sm',
     };
+
+    $srText = config('kore-ui.ui.translations.loading', 'Cargando');
+
+    // `announce` a false para quien YA anuncia su propio estado.
+    //
+    // El DataTable, por ejemplo, tiene su `aria-live` con el recuento de
+    // resultados: con los dos, al filtrar un lector oía «Cargando» y a
+    // continuación «Mostrando 1 de 1». Dos avisos para un solo hecho.
+    $rolEstado = $announce ? 'status' : null;
 @endphp
 
 @if($overlay)
 <div {{ $attributes
-    ->except(['type', 'size', 'text', 'overlay', 'blur'])
+    ->except(['type', 'size', 'text', 'overlay', 'blur', 'announce'])
     ->class([
         'absolute inset-0 flex flex-col items-center justify-center z-10 bg-kore-surface/80',
         'backdrop-blur-sm' => $blur,
     ])
-}}>
+}} @if($rolEstado) role="{{ $rolEstado }}" aria-live="polite" @endif>
 @else
 <div {{ $attributes
-    ->except(['type', 'size', 'text', 'overlay', 'blur'])
+    ->except(['type', 'size', 'text', 'overlay', 'blur', 'announce'])
     ->class('inline-flex flex-col items-center justify-center gap-2')
-}}>
+}} @if($rolEstado) role="{{ $rolEstado }}" aria-live="polite" @endif>
 @endif
 
+    {{-- `kore-anim-*` marca lo que hay que atenuar con `prefers-reduced-motion`.
+         Van clases propias y no un selector sobre `animate-spin`, porque ese
+         apagaría también las animaciones que el consumidor tenga en su propia
+         aplicación. --}}
     @if($type === 'dots')
         <div class="flex items-center gap-1">
-            <span class="{{ $dotSize }} rounded-full bg-current animate-bounce" style="animation-delay: 0ms"></span>
-            <span class="{{ $dotSize }} rounded-full bg-current animate-bounce" style="animation-delay: 150ms"></span>
-            <span class="{{ $dotSize }} rounded-full bg-current animate-bounce" style="animation-delay: 300ms"></span>
+            <span class="{{ $dotSize }} rounded-full bg-current animate-bounce kore-anim-suave" style="animation-delay: 0ms"></span>
+            <span class="{{ $dotSize }} rounded-full bg-current animate-bounce kore-anim-suave" style="animation-delay: 150ms"></span>
+            <span class="{{ $dotSize }} rounded-full bg-current animate-bounce kore-anim-suave" style="animation-delay: 300ms"></span>
         </div>
     @elseif($type === 'pulse')
-        <span class="{{ $spinnerSize }} rounded-full bg-current animate-pulse opacity-50"></span>
+        <span class="{{ $spinnerSize }} rounded-full bg-current animate-pulse kore-anim-suave opacity-50"></span>
     @else
         {{-- spinner (default) --}}
-        <svg class="animate-spin {{ $spinnerSize }} text-kore-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <svg class="animate-spin kore-anim-spinner {{ $spinnerSize }} text-kore-primary" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
@@ -61,6 +75,13 @@
 
     @if($text)
         <span class="{{ $textSize }} text-kore-muted-fg">{{ $text }}</span>
+    @else
+        {{-- Sin texto visible, la animación era la ÚNICA señal de que algo estaba
+             pasando: medido, cero elementos con `role="status"` o `aria-live` en
+             una página con cuatro indicadores de carga. --}}
+        @if($announce)
+            <span class="sr-only">{{ $srText }}</span>
+        @endif
     @endif
 
 </div>

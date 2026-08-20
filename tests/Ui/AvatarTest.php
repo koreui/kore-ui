@@ -67,3 +67,31 @@ it('renders avatar group', function () {
         ->assertSee('CD')
         ->assertSee('-space-x-', false);
 });
+
+/**
+ * Las iniciales pintan el color sobre su propio tinte al VEINTE por ciento, así
+ * que es el mismo caso que las variantes `soft`. Medido antes: las cinco
+ * combinaciones fallaban, de 2,67 a 3,52.
+ */
+it('usa los tokens de texto en las iniciales', function () {
+    $view = $this->blade('<x-kore::avatar name="Ana Ruiz" />');
+    expect($view->__toString())->toMatch('/text-kore-\w+-text/');
+});
+
+/**
+ * El punto de presencia era color y nada más: sin texto ni `aria-label`, «en
+ * línea» y «ocupado» se veían idénticos para quien no distingue el verde del
+ * rojo.
+ */
+it('dice en palabras cuál es la presencia', function () {
+    $this->blade('<x-kore::avatar name="A" presence="online" />')->assertSee('En línea');
+    $this->blade('<x-kore::avatar name="A" presence="busy" />')->assertSee('Ocupado');
+    $this->blade('<x-kore::avatar name="A" presence="away" />')->assertSee('Ausente');
+    $this->blade('<x-kore::avatar name="A" presence="offline" />')->assertSee('Desconectado');
+});
+
+/** El pulso es decoración: se apaga entero con `prefers-reduced-motion`. */
+it('marca el pulso de presencia', function () {
+    $this->blade('<x-kore::avatar name="A" presence="online" :presence-pulse="true" />')
+        ->assertSee('kore-anim-suave', false);
+});

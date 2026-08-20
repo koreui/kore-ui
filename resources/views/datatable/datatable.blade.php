@@ -197,7 +197,10 @@
 
                  z-30 lo mantiene por encima del thead sticky (z-20). --}}
             <div wire:loading.delay.flex style="display: none" class="absolute inset-0 z-30 flex items-center justify-center bg-kore-surface/80 backdrop-blur-[1px]">
-                <x-kore::loading size="md" />
+                {{-- Sin anunciar: la paginación de abajo ya tiene su `aria-live`
+                     con el recuento, y con los dos un lector oía «Cargando» y a
+                     continuación «Mostrando 1 de 1» en cada filtrado. --}}
+                <x-kore::loading size="md" :announce="false" />
             </div>
 
         {{-- maxHeight → scroll vertical interno para que el header sticky funcione (overflow-x rompe el sticky relativo al viewport) --}}

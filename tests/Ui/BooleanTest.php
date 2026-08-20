@@ -45,12 +45,20 @@ it('has role img', function () {
     $view->assertSee('role="img"', false);
 });
 
-it('has aria-label true', function () {
-    $view = $this->blade('<x-kore::boolean :value="true" />');
-    $view->assertSee('aria-label="true"', false);
+/**
+ * Decía literalmente «true» y «false»: en inglés, y sin significado para quien
+ * lo oye. Un lector anunciaba «imagen, true» y nada más.
+ */
+it('se anuncia en el idioma de la interfaz', function () {
+    $this->blade('<x-kore::boolean :value="true" />')->assertSee('aria-label="Sí"', false);
 });
 
-it('has aria-label false', function () {
-    $view = $this->blade('<x-kore::boolean :value="false" />');
-    $view->assertSee('aria-label="false"', false);
+it('y lo mismo cuando es falso', function () {
+    $this->blade('<x-kore::boolean :value="false" />')->assertSee('aria-label="No"', false);
+});
+
+it('admite etiquetas propias', function () {
+    $this->blade('<x-kore::boolean :value="true" trueLabel="Activo" falseLabel="Inactivo" />')
+        ->assertSee('aria-label="Activo"', false)
+        ->assertDontSee('trueLabel', false);
 });

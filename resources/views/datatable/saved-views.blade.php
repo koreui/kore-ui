@@ -39,7 +39,7 @@
                         type="button"
                         wire:click="deleteSavedView(@js($view->id))"
                         aria-label="{{ ($t['delete_view'] ?? 'Eliminar vista') . ': ' . $view->name }}"
-                        class="p-1.5 rounded-kore-sm text-kore-muted-fg/0 group-hover:text-kore-muted-fg hover:!text-kore-destructive hover:bg-kore-destructive/10 transition-colors focus:text-kore-muted-fg focus:outline-none"
+                        class="p-1.5 rounded-kore-sm text-kore-muted-fg/0 group-hover:text-kore-muted-fg hover:!text-kore-destructive-text hover:bg-kore-destructive/10 transition-colors focus:text-kore-muted-fg focus:outline-none"
                     >
                         <x-lucide-trash-2 class="size-3.5" />
                     </button>

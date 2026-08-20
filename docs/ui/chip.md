@@ -59,3 +59,8 @@ En `config/kore-ui.php`:
     'variant' => 'soft',
 ],
 ```
+
+## Accesibilidad
+
+- Las variantes `soft` y `outline` usan el token `text-kore-{color}-text`. Ver la nota de `badge`.
+- El botón de quitar mide 24×24 (WCAG 2.2). Medía 18×18.
