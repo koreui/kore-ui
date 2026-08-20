@@ -38,6 +38,17 @@ abstract class KoreDataTable extends Component
      */
     protected ?int $maxHeight = null;
 
+    /**
+     * Reparto de anchos de la tabla: 'auto' (por defecto) o 'fixed'.
+     *
+     * Con 'auto' el navegador reparte según el contenido y `Column::width()` es
+     * una sugerencia que se ignora en cuanto otra columna necesita sitio — el
+     * síntoma es una columna estrecha con el texto apilado palabra a palabra.
+     * Con 'fixed' los anchos declarados se respetan y el resto se reparte a
+     * partes iguales.
+     */
+    protected string $tableLayout = 'auto';
+
     protected ?string $emptyText = null;
 
     protected ?string $emptyIcon = null;
@@ -176,6 +187,7 @@ abstract class KoreDataTable extends Component
     {
         // 1 · Valores por defecto de la configuración global.
         $this->density         = config('kore-ui.datatable.density', 'normal');
+        $this->tableLayout     = config('kore-ui.datatable.table_layout', 'auto') === 'fixed' ? 'fixed' : 'auto';
         $this->deferredLoading = (bool) config('kore-ui.datatable.deferred_loading', false);
         $this->applyColumnSelectConfig();
         $this->applyColumnMenuConfig();
@@ -303,6 +315,18 @@ abstract class KoreDataTable extends Component
                 ->values()
                 ->all()
         );
+    }
+
+    public function setTableLayout(string $layout): static
+    {
+        $this->tableLayout = $layout === 'fixed' ? 'fixed' : 'auto';
+
+        return $this;
+    }
+
+    public function getTableLayout(): string
+    {
+        return $this->tableLayout;
     }
 
     public function getDensity(): string
@@ -512,12 +536,13 @@ abstract class KoreDataTable extends Component
             'rows'                => $rows,
             'columns'             => $columns,
             'density'             => $this->getDensity(),
+            'tableLayout'         => $this->getTableLayout(),
             'maxHeight'           => $this->getMaxHeight(),
             'emptyText'           => $this->getEmptyText(),
             'emptyIcon'           => $this->getEmptyIcon(),
             'showingText'         => $rows !== null && method_exists($rows, 'total') ? $this->getShowingText($rows) : null,
             'searchDebounce'      => $this->getSearchDebounce(),
-            'perPageOptions'      => $this->getPerPageOptions(),
+            'perPageOptions'      => $this->getPerPageChoices(),
             'translations'        => config('kore-ui.datatable.translations', []),
             'filterDefs'          => $this->resolveFilters(),
             'activeFilters'       => $this->getActiveFilters(),

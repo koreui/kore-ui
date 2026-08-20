@@ -9,7 +9,7 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [No publicado]
 
-**Auditoría del DataTable completa, más tres funciones nuevas.** Treinta y siete correcciones sobre el módulo. Dos de ellas cierran una brecha incómoda: estaban firmadas como completadas en el roadmap de la 1.2.0, publicadas en este CHANGELOG y descritas como garantías en `docs/data/hardening.md`, pero el código nunca las tuvo. `git log -S` sobre `resources/js/datatable.js` lo confirma para el guard de teclado: no existió en ninguna versión.
+**Auditoría del DataTable completa, tres funciones nuevas y una suite E2E.** Cuarenta y ocho correcciones sobre el módulo. Dos de ellas cierran una brecha incómoda: estaban firmadas como completadas en el roadmap de la 1.2.0, publicadas en este CHANGELOG y descritas como garantías en `docs/data/hardening.md`, pero el código nunca las tuvo. `git log -S` sobre `resources/js/datatable.js` lo confirma para el guard de teclado: no existió en ninguna versión.
 
 ### Added
 
@@ -69,6 +69,15 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 - **Dos tablas de la misma clase compartían las columnas ocultas.** La clave de sesión no incluía el nombre de instancia, así que esconder «Email» en una la escondía en la otra. La clave de las tablas sin nombre no cambia, de modo que las sesiones abiertas conservan su estado.
 - **`toggleColumnVisibility()` aceptaba campos inexistentes** y los acumulaba en la sesión indefinidamente.
 - **Un `default()` de texto se convertía en `0` en las columnas numéricas.** `data_get()` resuelve objetos con `isset()`, así que para un atributo a `null` ya devolvía el default; lo que llegaba a `NumberColumn` era el marcador (`'—'`, `'N/D'`), que se casteaba a `float` y salía como un `0` con pinta de dato real — peor que la celda vacía que se quería evitar. De paso, `Column::getValue()` iguala el caso de las filas que son arrays, donde `data_get()` sí entrega el `null` tal cual: `default()` deja de depender de si la fila es un modelo o un array.
+- **El buscador del DataTable no se renderizaba.** Regresión propia de esta misma tanda: al hacer configurable el debounce se interpoló `{{ }}` en el **nombre** del atributo (`wire:model.live.debounce.{{ $x }}ms`), y eso rompe el parser de componentes de Blade — la etiqueta `<x-kore::input>` dejaba de compilarse y acababa literal en el HTML. El test que lo cubría era un falso positivo: buscaba ese texto en el HTML, y estaba precisamente porque nadie lo había procesado. Ahora el atributo se construye en PHP y se pasa por el bag, que sí admite nombres dinámicos.
+- **El bundle JavaScript quedaba clavado en el navegador hasta un año.** `@koreScripts` servía `dist/kore-ui.js` con `Cache-Control: immutable, max-age=31536000` desde una URL sin versionar: al publicar una versión nueva de la librería, los navegadores seguían ejecutando la anterior sin forma de invalidarla. La URL lleva ahora la huella del archivo (`?id=`), y una petición sin huella se sirve revalidando.
+- **El shift-click nunca seleccionó un rango.** La feature se publicó en la 1.2.0 y no llegó a funcionar: el evento `kore:datatable-rows-updated` se emite en cada render y su manejador borraba el ancla, así que el primer clic provocaba un render, el render borraba el ancla y el shift siguiente ya no tenía desde dónde medir. Ahora solo se suelta si la página cambió de verdad.
+- **`pagination_type => 'cursor'` tumbaba la página.** Es una opción documentada, pero la vista de paginación pedía `currentPage()` al paginador y un `CursorPaginator` no lo tiene: reenvía las llamadas que no conoce a su colección, así que salía un «Method Collection::currentPage does not exist». La vista distingue ahora el caso y hay un `setCursor()` para avanzar, porque `nextPage()`/`previousPage()` suman enteros y un cursor no lo es.
+- **`Column::width()` no se respetaba.** Sin `table-layout: fixed` el navegador reparte los anchos según el contenido, así que una columna con mucho texto aplastaba a las demás y su contenido se apilaba palabra a palabra. Nuevo `setTableLayout('fixed')` (y `datatable.table_layout` en config), que además da a la tabla el ancho mínimo necesario para que los `width()` sean exactos.
+- **El selector de «por página» mostraba un valor distinto del que se usaba.** Una tabla que fije `perPage = 5` en `configure()` quedaba fuera de `per_page_options` y el desplegable enseñaba el primero de la lista. El selector incluye ahora el valor en uso; la validación sigue haciéndose contra la lista de config.
+- **`@js()` dentro del atributo de un componente Blade** no se compila en el scope del padre: la directiva llega literal al hijo y se evalúa allí, donde `$rowId` no existe. Afectaba a las celdas copiables y al desplegable de fila del modo `collapse`. Se usa `Js::from()` en esos puntos, que sí se resuelve donde toca.
+- **Las cabeceras ordenables no se veían como las demás.** Los navegadores aplican `text-transform: none` a los elementos de formulario, así que el `<span>` dentro del botón de ordenar no heredaba el `uppercase` del `<th>`: en la misma cabecera convivían «Nombre» y «EMAIL».
+- **El filtro de rango numérico salía cortado.** Los dos campos no repartían el ancho del contenedor y en el `drawer` se quedaban en 41 px, con el placeholder «Max» recortado a «Ma:». Se les da `flex-1` y se retiran los controles `+/−`, que en un filtro no aportan.
 
 ### Removed
 
@@ -86,6 +95,7 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 - Cada etiqueta de filtro apunta a su campo con `for`/`id`, únicos por tabla y por filtro. Eran `<label>` huérfanos en los cuatro layouts.
 - El recuento de resultados se anuncia con `aria-live="polite"`: filtrar o buscar dejaba de ser un cambio silencioso para un lector de pantalla.
 - La celda activa en navegación por teclado se resalta. Antes solo se marcaba la fila, así que el recorrido horizontal era invisible.
+- `aria-label` en el botón de copiar de `ColorColumn`, en el disparador del menú de acciones por fila y en el botón de copiar de celda: eran controles con solo un icono dentro. La suite E2E cuenta ahora los controles sin nombre accesible y falla si aparece alguno.
 
 ### Docs
 
@@ -97,6 +107,7 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 - Nuevas secciones **Exportación** (con formatos propios) y **Conjuntos grandes** (cómo escribir una acción masiva que no materialice el conjunto).
 - `docs/data/hardening.md` añade un apartado de rendimiento por render.
 - Nuevas secciones **Segunda linea en la celda**, **Menu por cabecera de columna** y **Vistas guardadas**, esta última con el ejemplo de un `SavedViewStore` contra base de datos.
+- **Suite E2E** en `demo/e2e/`: 123 pruebas con Playwright sobre navegador real (Chrome de escritorio y WebKit en iPhone), con captura de cada estado y medición de tiempos por volumen. Ocho de los fallos corregidos en esta entrada los encontró ella, no la suite de unidad — son los que solo se ven cuando el HTML se compila, el JavaScript se ejecuta y el navegador pinta.
 
 ---
 

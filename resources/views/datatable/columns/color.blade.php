@@ -41,6 +41,7 @@
     @if($props['copyable'] ?? false)
         <button
             type="button"
+            aria-label="{{ config('kore-ui.datatable.translations.copy', 'Copiar') }} {{ $value }}"
             x-on:click="navigator.clipboard.writeText(@js($value)); copied = true; setTimeout(() => copied = false, 2000)"
             class="p-0.5 rounded hover:bg-kore-muted transition-colors"
         >

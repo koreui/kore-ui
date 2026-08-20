@@ -173,7 +173,22 @@ it('uses the configured search debounce', function () {
     config()->set('kore-ui.datatable.search_debounce', 750);
 
     Livewire::test(TestTable::class)
-        ->assertSeeHtml('wire:model.live.debounce.750ms="search"');
+        ->assertSeeHtml('wire:model.live.debounce.750ms="search"')
+        // Sin esto el test es un falso positivo: interpolar {{ }} en el NOMBRE
+        // de un atributo rompe el parser de componentes de Blade, la etiqueta
+        // <x-kore::input> se queda sin compilar y el HTML contiene el texto
+        // buscado precisamente porque nadie lo procesó. La primera versión de
+        // esta comprobación pasaba con el buscador entero roto.
+        ->assertDontSeeHtml('<x-kore::input')
+        ->assertSeeHtml('data-datatable-search');
+});
+
+it('renders the search box as a real input', function () {
+    $html = Livewire::test(TestTable::class)->html();
+
+    // La etiqueta del componente no debe sobrevivir al render, en ninguna forma.
+    expect($html)->not->toContain('x-kore::input')
+        ->and($html)->toMatch('/<input[^>]*data-datatable-search/');
 });
 
 it('labels the per-page select for screen readers', function () {

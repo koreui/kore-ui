@@ -1,8 +1,10 @@
 @php $props = $filter->getComponentProps(); @endphp
+{{-- `placeholder=` y no `:placeholder=`: ver la nota en toolbar.blade.php --}}
 <x-kore::number
     size="sm"
     :id="$fieldId ?? null"
-    :placeholder="$props['placeholder']"
+    :controls="false"
+    placeholder="{{ $props['placeholder'] }}"
     :min="$props['min']"
     :max="$props['max']"
     :step="$props['step']"

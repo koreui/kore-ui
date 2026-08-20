@@ -137,6 +137,20 @@
 
             $hasPinnedColumns = !empty($pinnedLeftOffsets) || !empty($pinnedRightOffsets);
 
+            // Con table-layout: fixed los anchos declarados solo se respetan si
+            // la tabla tiene sitio para todos. Como el contenedor suele ser más
+            // estrecho que su suma, el navegador los reparte proporcionalmente y
+            // el width() vuelve a ser una sugerencia. Se le da a la tabla un
+            // min-width igual a la suma para que sean exactos y el wrapper haga
+            // scroll horizontal, que es justo lo que se pide al fijar anchos.
+            $koreMinWidth = null;
+            if (($tableLayout ?? 'auto') === 'fixed') {
+                $koreMinWidth = ($selectionEnabled ?? false) ? 40 : 0;
+                foreach ($columns as $col) {
+                    $koreMinWidth += $col->getWidth() ?? $col->getMinWidth() ?? 150;
+                }
+            }
+
             // Per-column sticky style + edge shadow, computed ONCE. The header,
             // body and footer differ only in background color (muted vs surface),
             // so they prepend that themselves; everything else is shared here.
@@ -224,7 +238,11 @@
             @endif
 
             @if($this->shouldRenderTable())
-            <table @if(($responsiveMode ?? 'scroll') !== 'scroll') x-show="!isMobileView" @endif class="min-w-full divide-y divide-kore-border">
+            <table
+                @if(($responsiveMode ?? 'scroll') !== 'scroll') x-show="!isMobileView" @endif
+                @if(($tableLayout ?? 'auto') === 'fixed') style="table-layout: fixed; min-width: {{ $koreMinWidth }}px" @endif
+                class="min-w-full divide-y divide-kore-border"
+            >
                 {{-- Header (sticky: stays visible on vertical scroll; opaque bg so rows don't bleed through) --}}
                 <thead class="bg-kore-muted sticky top-0 z-20">
                     <tr>
@@ -292,7 +310,7 @@
                                             type="button"
                                             wire:click="sortBy(@js($column->getSortField()))"
                                             aria-label="Ordenar por {{ $column->getLabel() }}"
-                                            class="inline-flex items-center gap-1 group hover:text-kore-fg transition-colors min-w-0"
+                                            class="inline-flex items-center gap-1 group hover:text-kore-fg transition-colors min-w-0 uppercase"
                                         >
                                             <span class="truncate">{{ $column->getLabel() }}</span>
                                             <x-dynamic-component :component="'lucide-' . $sortIcon" :class="$sortIconClass" />
@@ -471,6 +489,7 @@
                                             @php $cellValue = $column->getValue($row); @endphp
                                             <button
                                                 type="button"
+                                                aria-label="{{ ($translations['copy'] ?? 'Copiar') . ' ' . $column->getLabel() }}"
                                                 x-on:click="copyToClipboard(@js(is_string($cellValue) ? $cellValue : ''), @js($rowId . '-' . $column->getField()))"
                                                 class="inline-flex items-center gap-1 group hover:text-kore-primary transition-colors"
                                             >
@@ -486,8 +505,13 @@
                                                 @else
                                                     {{ $cellValue }}
                                                 @endif
-                                                <x-lucide-copy class="size-3 text-kore-muted-fg opacity-0 group-hover:opacity-100 transition-opacity shrink-0" x-show="copyFeedback !== @js($rowId . '-' . $column->getField())" />
-                                                <x-lucide-check class="size-3 text-kore-success shrink-0" x-show="copyFeedback === @js($rowId . '-' . $column->getField())" x-cloak />
+                                                @php $koreCopyKey = \Illuminate\Support\Js::from($rowId . '-' . $column->getField()); @endphp
+                                                {{-- Js::from() y no @js(): dentro del atributo de un componente Blade
+                                                     la directiva llega literal al hijo y se compila en SU vista, donde
+                                                     $rowId no existe. {{ }} sí se resuelve en este scope, y no escapa
+                                                     de más porque e() respeta Htmlable. --}}
+                                                <x-lucide-copy class="size-3 text-kore-muted-fg opacity-0 group-hover:opacity-100 transition-opacity shrink-0" x-show="copyFeedback !== {{ $koreCopyKey }}" />
+                                                <x-lucide-check class="size-3 text-kore-success shrink-0" x-show="copyFeedback === {{ $koreCopyKey }}" x-cloak />
                                             </button>
                                         @elseif($showClickable)
                                             {{-- Clickable cell --}}
@@ -576,8 +600,11 @@
         </div>
         </div>{{-- /ancla del overlay --}}
 
-        {{-- Pagination --}}
-        @if($rows !== null && method_exists($rows, 'hasPages') && $rows->hasPages())
+        {{-- Pagination. Se incluye también cuando hay una sola página: el pie
+             lleva el recuento de resultados y su aria-live, que no pueden
+             desaparecer justo cuando un filtro reduce la tabla. Los controles de
+             página sí se ocultan solos si no hacen falta. --}}
+        @if($rows !== null && ($showingText !== null || (method_exists($rows, 'hasPages') && $rows->hasPages())))
             @include('kore::datatable.pagination', [
                 'paginator'   => $rows,
                 'showingText' => $showingText,

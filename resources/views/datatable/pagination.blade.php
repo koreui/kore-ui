@@ -4,10 +4,16 @@
 
     if (! $paginator) return;
 
-    $onFirstPage = $paginator->onFirstPage();
+    // Un CursorPaginator no tiene número de página: reenvía las llamadas que no
+    // conoce a su colección, así que preguntarle currentPage() reventaba con un
+    // «Method Collection::currentPage does not exist» y tumbaba la página entera.
+    // pagination_type => 'cursor' es una opción documentada; aquí se atiende.
+    $isCursor = $paginator instanceof \Illuminate\Pagination\CursorPaginator;
+
+    $onFirstPage  = $paginator->onFirstPage();
     $hasMorePages = $paginator->hasMorePages();
-    $currentPage = $paginator->currentPage();
-    $lastPage = method_exists($paginator, 'lastPage') ? $paginator->lastPage() : null;
+    $currentPage  = $isCursor ? null : $paginator->currentPage();
+    $lastPage     = (! $isCursor && method_exists($paginator, 'lastPage')) ? $paginator->lastPage() : null;
 
     // Ventana de páginas con elipsis. Se calcula con aritmética y no recorriendo
     // 1..$lastPage: con un millón de filas a 25 por página eso eran 40.000
@@ -55,10 +61,42 @@
         <div></div>
     @endif
 
-    {{-- Page controls --}}
+    {{-- Page controls. Solo si hay a dónde ir: con una única página los
+         botones sobran, pero el recuento de arriba sigue haciendo falta. --}}
+    @if(method_exists($paginator, 'hasPages') ? $paginator->hasPages() : true)
     <nav class="flex items-center gap-1" aria-label="Paginación">
         {{-- Previous --}}
-        @if($onFirstPage)
+        @if($isCursor)
+            @if($paginator->previousCursor())
+                <button
+                    type="button"
+                    wire:click="setCursor(@js($paginator->previousCursor()->encode()))"
+                    class="{{ $btnBase }} {{ $btnNormal }}"
+                    aria-label="Anterior"
+                >
+                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+                </button>
+            @else
+                <span class="{{ $btnBase }} {{ $btnDisabled }}" aria-disabled="true" aria-label="Anterior">
+                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+                </span>
+            @endif
+
+            @if($paginator->nextCursor())
+                <button
+                    type="button"
+                    wire:click="setCursor(@js($paginator->nextCursor()->encode()))"
+                    class="{{ $btnBase }} {{ $btnNormal }}"
+                    aria-label="Siguiente"
+                >
+                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+                </button>
+            @else
+                <span class="{{ $btnBase }} {{ $btnDisabled }}" aria-disabled="true" aria-label="Siguiente">
+                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+                </span>
+            @endif
+        @elseif($onFirstPage)
             <span class="{{ $btnBase }} {{ $btnDisabled }}" aria-disabled="true" aria-label="Anterior">
                 <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
             </span>
@@ -74,6 +112,7 @@
         @endif
 
         {{-- Page numbers --}}
+        @if(! $isCursor)
         @foreach($pages as $page)
             @if($page === '...')
                 <span class="{{ $btnBase }} {{ $btnDisabled }}">…</span>
@@ -105,5 +144,7 @@
                 <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
             </span>
         @endif
+        @endif
     </nav>
+    @endif
 </div>

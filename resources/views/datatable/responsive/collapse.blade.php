@@ -60,7 +60,7 @@
                             type="button"
                             wire:click="sortBy('{{ $column->getSortField() }}')"
                             aria-label="Ordenar por {{ $column->getLabel() }}"
-                            class="inline-flex items-center gap-1 group hover:text-kore-fg transition-colors"
+                            class="inline-flex items-center gap-1 group hover:text-kore-fg transition-colors uppercase"
                         >
                             <span>{{ $column->getLabel() }}</span>
                             <x-dynamic-component :component="'lucide-' . $sortIcon" :class="$sortIconClass" />
@@ -90,9 +90,10 @@
                             x-on:click="toggleExpand(@js((string) $rowId))"
                             class="p-0.5 rounded hover:bg-kore-muted transition-colors"
                         >
+                            {{-- Js::from() y no @js(): ver la nota en datatable.blade.php --}}
                             <x-lucide-chevron-right
                                 class="size-4 text-kore-muted-fg transition-transform duration-200"
-                                x-bind:class="isExpanded(@js((string) $rowId)) ? 'rotate-90' : ''"
+                                x-bind:class="isExpanded({{ \Illuminate\Support\Js::from((string) $rowId) }}) ? 'rotate-90' : ''"
                             />
                         </button>
                     </td>

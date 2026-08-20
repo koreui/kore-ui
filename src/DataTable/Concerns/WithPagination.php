@@ -68,6 +68,20 @@ trait WithPagination
         $this->livewireGotoPage($page, $pageName ?? $this->pageName());
     }
 
+    /**
+     * Avanza la paginación por cursor.
+     *
+     * Livewire ya resuelve el cursor desde `paginators[$pageName]` (registra
+     * `CursorPaginator::currentCursorResolver`), pero sus `nextPage()` y
+     * `previousPage()` suman y restan enteros, que es justo lo que un cursor no
+     * es. Este es el punto de entrada que sí sirve para `pagination_type =>
+     * 'cursor'`.
+     */
+    public function setCursor(?string $cursor = null): void
+    {
+        $this->setPage($cursor ?? '');
+    }
+
     public function updatedPerPage(): void
     {
         $this->normalizePerPage();
@@ -90,9 +104,33 @@ trait WithPagination
         }
     }
 
+    /**
+     * Valores admitidos para `perPage`. Es la lista contra la que se valida un
+     * valor venido de la URL, así que NO incluye el actual: si lo hiciera,
+     * cualquier valor sería válido por el mero hecho de estar puesto.
+     */
     public function getPerPageOptions(): array
     {
         return config('kore-ui.datatable.per_page_options', [10, 25, 50, 100]);
+    }
+
+    /**
+     * Opciones que se ofrecen en el selector.
+     *
+     * Incluye el `perPage` en uso aunque no esté en la lista de config: una
+     * tabla puede fijar el suyo en `configure()`, y sin esto el desplegable
+     * mostraba otro número del que realmente se estaba usando.
+     */
+    public function getPerPageChoices(): array
+    {
+        $opciones = $this->getPerPageOptions();
+
+        if ($this->perPage > 0 && ! in_array($this->perPage, $opciones, true)) {
+            $opciones[] = $this->perPage;
+            sort($opciones);
+        }
+
+        return $opciones;
     }
 
     public function getPaginationType(): string

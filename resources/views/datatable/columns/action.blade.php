@@ -68,7 +68,7 @@
     @if($isDropdown)
         <x-kore::dropdown position="bottom-end" width="180px">
             <x-slot:trigger>
-                <button type="button" class="p-1 rounded-kore-md hover:bg-kore-muted transition-colors">
+                <button type="button" aria-label="{{ $column->getLabel() }}" class="p-1 rounded-kore-md hover:bg-kore-muted transition-colors">
                     <x-dynamic-component :component="'lucide-' . ($props['triggerIcon'] ?? 'more-vertical')" class="size-4 text-kore-muted-fg" />
                 </button>
             </x-slot:trigger>

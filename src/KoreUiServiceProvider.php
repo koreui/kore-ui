@@ -66,14 +66,25 @@ class KoreUiServiceProvider extends ServiceProvider
         Livewire::component('kore-spotlight-manager', SpotlightManager::class);
 
         Route::get('/vendor/kore-ui/kore-ui.js', function () {
-            return response()->file(__DIR__.'/../dist/kore-ui.js', [
-                'Content-Type' => 'application/javascript; charset=utf-8',
-                'Cache-Control' => 'public, max-age=31536000, immutable',
+            $bundle = __DIR__.'/../dist/kore-ui.js';
+
+            // `immutable` con un año de caché solo es honesto si la URL cambia
+            // cuando cambia el archivo: @koreScripts le añade ?id= con la huella
+            // del bundle. Sin esa huella —alguien que pida la ruta a pelo— se
+            // sirve revalidando, para no dejar clavado en el navegador un
+            // bundle viejo hasta 2027.
+            $versionado = request()->filled('id');
+
+            return response()->file($bundle, [
+                'Content-Type'  => 'application/javascript; charset=utf-8',
+                'Cache-Control' => $versionado
+                    ? 'public, max-age=31536000, immutable'
+                    : 'public, max-age=0, must-revalidate',
             ]);
         })->name('kore-ui.scripts');
 
         Blade::directive('koreScripts', function () {
-            return "<?php echo '<script src=\"'.route('kore-ui.scripts').'\">'.'</script>'; ?>";
+            return "<?php echo '<script src=\"'.\KoreUi\KoreUiServiceProvider::scriptUrl().'\"></script>'; ?>";
         });
 
         Blade::directive('koreThemeScript', function () {
@@ -96,6 +107,26 @@ class KoreUiServiceProvider extends ServiceProvider
                 __DIR__.'/../resources/views' => resource_path('views/vendor/kore'),
             ], 'kore-ui-views');
         }
+    }
+
+    /**
+     * URL del bundle con la huella del archivo.
+     *
+     * Sin ella la ruta es fija y la respuesta se marcaba `immutable` con un año
+     * de caducidad: al publicar una versión nueva de la librería, el navegador
+     * de cada usuario seguía ejecutando el bundle anterior y no había forma de
+     * invalidarlo. La huella es el mtime, que cambia con cada build.
+     */
+    public static function scriptUrl(): string
+    {
+        static $huella = null;
+
+        if ($huella === null) {
+            $bundle = __DIR__.'/../dist/kore-ui.js';
+            $huella = is_file($bundle) ? substr(md5((string) filemtime($bundle)), 0, 8) : 'dev';
+        }
+
+        return route('kore-ui.scripts', ['id' => $huella]);
     }
 
     protected function loadBreadcrumbs(): void

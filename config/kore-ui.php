@@ -297,6 +297,7 @@ return [
         'per_page'              => 25,
         'per_page_options'      => [10, 25, 50, 100],
         'density'               => 'normal',      // compact|normal|relaxed
+        'table_layout'          => 'auto',       // auto|fixed — 'fixed' hace exactos los width() de columna
         'pagination_type'       => 'standard',    // standard|simple|cursor
         'search_debounce'       => 300,
         'filter_layout'         => 'popover',     // popover|slide-down|inline|drawer
@@ -342,6 +343,7 @@ return [
             'clear_view'    => 'Salir de la vista',
             'sorted_by'     => 'Ordenado por',
             'clear_sorts'   => 'Limpiar ordenamiento',
+            'copy'          => 'Copiar',
             'export'        => 'Exportar',
             'export_truncated' => 'La exportación se limitó a las primeras :max filas.',
             'cancel'        => 'Cancelar',

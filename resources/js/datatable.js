@@ -435,12 +435,26 @@ export default (config = {}) => ({
 
         if (this.$wire) {
             this.$wire.on('kore:datatable-rows-updated', ({ rowIds, total }) => {
-                this.rowIds = (rowIds || []).map(String);
+                const nuevos = (rowIds || []).map(String);
+
+                // El evento llega en CADA render, también cuando solo cambió la
+                // selección. Resetear el ancla y la fila activa siempre dejaba el
+                // shift-click inservible: el primer clic provoca un render, el
+                // render borra lastSelectedIndex y el shift siguiente ya no tiene
+                // desde dónde medir. Solo se sueltan si la página cambió de verdad.
+                const cambioLaPagina = nuevos.length !== this.rowIds.length
+                    || nuevos.some((id, i) => id !== this.rowIds[i]);
+
+                this.rowIds = nuevos;
                 if (typeof total !== 'undefined') this.totalRows = total;
-                this.activeRow = -1;
-                this.activeCell = -1;
-                this.keyboardMode = false;
-                this.lastSelectedIndex = null;
+
+                if (cambioLaPagina) {
+                    this.activeRow = -1;
+                    this.activeCell = -1;
+                    this.keyboardMode = false;
+                    this.lastSelectedIndex = null;
+                }
+
                 this.$nextTick(() => recalcPinnedOffsets(this.$root));
             });
 

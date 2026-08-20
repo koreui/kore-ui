@@ -17,6 +17,15 @@
     $koreSlots = $koreSlots ?? [];
     $rowIds = $rowIds ?? [];
     $total = $total ?? 0;
+
+    // El debounce va en el NOMBRE del modificador de wire:model, y una
+    // interpolación {{ }} ahí rompe el parser de componentes de Blade: la
+    // etiqueta <x-kore::input> deja de compilarse y acaba literal en el HTML,
+    // sin buscador. Por eso el atributo se construye aquí y se pasa por el bag,
+    // que es el camino que sí admite nombres dinámicos.
+    $searchAttributes = new \Illuminate\View\ComponentAttributeBag([
+        'wire:model.live.debounce.' . (int) ($searchDebounce ?? 300) . 'ms' => 'search',
+    ]);
     $savedViewsEnabled = $savedViewsEnabled ?? false;
     $savedViews = $savedViews ?? [];
 @endphp
@@ -25,15 +34,25 @@
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 py-3">
         {{-- Left: Search + Filters --}}
         <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            {{-- Search --}}
+            {{-- Search.
+                 `placeholder=` y no `:placeholder=`: x-kore::input no declara
+                 `placeholder` en @props (select y datepicker sí), así que el
+                 atributo con dos puntos no lo consume Blade, llega literal al DOM
+                 y Alpine lo interpreta como x-bind — evaluando la expresión PHP
+                 como JavaScript, con su ReferenceError en cada carga.
+
+                 Y ojo: nada de comentarios Blade DENTRO de la etiqueta de
+                 apertura de un componente. Blade deja de compilarlo y la etiqueta
+                 acaba literal en el HTML, igual que pasa con las directivas @if
+                 (ver el CHANGELOG de 1.0.0). --}}
             <div class="w-full sm:w-auto sm:min-w-[260px]">
                 <x-kore::input
                     type="search"
                     icon="search"
                     size="sm"
-                    :placeholder="$translations['search'] ?? 'Buscar...'"
+                    placeholder="{{ $translations['search'] ?? 'Buscar...' }}"
                     :clearable="true"
-                    wire:model.live.debounce.{{ $searchDebounce }}ms="search"
+                    :attributes="$searchAttributes"
                     data-datatable-search
                 />
             </div>
