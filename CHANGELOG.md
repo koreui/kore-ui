@@ -7,6 +7,24 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [No publicado]
+
+### Fixed
+
+- **La búsqueda global del DataTable moría en MySQL.** `LikePattern` emitía la cláusula como `ESCAPE '\'`, con una barra invertida, y dentro de un literal de MySQL esa barra escapa la comilla siguiente y deja la cadena sin cerrar. Reproducido en MySQL 9.6 con el `sql_mode` por defecto: `ERROR 1064 (42000) ... near ''\''`, y con él **toda tabla con columnas `searchable`**, más `TextFilter`.
+
+  No se veía porque la suite corre contra SQLite, donde `'\'` es una barra literal y no pasa nada — un paquete que dice soportar tres motores probaba uno.
+
+  Y el arreglo evidente empeoraba las cosas: **duplicar la barra arregla MySQL y rompe los otros dos.** Medido: SQLite responde «ESCAPE expression must be a single character», y PostgreSQL hace lo mismo con `standard_conforming_strings` activo, que es el valor por defecto desde la 9.1. Sería cambiar un motor roto por dos.
+
+  El carácter de escape pasa a ser `!`, que no significa nada dentro de un literal en ninguno de los tres. `LikePattern::escapar()` neutraliza además el propio `!` cuando viene en el término.
+
+### Added
+
+- **`tests/DataTable/LikePatternTest.php`**, que **ejecuta** la consulta en vez de comparar el SQL generado: lo que había que comprobar es que la base de datos la acepta, y eso solo lo dice la base de datos. Cubre el comodín del usuario, el guion bajo, el propio carácter de escape y la barra invertida.
+
+---
+
 ## [2.0.0] — 2026-08-20
 
 **La librería entera, auditada en un navegador.** Seis lotes de componentes probados uno a uno en Chrome de escritorio y en WebKit sobre iPhone, midiendo el comportamiento real en vez de asertar clases: **67 defectos corregidos**, dos barridos transversales y una suite E2E que pasa de 0 a 460 pruebas.
