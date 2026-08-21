@@ -4,9 +4,9 @@
     'name' => null,
     'error' => null,
     'size' => null,
-    'keyPlaceholder' => 'Clave',
-    'valuePlaceholder' => 'Valor',
-    'addLabel' => 'Añadir',
+    'keyPlaceholder' => null,
+    'valuePlaceholder' => null,
+    'addLabel' => null,
     'addable' => true,
     'deletable' => true,
     'reorderable' => false,
@@ -17,6 +17,9 @@
 ])
 
 @php
+    $keyPlaceholder = $keyPlaceholder ?? config('kore-ui.ui.translations.key', 'Clave');
+    $valuePlaceholder = $valuePlaceholder ?? config('kore-ui.ui.translations.value', 'Valor');
+    $addLabel = $addLabel ?? config('kore-ui.ui.translations.add', 'Añadir');
     $size = $size ?? config('kore-ui.form.size', 'md');
 
     $name = $name ?? $attributes->whereStartsWith('wire:model')->first();
@@ -121,7 +124,7 @@
                             type="button"
                             x-on:click="removePair(index)"
                             class="shrink-0 text-kore-muted-fg hover:text-kore-destructive transition-colors"
-                            aria-label="Eliminar fila"
+                            aria-label="{{ config('kore-ui.ui.translations.remove_row', 'Eliminar fila') }}"
                         >
                             <x-lucide-x class="size-4" />
                         </button>

@@ -104,3 +104,18 @@ it('renders navigation slot', function () {
     ');
     $view->assertSee('Next');
 });
+
+/**
+ * Los pasos eran `div` sueltos con un `aria-current="step"` encima: un lector no
+ * decía cuántos hay ni por cuál va, y el «paso actual» lo era de una lista que
+ * no existía. Y el botón solo enseña un número, así que se anunciaba «1, botón».
+ */
+it('los pasos son una lista y cada botón dice de qué paso es', function () {
+    foreach (['horizontal', 'vertical', 'compact'] as $variante) {
+        $view = $this->blade('<x-kore::stepper variant="'.$variante.'" />');
+
+        $view->assertSee('role="list"', false)
+            ->assertSee('role="listitem"', false)
+            ->assertSee('x-bind:aria-label="step.label ||', false);
+    }
+});

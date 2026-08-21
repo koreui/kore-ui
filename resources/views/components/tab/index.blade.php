@@ -80,7 +80,7 @@
                         type="button"
                         class="ml-1 p-0.5 rounded hover:bg-kore-muted transition-colors"
                         x-on:click.stop="closeTab(tab.id)"
-                        aria-label="Close tab"
+                        aria-label="{{ config('kore-ui.ui.translations.close_tab', 'Cerrar pestaña') }}"
                     >
                         <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>

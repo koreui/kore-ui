@@ -80,6 +80,81 @@ it('ningún elemento de menú contiene un control', function () {
     )));
 });
 
+/**
+ * Un rol que anuncia una región necesita nombre, o no dice de qué es.
+ *
+ * `role="dialog"`, `role="menu"`, `role="listbox"`, `role="tree"` y
+ * `role="region"` cambian lo que un lector anuncia al llegar: sin `aria-label`
+ * ni `aria-labelledby` dice «diálogo», «menú» o «lista» y se queda ahí.
+ *
+ * Salieron tres de una vez al escribir el cepo del lote de interacción, y el
+ * peor era el del overlay manager: **cada modal de la librería se anunciaba como
+ * «diálogo» y nada más**. El nombre lo sabe el componente que se abre, no el
+ * manager, así que llega por `overlayTitle()`.
+ */
+it('todo rol que anuncia una región tiene nombre', function () {
+    $problemas = [];
+
+    // Los que cambian lo que se anuncia al entrar. `group` no entra: se usa
+    // como agrupador visual en sitios donde el nombre lo da el contexto.
+    $conNombre = ['dialog', 'menu', 'listbox', 'tree', 'region', 'navigation', 'search'];
+
+    $vistas = Finder::create()->files()->in(__DIR__.'/../../resources/views')->name('*.blade.php');
+
+    foreach ($vistas as $vista) {
+        $contenido = sinComentariosBlade($vista->getContents());
+        $lineas = preg_split('/\R/', $contenido);
+
+        foreach ($lineas as $n => $linea) {
+            // Un comentario de PHP que MENCIONE un rol no es un rol. Tres de los
+            // cuatro falsos positivos de la primera versión salían de aquí: las
+            // notas que explican por qué un `role="region"` necesita nombre.
+            if (preg_match('/^\s*(\/\/|\*|\/\*)/', $linea)) {
+                continue;
+            }
+
+            foreach ($conNombre as $rol) {
+                if (! preg_match('/(?<![:\w-])role="'.$rol.'"/', $linea)) {
+                    continue;
+                }
+
+                // El nombre puede estar en cualquier línea de la misma etiqueta:
+                // se mira la ventana que va del `<` de apertura a su `>`.
+                $desde = $n;
+                while ($desde > 0 && ! preg_match('/<[a-zA-Z]/', $lineas[$desde])) {
+                    $desde--;
+                }
+
+                $etiqueta = '';
+                for ($i = $desde; $i < count($lineas) && $i < $desde + 40; $i++) {
+                    $etiqueta .= $lineas[$i]."\n";
+
+                    if (str_contains(sinFlechasDePhp($lineas[$i]), '>')) {
+                        break;
+                    }
+                }
+
+                if (preg_match('/aria-label(ledby)?=/', $etiqueta)) {
+                    continue;
+                }
+
+                $problemas[] = sprintf(
+                    '%s:%d  role="%s" sin nombre',
+                    str_replace(realpath(__DIR__.'/../../').'/', '', $vista->getRealPath()),
+                    $n + 1,
+                    $rol
+                );
+            }
+        }
+    }
+
+    expect($problemas)->toBe([], implode("\n", array_merge(
+        ['Roles que anuncian una región y no dicen de qué es:'],
+        $problemas,
+        ['', 'Ponles aria-label o aria-labelledby.'],
+    )));
+});
+
 /** Las vistas agrupadas por componente: un `tab/` es una sola cosa en tres archivos. */
 function vistasDeComponentes(): array
 {
@@ -111,6 +186,21 @@ function sinComentariosBlade(string $contenido): string
         fn ($c) => str_repeat("\n", substr_count($c[0], "\n")),
         $contenido
     );
+}
+
+/**
+ * Una línea sin nada que pueda confundirse con el cierre de una etiqueta.
+ *
+ * Quita las cadenas y, sobre todo, las expresiones de Blade: un
+ * `{{ $attributes->except([...]) }}` lleva una flecha de PHP con su `>`, y
+ * buscarlo a secas cortaba la etiqueta en su primera línea — dando por ausentes
+ * los `aria-label` que venían debajo.
+ */
+function sinFlechasDePhp(string $linea): string
+{
+    $limpia = preg_replace('/\{\{.*?\}\}|\{!!.*?!!\}/', '', $linea);
+
+    return preg_replace('/"[^"]*"|\'[^\']*\'/', '', $limpia);
 }
 
 /**

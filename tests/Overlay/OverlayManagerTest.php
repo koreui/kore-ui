@@ -115,3 +115,19 @@ it('allows overlay attribute overrides at open time', function () {
 
     expect($attrs['backdropBlur'])->toBeTrue();
 });
+
+/**
+ * Cada modal de la librería se anunciaba como «diálogo» y nada más.
+ *
+ * El `role="dialog"` con `aria-modal="true"` no tenía nombre por ninguna vía. El
+ * nombre lo sabe el componente que se abre, no el manager, así que llega por
+ * `overlayTitle()` o por los atributos con los que se abre.
+ */
+it('el diálogo recibe su nombre del componente que se abre', function () {
+    expect(method_exists(\KoreUi\Overlay\OverlayComponent::class, 'overlayTitle'))->toBeTrue();
+
+    // Por defecto es null a propósito: un «Diálogo» genérico no aporta nada
+    // sobre el «diálogo» que ya anuncia el rol.
+    $vista = file_get_contents(__DIR__.'/../../resources/views/overlay/manager.blade.php');
+    expect($vista)->toContain('@if($titulo) aria-label="{{ $titulo }}" @endif');
+});

@@ -18,7 +18,7 @@
             style="z-index: 60"
             class="fixed flex gap-3 pointer-events-none"
             role="region"
-            aria-label="Notificaciones"
+            aria-label="{{ config('kore-ui.ui.translations.notifications', 'Notificaciones') }}"
             aria-live="polite"
             aria-relevant="additions removals"
         >

@@ -253,7 +253,7 @@
                             <th class="w-10 text-center {{ $headerDensityClass }}" :class="headerDensityClasses">
                                 <input
                                     type="checkbox"
-                                    aria-label="Seleccionar todo"
+                                    aria-label="{{ config('kore-ui.datatable.translations.select_all', 'Seleccionar todo') }}"
                                     @checked($this->isPageFullySelected($rowIds ?? []))
                                     data-checked="{{ $this->isPageFullySelected($rowIds ?? []) ? '1' : '0' }}"
                                     data-indeterminate="{{ $this->isPagePartiallySelected($rowIds ?? []) ? '1' : '0' }}"
@@ -357,7 +357,7 @@
                                     <td class="w-10 text-center {{ $densityClass }}" :class="densityClasses">
                                         <input
                                             type="checkbox"
-                                            aria-label="Seleccionar fila"
+                                            aria-label="{{ config('kore-ui.datatable.translations.select_row', 'Seleccionar fila') }}"
                                             value="{{ $rowId }}"
                                             @checked($rowSelected)
                                             data-checked="{{ $rowSelected ? '1' : '0' }}"

@@ -38,7 +38,7 @@
         gap: {{ $gap }},
      })"
      role="region"
-     aria-roledescription="carousel"
+     aria-roledescription="{{ $t('carousel_role', 'carrusel') }}"
      aria-label="{{ $ariaLabel }}"
      x-on:keydown="onKeydown($event)"
      @if($autoplay)

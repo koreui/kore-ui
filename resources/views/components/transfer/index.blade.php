@@ -85,7 +85,7 @@
             @if($searchable)
                 {{-- El `placeholder` desaparece en cuanto se escribe algo, así
                      que no vale como nombre del campo. --}}
-                <input type="text" x-model="sourceSearch" placeholder="Buscar..."
+                <input type="text" x-model="sourceSearch" placeholder="{{ config('kore-ui.ui.translations.transfer_search_placeholder', 'Buscar…') }}"
                        aria-label="{{ str_replace(':panel', $titles[0], $tBuscar) }}"
                        class="{{ $searchClass }}" />
             @endif
@@ -106,16 +106,16 @@
 
         {{-- Move buttons --}}
         <div class="flex flex-col justify-center gap-2">
-            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveAllToTarget()" aria-label="Mover todo a seleccionados">
+            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveAllToTarget()" aria-label="{{ config('kore-ui.ui.translations.transfer_move_all', 'Mover todo a seleccionados') }}">
                 <x-lucide-chevrons-right class="size-4" />
             </button>
-            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveToTarget()" x-bind:disabled="checkedSource.length === 0" aria-label="Mover seleccionados">
+            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveToTarget()" x-bind:disabled="checkedSource.length === 0" aria-label="{{ config('kore-ui.ui.translations.transfer_move', 'Mover seleccionados') }}">
                 <x-lucide-chevron-right class="size-4" />
             </button>
-            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveToSource()" x-bind:disabled="checkedTarget.length === 0" aria-label="Quitar seleccionados">
+            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveToSource()" x-bind:disabled="checkedTarget.length === 0" aria-label="{{ config('kore-ui.ui.translations.transfer_take', 'Quitar seleccionados') }}">
                 <x-lucide-chevron-left class="size-4" />
             </button>
-            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveAllToSource()" aria-label="Quitar todo">
+            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveAllToSource()" aria-label="{{ config('kore-ui.ui.translations.transfer_take_all', 'Quitar todo') }}">
                 <x-lucide-chevrons-left class="size-4" />
             </button>
         </div>
@@ -127,7 +127,7 @@
                 <span class="text-xs text-kore-muted-fg" x-text="selectedCount"></span>
             </div>
             @if($searchable)
-                <input type="text" x-model="targetSearch" placeholder="Buscar..."
+                <input type="text" x-model="targetSearch" placeholder="{{ config('kore-ui.ui.translations.transfer_search_placeholder', 'Buscar…') }}"
                        aria-label="{{ str_replace(':panel', $titles[1], $tBuscar) }}"
                        class="{{ $searchClass }}" />
             @endif

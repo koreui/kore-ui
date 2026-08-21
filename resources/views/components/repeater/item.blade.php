@@ -26,7 +26,7 @@
             type="button"
             x-sort:handle
             class="mt-2 shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg transition-colors"
-            aria-label="Arrastrar para reordenar"
+            aria-label="{{ config('kore-ui.ui.translations.reorder', 'Arrastrar para reordenar') }}"
         >
             <x-lucide-grip-vertical class="size-4" />
         </button>
@@ -70,7 +70,7 @@
             type="button"
             x-on:click="removeRow(index)"
             class="mt-2 shrink-0 text-kore-muted-fg hover:text-kore-destructive transition-colors"
-            aria-label="Eliminar fila"
+            aria-label="{{ config('kore-ui.ui.translations.remove_row', 'Eliminar fila') }}"
         >
             <x-lucide-x class="size-4" />
         </button>

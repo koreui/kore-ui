@@ -20,7 +20,7 @@ it('renders a nav with the sidebar landmark', function () {
     $view = $this->blade('<x-kore::sidebar>content</x-kore::sidebar>');
 
     $view->assertSee('<nav', false)
-        ->assertSee('aria-label="Sidebar"', false)
+        ->assertSee('aria-label="Navegación"', false)
         ->assertSee('kore-sidebar', false);
 });
 

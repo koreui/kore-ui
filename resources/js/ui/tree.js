@@ -86,12 +86,25 @@ export default (config = {}) => ({
     get flatNodes() {
         const result = [];
         const walk = (nodes, level, parentVisible) => {
+            // `posicion` y `hermanos` alimentan `aria-posinset` y `aria-setsize`:
+            // sin ellos un lector dice en qué NIVEL está un nodo, pero no por
+            // cuál de sus hermanos va. Se cuentan los que pasan el filtro, no
+            // todos: anunciar «3 de 7» con dos a la vista sería mentir.
+            const delNivel = nodes.filter((n) => this._matchesFilter(n));
+            let posicion = 0;
+
             nodes.forEach(node => {
                 const hasChildren = node.children && node.children.length > 0;
                 const matchesFilter = this._matchesFilter(node);
                 const visible = parentVisible && matchesFilter;
 
-                result.push({ node, level, hasChildren, visible });
+                if (matchesFilter) posicion++;
+
+                result.push({
+                    node, level, hasChildren, visible,
+                    posicion: matchesFilter ? posicion : 0,
+                    hermanos: delNivel.length,
+                });
 
                 if (hasChildren) {
                     const childrenVisible = visible && this.expandedKeys.has(node.key);

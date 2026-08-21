@@ -148,7 +148,7 @@
                 x-on:mousedown.stop
                 class="fixed z-[9999] rounded-kore-lg border border-kore-border bg-kore-bg text-kore-fg shadow-lg p-4"
                 role="dialog"
-                aria-label="Choose time"
+                aria-label="{{ config('kore-ui.form.translations.choose_time', 'Elegir hora') }}"
             >
                 <div class="flex items-center justify-center gap-2">
                     {{-- Hours --}}

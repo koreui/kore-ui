@@ -40,7 +40,7 @@
             <button
                 type="button"
                 wire:click="clearPreset"
-                aria-label="Limpiar preset"
+                aria-label="{{ config('kore-ui.datatable.translations.clear_preset', 'Limpiar el filtro guardado') }}"
                 class="inline-flex items-center gap-1 ml-1 px-2 py-1.5 text-xs text-kore-muted-fg hover:text-kore-fg transition-colors"
             >
                 <x-lucide-x class="size-3" />

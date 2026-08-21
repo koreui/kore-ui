@@ -15,6 +15,9 @@
 ])
 
 @php
+    // Era «Select color» dentro de la expresión de Alpine, sin forma de
+    // traducirlo sin publicar la vista.
+    $textoVacio = config('kore-ui.form.translations.pick_color', 'Elegir color');
     $size = $size ?? config('kore-ui.form.size', 'md');
     $columns = $columns ?? config('kore-ui.form.color_picker.columns', 8);
     $allowCustom = $allowCustom ?? config('kore-ui.form.color_picker.allow_custom', true);
@@ -142,7 +145,7 @@
                 ></span>
 
                 {{-- Hex text --}}
-                <span class="flex-1 text-left truncate" x-text="value || 'Select color'"></span>
+                <span class="flex-1 text-left truncate" x-text="value || @js($textoVacio)"></span>
 
                 {{-- Clearable --}}
                 @if($clearable)

@@ -9,7 +9,7 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [2.0.0] — 2026-08-20
 
-**La librería entera, auditada en un navegador.** Seis lotes de componentes probados uno a uno en Chrome de escritorio y en WebKit sobre iPhone, midiendo el comportamiento real en vez de asertar clases: **67 defectos corregidos** y una suite E2E que pasa de 0 a 456 pruebas.
+**La librería entera, auditada en un navegador.** Seis lotes de componentes probados uno a uno en Chrome de escritorio y en WebKit sobre iPhone, midiendo el comportamiento real en vez de asertar clases: **67 defectos corregidos**, dos barridos transversales y una suite E2E que pasa de 0 a 460 pruebas.
 
 | Lote | Defectos | Informe |
 |---|---|---|
@@ -34,7 +34,8 @@ Tres hilos recorren toda la auditoría, y explican la mayoría de los defectos:
 Lo que hay que mirar antes de actualizar:
 
 - **Las variantes `soft`, `outline`, `ghost` y `link` cambian de tono**, en toda la librería. Usan los tokens `-text` nuevos: más oscuros en tema claro, más claros en oscuro. Es el cambio visible más extendido — afecta a `badge`, `chip`, `alert`, `button`, `avatar`, `sidebar`, `stats`, `tree`, `tab`, `tag-input`, `spotlight` y cuatro vistas del DataTable. Se revierte apuntando los tokens `-text` al color base.
-- **Los textos por defecto pasan a español.** `Search...` → `Buscar...`, `No options found` → `Sin resultados`, `Choose file` → `Elegir archivo`, `Previous slide` → `Diapositiva anterior`, `Copy to clipboard` → `Copiar`, `Speed dial menu` → `Acciones rápidas`. Están en `kore-ui.form.translations` y `kore-ui.ui.translations`, así que se revierten por configuración sin publicar vistas.
+- **Todos los textos por defecto pasan a español y salen de la configuración.** `Search...` → `Buscar...`, `No options found` → `Sin resultados`, `Choose file` → `Elegir archivo`, `Previous slide` → `Diapositiva anterior`, `Copy to clipboard` → `Copiar`, `Light / Dark / System` → `Claro / Oscuro / Sistema`, `Filter...` → `Filtrar…`, `Breadcrumb` → `Ruta de navegación`, `Sidebar` → `Navegación`, `Rating` → `Valoración`, `Min` / `Max` → `Desde` / `Hasta`… Están todos en `kore-ui.form.translations`, `kore-ui.ui.translations` y `kore-ui.datatable.translations`, así que se revierten por configuración sin publicar vistas. **Si tenías tests que buscaban por el texto en inglés, hay que actualizarlos.**
+- **`aria-roledescription` del carrusel dice «carrusel» y «diapositiva»**, no «carousel» y «slide»: es texto que el lector pronuncia.
 - **Un modal ya no centra el texto de su contenido.** Quien se apoyara en ese `text-center` heredado verá su contenido a la izquierda. No hay interruptor: se arregla poniendo `text-center` en el propio contenido.
 - **El velo de los overlays usa `--kore-backdrop`.** Quien lo personalizara sobrescribiendo `--kore-fg` tiene que mover el cambio al token nuevo. El del drawer del sidebar también, y era un negro fijo en el CSS.
 - **`<x-kore::tab>` y `<x-kore::stepper>` sin `selected` ya seleccionan el primer item.** Antes no seleccionaban ninguno y el componente salía sin contenido; si alguien contaba con que el primer panel no se viera, ahora se ve.
@@ -47,16 +48,45 @@ Lo que hay que mirar antes de actualizar:
 - **Los indicadores del carrusel ya no son `role="tab"`**, sino botones con `aria-current` — no había ningún `tabpanel` al otro lado. Quien los localizara por rol en sus tests tiene que cambiar el selector.
 - **`<x-kore::carousel autoplay>` pinta un botón de pausa** que antes no existía, y **sus diapositivas fuera de vista llevan `inert`**: quien contara con enfocar algo dentro de una oculta tiene que moverse a ella primero.
 - **El panel del `<x-kore::tooltip>` ya no lleva `role="tooltip"`**: va `aria-hidden`, y el texto accesible lo da un `<span class="sr-only">` del componente. Quien lo localizara por `[role="tooltip"]` tiene que buscar por `[data-kore-teleport]`.
+- **`<x-kore::shell>` pinta un enlace de «Saltar al contenido»** como primer elemento, y su `<main>` recibe `id="kore-contenido"` y `tabindex="-1"`. Se quita con `:skip-link="false"`.
+- **Las estrellas de `<x-kore::rating>` ocupan 24×24** y el conjunto envuelve si no cabe: un rating de diez estrellas es más ancho que antes.
 - **`<x-kore::stats>` ya no anima con `prefers-reduced-motion` activo**, ni tampoco el spinner, los puntos, el pulso, el brillo del esqueleto o el pulso de presencia del avatar.
+
+### Barrido transversal · textos de interfaz
+
+**Ningún texto que llegue al usuario sigue escrito dentro de una vista.** Durante seis lotes la librería mezcló idiomas en la misma pantalla —el botón decía «Añadir» y el desplegable de al lado, «No options found»— y, sobre todo, esos textos **no se podían cambiar sin publicar la vista**: quien montara la librería en inglés, en catalán o en portugués tenía que copiar los componentes enteros.
+
+- **Once textos en inglés** traducidos y movidos a configuración: «Light / Dark / System», «Toggle dark mode» y «Theme selector» del `theme-switch`; «Select color»; «Choose time»; «Filter...» del árbol; «Breadcrumb»; «Close tab»; y «Rating», «Min» y «Max», que se habían escapado del inventario inicial.
+- **`aria-roledescription` del carrusel**, que decía «carousel» y «slide». No es un rol: es texto que el lector **pronuncia**, así que va en el idioma del contenido.
+- **Treinta y siete textos más que ya estaban en español** pero igual de incrustados —el transfer, el order-list, el repeater, el sidebar, el spotlight, los avisos y toda la paginación del DataTable—. La librería ya había decidido que estos nombres van en configuración; estos eran los que se quedaron atrás.
+- **Seis props con su valor por defecto escrito** (`filterPlaceholder`, `addLabel`, `keyPlaceholder`…) pasan a resolverse desde configuración. Una de ellas, el nombre del `<nav>` del sidebar, estaba además en inglés: «Sidebar».
+- **Cepo `tests/Ui/TextosEnInglesTest.php`**, que mira lo contrario de lo que parece: no busca palabras inglesas —esa lista siempre se queda corta, y la primera versión se dejó fuera «Rating», «Min» y «Max»— sino **literales sin interpolar**. Da igual el idioma: si el texto está escrito a mano en la vista, no se puede traducir.
+
+### Barrido transversal · accesibilidad
+
+Lo que no era de ningún lote porque era de todos.
+
+- **Cada modal se anunciaba como «diálogo» y nada más.** El `role="dialog"` del overlay manager no tenía nombre por ninguna vía. Ahora llega por **`overlayTitle()`** —un método estático más, como los otros nueve del overlay— o por los atributos con los que se abre. Devuelve `null` por defecto a propósito: un «Diálogo» genérico no aporta nada sobre el rol que ya se anuncia.
+- **Enlace de salto al contenido en `<x-kore::shell>`.** Sin él había que pasar por todo el menú —seis pulsaciones con un sidebar de tres niveles— antes de llegar al contenido, y en cada página. Es lo primero del documento, solo se ve al enfocarlo, y `<main>` recibe `id` y `tabindex="-1"` para que el salto también funcione en los lectores que no siguen el foco del navegador. Se quita con `:skip-link="false"`.
+- **El panel de `<x-kore::select>` tenía DOS `role="listbox"` anidados**, y el de fuera contenía la caja de búsqueda — un listbox solo admite opciones y grupos. Ahora hay uno, en el `<ul>` de las opciones, con nombre y con `aria-controls` desde el disparador.
+- **`role="menu"` del `<x-kore::theme-switch>` sin nombre.**
+- **Los pasos de `<x-kore::stepper>` eran `div` sueltos** con un `aria-current="step"` encima: un lector no decía cuántos hay ni por cuál va, y el «paso actual» lo era de una lista que no existía. Y el botón solo enseña un número, así que se anunciaba «1, botón» sin decir de qué paso.
+- **Las estrellas de `<x-kore::rating>` medían 20×20** (16×16 en tamaño pequeño), por debajo del mínimo de 24×24 de WCAG 2.2. Eran el último objetivo táctil pequeño de la librería. El `relative` pasa a un envoltorio interno —con él en el botón, la estrella rellena se posicionaba con `absolute inset-0` contra la caja del botón—, el punto de corte de la media estrella se mide ahora contra la estrella y no contra el botón, y el conjunto lleva `flex-wrap`: diez estrellas de 24 px no caben en un móvil de 390.
+- **`aria-setsize` y `aria-posinset` en `<x-kore::tree>`**, que ARIA pide para que un lector diga «3 de 7» en cada rama. Con un filtro puesto cuenta los que quedan, no los que había.
+- **`datetime` en `<x-kore::timeline.item>`**, para marcar la fecha en formato legible por máquina: «12 ene» es ambiguo sin el año.
+- **Cepos nuevos**: `TextosEnInglesTest` y la tercera comprobación de `RolesQueMientenTest` —todo rol que anuncia una región tiene que tener nombre—.
+
+### Medido, no cambiado · barridos
+
+- **El modificador `.inert` del trap SÍ marca el fondo**, al contrario de lo que se sospechaba: aplica `aria-hidden` al contenido de detrás del modal —medido, de 1 a 8 elementos ocultos al abrir, y de vuelta al cerrar—. Lo que no pone es el atributo `inert` del HTML, y no hace falta: del tabulador ya se encarga el propio trap.
 
 ### Sigue pendiente
 
 Medido y sin resolver a propósito, porque son decisiones de diseño:
 
-- **El contraste de las variantes `solid`.** Los cuatro colores fallan AA como fondo de texto blanco: `success` 3,17 · `info` 3,42 · `destructive` 4,39 · `primary` 4,41. Arreglarlo es mover la paleta base, y esos mismos tokens pintan gráficos, iconos y estados. Ver `docs/presentacion-auditoria.md` §A.1.
-- **Tres `role` sin nombre**: el `role="dialog"` del overlay manager, dos `listbox` anidados del select y el `menu` del theme-switch.
-- **Teclado para el tablero y para `<x-kore::sortable>` en modo servidor**, los dos a cero controles enfocables.
-- **Textos en inglés** que quedan fuera de los tres lotes ya barridos: `theme-switch`, `color-picker`, `time-picker`, el filtro del árbol y las migas.
+- **El contraste de las variantes `solid`** queda **como está, por decisión tomada**: `success` 3,17 · `info` 3,42 · `destructive` 4,39 · `primary` 4,41 sobre texto blanco. Los dos últimos están a un 2 % del umbral y no se distinguen a simple vista; los dos primeros sí se leen peor con poca luz. Cambiarlo obliga a mover la paleta base —los mismos tokens pintan gráficos, iconos y estados—, y hoy la librería no tiene un requisito de cumplimiento que lo justifique. Está medido, con las dos salidas posibles calibradas, en `docs/presentacion-auditoria.md` §A.1: si algún día hace falta AA por contrato, el trabajo está hecho a medias.
+- **Teclado para el tablero y para `<x-kore::sortable>` en modo servidor**, los dos a cero controles enfocables. Es lo único que queda de la auditoría, y es una función nueva: pide decidir el modelo de interacción (¿se recoge y suelta con `Espacio`? ¿se mueve con flechas? ¿cómo se anuncia el destino?). Hay de dónde copiar: `<x-kore::order-list>` ya lo resuelve con botones de subir y bajar.
+- **Virtualización de `<x-kore::tree>`** para conjuntos grandes: 2.100 filas en el DOM para dejar 100 a la vista.
 
 ---
 

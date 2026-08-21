@@ -2,12 +2,22 @@
     'variant' => 'segmented',
     'size' => 'md',
     'labels' => false,
-    'lightLabel' => 'Light',
-    'darkLabel' => 'Dark',
-    'systemLabel' => 'System',
+    'lightLabel' => null,
+    'darkLabel' => null,
+    'systemLabel' => null,
+    'ariaLabel' => null,
 ])
 
 @php
+    // Los tres modos y el nombre del control, desde la configuración: eran
+    // «Light», «Dark», «System», «Toggle dark mode» y «Theme selector» dentro de
+    // la vista, y no había forma de traducirlos sin publicarla.
+    $lightLabel = $lightLabel ?? config('kore-ui.ui.translations.theme_light', 'Claro');
+    $darkLabel = $darkLabel ?? config('kore-ui.ui.translations.theme_dark', 'Oscuro');
+    $systemLabel = $systemLabel ?? config('kore-ui.ui.translations.theme_system', 'Sistema');
+    $ariaLabel = $ariaLabel ?? config('kore-ui.ui.translations.theme', 'Tema');
+    $toggleLabel = config('kore-ui.ui.translations.theme_toggle', 'Cambiar entre claro y oscuro');
+
     $iconSize = match($size) {
         'sm' => 'size-4',
         'lg' => 'size-6',
@@ -63,8 +73,8 @@
         x-data
         x-bind:aria-checked="$store.koreTheme.isDark.toString()"
         x-on:click="$store.koreTheme.setMode($store.koreTheme.isDark ? 'light' : 'dark')"
-        aria-label="Toggle dark mode"
-        {{ $attributes->class([
+        aria-label="{{ $toggleLabel }}"
+        {{ $attributes->except(['ariaLabel'])->class([
             'kore-theme-switch relative inline-flex shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2 ring-offset-kore-bg',
             $trackSize,
         ]) }}
@@ -120,7 +130,7 @@
             x-on:click="toggle()"
             aria-haspopup="true"
             x-bind:aria-expanded="open.toString()"
-            aria-label="Theme selector"
+            aria-label="{{ $ariaLabel }}"
             class="{{ $buttonPadding }} inline-flex items-center gap-2 rounded-kore-md border border-kore-border bg-kore-bg text-kore-fg transition-colors duration-200 hover:bg-kore-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring"
         >
             <x-lucide-sun
@@ -161,6 +171,7 @@
             class="fixed z-[9999] w-40 rounded-kore-lg border border-kore-border bg-kore-bg text-kore-fg p-1 shadow-lg"
             x-bind:style="'top:' + position.top + ';left:' + position.left"
             role="menu"
+            aria-label="{{ $ariaLabel }}"
         >
             {{-- Light --}}
             <button
@@ -205,7 +216,7 @@
     {{-- Segmented variant (default) --}}
     <div
         role="radiogroup"
-        aria-label="Theme selector"
+        aria-label="{{ $ariaLabel }}"
         {{-- Ver la nota del x-data en la variante `toggle`: sin él, Alpine no procesa los
              x-on:click de los botones y el selector no hace nada. --}}
         x-data

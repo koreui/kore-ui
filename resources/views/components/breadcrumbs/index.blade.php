@@ -66,7 +66,8 @@
     $separatorIcon = $isSeparatorIcon ? str_replace('icon:', '', $separator) : null;
 @endphp
 
-<nav {{ $attributes->class(['flex items-center']) }} aria-label="Breadcrumb">
+<nav {{ $attributes->class(['flex items-center']) }}
+     aria-label="{{ config('kore-ui.ui.translations.breadcrumb', 'Ruta de navegación') }}">
     @isset($left)
         {{ $left }}
     @endisset
@@ -94,7 +95,7 @@
                     type="button"
                     x-on:click="expanded = true"
                     class="flex items-center text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded px-1 transition-colors"
-                    aria-label="Mostrar breadcrumbs ocultos"
+                    aria-label="{{ config('kore-ui.ui.translations.breadcrumb_expand', 'Mostrar los pasos ocultos') }}"
                 >
                     <x-lucide-ellipsis class="{{ $s['icon'] }}" />
                 </button>

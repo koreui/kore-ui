@@ -1,8 +1,12 @@
 @props([
     'for' => 'main',
-    'label' => 'Alternar navegación',
+    'label' => null,
     'icon' => 'panel-left',
 ])
+
+@php
+    $label = $label ?? config('kore-ui.ui.translations.sidebar_toggle', 'Alternar navegación');
+@endphp
 
 {{-- El botón hamburguesa. Vive en el store y no en el x-data del sidebar, así que
      puede colocarse donde sea —en la navbar, suelto en la página— sin estar anidado

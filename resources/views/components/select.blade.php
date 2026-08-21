@@ -195,6 +195,7 @@
                 class="{{ $baseClasses }} flex items-center justify-between gap-2 text-left cursor-pointer {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
                 @if($disabled) disabled @endif
                 aria-haspopup="listbox"
+                aria-controls="{{ $optionsId }}-listbox"
                 x-bind:aria-expanded="open"
             >
                 <div class="flex-1 truncate min-w-0">
@@ -273,7 +274,11 @@
                      disparador el evento pasa por la raíz y no por aquí. --}}
                 x-on:keydown="onKeydown($event)"
                 class="fixed z-[9999] rounded-kore-md border border-kore-border bg-kore-surface text-kore-fg shadow-lg overflow-hidden"
-                role="listbox"
+                {{-- SIN `role="listbox"`: este panel contiene la caja de
+                     búsqueda, y un listbox solo admite opciones y grupos. Con el
+                     rol aquí había además DOS listbox anidados —este y el `<ul>`
+                     de abajo—, así que un lector encontraba dos listas donde solo
+                     hay una. El rol vive donde están las opciones. --}}
             >
                 @if($searchable)
                     <div class="p-2 border-b border-kore-border">
@@ -301,7 +306,13 @@
                 <ul
                     x-show="!loading"
                     class="max-h-60 overflow-auto"
+                    id="{{ $optionsId }}-listbox"
                     role="listbox"
+                    {{-- Un `role="listbox"` sin nombre se anuncia como «lista» y
+                         nada más. Se apunta a la etiqueta del campo, que es de
+                         lo que va la lista. --}}
+                    @if($label) aria-labelledby="{{ $fieldId }}-label" @endif
+                    @if($multiple) aria-multiselectable="true" @endif
                 >
                     <template x-if="filteredOptions.length === 0 && !loading && !showCreateOption">
                         <li class="px-3 py-2 text-sm text-kore-muted-fg text-center">{{ config('kore-ui.form.translations.no_options', 'Sin resultados') }}</li>

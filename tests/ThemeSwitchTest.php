@@ -4,7 +4,7 @@ it('renders segmented variant by default', function () {
     $view = $this->blade('<x-kore::theme-switch />');
 
     $view->assertSee('role="radiogroup"', false)
-        ->assertSee('aria-label="Theme selector"', false);
+        ->assertSee('aria-label="Tema"', false);
 });
 
 it('renders three buttons in segmented variant', function () {
@@ -20,7 +20,7 @@ it('renders toggle variant', function () {
     $view = $this->blade('<x-kore::theme-switch variant="toggle" />');
 
     $view->assertSee('role="switch"', false)
-        ->assertSee('aria-label="Toggle dark mode"', false);
+        ->assertSee('aria-label="Cambiar entre claro y oscuro"', false);
 });
 
 it('renders dropdown variant', function () {
@@ -48,9 +48,9 @@ it('applies large size classes', function () {
 it('shows labels when prop is true', function () {
     $view = $this->blade('<x-kore::theme-switch :labels="true" />');
 
-    $view->assertSee('Light')
-        ->assertSee('System')
-        ->assertSee('Dark');
+    $view->assertSee('Claro')
+        ->assertSee('Sistema')
+        ->assertSee('Oscuro');
 });
 
 it('hides labels by default', function () {
@@ -59,17 +59,17 @@ it('hides labels by default', function () {
     // Sin `labels` no hay texto VISIBLE, pero el nombre accesible sigue estando:
     // los botones solo llevan un icono, y sin `aria-label` un lector de pantalla
     // los anuncia como «botón de radio» y nada más.
-    $view->assertDontSee('<span>Light</span>', false)
-        ->assertDontSee('<span>System</span>', false)
-        ->assertDontSee('<span>Dark</span>', false);
+    $view->assertDontSee('<span>Claro</span>', false)
+        ->assertDontSee('<span>Sistema</span>', false)
+        ->assertDontSee('<span>Oscuro</span>', false);
 });
 
 it('names the icon-only buttons even without visible labels', function () {
     $view = $this->blade('<x-kore::theme-switch />');
 
-    $view->assertSee('aria-label="Light"', false)
-        ->assertSee('aria-label="System"', false)
-        ->assertSee('aria-label="Dark"', false);
+    $view->assertSee('aria-label="Claro"', false)
+        ->assertSee('aria-label="Sistema"', false)
+        ->assertSee('aria-label="Oscuro"', false);
 });
 
 it('uses the custom labels as accessible names too', function () {

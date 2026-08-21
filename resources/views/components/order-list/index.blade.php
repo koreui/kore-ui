@@ -65,7 +65,7 @@
             <template x-for="(item, index) in orderedItems" :key="item.value">
                 <li @if($reorderable) x-sort:item="item.value" @endif class="{{ $rowClass }}">
                     @if($reorderable)
-                        <button type="button" x-sort:handle class="shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg transition-colors" aria-label="Arrastrar">
+                        <button type="button" x-sort:handle class="shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg transition-colors" aria-label="{{ config('kore-ui.ui.translations.drag', 'Arrastrar') }}">
                             <x-lucide-grip-vertical class="size-4" />
                         </button>
                     @endif
@@ -73,10 +73,10 @@
                     <span class="flex-1 text-sm text-kore-fg" x-text="item.label"></span>
 
                     <div class="flex items-center gap-0.5 shrink-0">
-                        <button type="button" class="{{ $iconBtnClass }}" x-on:click="moveUp(index)" x-bind:disabled="index === 0" aria-label="Subir">
+                        <button type="button" class="{{ $iconBtnClass }}" x-on:click="moveUp(index)" x-bind:disabled="index === 0" aria-label="{{ config('kore-ui.ui.translations.move_up', 'Subir') }}">
                             <x-lucide-chevron-up class="size-4" />
                         </button>
-                        <button type="button" class="{{ $iconBtnClass }}" x-on:click="moveDown(index)" x-bind:disabled="index === orderedItems.length - 1" aria-label="Bajar">
+                        <button type="button" class="{{ $iconBtnClass }}" x-on:click="moveDown(index)" x-bind:disabled="index === orderedItems.length - 1" aria-label="{{ config('kore-ui.ui.translations.move_down', 'Bajar') }}">
                             <x-lucide-chevron-down class="size-4" />
                         </button>
                     </div>

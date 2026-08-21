@@ -5,6 +5,7 @@
 ])
 
 @php
+    $tPaso = config('kore-ui.ui.translations.step', 'Paso');
     $variant = $variant ?? config('kore-ui.ui.stepper.variant', 'horizontal');
 @endphp
 
@@ -17,12 +18,17 @@
 >
     <input type="hidden" x-ref="hiddenInput" {{ $attributes->wire('model') }} />
 
-    {{-- Step indicators --}}
+    {{-- Step indicators.
+
+         `role="list"` y `role="listitem"`: sin ellos los pasos eran `div`
+         sueltos, así que un lector no decía cuántos hay ni por cuál va. El
+         `aria-current="step"` marcaba el activo sin que hubiera ninguna lista
+         de la que ser el paso actual. --}}
     @if($variant === 'vertical')
         {{-- VERTICAL LAYOUT --}}
-        <div class="mb-4">
+        <div class="mb-4" role="list">
             <template x-for="(step, index) in steps" :key="step.id">
-                <div class="flex items-stretch">
+                <div class="flex items-stretch" role="listitem">
                     {{-- Circle + connector column --}}
                     <div class="flex flex-col items-center shrink-0">
                         <button
@@ -39,6 +45,10 @@
                                 'cursor-pointer': !step.disabled,
                             }"
                             x-bind:aria-current="getStepStatus(step.id) === 'active' ? 'step' : false"
+                            {{-- El botón solo enseña un número o un icono: sin
+                                 esto, un lector anunciaba «1, botón» sin decir de
+                                 qué paso se trata. --}}
+                            x-bind:aria-label="step.label || (@js($tPaso) + ' ' + getStepNumber(step.id))"
                         >
                             <template x-if="getStepStatus(step.id) === 'complete'">
                                 <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
@@ -83,9 +93,9 @@
             'flex',
             'mb-6' => $variant === 'horizontal',
             'mb-4' => $variant === 'compact',
-        ])>
+        ]) role="list">
             <template x-for="(step, index) in steps" :key="step.id">
-                <div class="flex-1 flex flex-col items-center">
+                <div class="flex-1 flex flex-col items-center" role="listitem">
                     {{-- Circle row with split connector halves --}}
                     <div class="flex items-center w-full">
                         {{-- Left connector half --}}
@@ -107,6 +117,10 @@
                                 'cursor-pointer': !step.disabled,
                             }"
                             x-bind:aria-current="getStepStatus(step.id) === 'active' ? 'step' : false"
+                            {{-- El botón solo enseña un número o un icono: sin
+                                 esto, un lector anunciaba «1, botón» sin decir de
+                                 qué paso se trata. --}}
+                            x-bind:aria-label="step.label || (@js($tPaso) + ' ' + getStepNumber(step.id))"
                         >
                             <template x-if="getStepStatus(step.id) === 'complete'">
                                 <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>

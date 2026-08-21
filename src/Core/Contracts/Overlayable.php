@@ -10,6 +10,14 @@ interface Overlayable
     public static function overlayType(): string;
 
     /**
+     * El nombre accesible del diálogo.
+     *
+     * Lo que un lector de pantalla anuncia al abrirlo. Sin él dice «diálogo» y
+     * nada más, que es lo que hacía toda la librería hasta ahora.
+     */
+    public static function overlayTitle(): ?string;
+
+    /**
      * The overlay size: sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl, 6xl, 7xl.
      */
     public static function overlaySize(): string;

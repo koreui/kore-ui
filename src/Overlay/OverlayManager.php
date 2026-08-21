@@ -42,6 +42,9 @@ class OverlayManager extends Component
             'backdropBlur' => $class::backdropBlur(),
             'animation' => OverlayDefaults::animation($effectiveType, $effectivePosition),
             'containerClass' => OverlayDefaults::containerClass($effectiveType),
+            // El nombre accesible del diálogo. Sin él, cada modal de la librería
+            // se anunciaba como «diálogo» y nada más.
+            'title' => $class::overlayTitle(),
         ], $overlayAttributes);
 
         $this->overlays[$id] = [

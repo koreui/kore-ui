@@ -14,10 +14,11 @@
     'expandOnHover' => null,
     'header' => null,
     'footer' => null,
-    'ariaLabel' => 'Sidebar',
+    'ariaLabel' => null,
 ])
 
 @php
+    $ariaLabel = $ariaLabel ?? config('kore-ui.ui.translations.sidebar', 'Navegación');
     use KoreUi\Shell\Breakpoints;
     use KoreUi\Shell\ShellContext;
     use KoreUi\Shell\SidebarState;
@@ -108,7 +109,7 @@
         type="button"
         class="kore-sidebar-close absolute end-3 top-3 size-8 items-center justify-center rounded-kore-md text-kore-muted-fg transition-colors hover:bg-kore-muted hover:text-kore-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring/50"
         x-on:click="$store.koreSidebar.closeMobile(@js($id))"
-        aria-label="Cerrar navegación"
+        aria-label="{{ config('kore-ui.ui.translations.close_nav', 'Cerrar navegación') }}"
     >
         <x-dynamic-component component="lucide-x" class="size-5" />
     </button>

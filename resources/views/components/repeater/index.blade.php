@@ -7,7 +7,7 @@
     'fields' => [],
     'min' => null,
     'max' => null,
-    'addLabel' => 'Añadir',
+    'addLabel' => null,
     'reorderable' => false,
     'default' => [],
     'disabled' => false,
@@ -16,6 +16,7 @@
 ])
 
 @php
+    $addLabel = $addLabel ?? config('kore-ui.ui.translations.add', 'Añadir');
     $size = $size ?? config('kore-ui.form.size', 'md');
     $min = $min ?? config('kore-ui.form.repeater.min', 0);
     $max = $max ?? config('kore-ui.form.repeater.max', null);

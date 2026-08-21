@@ -10,9 +10,15 @@ it('renders role region', function () {
     $view->assertSee('role="region"', false);
 });
 
-it('renders aria-roledescription carousel', function () {
+/**
+ * `aria-roledescription` NO es un rol: es texto que el lector PRONUNCIA, así que
+ * va en el idioma del contenido. Decía «carousel» y «slide», y eso es lo que se
+ * oía en una interfaz en español.
+ */
+it('describe su rol en el idioma de la interfaz', function () {
     $view = $this->blade('<x-kore::carousel><x-kore::carousel.slide>A</x-kore::carousel.slide></x-kore::carousel>');
-    $view->assertSee('aria-roledescription="carousel"', false);
+    $view->assertSee('aria-roledescription="carrusel"', false)
+        ->assertSee('aria-roledescription="diapositiva"', false);
 });
 
 it('renders navigation buttons by default', function () {
@@ -64,7 +70,7 @@ it('admite un nombre propio', function () {
 /** Cada diapositiva se anuncia como tal; la posición la pone el JavaScript. */
 it('marca cada diapositiva como slide', function () {
     $view = $this->blade('<x-kore::carousel><x-kore::carousel.slide>A</x-kore::carousel.slide></x-kore::carousel>');
-    $view->assertSee('aria-roledescription="slide"', false)
+    $view->assertSee('aria-roledescription="diapositiva"', false)
         ->assertSee('role="group"', false);
 });
 

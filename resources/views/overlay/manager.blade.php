@@ -40,6 +40,7 @@
                     $type = $overlay['overlayAttributes']['type'];
                     $containerClass = $overlay['overlayAttributes']['containerClass'] ?? '';
                     $sizeClass = $overlay['overlayAttributes']['sizeClass'] ?? '';
+                    $titulo = $overlay['overlayAttributes']['title'] ?? null;
                 @endphp
                 <div
                     x-show="current === '{{ $id }}' && contentVisible"
@@ -54,6 +55,10 @@
                     class="pointer-events-auto relative w-full transform bg-kore-surface text-kore-surface-fg shadow-xl transition-all {{ $containerClass }} {{ $sizeClass }}"
                     role="dialog"
                     aria-modal="true"
+                    {{-- Sin nombre, un lector anuncia «diálogo» y nada más. El
+                         nombre lo sabe el componente que se abre, no el manager:
+                         llega por `overlayTitle()` o por `overlayAttributes`. --}}
+                    @if($titulo) aria-label="{{ $titulo }}" @endif
                     wire:key="{{ $id }}"
                 >
                     @if($type === 'bottom-sheet')

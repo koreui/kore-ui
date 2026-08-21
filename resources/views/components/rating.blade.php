@@ -72,16 +72,19 @@
     :field-id="$fieldId"
     :required="$required"
 >
+    {{-- `flex-wrap`: con el objetivo táctil en 24×24, diez estrellas pequeñas
+         ocupan 240 px y no caben en un móvil de 390. Medido: desbordaba 75 px.
+         Que bajen de línea es feo; arrastrar la página de lado, peor. --}}
     <div
         x-data="KoreRating({{ $jsConfig }})"
         @if($readonly)
             role="img"
-            aria-label="Rating"
+            aria-label="{{ config('kore-ui.form.translations.rating', 'Valoración') }}"
         @else
             role="radiogroup"
             aria-label="{{ $label ?? config('kore-ui.form.translations.rating', 'Valoración') }}"
         @endif
-        {{ $atributosRaiz->merge(['class' => 'inline-flex items-center ' . $gapClass . ' ' . ($disabled ? 'opacity-50 cursor-not-allowed' : '')]) }}
+        {{ $atributosRaiz->merge(['class' => 'inline-flex flex-wrap items-center ' . $gapClass . ' ' . ($disabled ? 'opacity-50 cursor-not-allowed' : '')]) }}
         @if(!$readonly && !$disabled)
             x-on:mouseleave="clearPreview()"
         @endif
@@ -100,7 +103,14 @@
                 type="button"
                 @if($readonly || $disabled) tabindex="-1" aria-hidden="true" @endif
                 @if($disabled) disabled @endif
-                class="relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring rounded-sm {{ $disabled || $readonly ? 'pointer-events-none' : '' }}"
+                {{-- `min-size-6` y el `relative` DENTRO, no aquí.
+
+                     Con el `relative` en el botón, la estrella rellena se
+                     posiciona con `absolute inset-0` contra la caja del botón,
+                     así que el botón no podía ser más grande que la estrella sin
+                     descolocarla. Medido: 20×20 en tamaño medio y 16×16 en
+                     pequeño, por debajo del mínimo de 24×24 de WCAG 2.2. --}}
+                class="inline-flex min-w-6 min-h-6 items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring rounded-sm {{ $disabled || $readonly ? 'pointer-events-none' : '' }}"
                 @if(!$readonly && !$disabled)
                     x-on:click="rate({{ $i }})"
                     x-on:mouseenter="preview({{ $i }})"
@@ -112,25 +122,31 @@
                     aria-label="{{ $i }} de {{ $stars }} {{ config('kore-ui.form.translations.stars', 'estrellas') }}"
                 @endif
             >
-                {{-- Background star (empty) --}}
-                <x-lucide-star class="{{ $starSize }} text-kore-muted-fg/30" />
+                {{-- La caja de la estrella, contra la que se posicionan las
+                     capas rellenas y contra la que se mide la media estrella
+                     (`data-kore-estrella`). El botón que la envuelve puede ser
+                     más grande sin mover nada de esto. --}}
+                <span class="relative inline-flex" data-kore-estrella>
+                    {{-- Background star (empty) --}}
+                    <x-lucide-star class="{{ $starSize }} text-kore-muted-fg/30" />
 
-                {{-- Foreground star (full) --}}
-                <x-lucide-star
-                    class="{{ $starSize }} absolute inset-0 text-kore-warning fill-kore-warning transition-opacity duration-100"
-                    x-show="getStarFill({{ $i }}) === 'full'"
-                    x-cloak
-                />
-
-                {{-- Foreground star (half) --}}
-                @if($allowHalf)
+                    {{-- Foreground star (full) --}}
                     <x-lucide-star
                         class="{{ $starSize }} absolute inset-0 text-kore-warning fill-kore-warning transition-opacity duration-100"
-                        style="clip-path: inset(0 50% 0 0)"
-                        x-show="getStarFill({{ $i }}) === 'half'"
+                        x-show="getStarFill({{ $i }}) === 'full'"
                         x-cloak
                     />
-                @endif
+
+                    {{-- Foreground star (half) --}}
+                    @if($allowHalf)
+                        <x-lucide-star
+                            class="{{ $starSize }} absolute inset-0 text-kore-warning fill-kore-warning transition-opacity duration-100"
+                            style="clip-path: inset(0 50% 0 0)"
+                            x-show="getStarFill({{ $i }}) === 'half'"
+                            x-cloak
+                        />
+                    @endif
+                </span>
             </button>
         @endfor
     </div>

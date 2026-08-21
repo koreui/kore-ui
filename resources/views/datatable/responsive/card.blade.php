@@ -17,7 +17,7 @@
                     @if($selectionEnabled)
                         <input
                             type="checkbox"
-                            aria-label="Seleccionar fila"
+                            aria-label="{{ config('kore-ui.datatable.translations.select_row', 'Seleccionar fila') }}"
                             value="{{ data_get($row, $primaryKey) }}"
                             @checked($this->isRowSelected(data_get($row, $primaryKey)))
                             data-checked="{{ $this->isRowSelected(data_get($row, $primaryKey)) ? '1' : '0' }}"

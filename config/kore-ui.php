@@ -149,9 +149,12 @@ return [
             'increment_minute' => 'Subir los minutos',
             'decrement_minute' => 'Bajar los minutos',
             'choose_date'     => 'Elegir fecha',
+            'choose_time'     => 'Elegir hora',
             'pick_color'      => 'Elegir color',
             'digit'           => 'Dígito',
             'rating'          => 'Valoración',
+            'range_from'      => 'Desde',
+            'range_to'        => 'Hasta',
             'range_min'       => 'mínimo',
             'range_max'       => 'máximo',
             'star'            => 'estrella',
@@ -222,6 +225,69 @@ return [
 
             // Nombre por defecto de un grupo de botones.
             'button_group' => 'Acciones',
+
+            // Cierre de una pestaña descartable.
+            'close_tab' => 'Cerrar pestaña',
+
+            // Migas de pan: el nombre del `<nav>`, que es lo que un lector
+            // anuncia antes de leer la ruta.
+            'breadcrumb' => 'Ruta de navegación',
+            'breadcrumb_expand' => 'Mostrar los pasos ocultos',
+
+            // Doble lista.
+            'transfer_move_all' => 'Mover todo a seleccionados',
+            'transfer_move' => 'Mover seleccionados',
+            'transfer_take' => 'Quitar seleccionados',
+            'transfer_take_all' => 'Quitar todo',
+            'transfer_search_placeholder' => 'Buscar…',
+
+            // Listas reordenables.
+            'drag' => 'Arrastrar',
+            'move_up' => 'Subir',
+            'move_down' => 'Bajar',
+            'reorder' => 'Arrastrar para reordenar',
+            'remove_row' => 'Eliminar fila',
+
+            // Navegación, avisos y búsqueda rápida.
+            'close_nav' => 'Cerrar navegación',
+            'notifications' => 'Notificaciones',
+            'close_notification' => 'Cerrar notificación',
+            'spotlight' => 'Búsqueda rápida',
+            'spotlight_search' => 'Buscar',
+            'spotlight_results' => 'Resultados',
+            'funnel' => 'Embudo de conversión',
+
+            // Barra lateral. El nombre del `<nav>` estaba además en inglés:
+            // «Sidebar» es lo que un lector anunciaba antes de leer el menú.
+            'sidebar' => 'Navegación',
+            'skip_to_content' => 'Saltar al contenido',
+            // Nombre de respaldo de un paso sin etiqueta: el botón solo enseña
+            // un número, y «1, botón» no dice nada.
+            'step' => 'Paso',
+            'sidebar_toggle' => 'Alternar navegación',
+
+            // Filas que se añaden y se quitan (key-value, repeater).
+            'add' => 'Añadir',
+            'key' => 'Clave',
+            'value' => 'Valor',
+
+            // Filtro del árbol. Solo tenía `placeholder`, y eso desaparece en
+            // cuanto se escribe algo.
+            'tree_filter' => 'Filtrar…',
+
+            // Selector de tema. Los tres modos y los nombres de sus dos
+            // formatos: el interruptor de dos estados y el menú de tres.
+            'theme' => 'Tema',
+            'theme_toggle' => 'Cambiar entre claro y oscuro',
+            'theme_light' => 'Claro',
+            'theme_dark' => 'Oscuro',
+            'theme_system' => 'Sistema',
+
+            // `aria-roledescription` NO es un rol: es texto que el lector
+            // PRONUNCIA, así que va en el idioma del contenido. Decía
+            // «carousel» y «slide», y eso es lo que se oía.
+            'carousel_role' => 'carrusel',
+            'slide_role' => 'diapositiva',
 
             // Cierre de una alerta descartable.
             'close' => 'Cerrar',
@@ -457,6 +523,15 @@ return [
             'sorted_by'     => 'Ordenado por',
             'clear_sorts'   => 'Limpiar ordenamiento',
             'copy'          => 'Copiar',
+
+            // Nombres accesibles que estaban escritos dentro de las vistas y no
+            // se podían traducir sin publicarlas.
+            'select_all'    => 'Seleccionar todo',
+            'select_row'    => 'Seleccionar fila',
+            'pagination'    => 'Paginación',
+            'previous'      => 'Anterior',
+            'next'          => 'Siguiente',
+            'clear_preset'  => 'Limpiar el filtro guardado',
             'export'        => 'Exportar',
             'export_truncated' => 'La exportación se limitó a las primeras :max filas.',
             'cancel'        => 'Cancelar',

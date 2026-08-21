@@ -58,7 +58,7 @@
                 @click="dismiss(toast.id)"
                 class="shrink-0 rounded-kore-sm p-1 text-kore-muted-fg hover:text-kore-fg
                        hover:bg-kore-fg/5 transition-colors"
-                aria-label="Cerrar notificación"
+                aria-label="{{ config('kore-ui.ui.translations.close_notification', 'Cerrar notificación') }}"
             >
                 <x-lucide-x class="h-4 w-4" />
             </button>

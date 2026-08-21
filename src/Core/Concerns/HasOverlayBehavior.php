@@ -9,6 +9,29 @@ trait HasOverlayBehavior
         return config('kore-ui.overlay.defaults.type', 'modal');
     }
 
+    /**
+     * El nombre accesible del diálogo, para el `aria-label` del `role="dialog"`.
+     *
+     * Devuelve `null` por defecto a propósito: el nombre lo sabe el componente
+     * que se abre, no la librería, y un texto genérico como «Diálogo» no aporta
+     * nada sobre el «diálogo» que ya anuncia el rol.
+     *
+     * Sobrescríbelo en tu overlay, o pásalo al abrirlo:
+     *
+     *     public static function overlayTitle(): ?string
+     *     {
+     *         return 'Editar cliente';
+     *     }
+     *
+     *     // o, desde quien lo abre:
+     *     $this->dispatch('kore:open', name: 'editar-cliente',
+     *         overlayAttributes: ['title' => 'Editar '.$cliente->nombre]);
+     */
+    public static function overlayTitle(): ?string
+    {
+        return null;
+    }
+
     public static function overlaySize(): string
     {
         return config('kore-ui.overlay.defaults.size', '2xl');

@@ -3,6 +3,7 @@
     'color' => null,
     'label' => null,
     'timestamp' => null,
+    'datetime' => null,
 ])
 
 @php
@@ -58,8 +59,17 @@
         @if($label)
             <p class="text-sm font-semibold text-kore-fg">{{ $label }}</p>
         @endif
+        {{-- `<time datetime>` cuando se sabe la fecha exacta: «12 ene» es
+             ambiguo para una máquina —y para un lector que quiera anunciarlo
+             bien— sin el valor en formato ISO al lado. --}}
         @if($timestamp)
-            <p class="text-xs text-kore-muted-fg">{{ $timestamp }}</p>
+            <p class="text-xs text-kore-muted-fg">
+                @if($datetime)
+                    <time datetime="{{ $datetime }}">{{ $timestamp }}</time>
+                @else
+                    {{ $timestamp }}
+                @endif
+            </p>
         @endif
         @if($slot->isNotEmpty())
             <div class="mt-1 text-sm text-kore-muted-fg">{{ $slot }}</div>

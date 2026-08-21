@@ -35,7 +35,7 @@
         x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
         role="dialog"
         aria-modal="true"
-        aria-label="Búsqueda rápida"
+        aria-label="{{ config('kore-ui.ui.translations.spotlight', 'Búsqueda rápida') }}"
         @keydown.escape.prevent="close()"
         @keydown.tab="trapFocus($event)"
         class="fixed left-1/2 top-[15%] -translate-x-1/2 w-full max-w-2xl px-4 {{ $config['zIndex'] }}"
@@ -77,7 +77,7 @@
                          paso en que esté la búsqueda y desaparece en cuanto se
                          escribe algo. El único control del panel se quedaba sin
                          nombre. --}}
-                    aria-label="Buscar"
+                    aria-label="{{ config('kore-ui.ui.translations.spotlight_search', 'Buscar') }}"
                     x-ref="input"
                     x-model="query"
                     @keydown.arrow-down.prevent="moveDown()"
@@ -130,7 +130,7 @@
                 <ul
                     id="kore-spotlight-results"
                     role="listbox"
-                    aria-label="Resultados"
+                    aria-label="{{ config('kore-ui.ui.translations.spotlight_results', 'Resultados') }}"
                     class="py-2"
                 >
                     {{-- Recent history (shown when input is empty) --}}

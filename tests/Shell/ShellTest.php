@@ -113,3 +113,31 @@ it('empties the registry after consuming it', function () {
     expect($context->consume())->toHaveCount(1)
         ->and($context->consume())->toBe([]);
 });
+
+/**
+ * Sin enlace de salto, quien navega con teclado tenía que pasar por todo el
+ * menú —seis pulsaciones con un sidebar de tres niveles— antes de llegar al
+ * contenido, y en cada página. Y `<main>` no tenía ni `id` al que saltar.
+ */
+it('ofrece saltar al contenido', function () {
+    $view = $this->blade('<x-kore::shell>contenido</x-kore::shell>');
+    $html = $view->__toString();
+
+    $view->assertSee('href="#kore-contenido"', false)
+        ->assertSee('Saltar al contenido')
+        ->assertSee('id="kore-contenido"', false)
+        // Solo visible al enfocarlo.
+        ->assertSee('sr-only focus:not-sr-only', false);
+
+    // Y es lo PRIMERO del documento: un salto que va después del menú no sirve.
+    expect(strpos($html, 'Saltar al contenido'))->toBeLessThan(strpos($html, '<main'));
+});
+
+it('deja quitar el enlace de salto y cambiar su destino', function () {
+    $this->blade('<x-kore::shell :skip-link="false">x</x-kore::shell>')
+        ->assertDontSee('Saltar al contenido');
+
+    $this->blade('<x-kore::shell main-id="principal" skip-label="Ir al contenido">x</x-kore::shell>')
+        ->assertSee('href="#principal"', false)
+        ->assertSee('Ir al contenido');
+});

@@ -42,7 +42,14 @@ export default (config) => ({
 
     detectHalf(event, star) {
         if (!config.allowHalf || config.readonly) return;
-        const rect = event.currentTarget.getBoundingClientRect();
+
+        // Se mide contra la ESTRELLA, no contra el botón: desde que el botón
+        // tiene 24×24 para cumplir el objetivo táctil, puede ser más ancho que
+        // la estrella, y con la caja grande el punto de corte de la media
+        // quedaba desplazado respecto a lo que se ve.
+        const caja = event.currentTarget.querySelector('[data-kore-estrella]') ?? event.currentTarget;
+        const rect = caja.getBoundingClientRect();
+
         this.hoverValue = (event.clientX - rect.left) < (rect.width / 2)
             ? star - 0.5 : star;
     },

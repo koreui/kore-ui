@@ -207,3 +207,38 @@ describe('nombres accesibles', () => {
         expect(enTabulador[0].node.key, 'el primero, mientras nadie tenga el foco').toBe('documentos');
     });
 });
+
+/**
+ * `aria-setsize` y `aria-posinset`: sin ellos un lector dice en qué NIVEL está
+ * un nodo, pero no por cuál de sus hermanos va — «Contratos, nivel 2» en vez de
+ * «Contratos, 2 de 2, nivel 2».
+ */
+describe('KoreTree · posición dentro del nivel', () => {
+    it('numera cada nodo dentro de sus hermanos', () => {
+        const t = KoreTree({ nodes: NODOS });
+        t.expandedKeys = new Set(['documentos']);
+
+        const porClave = Object.fromEntries(t.flatNodes.map((i) => [i.node.key, i]));
+
+        // Dos raíces.
+        expect(porClave.documentos.posicion).toBe(1);
+        expect(porClave.documentos.hermanos).toBe(2);
+        expect(porClave.imagenes.posicion).toBe(2);
+        expect(porClave.imagenes.hermanos).toBe(2);
+
+        // Y los hijos vuelven a contar desde uno, dentro de su rama.
+        expect(porClave.informes.posicion).toBe(1);
+        expect(porClave.contratos.posicion).toBe(2);
+        expect(porClave.contratos.hermanos).toBe(2);
+    });
+
+    it('con un filtro puesto, cuenta los que quedan y no los que había', () => {
+        // Anunciar «3 de 7» con dos nodos a la vista sería mentir.
+        const t = KoreTree({ nodes: NODOS });
+        t.filterText = 'contratos';
+
+        const contratos = t.flatNodes.find((i) => i.node.key === 'contratos');
+        expect(contratos.posicion).toBe(1);
+        expect(contratos.hermanos).toBe(1);
+    });
+});

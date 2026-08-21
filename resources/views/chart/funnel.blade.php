@@ -4,7 +4,7 @@
      de los dos, `:has()` enciende el par y apaga el resto — SIN una línea de JavaScript, igual que
      el donut. Con muchas etapas, es lo que deja claro qué trapecio es «Carrito». --}}
 <div class="kore-chart-funnel" @if($highlight ?? true) data-highlight @endif>
-    <div class="kore-chart-funnel-plot" role="img" aria-label="Embudo de conversión">
+    <div class="kore-chart-funnel-plot" role="img" aria-label="{{ config('kore-ui.ui.translations.funnel', 'Embudo de conversión') }}">
         @foreach($stages as $stage)
             <div class="kore-chart-funnel-stage"
                  data-stage="{{ $loop->index }}"

@@ -22,7 +22,7 @@ it('renders with nav aria-label', function () {
         'items' => [['label' => 'Home', 'url' => '/']],
     ]);
 
-    $view->assertSee('aria-label="Breadcrumb"', false);
+    $view->assertSee('aria-label="Ruta de navegación"', false);
 });
 
 it('marks the last item with aria-current="page"', function () {
@@ -126,7 +126,7 @@ it('renders nothing when items is empty array', function () {
         'items' => [],
     ]);
 
-    $view->assertDontSee('aria-label="Breadcrumb"', false);
+    $view->assertDontSee('aria-label="Ruta de navegación"', false);
 });
 
 it('renders collapsible ellipsis when maxItems is exceeded', function () {
@@ -140,7 +140,7 @@ it('renders collapsible ellipsis when maxItems is exceeded', function () {
         ],
     ]);
 
-    $view->assertSee('Mostrar breadcrumbs ocultos', false)
+    $view->assertSee('Mostrar los pasos ocultos', false)
         ->assertSee('x-on:click="expanded = true"', false);
 });
 
@@ -152,7 +152,7 @@ it('does not render collapsible when items fit within maxItems', function () {
         ],
     ]);
 
-    $view->assertDontSee('Mostrar breadcrumbs ocultos', false);
+    $view->assertDontSee('Mostrar los pasos ocultos', false);
 });
 
 it('renders JSON-LD structured data when enabled', function () {

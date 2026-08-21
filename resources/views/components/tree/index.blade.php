@@ -5,11 +5,12 @@
     'expandedKeys' => [],
     'selectedKeys' => [],
     'filter' => false,
-    'filterPlaceholder' => 'Filter...',
+    'filterPlaceholder' => null,
     'ariaLabel' => null,
 ])
 
 @php
+    $filterPlaceholder = $filterPlaceholder ?? config('kore-ui.ui.translations.tree_filter', 'Filtrar…');
     $ariaLabel = $ariaLabel ?? config('kore-ui.ui.translations.tree', 'Árbol');
 @endphp
 
@@ -82,6 +83,11 @@
                      :data-kore-tree-key="item.node.key"
                      :tabindex="esFoco(item.node.key) ? 0 : -1"
                      :aria-level="item.level + 1"
+                     {{-- «3 de 7» en cada rama: ARIA los pide para que un lector
+                          sepa por dónde va dentro del nivel, no solo en qué
+                          nivel está. --}}
+                     :aria-setsize="item.hermanos"
+                     :aria-posinset="item.posicion"
                      :aria-expanded="item.hasChildren ? String(isExpanded(item.node.key)) : null"
                      :aria-selected="selectable ? String(isSelected(item.node.key)) : null">
 
