@@ -7,7 +7,7 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
-## [No publicado]
+## [2.0.1] — 2026-08-20
 
 ### Fixed
 
@@ -1067,6 +1067,7 @@ Primera versión pre-release de kore-ui. Incluye el sistema base completo con ov
 
 ---
 
+[2.0.1]: https://github.com/koreui/kore-ui/releases/tag/v2.0.1
 [2.0.0]: https://github.com/koreui/kore-ui/releases/tag/v2.0.0
 [1.7.1]: https://github.com/koreui/kore-ui/releases/tag/v1.7.1
 [1.7.0]: https://github.com/koreui/kore-ui/releases/tag/v1.7.0
