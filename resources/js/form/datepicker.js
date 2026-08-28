@@ -110,6 +110,10 @@ export default (config) => ({
             this._floatingCleanup = startFloating(this.$refs.trigger, this.$refs.dropdown, {
                 placement: 'bottom-start',
                 offset: 4,
+                // Si el disparador deja de pintarse —una pestaña que cambia, un
+                // acordeón que se cierra— el panel se cerraba a medias: dejaba de
+                // tener contra qué colocarse pero seguía en pantalla.
+                onClose: () => this.close(),
             });
             this._addClickAwayListener();
         });

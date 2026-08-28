@@ -76,3 +76,16 @@ it('anuncia el copiado', function () {
     $view->assertSee('aria-live="polite"', false)
         ->assertSee('role="status"', false);
 });
+
+it('marca el foco de teclado en las tres variantes', function (string $variante, string $marca) {
+    // Antes no había señal ninguna: el input lleva `outline-none` sin sustituto
+    // y los botones no tenían anillo, así que tabular hasta aquí no se veía.
+    $this->blade('<x-kore::clipboard text="hola" variant="' . $variante . '" />')
+        ->assertSee($marca, false);
+})->with([
+    // En `input` el anillo va en el marco, no en cada pieza: dentro se apilarían
+    // en la costura entre el campo y el botón.
+    'input'  => ['input', 'focus-within:ring-2'],
+    'inline' => ['inline', 'focus-visible:ring-2'],
+    'icon'   => ['icon', 'focus-visible:ring-2'],
+]);

@@ -92,3 +92,40 @@ it('hides controls when controls false in currency mode', function () {
     $view->assertDontSee('lucide-minus', false)
         ->assertDontSee('lucide-plus', false);
 });
+
+it('draws the border and focus ring on the group, not on the inner input', function () {
+    // El anillo debe rodear el conjunto «− input +». Cuando lo pintaba el input
+    // interno, `border-x-0` recortaba los lados y el botón «+» tapaba el ring:
+    // el contorno salía a medias, de tres lados.
+    $view = $this->blade('<x-kore::number label="Qty" name="qty" />');
+
+    $view->assertSee('focus-within:ring-2', false)
+        ->assertSee('focus-within:border-kore-primary', false)
+        ->assertDontSee('border-x-0', false)
+        ->assertDontSee('focus:ring-2', false);
+});
+
+it('keeps the ring on the input itself when controls are hidden', function () {
+    $view = $this->blade('<x-kore::number label="Qty" name="qty" :controls="false" />');
+
+    $view->assertSee('focus:ring-2', false)
+        ->assertSee('rounded-kore-md', false)
+        ->assertDontSee('focus-within:ring-2', false);
+});
+
+it('paints the error border around the whole group', function () {
+    $this->withViewErrors(['qty' => 'Fuera de rango']);
+
+    $view = $this->blade('<x-kore::number label="Qty" name="qty" />');
+
+    // El rojo va en el contenedor —junto a overflow-hidden— y no en el input.
+    $view->assertSee('overflow-hidden bg-kore-bg', false)
+        ->assertSee('border-kore-destructive focus-within:ring-kore-destructive/30', false);
+});
+
+it('draws the border on the group in currency mode too', function () {
+    $view = $this->blade('<x-kore::number label="Price" name="price" mode="currency" />');
+
+    $view->assertSee('focus-within:ring-2', false)
+        ->assertDontSee('border-x-0', false);
+});

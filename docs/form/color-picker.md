@@ -29,6 +29,7 @@ Palette-based color picker with dropdown and inline modes, custom hex input, cle
 | `clearable` | `bool` | `true` | Allow clearing selected color |
 | `columns` | `int` | `8` | Number of columns in the swatch grid |
 | `disabled` | `bool` | `false` | Disabled state |
+| `readonly` | bool | false | No abre la paleta; el valor se envía |
 | `required` | `bool` | `false` | Required indicator |
 | `show-error` | `bool` | `true` | Show validation errors |
 

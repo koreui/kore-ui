@@ -9,6 +9,7 @@
     'separatorAfter' => null,
     'size' => null,
     'disabled' => false,
+    'readonly' => false,
     'required' => false,
     'showError' => true,
 ])
@@ -50,6 +51,12 @@
 
     $wireModelAttr = $attributes->whereStartsWith('wire:model');
 
+    // En solo lectura las casillas se leen y se recorren con el tabulador, pero
+    // no aceptan escritura ni pegado. `readonly` en un input nativo ya bloquea
+    // el tecleo; los manejadores se quitan igualmente porque `onKeydown` mueve
+    // el foco y borra hacia atrás por su cuenta.
+    $edicionBloqueada = $disabled || $readonly;
+
     // Los atributos que el consumidor escribe en la etiqueta y que ningún
     // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
     // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
@@ -73,6 +80,7 @@
             length: {{ $length }},
             numeric: {{ $numeric ? 'true' : 'false' }},
         })"
+        @if($readonly) aria-readonly="true" @endif
         {{ $atributosRaiz->merge(['class' => "flex items-center gap-2"]) }}
     >
         {{-- Hidden input for wire:model --}}
@@ -95,12 +103,15 @@
                 aria-label="{{ config('kore-ui.form.translations.digit', 'Dígito') }} {{ $i + 1 }}"
                 maxlength="1"
                 @if($numeric) inputmode="numeric" pattern="[0-9]*" @endif
-                x-on:input="onInput({{ $i }}, $event)"
-                x-on:keydown="onKeydown({{ $i }}, $event)"
-                x-on:paste="onPaste($event)"
+                @if(! $edicionBloqueada)
+                    x-on:input="onInput({{ $i }}, $event)"
+                    x-on:keydown="onKeydown({{ $i }}, $event)"
+                    x-on:paste="onPaste($event)"
+                @endif
                 x-on:focus="$event.target.select()"
                 class="{{ $inputClasses }}"
                 @if($disabled) disabled @endif
+                @if($readonly) readonly @endif
                 autocomplete="one-time-code"
             />
         @endfor

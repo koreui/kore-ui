@@ -7,6 +7,7 @@
     'placeholder' => null,
     'clearable' => false,
     'disabled' => false,
+    'readonly' => false,
     'required' => false,
     'showError' => true,
 
@@ -117,6 +118,12 @@
     // porque vive en el input oculto: duplicarlos daría dos ids iguales y dos
     // enlaces al mismo modelo.
     $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
+    // Solo lectura: la fecha se lee y se envía, pero el calendario no se abre.
+    // Vale para las dos formas del disparador —el input con `manual-input` y el
+    // botón— y para el panel `inline`, que al estar siempre visible hay que
+    // dejar inerte con `pointer-events-none` o cualquier día seguiría eligiéndose.
+    $edicionBloqueada = $disabled || $readonly;
+
 @endphp
 
 <x-kore::field
@@ -152,16 +159,19 @@
                 <input
                     type="text"
                     x-ref="trigger"
-                    x-on:focus="openDropdown()"
-                    x-on:input.debounce.500ms="onManualInput($event)"
+                    @if(! $edicionBloqueada)
+                        x-on:focus="openDropdown()"
+                        x-on:input.debounce.500ms="onManualInput($event)"
+                    @endif
                     x-bind:value="displayValue"
                     id="{{ $fieldId }}"
                     placeholder="{{ $placeholder ?? '' }}"
-                    class="{{ $baseClasses }} cursor-text pr-10"
+                    class="{{ $baseClasses }} {{ $edicionBloqueada ? 'cursor-default' : 'cursor-text' }} pr-10"
                     @if($disabled) disabled @endif
+                    @if($readonly) readonly @endif
                 />
                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 gap-1">
-                    @if($clearable)
+                    @if($clearable && ! $edicionBloqueada)
                         <button
                             type="button"
                             x-show="hasValue"
@@ -179,10 +189,11 @@
                 <button
                     type="button"
                     x-ref="trigger"
-                    x-on:click="toggle()"
+                    @if(! $edicionBloqueada) x-on:click="toggle()" @endif
                     id="{{ $fieldId }}"
-                    class="{{ $baseClasses }} flex items-center justify-between gap-2 text-left cursor-pointer {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
+                    class="{{ $baseClasses }} flex items-center justify-between gap-2 text-left {{ $edicionBloqueada ? 'cursor-default' : 'cursor-pointer' }} {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
                     @if($disabled) disabled @endif
+                    @if($readonly) aria-readonly="true" @endif
                     role="combobox"
                     aria-haspopup="dialog"
                     x-bind:aria-expanded="open"
@@ -193,7 +204,7 @@
                     </div>
 
                     <div class="flex items-center gap-1 shrink-0">
-                        @if($clearable)
+                        @if($clearable && ! $edicionBloqueada)
                             <template x-if="hasValue">
                                 <button
                                     type="button"
@@ -220,7 +231,8 @@
                 id="{{ $fieldId }}"
                 role="group"
                 @if($label) aria-labelledby="{{ $fieldId }}-label" @endif
-                class="rounded-kore-lg border border-kore-border bg-kore-bg text-kore-fg p-3"
+                @if($readonly) aria-readonly="true" @endif
+                class="rounded-kore-lg border border-kore-border bg-kore-bg text-kore-fg p-3 {{ $edicionBloqueada ? 'pointer-events-none' : '' }}"
             >
                 @include('kore::components._datepicker-panel')
             </div>

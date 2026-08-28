@@ -88,7 +88,7 @@ The `@koreScripts` directive injects:
 <script src="/vendor/kore-ui/kore-ui.js"></script>
 ```
 
-The bundle (~108 kB, ~30 kB gzip) includes all Alpine.js plugins:
+The bundle (~144 kB, ~39 kB gzip) includes all Alpine.js plugins:
 
 - Overlay system (modals, drawers, panels)
 - Feedback system (toasts, confirm dialogs)
@@ -98,6 +98,24 @@ The bundle (~108 kB, ~30 kB gzip) includes all Alpine.js plugins:
 - Theme store (`$store.koreTheme`)
 
 Alpine.js itself is **not included** — Livewire 4 provides it globally.
+
+### El editor va aparte
+
+`<x-kore::editor>` es la única pieza que **no** viaja en ese bundle. Pesa 6,5 kB
+gzip —un sexto de todo el JavaScript de la librería— y la mayoría de las páginas
+no lo usan, así que lo carga el propio componente cuando aparece:
+
+```html
+<script src="/vendor/kore-ui/kore-ui-editor.js" defer></script>
+```
+
+**No hay que hacer nada**: el componente lo declara con `@assets` de Livewire, que
+lo pide una sola vez por página y se encarga de ejecutarlo aunque el editor llegue
+dentro de una respuesta —un modal que se abre—. Un `<script>` insertado por
+morphing no lo ejecuta el navegador, y esa es exactamente la trampa que `@assets`
+evita.
+
+Una página sin editor no descarga ese archivo.
 
 ## Directives reference
 
@@ -117,3 +135,9 @@ npm run dev     # watch mode
 ```
 
 The compiled `dist/kore-ui.js` is committed to the repository so end users never need to run a build step.
+
+## Aspecto de las superficies
+
+El borde, la sombra, el relleno y la densidad de tarjetas, tablas y métricas se
+cambian por etiqueta o de una vez para toda la librería. Ver
+[docs/ui/look.md](ui/look.md).

@@ -25,7 +25,7 @@ public array $selectedRoles = ['edit'];
 | Prop | Tipo | Default | Descripción |
 |------|------|---------|-------------|
 | `items` | `array` | `[]` | Opciones `[['value' => , 'label' => ], ...]` |
-| `label`, `hint`, `name`, `error`, `required`, `disabled`, `showError` | — | — | Convención de formulario |
+| `label`, `hint`, `name`, `error`, `required`, `disabled`, `readonly`, `showError` | — | — | Convención de formulario. Las listas se leen y se buscan, pero no se marca ni se mueve nada con `readonly`, y el valor se sigue enviando |
 | `searchable` | `bool` | `true` | Muestra el buscador en cada panel |
 | `titles` | `array` | `['Disponibles', 'Seleccionados']` | Encabezados de los dos paneles |
 

@@ -21,6 +21,7 @@
     'minSearch' => null,
     'creatable' => false,
     'disabled' => false,
+    'readonly' => false,
     'required' => false,
     'showError' => true,
 ])
@@ -99,6 +100,14 @@
     // dar error. `id` no entra porque ya lo lleva el control vía $fieldId, y
     // `wire:model` porque vive en el input oculto.
     $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
+    // HTML no tiene `readonly` para un <select>: el atributo existe en los inputs
+    // de texto y ahí se acaba. Deshabilitarlo tampoco sirve, porque un control
+    // deshabilitado no se envía con el formulario, que es justo lo que separa
+    // «solo lectura» de «apagado». Así que en el nativo se bloquea la
+    // interacción —ratón y teclado, dejando pasar el tabulador— y en el
+    // estilizado no se abre el panel ni se quitan chips.
+    $edicionBloqueada = $disabled || $readonly;
+
 @endphp
 
 <x-kore::field
@@ -112,6 +121,12 @@
     @if($native)
         {{-- Native HTML select --}}
         <select
+            @if($readonly)
+                x-data
+                aria-readonly="true"
+                x-on:mousedown.prevent
+                x-on:keydown="if ($event.key !== 'Tab') $event.preventDefault()"
+            @endif
             {{ $attributes->merge([
                 'id' => $fieldId,
                 'name' => $name,
@@ -190,10 +205,11 @@
             <button
                 type="button"
                 x-ref="trigger"
-                x-on:click="toggle()"
+                @if(! $edicionBloqueada) x-on:click="toggle()" @endif
                 id="{{ $fieldId }}"
-                class="{{ $baseClasses }} flex items-center justify-between gap-2 text-left cursor-pointer {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
+                class="{{ $baseClasses }} flex items-center justify-between gap-2 text-left {{ $edicionBloqueada ? 'cursor-default' : 'cursor-pointer' }} {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
                 @if($disabled) disabled @endif
+                @if($readonly) aria-readonly="true" @endif
                 aria-haspopup="listbox"
                 aria-controls="{{ $optionsId }}-listbox"
                 x-bind:aria-expanded="open"
@@ -206,6 +222,7 @@
                                 <template x-for="opt in selectedOptions" :key="opt.value">
                                     <span class="inline-flex items-center gap-1 rounded-kore-sm bg-kore-muted px-1.5 py-0.5 text-xs text-kore-fg">
                                         <span x-text="opt.label"></span>
+                                        @if(! $edicionBloqueada)
                                         <button
                                             type="button"
                                             x-on:click.stop="deselect(opt.value)"
@@ -214,6 +231,7 @@
                                         >
                                             <x-lucide-x class="size-3" />
                                         </button>
+                                        @endif
                                     </span>
                                 </template>
                             </div>
@@ -228,7 +246,7 @@
                 </div>
 
                 <div class="flex items-center gap-1 shrink-0">
-                    @if($clearable)
+                    @if($clearable && ! $edicionBloqueada)
                         <template x-if="hasValue">
                             <button
                                 type="button"
@@ -240,10 +258,12 @@
                             </button>
                         </template>
                     @endif
+                    @if(! $edicionBloqueada)
                     <x-lucide-chevron-down
                         class="{{ $iconSizeClasses }} text-kore-muted-fg transition-transform duration-200"
                         x-bind:class="{ 'rotate-180': open }"
                     />
+                    @endif
                 </div>
             </button>
 

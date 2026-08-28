@@ -611,6 +611,7 @@
             @include('kore::datatable.pagination', [
                 'paginator'   => $rows,
                 'showingText' => $showingText,
+                'variante'    => $paginatorVariant ?? null,
             ])
         @endif
 

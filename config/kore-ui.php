@@ -76,6 +76,36 @@ return [
             'strength' => false,
             'min_length' => 8,
         ],
+        // El editor de texto enriquecido.
+        'editor' => [
+            'placeholder' => null,
+            'min_height' => '12rem',
+            'max_height' => null,
+            // Cuánto se espera desde la última tecla antes de mandar el HTML al
+            // servidor. Escribir dispara un evento por pulsación; sin esto sería
+            // una petición por letra.
+            'debounce' => 400,
+            // Los botones y su orden; `|` es un separador. Quitar uno de aquí lo
+            // quita de la barra, pero NO impide el formato: los atajos del
+            // teclado siguen ahí y el HTML pegado también. Para acotar de verdad
+            // lo que se admite, la lista blanca está en el sanitizador.
+            'toolbar' => [
+                'bold', 'italic', 'underline', 'strike', '|',
+                'h2', 'h3', '|',
+                'ul', 'ol', 'quote', 'pre', '|',
+                'left', 'center', 'right', '|',
+                'link', 'unlink', 'image', '|',
+                'clear', 'undo', 'redo', 'fullscreen',
+            ],
+            // Subida de imágenes. El botón solo aparece si la etiqueta declara
+            // `upload-property` y `upload-method`: dónde se guarda un archivo y
+            // con qué URL se sirve es decisión de la aplicación, no de aquí.
+            'upload' => [
+                'mimes' => ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+                'max_size' => 2048,   // KB
+            ],
+        ],
+
         'number' => [
             'currency' => 'USD',
             'locale' => null,
@@ -130,6 +160,40 @@ return [
         | traducirse sin publicar la vista.
         */
         'translations' => [
+            // El editor de texto enriquecido: nombres de los botones de la
+            // barra y del diálogo del enlace.
+            'editor_toolbar' => 'Herramientas de formato',
+            'editor_bold' => 'Negrita',
+            'editor_italic' => 'Cursiva',
+            'editor_underline' => 'Subrayado',
+            'editor_strike' => 'Tachado',
+            'editor_h2' => 'Título',
+            'editor_h3' => 'Subtítulo',
+            'editor_ul' => 'Lista con viñetas',
+            'editor_ol' => 'Lista numerada',
+            'editor_quote' => 'Cita',
+            'editor_link' => 'Enlace',
+            'editor_unlink' => 'Quitar enlace',
+            'editor_clear' => 'Quitar formato',
+            'editor_undo' => 'Deshacer',
+            'editor_redo' => 'Rehacer',
+            'editor_url' => 'Dirección',
+            'editor_url_placeholder' => 'https://',
+            'editor_apply' => 'Aplicar',
+            'editor_image' => 'Imagen',
+            'editor_image_uploading' => 'Subiendo imagen…',
+            'editor_image_type' => 'Ese tipo de archivo no se admite.',
+            'editor_image_size' => 'La imagen supera :max KB.',
+            'editor_image_error' => 'No se pudo subir la imagen.',
+            'editor_pre' => 'Bloque de código',
+            'editor_left' => 'Alinear a la izquierda',
+            'editor_center' => 'Centrar',
+            'editor_right' => 'Alinear a la derecha',
+            'editor_fullscreen' => 'Pantalla completa',
+            // Mensajes de las reglas de validación del servidor.
+            'editor_html_rechazado' => 'El contenido tiene marcado que no se admite.',
+            'editor_max_texto' => 'El campo :attribute no puede pasar de :max caracteres.',
+
             'increment'       => 'Sumar',
             'decrement'       => 'Restar',
             'clear'           => 'Limpiar',
@@ -186,6 +250,27 @@ return [
     */
     'ui' => [
         'size' => 'md',
+
+        /*
+         * Aspecto de TODAS las superficies de la librería: tarjetas, tablas,
+         * métricas, barras, listas de descripción.
+         *
+         * `null` significa «no opino», que es como viene de fábrica: cada
+         * componente conserva el aspecto que ya tenía. Poner `false` en una de
+         * estas banderas la apaga en toda la librería de una vez —un diseño
+         * plano sin ir etiqueta por etiqueta—, y la sección del componente de
+         * más abajo puede devolvérsela a uno concreto.
+         *
+         * El orden manda así: el prop de la etiqueta, luego el ajuste del
+         * componente, luego esto, y por último el defecto del propio componente.
+         * Ver `KoreUi\Core\Support\Look`.
+         */
+        'look' => [
+            'bordered' => null,
+            'shadow' => null,
+            'padding' => null,
+            'compact' => null,
+        ],
 
         // Mismo motivo que en `form.translations`: nombre accesible de los
         // controles que solo llevan un icono.
@@ -341,9 +426,16 @@ return [
         'order-list' => [
             'reorderable' => true,
         ],
+        // El texto enriquecido ya publicado: <x-kore::prose>.
+        'prose' => [
+            'size' => 'md',
+        ],
         'card' => [
-            'bordered' => true,
-            'shadow' => true,
+            // `null` = lo que diga `ui.look`, y si tampoco opina, el defecto del
+            // componente. Un `true` o un `false` aquí solo afectan a las tarjetas.
+            'bordered' => null,
+            'shadow' => null,
+            'padding' => null,
         ],
         'dropdown' => [
             'position' => 'bottom-start',
@@ -478,6 +570,14 @@ return [
         'density'               => 'normal',      // compact|normal|relaxed
         'table_layout'          => 'auto',       // auto|fixed — 'fixed' hace exactos los width() de columna
         'pagination_type'       => 'standard',    // standard|simple|cursor
+
+        // Cómo se PINTA el pie, que es otra cosa que `pagination_type`: ese
+        // decide cómo se consulta la base de datos, este solo la forma del
+        // control. `default` (flechas y números), `simple` (anterior/siguiente
+        // con palabras), `compact` (un carril con «3 / 12», que ocupa lo mismo
+        // con dos mil páginas) o `minimal` (números sin cajas, el actual
+        // subrayado). Cada tabla puede decidir la suya con `$paginatorVariant`.
+        'paginator'             => 'default',     // default|simple|compact|minimal
         'search_debounce'       => 300,
         'filter_layout'         => 'popover',     // popover|slide-down|inline|drawer
         'column_select'         => true,

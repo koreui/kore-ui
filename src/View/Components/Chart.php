@@ -44,6 +44,7 @@ class Chart extends Component
      * @param  bool  $grid  la rejilla horizontal, a la altura de los ticks del eje Y
      * @param  array{0: float, 1: float}|null  $window  el tramo visible, en % del dominio COMPLETO
      * @param  string  $orientation  `vertical` (por defecto) u `horizontal`: transpone las barras
+     * @param  bool|int  $skeleton  la silueta mientras no hay datos; un entero elige cuántas barras
      */
     public function __construct(
         public array $data = [],
@@ -56,6 +57,7 @@ class Chart extends Component
         public bool $grid = true,
         public ?array $window = null,
         public string $orientation = 'vertical',
+        public bool|int $skeleton = false,
     ) {
         $context = app(ChartContext::class);
 
@@ -82,6 +84,10 @@ class Chart extends Component
     {
         // ⚠️ NO CALCULAR NADA AQUÍ. Ver la trampa mortal de arriba: este método corre antes
         // que los hijos, así que $this->frame todavía está vacío.
-        return view('kore::chart.chart');
+        //
+        // La silueta sí se puede decidir aquí: no depende del frame, solo del prop. Lo que
+        // NO puede hacerse aquí es cerrar el frame —los hijos aún no se han registrado—, así
+        // que de eso se encarga la vista, igual que la normal.
+        return view($this->skeleton === false ? 'kore::chart.chart' : 'kore::chart.skeleton');
     }
 }

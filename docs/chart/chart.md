@@ -22,6 +22,7 @@ El contenedor del gráfico: recibe los datos y dentro le pones las capas que qui
 | `ariaLabel` | `string` | `null` | El `<caption>` de la tabla accesible. Si no, se usa el título |
 | `id` | `string` | `null` | Id del gráfico. Por defecto, uno determinista por petición |
 | `grid` | `bool` | `true` | La rejilla horizontal, a la altura de los ticks del eje Y |
+| `skeleton` | `bool\|int` | `false` | Silueta mientras no hay serie; el entero elige cuántas barras. Ver [skeleton](../ui/skeleton.md#siluetas-de-componente) |
 
 ## Estado vacío
 

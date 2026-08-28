@@ -223,6 +223,44 @@ public function configure(): void
 }
 ```
 
+### La forma del pie
+
+`pagination_type` decide cómo se **consulta** la base de datos. La forma del
+control es otra cosa, y se elige aparte:
+
+| Variante | Qué pinta | Cuándo |
+|---|---|---|
+| `default` | flechas, números con elipsis, el actual en una píldora | lo de siempre |
+| `simple` | «Anterior» y «Siguiente» con palabras | cuando el número de página no le dice nada a quien mira: una bandeja, un histórico. También es la única que tiene sentido con `cursor`, que no tiene números |
+| `compact` | un carril con las dos flechas y «3 / 12» en medio | ocupa lo mismo con veinte páginas que con dos mil: tablas estrechas, dentro de un modal |
+| `minimal` | los números sin cajas, el actual subrayado | cuando el pie no debe pesar más que la tabla |
+
+Por tabla:
+
+```php
+class Usuarios extends KoreDataTable
+{
+    protected string $paginatorVariant = 'compact';
+}
+```
+
+Para todas, en `config/kore-ui.php`:
+
+```php
+'datatable' => [
+    'paginator' => 'minimal',   // default|simple|compact|minimal
+],
+```
+
+La variante solo cambia la plantilla: en qué página se está y a dónde se puede
+ir se calcula una vez, igual para las cuatro. Un valor mal escrito cae en
+`default` en vez de tumbar la página.
+
+Un detalle de accesibilidad que comparten: cuando no hay a dónde ir, el control
+no es un `<button disabled>` sino un `<span aria-disabled>`. Un botón
+deshabilitado sale del recorrido del tabulador, y quien navega con teclado vería
+esfumarse el control en vez de encontrarlo apagado.
+
 ### Opciones de per page
 
 Se configuran globalmente en `config/kore-ui.php`:

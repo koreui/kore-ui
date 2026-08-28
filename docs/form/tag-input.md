@@ -24,6 +24,7 @@ Tag/chips input with keyboard support, paste handling, max limit, custom separat
 | `placeholder` | `string\|null` | `null` | Input placeholder text |
 | `clearable` | `bool` | `false` | Show clear-all button |
 | `disabled` | `bool` | `false` | Disabled state |
+| `readonly` | bool | false | No añade ni quita etiquetas; el valor se envía |
 | `required` | `bool` | `false` | Required indicator |
 | `show-error` | `bool` | `true` | Show validation errors |
 

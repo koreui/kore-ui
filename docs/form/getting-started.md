@@ -83,6 +83,48 @@ Adds a red asterisk next to the label and the HTML `required` attribute.
 <x-kore::input label="Email" required />
 ```
 
+### Texto enriquecido
+
+`<x-kore::editor>` produce HTML, y lo que produce **hay que sanearlo en el
+servidor** antes de guardarlo: el saneado del navegador no es una frontera de
+seguridad. Ver [editor](editor.md#lo-primero-lo-que-se-guarda-hay-que-sanearlo-en-el-servidor).
+
+### `disabled` y `readonly`
+
+Los dos bloquean la edición; se diferencian en el envío. Un campo `disabled` **no
+viaja con el formulario**; uno `readonly` sí. El modo consulta de un formulario
+—enseñar lo que hay guardado sin dejar cambiarlo, pero conservando el valor— es
+`readonly`, no `disabled`.
+
+```html
+<x-kore::select label="País" :options="$paises" wire:model="pais" readonly />
+```
+
+Los doce campos compuestos lo aceptan: `number`, `select`, `datepicker`,
+`time-picker`, `color-picker`, `tag-input`, `key-value`, `input-otp`, `upload`,
+`repeater`, `transfer` y `order-list`, además de los de texto (`input`,
+`textarea`, `password`, `maskable`).
+
+Qué hace en cada uno:
+
+| | `disabled` | `readonly` |
+|---|---|---|
+| Aspecto | atenuado al 50% | normal |
+| Foco y tabulador | fuera del recorrido | dentro: el valor se puede leer y copiar |
+| Se envía | no | **sí** |
+| Paneles (select, fechas, hora, color) | no abren | no abren |
+| Botones auxiliares (flechas, «x», añadir, borrar, arrastrar) | apagados | apagados |
+| Buscar dentro del campo (`transfer`, `select`) | no | **sí** — buscar no es editar |
+
+Dos detalles que no se ven desde fuera:
+
+- **`<select>` no tiene `readonly` en HTML.** El atributo existe para los inputs
+  de texto y ahí se acaba, y deshabilitarlo tampoco sirve porque entonces no se
+  envía. En modo nativo se bloquean el ratón y el teclado dejando pasar el
+  tabulador, y se marca `aria-readonly`.
+- **En `upload` la zona de selección desaparece** con `readonly` —no hay nada que
+  arrastrar ahí—, mientras que con `disabled` se queda a la vista, atenuada.
+
 ## Configuration
 
 Customize defaults in `config/kore-ui.php`:

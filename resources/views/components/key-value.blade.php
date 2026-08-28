@@ -12,6 +12,7 @@
     'reorderable' => false,
     'max' => null,
     'disabled' => false,
+    'readonly' => false,
     'required' => false,
     'showError' => true,
 ])
@@ -57,6 +58,11 @@
         'max' => $max,
     ], fn($v) => $v !== null));
 
+    // En solo lectura los pares se leen y se envían, pero no se tocan: los dos
+    // inputs pasan a `readonly`, y desaparecen el botón de añadir, el de borrar
+    // la fila y el asa de reordenar —arrastrar también es editar—.
+    $edicionBloqueada = $disabled || $readonly;
+
     // Los atributos que el consumidor escribe en la etiqueta y que ningún
     // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
     // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
@@ -78,6 +84,7 @@
     <div
         x-data="KoreKeyValue({{ $jsConfig }})"
         wire:ignore
+        @if($readonly) aria-readonly="true" @endif
         {{ $atributosRaiz->merge(['class' => 'space-y-2 ' . ($disabled ? 'opacity-50 pointer-events-none' : '')]) }}
     >
         {{-- Hidden input for wire:model --}}
@@ -90,10 +97,10 @@
         />
 
         {{-- Rows --}}
-        <div @if($reorderable) x-sort="movePair($item, $position)" @endif class="space-y-2">
+        <div @if($reorderable && ! $edicionBloqueada) x-sort="movePair($item, $position)" @endif class="space-y-2">
             <template x-for="(pair, index) in pairs" :key="index">
-                <div class="flex items-center gap-2" @if($reorderable) x-sort:item="index" @endif>
-                    @if($reorderable)
+                <div class="flex items-center gap-2" @if($reorderable && ! $edicionBloqueada) x-sort:item="index" @endif>
+                    @if($reorderable && ! $edicionBloqueada)
                         <button type="button" x-sort:handle aria-label="{{ config('kore-ui.form.translations.reorder', 'Arrastrar para reordenar') }}" class="shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg">
                             <x-lucide-grip-vertical class="size-4" />
                         </button>
@@ -106,6 +113,7 @@
                         placeholder="{{ $keyPlaceholder }}"
                         x-bind:aria-label="@js($keyPlaceholder) + ' ' + (index + 1)"
                         @if($disabled) disabled @endif
+                        @if($readonly) readonly @endif
                         class="{{ $inputClasses }}"
                     />
 
@@ -116,10 +124,11 @@
                         placeholder="{{ $valuePlaceholder }}"
                         x-bind:aria-label="@js($valuePlaceholder) + ' ' + (index + 1)"
                         @if($disabled) disabled @endif
+                        @if($readonly) readonly @endif
                         class="{{ $inputClasses }}"
                     />
 
-                    @if($deletable && !$disabled)
+                    @if($deletable && ! $edicionBloqueada)
                         <button
                             type="button"
                             x-on:click="removePair(index)"
@@ -134,7 +143,7 @@
         </div>
 
         {{-- Add button --}}
-        @if($addable && !$disabled)
+        @if($addable && ! $edicionBloqueada)
             <div @if($max) x-show="pairs.length < {{ (int) $max }}" @endif>
                 <x-kore::button
                     type="button"

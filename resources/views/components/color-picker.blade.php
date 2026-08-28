@@ -10,6 +10,7 @@
     'clearable' => true,
     'columns' => null,
     'disabled' => false,
+    'readonly' => false,
     'required' => false,
     'showError' => true,
 ])
@@ -94,6 +95,12 @@
         return (0.299 * $r + 0.587 * $g + 0.114 * $b) / 255 > 0.6;
     };
 
+    // En solo lectura el color se ve y se envía, pero el panel no se abre: sin
+    // esto el disparador seguía desplegando la paleta y cualquier muestra
+    // cambiaba el valor. Se quedan el foco y la muestra —para leerlo y copiarlo—
+    // y se van el chevrón, que promete un despliegue que ya no ocurre, y la «x».
+    $edicionBloqueada = $disabled || $readonly;
+
     // Los atributos que el consumidor escribe en la etiqueta y que ningún
     // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
     // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
@@ -115,6 +122,7 @@
     <div
         x-data="KoreColorPicker({{ $jsConfig }})"
         x-on:keydown.escape="onEscape($event)"
+        @if($readonly) aria-readonly="true" @endif
         {{ $atributosRaiz->merge(['class' => $disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '']) }}
     >
         {{-- Hidden input for wire:model --}}
@@ -130,11 +138,13 @@
             {{-- Dropdown trigger --}}
             <div
                 x-ref="trigger"
-                x-on:click="toggle()"
                 role="button"
                 tabindex="0"
-                x-on:keydown.enter.prevent="toggle()"
-                x-on:keydown.space.prevent="toggle()"
+                @if(! $edicionBloqueada)
+                    x-on:click="toggle()"
+                    x-on:keydown.enter.prevent="toggle()"
+                    x-on:keydown.space.prevent="toggle()"
+                @endif
                 class="flex items-center gap-2 w-full rounded-kore-md border {{ $borderClasses }} {{ $sizeClasses }} bg-kore-bg text-kore-fg transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary {{ $disabled ? 'pointer-events-none' : '' }}"
             >
                 {{-- Color preview swatch --}}
@@ -148,7 +158,7 @@
                 <span class="flex-1 text-left truncate" x-text="value || @js($textoVacio)"></span>
 
                 {{-- Clearable --}}
-                @if($clearable)
+                @if($clearable && ! $edicionBloqueada)
                     <span
                         x-show="value"
                         x-cloak
@@ -161,13 +171,15 @@
                 @endif
 
                 {{-- Chevron --}}
+                @if(! $edicionBloqueada)
                 <x-lucide-chevron-down class="{{ $iconSize }} text-kore-muted-fg shrink-0 transition-transform duration-150" ::class="open && 'rotate-180'" />
+                @endif
             </div>
         @endif
 
         @if($inline)
             {{-- Inline panel --}}
-            <div class="rounded-kore-md border border-kore-border bg-kore-bg p-3">
+            <div class="rounded-kore-md border border-kore-border bg-kore-bg p-3 {{ $edicionBloqueada ? 'pointer-events-none' : '' }}">
                 {{-- Swatch grid --}}
                 <div class="grid gap-1.5" style="grid-template-columns: repeat({{ $columns }}, minmax(0, 1fr))">
                     @foreach($palette as $hex)

@@ -11,6 +11,7 @@
     'reorderable' => false,
     'default' => [],
     'disabled' => false,
+    'readonly' => false,
     'required' => false,
     'showError' => true,
 ])
@@ -69,6 +70,11 @@
     // porque vive en el input oculto: duplicarlos daría dos ids iguales y dos
     // enlaces al mismo modelo.
     $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
+    // Solo lectura: las filas se leen y se envían, pero no se añaden, ni se
+    // borran, ni se reordenan, ni se editan sus campos. La bandera baja hasta
+    // `repeater.item`, que es quien pinta los inputs.
+    $edicionBloqueada = $disabled || $readonly;
+
 @endphp
 
 <x-kore::field
@@ -82,6 +88,7 @@
     <div
         x-data="KoreRepeater({{ $jsConfig }})"
         wire:ignore
+        @if($readonly) aria-readonly="true" @endif
         {{ $atributosRaiz->merge(['class' => 'space-y-3 ' . ($disabled ? 'opacity-50 pointer-events-none' : '')]) }}
     >
         {{-- Hidden input for wire:model --}}
@@ -94,12 +101,13 @@
         />
 
         {{-- Rows --}}
-        <div @if($reorderable) x-sort="moveRow($item, $position)" @endif class="space-y-3">
+        <div @if($reorderable && ! $edicionBloqueada) x-sort="moveRow($item, $position)" @endif class="space-y-3">
             <template x-for="(row, index) in rows" :key="index">
                 <x-kore::repeater.item
                     :fields="$fields"
                     :reorderable="$reorderable"
-                    :deletable="! $disabled"
+                    :readonly="$edicionBloqueada"
+                    :deletable="! $edicionBloqueada"
                 />
             </template>
         </div>
@@ -110,7 +118,7 @@
         </template>
 
         {{-- Add button --}}
-        @if(! $disabled)
+        @if(! $edicionBloqueada)
             <div @if($max) x-show="rows.length < {{ (int) $max }}" @endif>
                 <x-kore::button
                     type="button"

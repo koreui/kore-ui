@@ -87,3 +87,8 @@ El slot del item admite cualquier componente, ideal para estados, verificaciones
     </x-kore::descriptions.item>
 </x-kore::descriptions>
 ```
+
+## Aspecto
+
+`bordered`, `shadow`, `padding` y `compact` se pueden fijar también para toda la
+librería desde `config/kore-ui.php`. Ver [aspecto de las superficies](look.md).

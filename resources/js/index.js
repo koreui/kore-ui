@@ -37,6 +37,11 @@ import KoreTheme from './theme.js';
 import KoreSidebarStore from './sidebar.js';
 
 document.addEventListener('alpine:init', () => {
+    // Los bundles que se cargan aparte —el editor— necesitan saber si llegaron
+    // antes o después de que Alpine arrancara: registrar tarde no sirve de nada
+    // si Alpine ya recorrió el DOM y dejó el componente muerto.
+    window.__koreAlpineIniciado = true;
+
     Alpine.plugin(collapse);
 
     // x-kore-trap="expresion" — mantiene el tabulador dentro del elemento

@@ -80,26 +80,66 @@
         default => 'w-9',
     };
 
+    // Con controles, el borde y el anillo de foco viven en el CONTENEDOR, no en
+    // el input. Llevándolos el input, `border-x-0` dejaba el rojo de error solo
+    // arriba y abajo, y el `ring` quedaba tapado por el botón «+», que se pinta
+    // después en el DOM: el contorno se veía a medias, de tres lados. Es el
+    // mismo patrón que los addons de <x-kore::input>: grupo con borde +
+    // focus-within, piezas internas sin borde propio y divisores entre ellas.
+    $groupBorderClasses = $hasError
+        ? 'border-kore-destructive focus-within:ring-kore-destructive/30 focus-within:border-kore-destructive'
+        : 'border-kore-input focus-within:ring-kore-ring focus-within:border-kore-primary';
+
+    $groupClasses = collect([
+        'flex items-stretch',
+        $controls ? 'inline-flex rounded-kore-md border overflow-hidden bg-kore-bg transition-colors duration-150 focus-within:ring-2 ' . $groupBorderClasses : '',
+        $controls && $disabled ? 'opacity-50 cursor-not-allowed' : '',
+    ])->filter()->implode(' ');
+
+    // Sin controles el input sigue siendo el que pinta borde, radio y anillo.
+    $inputStateClasses = $controls
+        ? 'border-0 rounded-none bg-transparent focus:outline-none focus:ring-0'
+        : collect([
+            'border rounded-kore-md bg-kore-bg disabled:opacity-50',
+            'focus:outline-none focus:ring-2',
+            $hasError
+                ? 'border-kore-destructive focus:ring-kore-destructive/30 focus:border-kore-destructive'
+                : 'border-kore-input focus:ring-kore-ring focus:border-kore-primary',
+        ])->implode(' ');
+
     $inputClasses = collect([
-        'block w-full border bg-kore-bg text-kore-fg text-center placeholder:text-kore-muted-fg',
+        'block w-full min-w-0 text-kore-fg text-center placeholder:text-kore-muted-fg',
         'transition-colors duration-150',
-        'focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary',
-        'disabled:opacity-50 disabled:cursor-not-allowed',
+        'disabled:cursor-not-allowed',
         '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
-        $hasError ? 'border-kore-destructive focus:ring-kore-destructive/30 focus:border-kore-destructive' : 'border-kore-input',
-        $controls ? 'rounded-none border-x-0' : 'rounded-kore-md',
+        $inputStateClasses,
         $sizeClasses,
     ])->filter()->implode(' ');
 
     $currencyInputClasses = collect([
-        'block w-full border bg-kore-bg text-kore-fg text-right placeholder:text-kore-muted-fg',
+        'block w-full min-w-0 text-kore-fg text-right placeholder:text-kore-muted-fg',
         'transition-colors duration-150',
-        'focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary',
-        'disabled:opacity-50 disabled:cursor-not-allowed',
-        $hasError ? 'border-kore-destructive focus:ring-kore-destructive/30 focus:border-kore-destructive' : 'border-kore-input',
-        $controls ? 'rounded-none border-x-0' : 'rounded-kore-md',
+        'disabled:cursor-not-allowed',
+        $inputStateClasses,
         $sizeClasses,
     ])->filter()->implode(' ');
+
+    // `readonly` tiene que alcanzar también a las flechas. Puesto solo sobre el
+    // input, el campo no se podía teclear pero «+» y «−» seguían cambiando el
+    // valor: un campo de solo lectura que se dejaba editar. Se apagan igual que
+    // con `disabled`, y se atenúan aparte —con `disabled` la opacidad ya la pone
+    // el contenedor sobre todo el grupo, y encadenar las dos daría un 25%.
+    $controlsInert = $disabled || $readonly;
+
+    // Los botones ya no dibujan su propio recuadro: solo el divisor que los
+    // separa del input dentro del marco común.
+    $buttonBaseClasses = collect([
+        'inline-flex items-center justify-center shrink-0 bg-kore-bg text-kore-muted-fg transition-colors disabled:cursor-not-allowed',
+        $controlsInert ? '' : 'hover:bg-kore-muted hover:text-kore-fg',
+        $readonly && ! $disabled ? 'opacity-50' : '',
+    ])->filter()->implode(' ');
+    $decrementButtonClasses = $buttonWidth . ' ' . $buttonBaseClasses . ' border-r border-kore-input';
+    $incrementButtonClasses = $buttonWidth . ' ' . $buttonBaseClasses . ' border-l border-kore-input';
 
     $wireModelAttr = $attributes->whereStartsWith('wire:model');
 
@@ -128,7 +168,7 @@
     {{-- Currency mode: formatted text input + hidden input for wire:model --}}
     <div
         x-data="KoreNumber({{ $jsConfig }})"
-        class="flex items-stretch {{ $controls ? 'inline-flex' : '' }}"
+        class="{{ $groupClasses }}"
     >
         {{-- Hidden input for wire:model (raw numeric value) --}}
         <input type="hidden" x-ref="hiddenInput" {{ $wireModelAttr }}
@@ -143,8 +183,8 @@
                 x-on:touchstart.prevent="startHold(() => decrement())"
                 x-on:touchend="stopHold()"
                 aria-label="{{ config('kore-ui.form.translations.decrement', 'Restar') }}"
-                class="{{ $buttonWidth }} inline-flex items-center justify-center shrink-0 rounded-l-kore-md border border-kore-input bg-kore-bg text-kore-muted-fg hover:bg-kore-muted hover:text-kore-fg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                @if($disabled) disabled @endif
+                class="{{ $decrementButtonClasses }}"
+                @if($controlsInert) disabled @endif
             >
                 <x-lucide-minus class="{{ $iconSizeClasses }}" />
             </button>
@@ -179,8 +219,8 @@
                 x-on:touchstart.prevent="startHold(() => increment())"
                 x-on:touchend="stopHold()"
                 aria-label="{{ config('kore-ui.form.translations.increment', 'Sumar') }}"
-                class="{{ $buttonWidth }} inline-flex items-center justify-center shrink-0 rounded-r-kore-md border border-kore-input bg-kore-bg text-kore-muted-fg hover:bg-kore-muted hover:text-kore-fg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                @if($disabled) disabled @endif
+                class="{{ $incrementButtonClasses }}"
+                @if($controlsInert) disabled @endif
             >
                 <x-lucide-plus class="{{ $iconSizeClasses }}" />
             </button>
@@ -249,13 +289,29 @@
                 clearInterval(this.holdInterval);
                 this.holdTimeout = null;
                 this.holdInterval = null;
+                this._commit();
+            },
+            /* Cierra la interacción con las flechas. El evento `input` que
+               despachan increment()/decrement() solo lo escucha
+               `wire:model.live`; `.blur` espera `blur` y `.change` espera
+               `change`, y ninguno ocurre cuando el valor lo mueve un botón: el
+               foco no ha estado nunca dentro del campo. Medido: tres clics en
+               «+» con `wire:model.blur` dejaban el cliente en 3 y el servidor
+               en 0, y salir del campo tampoco lo arreglaba porque no había de
+               dónde salir. Se cierra al soltar, no en cada paso, para que
+               mantener el botón pulsado no dispare una petición por unidad. */
+            _commit() {
+                let input = this.$refs.input;
+                if (!input) return;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+                input.dispatchEvent(new Event('blur', { bubbles: true }));
             },
             _onKeydown(e) {
                 const blocked = {{ $blockDecimals ? "['e','E','.',',']" : "['e','E']" }};
                 if (blocked.includes(e.key)) e.preventDefault();
             }
         }"
-        class="flex items-stretch {{ $controls ? 'inline-flex' : '' }}"
+        class="{{ $groupClasses }}"
     >
         @if($controls)
             <button
@@ -266,8 +322,8 @@
                 x-on:touchstart.prevent="startHold(() => decrement())"
                 x-on:touchend="stopHold()"
                 aria-label="{{ config('kore-ui.form.translations.decrement', 'Restar') }}"
-                class="{{ $buttonWidth }} inline-flex items-center justify-center shrink-0 rounded-l-kore-md border border-kore-input bg-kore-bg text-kore-muted-fg hover:bg-kore-muted hover:text-kore-fg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                @if($disabled) disabled @endif
+                class="{{ $decrementButtonClasses }}"
+                @if($controlsInert) disabled @endif
             >
                 <x-lucide-minus class="{{ $iconSizeClasses }}" />
             </button>
@@ -301,8 +357,8 @@
                 x-on:touchstart.prevent="startHold(() => increment())"
                 x-on:touchend="stopHold()"
                 aria-label="{{ config('kore-ui.form.translations.increment', 'Sumar') }}"
-                class="{{ $buttonWidth }} inline-flex items-center justify-center shrink-0 rounded-r-kore-md border border-kore-input bg-kore-bg text-kore-muted-fg hover:bg-kore-muted hover:text-kore-fg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                @if($disabled) disabled @endif
+                class="{{ $incrementButtonClasses }}"
+                @if($controlsInert) disabled @endif
             >
                 <x-lucide-plus class="{{ $iconSizeClasses }}" />
             </button>

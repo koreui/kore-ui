@@ -8,20 +8,45 @@
     'collapsible' => false,
     'collapsed' => false,
     'loading' => false,
+    'skeleton' => false,
     'bordered' => null,
     'shadow' => null,
-    'padding' => true,
+    'padding' => null,
 ])
 
 @php
-    $bordered = $bordered ?? config('kore-ui.ui.card.bordered', true);
-    $shadow = $shadow ?? config('kore-ui.ui.card.shadow', true);
+    // El aspecto sale de la cascada: prop → `ui.card` → `ui.look` → el defecto
+    // de aquí. Ver KoreUi\Core\Support\Look.
+    $bordered = \KoreUi\Core\Support\Look::resolver('card', 'bordered', $bordered, true);
+    $shadow = \KoreUi\Core\Support\Look::resolver('card', 'shadow', $shadow, true);
+    $padding = \KoreUi\Core\Support\Look::resolver('card', 'padding', $padding, true);
     $tag = $href ? 'a' : 'div';
+
+    // `loading` y `skeleton` no son lo mismo y conviven a propósito: el primero
+    // echa un velo por encima de un contenido que ya está pintado, el segundo
+    // dibuja la silueta de lo que todavía no ha llegado. Un entero elige cuántas
+    // líneas tiene el cuerpo: `:skeleton="5"`.
+    $siluetaActiva = $skeleton !== false && $skeleton !== null;
+    $lineasSilueta = is_numeric($skeleton) ? (int) $skeleton : 3;
 @endphp
+
+@if($siluetaActiva)
+    <x-kore::skeleton.card
+        :lines="$lineasSilueta"
+        :image="(bool) $image"
+        :image-position="$imagePosition"
+        :header="(bool) ($title || isset($header))"
+        :footer="isset($footer)"
+        :bordered="$bordered"
+        :shadow="$shadow"
+        :padding="$padding"
+        {{ $attributes->except(['title', 'subtitle', 'image', 'imagePosition', 'href', 'target', 'collapsible', 'collapsed', 'loading', 'skeleton', 'bordered', 'shadow', 'padding']) }}
+    />
+@else
 
 <{{ $tag }}
     {{ $attributes
-        ->except(['title', 'subtitle', 'image', 'imagePosition', 'href', 'target', 'collapsible', 'collapsed', 'loading', 'bordered', 'shadow', 'padding'])
+        ->except(['title', 'subtitle', 'image', 'imagePosition', 'href', 'target', 'collapsible', 'collapsed', 'loading', 'skeleton', 'bordered', 'shadow', 'padding'])
         ->class([
             'relative rounded-kore-lg bg-kore-surface overflow-hidden',
             'border border-kore-border' => $bordered,
@@ -137,3 +162,4 @@
         </div>
     @endif
 </{{ $tag }}>
+@endif

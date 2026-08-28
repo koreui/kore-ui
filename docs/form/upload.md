@@ -33,6 +33,7 @@ File upload with drag & drop, real-time progress via Livewire, client-side valid
 | `static` | bool | false | Display pre-existing files (no upload zone) |
 | `staticFiles` | array | null | Array of existing file objects for static mode |
 | `disabled` | bool | false | Disabled state |
+| `readonly` | bool | false | Oculta la zona de selección y el borrado; la lista se ve |
 | `required` | bool | false | Required indicator |
 | `showError` | bool | true | Auto-detect errors from `$errors` bag |
 | `invalidSizeMessage` | string | null | Custom message for size validation errors |

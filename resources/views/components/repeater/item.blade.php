@@ -2,6 +2,7 @@
     'fields' => [],
     'reorderable' => false,
     'deletable' => true,
+    'readonly' => false,
 ])
 
 @php
@@ -18,10 +19,10 @@
 @endphp
 
 <div
-    @if($reorderable) x-sort:item="index" @endif
+    @if($reorderable && ! $readonly) x-sort:item="index" @endif
     class="flex items-start gap-2 rounded-kore-lg border border-kore-border bg-kore-surface p-3"
 >
-    @if($reorderable)
+    @if($reorderable && ! $readonly)
         <button
             type="button"
             x-sort:handle
@@ -46,7 +47,16 @@
                 @endisset
 
                 @if($type === 'select')
-                    <select x-model="row['{{ $key }}']" x-on:change="_sync()" class="{{ $inputBase }}">
+                    <select
+                        x-model="row['{{ $key }}']"
+                        x-on:change="_sync()"
+                        @if($readonly)
+                            aria-readonly="true"
+                            x-on:mousedown.prevent
+                            x-on:keydown="if ($event.key !== 'Tab') $event.preventDefault()"
+                        @endif
+                        class="{{ $inputBase }}"
+                    >
                         <option value="">—</option>
                         @foreach(($field['options'] ?? []) as $value => $optLabel)
                             <option value="{{ $value }}">{{ $optLabel }}</option>
@@ -58,6 +68,7 @@
                         x-model="row['{{ $key }}']"
                         x-on:change="_sync()"
                         placeholder="{{ $placeholder }}"
+                        @if($readonly) readonly @endif
                         class="{{ $inputBase }}"
                     />
                 @endif
@@ -65,7 +76,7 @@
         @endforeach
     </div>
 
-    @if($deletable)
+    @if($deletable && ! $readonly)
         <button
             type="button"
             x-on:click="removeRow(index)"

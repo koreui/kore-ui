@@ -2,16 +2,30 @@
     'selected' => null,
     'linear' => false,
     'variant' => null,
+    'skeleton' => false,
 ])
 
 @php
     $tPaso = config('kore-ui.ui.translations.step', 'Paso');
     $variant = $variant ?? config('kore-ui.ui.stepper.variant', 'horizontal');
+
+    // Cuántos pasos dibuja la silueta: `:skeleton="4"`. Los pasos de verdad los
+    // registran los hijos en tiempo de ejecución, así que aquí no se saben.
+    $siluetaActiva = $skeleton !== false && $skeleton !== null;
+    $pasosSilueta = is_numeric($skeleton) ? (int) $skeleton : 3;
 @endphp
+
+@if($siluetaActiva)
+    <x-kore::skeleton.stepper
+        :steps="$pasosSilueta"
+        :variant="$variant"
+        {{ $attributes->except(['selected', 'linear', 'variant', 'skeleton']) }}
+    />
+@else
 
 <div
     {{ $attributes
-        ->except(['selected', 'linear', 'variant'])
+        ->except(['selected', 'linear', 'variant', 'skeleton'])
         ->class(['w-full'])
     }}
     x-data="KoreStepper({ selected: @js($selected), linear: @js($linear), variant: @js($variant) })"
@@ -172,3 +186,4 @@
         </div>
     @endif
 </div>
+@endif

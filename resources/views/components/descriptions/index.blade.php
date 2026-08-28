@@ -11,7 +11,7 @@
 @php
     $columns = $columns ?? config('kore-ui.ui.descriptions.columns', 1);
     $layout = $layout ?? config('kore-ui.ui.descriptions.layout', 'horizontal');
-    $bordered = $bordered ?? config('kore-ui.ui.descriptions.bordered', false);
+    $bordered = \KoreUi\Core\Support\Look::resolver('descriptions', 'bordered', $bordered, false);
     $size = $size ?? config('kore-ui.ui.descriptions.size', 'md');
 
     $colsClasses = match((int) $columns) {

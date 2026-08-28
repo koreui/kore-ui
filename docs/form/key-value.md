@@ -30,6 +30,7 @@ public array $meta = ['env' => 'production'];
 | `reorderable` | `bool` | `false` | Permite reordenar arrastrando (usa `x-sort`) |
 | `max` | `int\|null` | `null` | Límite de filas |
 | `disabled` | `bool` | `false` | Desactiva el editor |
+| `readonly` | bool | false | No añade, borra ni reordena pares; el valor se envía |
 | `required` | `bool` | `false` | Marca el campo como obligatorio |
 
 ## Reordenable

@@ -126,6 +126,28 @@ export default (config) => ({
         clearInterval(this.holdInterval);
         this.holdTimeout = null;
         this.holdInterval = null;
+        this._commit();
+    },
+
+    /**
+     * Cierra la interacción con las flechas.
+     *
+     * `_sync()` despacha `input`, que es lo que escucha `wire:model.live`. Los
+     * demás modificadores esperan otro evento: `.blur` espera `blur` y `.change`
+     * espera `change`, y ninguno de los dos ocurre cuando el valor lo cambia un
+     * botón —el foco no ha estado nunca dentro del campo—. Medido: tres clics en
+     * «+» con `wire:model.blur` dejaban el cliente en 3 y el servidor en 0, y
+     * salir del campo tampoco lo arreglaba, porque no había nada de lo que salir.
+     *
+     * Un clic en la flecha es una interacción terminada, así que aquí se cierra:
+     * al soltar, no en cada paso, para que mantener el botón pulsado no dispare
+     * una petición por unidad.
+     */
+    _commit() {
+        const input = this.$refs.hiddenInput;
+        if (!input) return;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        input.dispatchEvent(new Event('blur', { bubbles: true }));
     },
 
     _sync() {

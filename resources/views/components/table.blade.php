@@ -3,19 +3,31 @@
     'rows' => [],
     'striped' => false,
     'hoverable' => true,
-    'bordered' => false,
+    'bordered' => null,
     'headerless' => false,
-    'compact' => false,
+    'compact' => null,
+    'shadow' => null,
     'responsive' => true,
     'density' => null,
     'emptyText' => null,
     'emptyIcon' => null,
     'caption' => null,
     'captionHidden' => false,
+    'skeleton' => false,
 ])
 
 @php
-    $density = $compact ? 'compact' : ($density ?? config('kore-ui.datatable.density', 'normal'));
+    // `bordered` estaba declarado como prop y no lo leía nadie: escribirlo no
+    // hacía absolutamente nada. En una tabla significa las líneas verticales
+    // entre columnas —las horizontales ya las pone `divide-y`—, y se aplican con
+    // selectores sobre la tabla para que valgan también en las celdas que llegan
+    // por slot, que el componente no controla.
+    $bordered = \KoreUi\Core\Support\Look::resolver('table', 'bordered', $bordered, false);
+    $shadow = \KoreUi\Core\Support\Look::resolver('table', 'shadow', $shadow, false);
+    $compact = \KoreUi\Core\Support\Look::resolver('table', 'compact', $compact, false);
+
+    // `density` es más específico que `compact`: si la etiqueta lo dice, manda.
+    $density = $density ?? ($compact ? 'compact' : config('kore-ui.datatable.density', 'normal'));
     $emptyText = $emptyText ?? config('kore-ui.datatable.empty_text', 'No se encontraron resultados');
     $emptyIcon = $emptyIcon ?? config('kore-ui.datatable.empty_icon', 'inbox');
 
@@ -43,13 +55,35 @@
     })->all();
 
     $colCount = count($normalizedHeaders);
+
+    // La silueta se dibuja con las columnas que ya se conocen —las cabeceras
+    // llegan antes que las filas— y con el número de filas que se le pida:
+    // `:skeleton="10"`. Sin cabeceras declaradas, cuatro columnas de muestra.
+    $siluetaActiva = $skeleton !== false && $skeleton !== null;
+    $filasSilueta = is_numeric($skeleton) ? (int) $skeleton : 5;
 @endphp
 
-<div {{ $attributes->class([
+@if($siluetaActiva)
+    <x-kore::skeleton.table
+        :columns="$colCount ?: 4"
+        :rows="$filasSilueta"
+        :headerless="$headerless"
+        :density="$density"
+        :responsive="$responsive"
+        :shadow="$shadow"
+        {{ $attributes->except(['skeleton']) }}
+    />
+@else
+
+<div {{ $attributes->except(['bordered', 'shadow', 'compact'])->class([
     'rounded-kore-lg border border-kore-border bg-kore-surface',
+    'shadow-sm' => $shadow,
     'overflow-x-auto' => $responsive,
 ]) }}>
-    <table class="min-w-full divide-y divide-kore-border">
+    <table @class([
+        'min-w-full divide-y divide-kore-border',
+        '[&_th]:border-r [&_td]:border-r [&_th]:border-kore-border [&_td]:border-kore-border [&_th:last-child]:border-r-0 [&_td:last-child]:border-r-0' => $bordered,
+    ])>
         {{-- El nombre de la tabla.
 
              Sin él, un lector de pantalla anuncia «tabla, 3 columnas, 3 filas» y
@@ -122,3 +156,4 @@
         @endif
     </table>
 </div>
+@endif

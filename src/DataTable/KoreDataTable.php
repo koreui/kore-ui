@@ -32,6 +32,16 @@ abstract class KoreDataTable extends Component
     protected string $density = 'normal';
 
     /**
+     * Cómo se pinta el pie de página: `default`, `simple`, `compact` o `minimal`.
+     *
+     * No cambia lo que se calcula —en qué página se está, a dónde se puede ir—,
+     * solo su forma. `compact` ocupa lo mismo con veinte páginas que con dos mil,
+     * y `simple` es el único que tiene sentido con paginación por cursor, donde
+     * no hay números que enseñar.
+     */
+    protected string $paginatorVariant = 'default';
+
+    /**
      * Max height (px) for the scrollable table region. When set, the table
      * scrolls internally and the header becomes sticky within it (a sticky
      * header cannot work while the wrapper relies on page scroll + overflow-x).
@@ -187,6 +197,7 @@ abstract class KoreDataTable extends Component
     {
         // 1 · Valores por defecto de la configuración global.
         $this->density         = config('kore-ui.datatable.density', 'normal');
+        $this->paginatorVariant = config('kore-ui.datatable.paginator', 'default');
         $this->tableLayout     = config('kore-ui.datatable.table_layout', 'auto') === 'fixed' ? 'fixed' : 'auto';
         $this->deferredLoading = (bool) config('kore-ui.datatable.deferred_loading', false);
         $this->applyColumnSelectConfig();
@@ -332,6 +343,13 @@ abstract class KoreDataTable extends Component
     public function getDensity(): string
     {
         return $this->density;
+    }
+
+    public function getPaginatorVariant(): string
+    {
+        return in_array($this->paginatorVariant, ['default', 'simple', 'compact', 'minimal'], true)
+            ? $this->paginatorVariant
+            : 'default';
     }
 
     public function getMaxHeight(): ?int
@@ -536,6 +554,7 @@ abstract class KoreDataTable extends Component
             'rows'                => $rows,
             'columns'             => $columns,
             'density'             => $this->getDensity(),
+            'paginatorVariant'    => $this->getPaginatorVariant(),
             'tableLayout'         => $this->getTableLayout(),
             'maxHeight'           => $this->getMaxHeight(),
             'emptyText'           => $this->getEmptyText(),

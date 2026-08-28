@@ -7,6 +7,7 @@
     'placeholder' => null,
     'clearable' => false,
     'disabled' => false,
+    'readonly' => false,
     'required' => false,
     'showError' => true,
 
@@ -63,6 +64,11 @@
         'minuteStep' => $minuteStep > 1 ? $minuteStep : null,
     ], fn ($v) => $v !== null));
 
+    // Solo lectura: la hora se lee y se envía, pero el panel no se abre y la «x»
+    // de limpiar desaparece. El disparador sigue enfocable —es la única forma de
+    // llegar al valor con el teclado— con `aria-readonly` para anunciarlo.
+    $edicionBloqueada = $disabled || $readonly;
+
     // Los atributos que el consumidor escribe en la etiqueta y que ningún
     // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
     // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
@@ -99,10 +105,11 @@
         <button
             type="button"
             x-ref="trigger"
-            x-on:click="toggle()"
+            @if(! $edicionBloqueada) x-on:click="toggle()" @endif
             id="{{ $fieldId }}"
-            class="{{ $baseClasses }} flex items-center justify-between gap-2 text-left cursor-pointer {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
+            class="{{ $baseClasses }} flex items-center justify-between gap-2 text-left {{ $edicionBloqueada ? 'cursor-default' : 'cursor-pointer' }} {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
             @if($disabled) disabled @endif
+            @if($readonly) aria-readonly="true" @endif
             role="combobox"
             aria-haspopup="dialog"
             x-bind:aria-expanded="open"
@@ -113,7 +120,7 @@
             </div>
 
             <div class="flex items-center gap-1 shrink-0">
-                @if($clearable)
+                @if($clearable && ! $edicionBloqueada)
                     <template x-if="hasValue">
                         <button
                             type="button"

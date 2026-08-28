@@ -39,7 +39,7 @@ Cada entrada de `fields` define una columna de la fila:
 | Prop | Tipo | Default | Descripción |
 |------|------|---------|-------------|
 | `fields` | `array` | `[]` | Schema de campos por fila |
-| `label`, `hint`, `name`, `error`, `size`, `required`, `disabled`, `showError` | — | — | Convención de formulario |
+| `label`, `hint`, `name`, `error`, `size`, `required`, `disabled`, `readonly`, `showError` | — | — | Convención de formulario. `readonly` deja las filas a la vista sin editar, reordenar ni borrar, y sigue enviando el valor |
 | `min` | `int` | `0` | Filas mínimas (no se puede bajar de aquí) |
 | `max` | `int\|null` | `null` | Filas máximas |
 | `addLabel` | `string` | `Añadir` | Texto del botón de añadir |

@@ -26,15 +26,17 @@ Componente Blade estatico para tablas simples. Recibe arrays o collections y ren
 | `rows` | `array\|Collection` | `[]` | Filas de datos |
 | `striped` | `bool` | `false` | Filas alternas con fondo |
 | `hoverable` | `bool` | `true` | Highlight al hover |
-| `bordered` | `bool` | `false` | Borde visible |
+| `bordered` | `bool\|null` | `null` | Líneas verticales entre columnas. Ver [aspecto](../ui/look.md) |
 | `headerless` | `bool` | `false` | Oculta el header |
-| `compact` | `bool` | `false` | Shortcut para `density="compact"` |
+| `compact` | `bool\|null` | `null` | Atajo para `density="compact"`; `density` explícito manda sobre él. Ver [aspecto](../ui/look.md) |
 | `responsive` | `bool` | `true` | Scroll horizontal en pantallas pequenas |
 | `density` | `string\|null` | `config(normal)` | Densidad: `compact`, `normal`, `relaxed` |
 | `emptyText` | `string\|null` | `config` | Texto cuando no hay filas |
 | `emptyIcon` | `string\|null` | `config(inbox)` | Icono del estado vacio (Lucide) |
 | `caption` | `string\|null` | `null` | Nombre de la tabla, en un `<caption>` |
 | `captionHidden` | `bool` | `false` | Deja el caption solo para lectores de pantalla |
+| `skeleton` | `bool\|int` | `false` | Silueta mientras no hay filas; el entero elige cuántas, y las columnas salen de `:headers`. Ver [skeleton](../ui/skeleton.md#siluetas-de-componente) |
+| `shadow` | `bool\|null` | `null` | Sombra de la superficie. Ver [aspecto](../ui/look.md) |
 
 ### Nombrar la tabla
 
@@ -203,3 +205,8 @@ Los sub-componentes se usan internamente pero estan disponibles para composicion
 | `perPage` | `int` | `25` |
 | `perPageOptions` | `array` | `config` |
 | `showingText` | `string\|null` | `null` |
+
+## Aspecto
+
+`bordered`, `shadow`, `padding` y `compact` se pueden fijar también para toda la
+librería desde `config/kore-ui.php`. Ver [aspecto de las superficies](../ui/look.md).

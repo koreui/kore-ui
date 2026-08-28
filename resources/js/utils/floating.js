@@ -14,7 +14,7 @@ import { computePosition, flip, shift, offset, autoUpdate } from '@floating-ui/d
  *               offset: 4,
  *               sameWidth: true,         // match trigger width
  *               fixedWidth: 380,         // or set a fixed px width
- *               onClose: () => this.close(),
+ *               onClose: () => this.close(),   // se llama si el ancla deja de pintarse
  *           });
  *       });
  *   }
@@ -83,7 +83,37 @@ export function startFloating(reference, floating, opts = {}) {
     }
 
     let positioned = false;
+    let cerrado = false;
+
+    /**
+     * ¿El ancla ha dejado de pintarse?
+     *
+     * Un panel se posiciona contra su disparador, pero nadie le avisa cuando ese
+     * disparador desaparece: basta con que un `display:none` caiga sobre un
+     * contenedor por encima —una pestaña que cambia, un acordeón que se cierra,
+     * una fila que se colapsa— y el panel se queda en pantalla, sin referencia,
+     * encogido en la esquina superior izquierda. Medido: 2px de ancho en (8, 4).
+     *
+     * `getClientRects()` vacío es la prueba estándar de que un elemento no se
+     * está renderizando, y cubre tanto el `display:none` como salir del DOM.
+     * Solo se aplica a anclas que son nodos: una referencia virtual —el punto de
+     * datos de un gráfico— no tiene caja por definición, y su rect vacío es
+     * legítimo.
+     */
+    const anclaPerdida = () => isDomNode(reference)
+        && (!reference.isConnected || reference.getClientRects().length === 0);
+
     const update = () => {
+        // Solo después de haberse colocado una vez: si el ancla no llegó a estar
+        // visible nunca, no hay nada que cerrar y cerrar sería inventarse un
+        // evento que el usuario no ha provocado.
+        if (positioned && !cerrado && anclaPerdida()) {
+            cerrado = true;
+            floating.style.visibility = 'hidden';
+            opts.onClose?.();
+            return;
+        }
+
         if (opts.sameWidth) {
             floating.style.width = reference.getBoundingClientRect().width + 'px';
         }

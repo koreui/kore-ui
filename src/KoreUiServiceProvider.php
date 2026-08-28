@@ -72,8 +72,16 @@ class KoreUiServiceProvider extends ServiceProvider
         Livewire::component('kore-confirm-dialog', ConfirmDialog::class);
         Livewire::component('kore-spotlight-manager', SpotlightManager::class);
 
-        Route::get('/vendor/kore-ui/kore-ui.js', function () {
-            $bundle = __DIR__.'/../dist/kore-ui.js';
+        $servir = function (string $archivo) {
+            $bundle = __DIR__.'/../dist/'.$archivo;
+
+            // Un bundle que falta —una instalación a medias, un `dist/` sin
+            // construir— tiene que dar 404 y no una excepción: el 500 se lleva
+            // por delante la página entera por un archivo que el navegador
+            // simplemente no habría cargado.
+            if (! is_file($bundle)) {
+                abort(404);
+            }
 
             // `immutable` con un año de caché solo es honesto si la URL cambia
             // cuando cambia el archivo: @koreScripts le añade ?id= con la huella
@@ -88,7 +96,16 @@ class KoreUiServiceProvider extends ServiceProvider
                     ? 'public, max-age=31536000, immutable'
                     : 'public, max-age=0, must-revalidate',
             ]);
-        })->name('kore-ui.scripts');
+        };
+
+        Route::get('/vendor/kore-ui/kore-ui.js', fn () => $servir('kore-ui.js'))
+            ->name('kore-ui.scripts');
+
+        // El editor va aparte: pesa un sexto de todo el JavaScript de la
+        // librería y la mayoría de las páginas no lo usan. Lo carga el propio
+        // componente cuando aparece, no `@koreScripts`.
+        Route::get('/vendor/kore-ui/kore-ui-editor.js', fn () => $servir('kore-ui-editor.js'))
+            ->name('kore-ui.scripts.editor');
 
         Blade::directive('koreScripts', function () {
             return "<?php echo '<script src=\"'.\KoreUi\KoreUiServiceProvider::scriptUrl().'\"></script>'; ?>";
@@ -126,14 +143,30 @@ class KoreUiServiceProvider extends ServiceProvider
      */
     public static function scriptUrl(): string
     {
-        static $huella = null;
+        return route('kore-ui.scripts', ['id' => self::huella('kore-ui.js')]);
+    }
 
-        if ($huella === null) {
-            $bundle = __DIR__.'/../dist/kore-ui.js';
-            $huella = is_file($bundle) ? substr(md5((string) filemtime($bundle)), 0, 8) : 'dev';
+    /**
+     * La URL del bundle del editor, que se carga aparte.
+     *
+     * La pide `<x-kore::editor>` cuando aparece en la página. Quien no use el
+     * editor no descarga sus 6,7 kB.
+     */
+    public static function editorScriptUrl(): string
+    {
+        return route('kore-ui.scripts.editor', ['id' => self::huella('kore-ui-editor.js')]);
+    }
+
+    protected static function huella(string $archivo): string
+    {
+        static $huellas = [];
+
+        if (! isset($huellas[$archivo])) {
+            $bundle = __DIR__.'/../dist/'.$archivo;
+            $huellas[$archivo] = is_file($bundle) ? substr(md5((string) filemtime($bundle)), 0, 8) : 'dev';
         }
 
-        return route('kore-ui.scripts', ['id' => $huella]);
+        return $huellas[$archivo];
     }
 
     protected function loadBreadcrumbs(): void

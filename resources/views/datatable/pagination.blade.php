@@ -4,6 +4,12 @@
 
     if (! $paginator) return;
 
+    // La variante decide cómo se pinta, no qué se calcula: el estado —cursor o
+    // no, en qué página se está, a dónde se puede ir— es el mismo para las
+    // cuatro y se resuelve aquí una sola vez.
+    $variante = $variante ?? config('kore-ui.datatable.paginator', 'default');
+    $variante = in_array($variante, ['default', 'simple', 'compact', 'minimal'], true) ? $variante : 'default';
+
     // Un CursorPaginator no tiene número de página: reenvía las llamadas que no
     // conoce a su colección, así que preguntarle currentPage() reventaba con un
     // «Method Collection::currentPage does not exist» y tumbaba la página entera.
@@ -15,11 +21,27 @@
     $currentPage  = $isCursor ? null : $paginator->currentPage();
     $lastPage     = (! $isCursor && method_exists($paginator, 'lastPage')) ? $paginator->lastPage() : null;
 
+    // A dónde lleva cada flecha, o null si no lleva a ninguna parte. Las cuatro
+    // variantes reciben esto ya resuelto y no vuelven a preguntar por el cursor.
+    if ($isCursor) {
+        $accionAnterior = $paginator->previousCursor()
+            ? 'setCursor(' . json_encode($paginator->previousCursor()->encode()) . ')'
+            : null;
+        $accionSiguiente = $paginator->nextCursor()
+            ? 'setCursor(' . json_encode($paginator->nextCursor()->encode()) . ')'
+            : null;
+    } else {
+        $accionAnterior = $onFirstPage ? null : 'previousPage';
+        $accionSiguiente = $hasMorePages ? 'nextPage' : null;
+    }
+
     // Ventana de páginas con elipsis. Se calcula con aritmética y no recorriendo
     // 1..$lastPage: con un millón de filas a 25 por página eso eran 40.000
     // vueltas por render para pintar siempre los mismos seis botones.
+    //
+    // `compact` y `simple` no la usan, así que tampoco se calcula para ellas.
     $pages = [];
-    if ($lastPage !== null && $lastPage > 1) {
+    if (in_array($variante, ['default', 'minimal'], true) && $lastPage !== null && $lastPage > 1) {
         $window = 2; // páginas a cada lado de la actual
 
         $from = max(2, $currentPage - $window);
@@ -41,11 +63,6 @@
 
         $pages[] = $lastPage;
     }
-
-    $btnBase = 'inline-flex items-center justify-center size-8 text-sm rounded-kore-md transition-colors focus:outline-none focus:ring-2 focus:ring-kore-ring';
-    $btnActive = 'bg-kore-primary text-kore-primary-fg font-medium';
-    $btnNormal = 'text-kore-fg hover:bg-kore-muted';
-    $btnDisabled = 'text-kore-muted-fg/40 cursor-not-allowed';
 @endphp
 
 <div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-kore-border">
@@ -64,87 +81,16 @@
     {{-- Page controls. Solo si hay a dónde ir: con una única página los
          botones sobran, pero el recuento de arriba sigue haciendo falta. --}}
     @if(method_exists($paginator, 'hasPages') ? $paginator->hasPages() : true)
-    <nav class="flex items-center gap-1" aria-label="{{ config('kore-ui.datatable.translations.pagination', 'Paginación') }}">
-        {{-- Previous --}}
-        @if($isCursor)
-            @if($paginator->previousCursor())
-                <button
-                    type="button"
-                    wire:click="setCursor(@js($paginator->previousCursor()->encode()))"
-                    class="{{ $btnBase }} {{ $btnNormal }}"
-                    aria-label="{{ config('kore-ui.datatable.translations.previous', 'Anterior') }}"
-                >
-                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
-                </button>
-            @else
-                <span class="{{ $btnBase }} {{ $btnDisabled }}" aria-disabled="true" aria-label="{{ config('kore-ui.datatable.translations.previous', 'Anterior') }}">
-                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
-                </span>
-            @endif
-
-            @if($paginator->nextCursor())
-                <button
-                    type="button"
-                    wire:click="setCursor(@js($paginator->nextCursor()->encode()))"
-                    class="{{ $btnBase }} {{ $btnNormal }}"
-                    aria-label="{{ config('kore-ui.datatable.translations.next', 'Siguiente') }}"
-                >
-                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-                </button>
-            @else
-                <span class="{{ $btnBase }} {{ $btnDisabled }}" aria-disabled="true" aria-label="{{ config('kore-ui.datatable.translations.next', 'Siguiente') }}">
-                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-                </span>
-            @endif
-        @elseif($onFirstPage)
-            <span class="{{ $btnBase }} {{ $btnDisabled }}" aria-disabled="true" aria-label="{{ config('kore-ui.datatable.translations.previous', 'Anterior') }}">
-                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
-            </span>
-        @else
-            <button
-                type="button"
-                wire:click="previousPage"
-                class="{{ $btnBase }} {{ $btnNormal }}"
-                aria-label="{{ config('kore-ui.datatable.translations.previous', 'Anterior') }}"
-            >
-                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
-            </button>
-        @endif
-
-        {{-- Page numbers --}}
-        @if(! $isCursor)
-        @foreach($pages as $page)
-            @if($page === '...')
-                <span class="{{ $btnBase }} {{ $btnDisabled }}">…</span>
-            @elseif($page === $currentPage)
-                <span class="{{ $btnBase }} {{ $btnActive }}" aria-current="page">{{ $page }}</span>
-            @else
-                <button
-                    type="button"
-                    wire:click="gotoPage({{ $page }})"
-                    class="{{ $btnBase }} {{ $btnNormal }}"
-                >
-                    {{ $page }}
-                </button>
-            @endif
-        @endforeach
-
-        {{-- Next --}}
-        @if($hasMorePages)
-            <button
-                type="button"
-                wire:click="nextPage"
-                class="{{ $btnBase }} {{ $btnNormal }}"
-                aria-label="{{ config('kore-ui.datatable.translations.next', 'Siguiente') }}"
-            >
-                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-            </button>
-        @else
-            <span class="{{ $btnBase }} {{ $btnDisabled }}" aria-disabled="true" aria-label="{{ config('kore-ui.datatable.translations.next', 'Siguiente') }}">
-                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-            </span>
-        @endif
-        @endif
-    </nav>
+        <nav class="flex items-center gap-1" aria-label="{{ config('kore-ui.datatable.translations.pagination', 'Paginación') }}">
+            @include('kore::datatable.paginators.' . $variante, [
+                'paginator' => $paginator,
+                'isCursor' => $isCursor,
+                'currentPage' => $currentPage,
+                'lastPage' => $lastPage,
+                'pages' => $pages,
+                'accionAnterior' => $accionAnterior,
+                'accionSiguiente' => $accionSiguiente,
+            ])
+        </nav>
     @endif
 </div>

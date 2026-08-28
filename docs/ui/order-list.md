@@ -28,7 +28,7 @@ public array $priorityOrder = [];
 |------|------|---------|-------------|
 | `items` | `array` | `[]` | Elementos `[['value' => , 'label' => ], ...]` |
 | `reorderable` | `bool` | `true` | Permite arrastrar (`x-sort`); si `false`, solo lectura |
-| `label`, `hint`, `name`, `error`, `required`, `disabled`, `showError` | — | — | Convención de formulario |
+| `label`, `hint`, `name`, `error`, `required`, `disabled`, `readonly`, `showError` | — | — | Convención de formulario. El orden se ve pero no se cambia con `readonly`, y el valor se sigue enviando |
 
 ## Comportamiento
 

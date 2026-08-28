@@ -17,12 +17,23 @@
     // etiqueta visible, cuando la hay, es un `<span>` decorativo dentro de la
     // caja, no un `<label for>`.
     $campoId = \KoreUi\Core\Support\IdContext::secuencia('kore-clipboard');
+
+    // El botón de copiar no marcaba el foco de teclado por ninguna vía: el input
+    // de la variante `input` lleva `outline-none` sin sustituto y los botones no
+    // tenían anillo. Tabulando hasta aquí no se veía absolutamente nada.
+    //
+    // En la variante `input` el anillo va en el marco del grupo, no en cada
+    // pieza: puestos dentro, el del input y el del botón se apilan en la costura
+    // que los separa. Es el mismo reparto que en `number` y en los addons de
+    // `input`. El botón se distingue del input, ya dentro del marco, con un
+    // fondo propio al recibir el foco.
+    $anilloBoton = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2 ring-offset-kore-bg';
 @endphp
 
 <div x-data="KoreClipboard({ text: @js($text), feedbackDuration: @js($feedbackDuration) })"
      {{ $attributes->class(['inline-flex']) }}>
     @if($variant === 'input')
-        <div class="flex rounded-kore-md border border-kore-border overflow-hidden w-full">
+        <div class="flex rounded-kore-md border border-kore-border overflow-hidden w-full transition-colors focus-within:ring-2 focus-within:ring-kore-ring focus-within:border-kore-primary">
             @if($label)
                 <label for="{{ $campoId }}"
                        class="px-3 py-2 bg-kore-muted text-kore-muted-fg text-sm border-r border-kore-border flex items-center shrink-0">
@@ -37,7 +48,7 @@
                    class="flex-1 px-3 py-2 text-sm bg-kore-surface text-kore-fg outline-none min-w-0" />
             <button type="button" x-on:click="copy()"
                     x-bind:aria-label="copied ? @js($copiado) : @js($copiar)"
-                    class="px-3 border-l border-kore-border bg-kore-surface hover:bg-kore-muted transition-colors flex items-center">
+                    class="px-3 border-l border-kore-border bg-kore-surface hover:bg-kore-muted focus-visible:bg-kore-muted focus-visible:outline-none transition-colors flex items-center">
                 <template x-if="!copied">
                     <x-lucide-copy class="size-4 text-kore-muted-fg" />
                 </template>
@@ -53,7 +64,7 @@
             </span>
             <button type="button" x-on:click="copy()"
                     x-bind:aria-label="copied ? @js($copiado) : @js($copiar)"
-                    class="p-1 rounded-kore-sm hover:bg-kore-muted transition-colors">
+                    class="p-1 rounded-kore-sm hover:bg-kore-muted transition-colors {{ $anilloBoton }}">
                 <template x-if="!copied">
                     <x-lucide-copy class="size-4 text-kore-muted-fg" />
                 </template>
@@ -69,7 +80,7 @@
              librería. --}}
         <button type="button" x-on:click="copy()"
                 x-bind:aria-label="copied ? @js($copiado) : @js($copiar)"
-                class="p-2 rounded-kore-md hover:bg-kore-muted transition-colors">
+                class="p-2 rounded-kore-md hover:bg-kore-muted transition-colors {{ $anilloBoton }}">
             <template x-if="!copied">
                 <x-lucide-copy class="size-4 text-kore-muted-fg" />
             </template>

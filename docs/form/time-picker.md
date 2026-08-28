@@ -21,6 +21,7 @@ Standalone time selection with spinner controls, 12/24 hour format, minute step,
 | `placeholder` | string | null | Placeholder text |
 | `clearable` | bool | false | Show clear button |
 | `disabled` | bool | false | Disabled state |
+| `readonly` | bool | false | No abre el panel; el valor se envía |
 | `required` | bool | false | Required indicator |
 | `showError` | bool | true | Auto-detect errors from `$errors` bag |
 | `timeFormat` | string | `'24'` | Time format: `'24'` or `'12'` (AM/PM) |

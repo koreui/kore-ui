@@ -7,6 +7,434 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [2.1.0] — 2026-08-27
+
+**Un editor de texto enriquecido, y la cosecha de comparar la librería con
+TallStackUI 4.x.** El punto de partida fue un informe
+(`docs/tallstackui-cosecha-2026-08.md`): traerse a esa referencia cinco meses de
+commits, ver qué habían añadido y arreglado, y comprobar **contra nuestro propio
+código** qué de aquello nos pasaba también. Salieron cuatro defectos propios, tres
+patrones que valía la pena adoptar y un componente que faltaba.
+
+### El editor
+
+`<x-kore::editor>` en 6,5 kB gzip, sin una sola dependencia: negrita, títulos,
+listas, cita, código, alineación, enlaces, imágenes, autoformato al teclear y
+pantalla completa. Trix, la opción que barajaba nuestra propia investigación,
+pesa 49 kB.
+
+Dos decisiones lo separan de lo que hay en el ecosistema:
+
+1. **El saneado vive también en el servidor.** Las librerías del stack TALL
+   sanean en el navegador y ahí lo dejan, pero el navegador no es una frontera: el
+   HTML viaja por `wire:model` y se pinta con `{!! !!}`. Aquí están
+   `HtmlSanitizer`, un cast de Eloquent y dos reglas de validación.
+2. **Puede guardar markdown en vez de HTML**, y entonces el problema desaparece de
+   raíz: lo almacenado es texto plano y el marcado lo fabrica el servidor con las
+   etiquetas que decide él.
+
+Lo demás —imágenes con su subida, pantalla completa, bloques de código— no cambia
+el modelo, pero sin ello el componente no se sostiene en un proyecto real.
+
+### Lo que vino de la comparación
+
+| | |
+|---|---|
+| **Silueta por componente** | `card`, `stats`, `table`, `stepper` y `chart` saben dibujarse vacíos con `skeleton` |
+| **Banderas de aspecto** | `bordered`, `shadow`, `padding` y `compact` en cascada, hasta poner la librería entera en plano desde la configuración |
+| **Pie del DataTable** | cuatro formas: `default`, `simple`, `compact`, `minimal` |
+| **Cuatro defectos propios** | `readonly` inexistente en once componentes, las flechas del `number`, un panel flotante que sobrevivía a su ancla y el `clipboard` sin foco visible |
+
+Sigue habiendo cosas suyas sin portar, anotadas en el informe.
+
+### Al actualizar
+
+- **`dist/` tiene ahora dos archivos.** Quien copie el bundle a mano en vez de usar
+  `@koreScripts` necesita también `dist/kore-ui-editor.js`; con la directiva no hay
+  que tocar nada.
+- **`bordered` en `<x-kore::table>` ahora hace algo.** Era un prop declarado que no
+  leía nadie, así que quien lo tuviera escrito verá aparecer las líneas verticales
+  entre columnas.
+- **En esa misma tabla, `density` manda sobre `compact`.** Antes ganaba `compact`;
+  solo cambia si se escriben los dos a la vez, que es contradictorio de por sí.
+
+### Added
+
+- **`<x-kore::editor>`: texto enriquecido sin dependencias.** Negrita, cursiva,
+  subrayado, tachado, títulos, listas, cita, enlaces, quitar formato y
+  deshacer/rehacer, sobre `contenteditable`. El bundle crece 6 KB; Trix, la
+  opción que barajaba `docs/componentes-candidatos-2026.md`, pesa 49.
+
+  ```blade
+  <x-kore::editor label="Descripción" wire:model="descripcion" counter />
+  ```
+
+  **Y la pieza que ninguna librería del stack TALL trae: el saneado en el
+  servidor.** `KoreUi\Editor\HtmlSanitizer` aplica en PHP la misma lista blanca
+  que el navegador. Hace falta porque el saneado del cliente no es una frontera
+  de seguridad: el valor viaja por `wire:model` y cualquiera puede mandar por ese
+  hilo lo que quiera, y como el texto enriquecido solo se ve enriquecido si se
+  pinta con `{!! !!}`, guardarlo sin filtrar es un XSS almacenado. Rechaza
+  `javascript:` y `data:` también escritos con entidades HTML o con caracteres de
+  control por medio —trucos que un navegador ignora al resolver la URL y una
+  comparación ingenua no ve—, y pone `rel="noopener noreferrer"` en todo
+  `target="_blank"`.
+
+  La salida se limita a `p`, `br`, `strong`, `em`, `u`, `s`, `h2`, `h3`, `ul`,
+  `ol`, `li`, `blockquote`, `a` y `code`. Lo desconocido se desenvuelve
+  conservando su texto —un `<span style>` pierde el span, no la palabra—, salvo
+  `script`, `style`, `iframe` y compañía, que se tiran con su contenido.
+
+  Accesibilidad: `role="textbox"` con `aria-multiline`, barra con `role="toolbar"`
+  que es **una sola parada del tabulador** —se recorre con las flechas; con
+  catorce botones, lo contrario son catorce pulsaciones para llegar al texto— y
+  `aria-pressed` con el estado real del cursor. Trae `disabled`, `readonly`,
+  contador y límite de caracteres.
+
+  Tres cosas que solo aparecieron probándolo en un navegador: los botones
+  necesitan `mousedown.prevent` o el clic se lleva la selección antes de aplicar
+  el formato; los comandos que reconstruyen el bloque —listas, títulos— dejan el
+  cursor al principio, así que se guarda y se repone contado en caracteres, que
+  es lo único que sobrevive a la reconstrucción; y el diálogo del enlace tiene
+  que cerrarse **después** de aplicar, porque al ocultarse el campo enfocado se
+  va con él la selección y `createLink` se comía la palabra en vez de enlazarla.
+
+- **`<x-kore::prose>`, y la validación en el servidor.** Publicar lo que escribe
+  el editor tenía dos trampas que había que saberse de memoria: `{!! $cuerpo !!}`
+  sin sanear es un XSS almacenado, y los estilos del texto enriquecido vivían bajo
+  una clase interna del editor —Tailwind arrasa con los del navegador, así que un
+  `<h2>` pesaba lo mismo que un párrafo—.
+
+  ```blade
+  <x-kore::prose :markdown="$articulo->cuerpo" />
+  ```
+
+  Sanea antes de pintar y usa la MISMA clase que el área de escritura: son el
+  mismo contenido en dos momentos, y duplicar dieciséis reglas de CSS sería pedir
+  que se separen sin que nadie se entere. Hay un test de navegador que compara
+  los estilos calculados de ambos.
+
+  Y tres piezas para el servidor:
+
+  - `Casts\SanitizedHtml` limpia al guardar desde el modelo. Llamar al
+    sanitizador a mano funciona hasta que alguien guarda desde un comando o una
+    API y se le olvida.
+  - `Rules\SafeHtml` rechaza el marcado que la lista blanca no admite. Para una
+    API, donde un HTML raro es una señal; en un formulario suele ser mejor
+    limpiar y seguir.
+  - `Rules\MaxTextLength` limita el TEXTO. `max:500` mide la cadena entera, y
+    `<p><strong>Hola</strong></p>` son 4 caracteres para quien escribe y 30 para
+    `max`: el contador del editor decía «4/10» y el formulario contestaba que se
+    había pasado.
+
+- **El editor, probado en un móvil de verdad.** La suite móvil corre en WebKit y
+  solo ejecuta los specs con `-movil` en el nombre, así que el editor no se había
+  probado nunca ahí. Se añade `56-form-editor-movil`, y de paso salieron dos
+  cosas:
+
+  **Seis botones medían 16×16**, por debajo del objetivo táctil que la propia
+  librería exige. La causa: llevaban DOS atributos `class` —uno del `@else` y
+  otro del estático— y el navegador se queda con el primero, así que perdían su
+  tamaño. Pasaba también en escritorio.
+
+  **La barra ocupaba tres filas en un iPhone**, un tercio del componente. Ahora va
+  en una sola fila que se arrastra a lo ancho en pantalla estrecha y vuelve a
+  envolverse a partir de `sm`. Su desplazamiento es suyo: la página no se mueve.
+
+  El diálogo del enlace dejaba el campo en 130px de los 390 de un móvil; la fila
+  envuelve y el campo respira.
+
+  Lo que sí funcionaba: WebKit escribe el mismo `<b>` que Chrome y la lista
+  blanca lo normaliza igual, el autoformato responde y ningún control se queda
+  sin nombre.
+
+- **Tres cosas del editor que lo hacían sentir roto al usarlo.**
+
+  **Deshacer no alcanzaba a la alineación.** Se ponía cambiando la clase del
+  bloque por detrás, y eso ocurre fuera del historial del navegador: se centraba
+  un párrafo, se pulsaba deshacer y ese paso se saltaba como si no hubiera
+  existido. Ahora el bloque se reemplaza con el propio motor de edición. Dentro
+  de una lista se reemplaza la lista entera, porque un `<li>` suelto saldría de
+  ella.
+
+  **No se salía de un bloque de código.** Enter escribe un salto de línea dentro
+  del bloque, así que la única puerta era el botón. Ahora dos Enter seguidos
+  salen, como en cualquier editor. De paso, el salto dentro de un `<pre>` pasa a
+  ser un salto de verdad y no un `<br>`: `textContent` no ve un `<br>`, así que
+  al guardar en markdown el código salía con todas sus líneas pegadas.
+
+  **Tab no anidaba listas** y además sacaba el foco del editor. Ahora anida
+  dentro de una lista y `Shift+Tab` desanida; fuera de una lista se deja pasar a
+  propósito, porque capturarlo siempre encerraría a quien navega con teclado.
+
+  Un apunte para quien pruebe esto: `Ctrl+Z` **no funciona en un navegador
+  headless** —ese atajo lo aplica el navegador, no la página—, ni siquiera sobre
+  texto normal. El primer diagnóstico dio un falso positivo por ahí; hay que
+  probarlo con el botón, que ejecuta el mismo comando.
+
+- **El editor sale del bundle principal.** Pesaba 5,3 kB gzip de los 44 del
+  paquete: un sexto del JavaScript de la librería para un componente que la
+  mayoría de las páginas no usa. Ahora vive en `dist/kore-ui-editor.js` y lo carga
+  el propio componente cuando aparece. Una página sin editor no lo descarga.
+
+  ```
+  dist/kore-ui.js         38,77 kB gzip   (era 44,41)
+  dist/kore-ui-editor.js   6,57 kB gzip   (solo si se usa)
+  ```
+
+  **No hay que configurar nada.** El componente declara su bundle con `@assets` de
+  Livewire, no con un `@once`: un `<script>` que llega dentro de una respuesta de
+  Livewire —un editor dentro de un modal que se abre— **no lo ejecuta el
+  navegador**, porque el morphing lo inserta como marcado. `@assets` es de
+  Livewire justamente para eso. Y como último seguro, el bundle del editor vuelve
+  a inicializar los editores que Alpine ya hubiera recorrido y dejado sin
+  componente, por si llegara tarde de todos modos.
+
+  El presupuesto del principal vuelve a 41 kB con margen, y el editor estrena el
+  suyo de 8: que esté fuera no es permiso para que crezca sin mirarlo. Los dos
+  guardianes —`size` y `dist:check`— cubren ahora los dos bundles.
+
+  De paso queda registrado que el presupuesto **ya estaba excedido en 1,76 kB**
+  antes de todo esto: el guardián solo corre en CI y llevaba tiempo sin mirarse.
+
+- **El editor completa su caja de herramientas**: autoformato al teclear, bloques
+  de código, alineación y pantalla completa.
+
+  Los prefijos convierten el bloque al terminar de escribirlos —`# `, `## `,
+  `- `, `1. `, `> `—, y se disparan con el **espacio**: al vuelo, un `-` recién
+  escrito se convertiría en lista antes de saber si lo que viene es «- pero» o
+  «-5 grados».
+
+  La alineación es el único formato que necesita una clase, y la lista blanca
+  admite `class` **con uno de cuatro valores y nada más**, solo sobre bloques: no
+  es «se permite class», es una lista cerrada. `execCommand` no sirve aquí —
+  `justifyCenter` escribe el atributo `align`, obsoleto desde HTML4, o un `style`
+  que el saneado tira—, así que la clase se pone directamente.
+
+  Un bloque de código es siempre `<pre><code>`, venga del botón o del markdown, y
+  dentro no se interpreta nada: una almohadilla ahí es una almohadilla. La
+  pantalla completa bloquea el fondo con el mismo contador que los modales, y lo
+  suelta si el componente se va mientras está abierta.
+
+  Tres cosas que costó ver: borrar el prefijo vaciando nodos a mano dejaba la
+  selección fuera del bloque y el primer título **se tragaba todo lo escrito
+  después**; el cursor no se puede reponer por posición cuando el comando deja un
+  bloque vacío, porque la cuenta cae al final del bloque anterior; y buscar el
+  bloque como «hijo directo del editable» falla en cuanto hay una lista, porque
+  Chrome anida el párrafo siguiente dentro del `<p>` que la envuelve.
+
+- **El editor sube imágenes.** Por el botón de la barra, pegando o arrastrando
+  y soltando; las tres acaban en el mismo sitio.
+
+  ```blade
+  <x-kore::editor wire:model="cuerpo"
+                  upload-property="imagenEditor"
+                  upload-method="guardarImagen" />
+  ```
+
+  El editor no decide dónde vive un archivo ni con qué URL se sirve —eso es de la
+  aplicación—: sube con `$wire.upload()` a una propiedad y llama a un método del
+  componente, que devuelve la URL. Sin esas dos cosas declaradas **no hay botón**:
+  prometerlo sin un sitio donde dejar el archivo es prometer un error.
+
+  El tipo y el tamaño se comprueban en el navegador antes de gastar el viaje. El
+  texto alternativo sale del nombre del archivo, sin extensión y con los guiones
+  convertidos en espacios: no es una descripción, pero es infinitamente mejor que
+  la cadena vacía.
+
+  `data:` no se admite como origen, aunque para un `src` parezca lo natural: un
+  `data:image/svg+xml` es un documento SVG completo y un SVG puede llevar
+  `<script>` dentro. Toda imagen sale con `loading="lazy"`.
+
+  En modo markdown se guarda como `![alt](url)`, con las mismas comprobaciones en
+  los dos parsers. Una captura de pantalla llega al portapapeles como archivo y
+  no como HTML: sin tratarla, se perdía sin decir nada.
+
+- **El editor puede guardar markdown en vez de HTML.** `<x-kore::editor markdown>`
+  sigue siendo el mismo por dentro —se escribe viendo el formato, no la
+  sintaxis—, pero lo que viaja y se almacena es **texto plano**.
+
+  ```blade
+  <x-kore::editor markdown wire:model="cuerpo" />
+  …
+  {!! KoreUi\Editor\Markdown::aHtml($articulo->cuerpo) !!}
+  ```
+
+  Cambia el modelo de seguridad entero. Guardando HTML, lo almacenado son
+  etiquetas que alguien pintará con `{!! !!}` y todo depende de que el saneado se
+  haya ejecutado por el camino; guardando markdown, el HTML no existe hasta que
+  `KoreUi\Editor\Markdown` lo fabrica, con las etiquetas que decide él. Un
+  `<script>` escrito por el usuario sale como texto. Lo que produce el parser
+  pasa entero por la lista blanca de `HtmlSanitizer`, y hay un test que lo
+  comprueba.
+
+  El subrayado se cae solo de la barra: markdown no tiene sintaxis para él, y
+  dejarlo sería prometer un formato que se pierde en cuanto el texto va y vuelve.
+
+  La gramática está escrita dos veces —una pinta lo que se ve al editar, otra
+  fabrica lo que se publica— y eso es lo peligroso: si divergen, no lo detecta
+  ningún test de los dos lados por separado, porque cada uno pasa con su propia
+  idea de la verdad. `npm run markdown:check` los enfrenta con los mismos 28
+  casos y compara carácter a carácter; corre en CI.
+
+- **Cuatro formas para el pie del DataTable.** `default` (la de siempre),
+  `simple` (anterior/siguiente con palabras), `compact` (un carril con «3 / 12»)
+  y `minimal` (los números sin cajas, el actual subrayado).
+
+  ```php
+  protected string $paginatorVariant = 'compact';   // por tabla
+  // config/kore-ui.php → 'datatable' => ['paginator' => 'minimal']  // para todas
+  ```
+
+  No hay que confundirla con `pagination_type`, que decide cómo se **consulta**
+  la base de datos; esto es solo la forma del control. El estado —en qué página
+  se está, a dónde se puede ir, si es un cursor— se calcula una vez y las cuatro
+  plantillas lo reciben resuelto; `compact` y `simple` ni siquiera construyen la
+  ventana de páginas, que no enseñan. Un valor mal escrito cae en `default` en
+  vez de tumbar la página con un `@include` de una vista que no existe.
+
+  `compact` ocupa lo mismo con veinte páginas que con dos mil —el indicador va
+  con `tabular-nums`, o el control cambiaría de ancho al pasar de la 9 a la 10 y
+  las flechas se moverían bajo el cursor—, y `simple` es la única que tiene
+  sentido con paginación por cursor, donde no hay números que enseñar.
+
+- **Las banderas de aspecto se pueden fijar para toda la librería.** `bordered`,
+  `shadow`, `padding` y `compact` entran en una cascada de cuatro niveles: el
+  prop de la etiqueta, la sección del componente, `ui.look` para todo, y el
+  defecto del propio componente.
+
+  ```php
+  'ui' => [
+      'look' => ['shadow' => false],   // toda la librería sin sombras…
+      'card' => ['shadow' => true],    // …salvo las tarjetas
+  ],
+  ```
+
+  De fábrica todo vale `null` —«no opino»—, así que el aspecto de siempre no
+  cambia hasta que alguien decide cambiarlo. Antes, cada superficie resolvía lo
+  suyo a su manera: `card` leía su clave, `navbar` la suya con otro `??`, `stats`
+  pintaba borde y sombra fijos sin preguntar a nadie, y quien quería un diseño
+  plano tenía que repetir `:shadow="false"` etiqueta por etiqueta.
+
+  Aceptan banderas `card`, `stats`, `table`, `descriptions` y `navbar`, y las
+  siluetas de `skeleton` heredan el marco del componente para que la página no
+  salte al llegar los datos. Documentado en `docs/ui/look.md`.
+
+  Una bandera mal escrita lanza excepción en vez de resolverse a su defecto en
+  silencio: una errata dejaría el interruptor apagado para siempre.
+
+  Idea tomada de TallStackUI 4.x, adaptada a nuestro vocabulario: la librería ya
+  decía `bordered`/`shadow`/`padding` en positivo y se mantiene así, en vez de
+  los `shadowless`/`paddingless` de allí.
+
+- **`skeleton` como prop de los componentes que tienen forma reconocible.**
+  `card`, `stats`, `table`, `stepper` y `chart` saben dibujarse vacíos:
+
+  ```blade
+  <x-kore::card title="Ventas" :skeleton="$cargando">…</x-kore::card>
+  <x-kore::table :headers="$cabeceras" :skeleton="10" />
+  ```
+
+  Un entero elige cuántas líneas, filas, pasos o barras; `skeleton` a secas usa
+  el defecto. La silueta hereda el marco del componente —borde, sombra, radio y
+  relleno— para que lo que ocupa sea lo que ocupará el contenido y la página no
+  salte al llegar los datos. La de la tabla saca las columnas de `:headers`, que
+  se conocen antes que las filas.
+
+  No sustituye a `loading`, que sigue siendo otra cosa: ese echa un velo por
+  encima de un contenido **ya pintado**; este dibuja lo que **todavía no ha
+  llegado**. Convive con él a propósito.
+
+  Las cinco siluetas son además componentes por derecho propio —`skeleton.card`,
+  `skeleton.stats`, `skeleton.table`, `skeleton.stepper`, `skeleton.chart`—, para
+  un listado que aún no sabe cuántos elementos tendrá.
+
+  Se anuncian solas: `role="status"`, `aria-busy="true"` y un texto para lectores;
+  las barras van con `aria-hidden`, porque no significan nada. Las alturas de las
+  barras del gráfico son fijas y no aleatorias: una silueta que cambia en cada
+  repintado parpadea, y con Livewire se repinta más de lo que uno cree.
+
+  La idea viene de TallStackUI 4.x (`docs/tallstackui-cosecha-2026-08.md`), donde
+  el skeleton dejó de ser un componente que se coloca al lado para pasar a ser
+  algo que cada componente sabe hacer.
+
+### Fixed
+
+- **`readonly` no existía en once componentes.** `select`, `datepicker`,
+  `time-picker`, `color-picker`, `tag-input`, `key-value`, `upload`, `input-otp`,
+  `repeater`, `transfer` y `order-list` no declaraban el atributo siquiera, y el
+  `number` lo pasaba al input dejando vivas las flechas: un campo de solo lectura
+  que se dejaba editar con el ratón.
+
+  No es un matiz de estilo. `disabled` **no envía el valor** y `readonly` sí, así
+  que un formulario en modo consulta —enseñar lo guardado sin dejar cambiarlo— no
+  se podía montar con KoreUi sin perder los datos por el camino.
+
+  Ahora los doce lo aceptan, con el mismo reparto en todos: los paneles no se
+  abren, los botones auxiliares se apagan, el campo sigue en el recorrido del
+  tabulador para poder leerlo y copiarlo, y el valor viaja. Buscar sí se permite
+  —en `transfer` y en `select`—, porque buscar no es editar. Dos casos tienen
+  truco: `<select>` no tiene `readonly` en HTML (se bloquean ratón y teclado
+  dejando pasar el tabulador, con `aria-readonly`), y en `upload` la zona de
+  selección desaparece con `readonly` mientras que con `disabled` se queda
+  atenuada, como antes.
+
+  Documentado en `docs/form/getting-started.md`, con una tabla comparando los dos
+  estados. Cubierto por `tests/Form/SoloLecturaTest.php` y por el banco de
+  navegador `54-form-solo-lectura`, que comprueba lo que ningún test de HTML
+  puede: que el campo de verdad no se deja editar.
+
+- **Las flechas del `number` no sincronizaban con `wire:model.blur`.**
+  `increment()` y `decrement()` despachaban `input`, que solo escucha `.live`.
+  Con `.blur` el valor no llegaba a entrar en el modelo del navegador: medido,
+  tres clics en «+» dejaban el campo en 3 y el servidor en 0 incluso después de
+  una petición posterior.
+
+  Al soltar el botón se cierra la interacción con `change` y `blur`, que es lo
+  que esperan `.change`, `.lazy` y `.blur`. Al soltar y no en cada paso: mantener
+  la flecha pulsada mueve el valor a 75 ms por unidad y no debe mandar una
+  petición por cada una. Vale para los dos modos, `decimal` y `currency`.
+
+  Ojo con lo que promete `.blur` en Livewire 4: sin `.live` **no manda petición**
+  al hacer blur. Actualiza el modelo en el navegador y el valor sale con la
+  siguiente. Comprobado con un `<input>` desnudo, sin KoreUi de por medio: se
+  comporta igual.
+
+- **Un panel flotante sobrevivía a su propia ancla.** Si el disparador dejaba de
+  pintarse —un `display:none` sobre un contenedor por encima: una pestaña que
+  cambia, un acordeón que se cierra— el panel se quedaba en pantalla sin nada
+  contra lo que colocarse, encogido en la esquina superior izquierda. Medido: 2px
+  de ancho en (8, 4).
+
+  `startFloating()` documentaba un `onClose` que nunca llegó a implementarse.
+  Ahora existe: cuando el ancla deja de renderizarse, el panel se oculta y el
+  componente cierra de verdad, para que el estado de Alpine no quede a medias.
+  Conectado en `dropdown`, `tooltip`, `select`, `datepicker`, `time-picker` y
+  `color-picker`. Las referencias virtuales —el punto de datos de un gráfico— se
+  excluyen: su rect vacío es legítimo.
+
+- **`bordered` en `<x-kore::table>` no hacía nada.** Estaba declarado como prop
+  desde el principio y no lo leía ninguna parte de la plantilla: escribirlo no
+  cambiaba un pixel. Ahora pinta las líneas verticales entre columnas —las
+  horizontales ya las ponía `divide-y`—, con selectores sobre la tabla para que
+  valgan también en las celdas que llegan por slot, que el componente no
+  controla.
+
+- **El `clipboard` no marcaba el foco de teclado.** El campo lleva `outline-none`
+  sin sustituto y ninguno de los tres botones tenía anillo: tabular hasta ahí no
+  se veía. En la variante `input` el anillo va al marco del grupo —dentro, el del
+  campo y el del botón se apilan en la costura— y en `inline` e `icon` lo lleva el
+  botón. Es el mismo reparto que el `number` de esta misma versión.
+
+
+- **El `number` con flechas dibujaba el contorno a medias.** El borde y el anillo de foco los pintaba el input central, no el conjunto. Como con controles ese input lleva `border-x-0`, el rojo del estado de error solo salía arriba y abajo; y el `focus:ring-2`, que sí rodea los cuatro lados, quedaba tapado por el botón «+» —se pinta después en el DOM y no hay `z-index` que lo evite—, así que al enfocar aparecía un recuadro de tres lados.
+
+  Ahora el marco vive en el contenedor, como ya hacían los addons de `<x-kore::input>`: borde, radio y `focus-within:ring-2` en el grupo, `overflow-hidden` para recortar las esquinas, y dentro los botones solo con su divisor (`border-r` / `border-l`) y el input sin borde ni anillo propios. Vale para los dos modos, `decimal` y `currency`. Sin controles (`:controls="false"`) el input sigue pintando su propio marco, que ahí es lo correcto.
+
+  Se añaden cuatro pruebas de regresión en `tests/Form/NumberTest.php`.
+
+---
+
 ## [2.0.1] — 2026-08-20
 
 ### Fixed

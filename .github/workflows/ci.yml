@@ -50,6 +50,14 @@ jobs:
       - name: Run Vitest
         run: npm run test:js
 
+      # El modo markdown del editor tiene DOS parsers: uno pinta lo que se ve al
+      # editar y otro fabrica el HTML que se publica. Si se toca uno sin el otro,
+      # lo escrito se ve de una manera y se publica de otra, y eso no lo detecta
+      # ningún test de los dos lados por separado: cada uno pasa con su propia
+      # idea de la verdad.
+      - name: Check both markdown parsers agree
+        run: npm run markdown:check
+
       # dist/kore-ui.js va versionado: el ServiceProvider lo sirve tal cual desde el paquete
       # instalado, sin que el proyecto que usa la librería construya nada. Este paso corre
       # ANTES del build a propósito — después, el dist siempre está fresco y no comprueba nada.

@@ -22,6 +22,7 @@ One-time password input with auto-advance, paste support, numeric/masked modes, 
 | `separatorAfter` | int | null | Position to insert a visual dash separator |
 | `size` | string | `'md'` | Size: `sm`, `md`, `lg` |
 | `disabled` | bool | false | Disabled state |
+| `readonly` | bool | false | Casillas no editables; el valor se envía |
 | `required` | bool | false | Required indicator |
 | `showError` | bool | true | Auto-detect errors |
 

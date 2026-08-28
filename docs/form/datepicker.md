@@ -21,6 +21,7 @@ Full-featured date selection: single, range, multiple modes with calendar naviga
 | `placeholder` | string | null | Placeholder text |
 | `clearable` | bool | false | Show clear button |
 | `disabled` | bool | false | Disabled state |
+| `readonly` | bool | false | No abre el calendario; el valor se envía |
 | `required` | bool | false | Required indicator |
 | `showError` | bool | true | Auto-detect errors from `$errors` bag |
 | `mode` | string | `'single'` | Selection mode: `single`, `range`, `multiple` |

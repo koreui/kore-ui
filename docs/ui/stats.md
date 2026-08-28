@@ -21,6 +21,10 @@ Tarjeta de estadística con valor numérico animado, indicador de tendencia e ic
 | `animated` | `bool` | `true` | Animación de conteo al entrar al viewport |
 | `variant` | `string` | `default` | Variante: `default`, `compact` |
 | `color` | `string` | `primary` | Color del icono: `primary`, `success`, `warning`, `destructive`, `info` |
+| `skeleton` | `bool\|int` | `false` | Silueta mientras no hay cifra. Ver [skeleton](skeleton.md#siluetas-de-componente) |
+| `bordered` | `bool\|null` | `null` | Borde de la superficie. Ver [aspecto](look.md) |
+| `shadow` | `bool\|null` | `null` | Sombra de la superficie (de fábrica, no). Ver [aspecto](look.md) |
+| `padding` | `bool\|null` | `null` | Relleno interior. Ver [aspecto](look.md) |
 
 ## Con tendencia
 
@@ -70,3 +74,8 @@ En `config/kore-ui.php`:
     'animated' => true,
 ],
 ```
+
+## Aspecto
+
+`bordered`, `shadow`, `padding` y `compact` se pueden fijar también para toda la
+librería desde `config/kore-ui.php`. Ver [aspecto de las superficies](look.md).

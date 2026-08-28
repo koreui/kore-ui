@@ -8,6 +8,10 @@
     'animated' => null,
     'variant' => null,
     'color' => 'primary',
+    'bordered' => null,
+    'shadow' => null,
+    'padding' => null,
+    'skeleton' => false,
 ])
 
 @php
@@ -36,12 +40,40 @@
     };
 
     $tag = $href ? 'a' : 'div';
+
+    // El marco lo pintaba fijo: borde sí o sí y ninguna sombra, sin forma de
+    // decir otra cosa ni desde la etiqueta ni desde la configuración.
+    $bordered = \KoreUi\Core\Support\Look::resolver('stats', 'bordered', $bordered, true);
+    $shadow = \KoreUi\Core\Support\Look::resolver('stats', 'shadow', $shadow, false);
+    $padding = \KoreUi\Core\Support\Look::resolver('stats', 'padding', $padding, true);
+
+    $marcoClases = array_filter([
+        'block rounded-kore-lg bg-kore-surface',
+        $bordered ? 'border border-kore-border' : null,
+        $shadow ? 'shadow-sm' : null,
+    ]);
+
+    // La silueta mientras no hay cifra. Vale `skeleton` a secas.
+    $siluetaActiva = $skeleton !== false && $skeleton !== null;
 @endphp
+
+@if($siluetaActiva)
+    <x-kore::skeleton.stats
+        :variant="$variant"
+        :icon="(bool) $icon"
+        :trend="$trend !== 'none'"
+        :bordered="$bordered"
+        :shadow="$shadow"
+        :padding="$padding"
+        {{ $attributes->except(['skeleton']) }}
+    />
+@else
 
 @if($variant === 'compact')
     <{{ $tag }} @if($href) href="{{ $href }}" @endif
-        {{ $attributes->class([
-            'block rounded-kore-lg border border-kore-border bg-kore-surface p-4',
+        {{ $attributes->except(['bordered', 'shadow', 'padding'])->class([
+            ...$marcoClases,
+            'p-4' => $padding,
             'hover:shadow-md transition-shadow' => $href,
         ]) }}>
         <div class="flex items-center gap-3">
@@ -75,8 +107,9 @@
     </{{ $tag }}>
 @else
     <{{ $tag }} @if($href) href="{{ $href }}" @endif
-        {{ $attributes->class([
-            'block rounded-kore-lg border border-kore-border bg-kore-surface p-6',
+        {{ $attributes->except(['bordered', 'shadow', 'padding'])->class([
+            ...$marcoClases,
+            'p-6' => $padding,
             'hover:shadow-md transition-shadow' => $href,
         ]) }}>
         <div class="flex items-center justify-between">
@@ -113,4 +146,5 @@
             <div class="mt-2 text-sm text-kore-muted-fg">{{ $slot }}</div>
         @endif
     </{{ $tag }}>
+@endif
 @endif

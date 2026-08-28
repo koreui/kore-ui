@@ -12,9 +12,20 @@ import { readFileSync } from 'node:fs';
  * IMPORTANTE: en CI esto tiene que correr ANTES de `npm run build`. Después del build el dist
  * siempre está fresco y la comprobación pasa siempre, que es justo el agujero que la deja ciega.
  */
-const ENTRY = 'resources/js/index.js';
-const BUNDLE = 'dist/kore-ui.js';
+/**
+ * Dos entradas y dos bundles: el editor va aparte porque pesa un sexto de todo el
+ * JavaScript de la librería y la mayoría de las páginas no lo usan. Los dos se
+ * versionan, así que los dos se comprueban: que el principal esté al día y el del
+ * editor no, es exactamente el fallo que este script existe para atrapar.
+ */
+const PAREJAS = [
+    { entry: 'resources/js/index.js', bundle: 'dist/kore-ui.js' },
+    { entry: 'resources/js/editor.js', bundle: 'dist/kore-ui-editor.js' },
+];
 
+let fallos = 0;
+
+for (const { entry: ENTRY, bundle: BUNDLE } of PAREJAS) {
 const source = readFileSync(ENTRY, 'utf8');
 const bundle = readFileSync(BUNDLE, 'utf8');
 
@@ -23,7 +34,8 @@ const registered = [...source.matchAll(/Alpine\.(?:data|store)\(\s*['"]([^'"]+)[
 
 if (registered.length === 0) {
     console.error(`\n✗ No se encontró ningún Alpine.data/store en ${ENTRY}. ¿Cambió el formato del entry?\n`);
-    process.exit(1);
+    fallos++;
+    continue;
 }
 
 // El bundle está minificado: los identificadores locales cambian de nombre, pero la clave con la
@@ -35,9 +47,13 @@ if (missing.length > 0) {
         `\n✗ ${BUNDLE} está desincronizado de ${ENTRY}.\n` +
         `  Registrados en la fuente pero ausentes del bundle:\n` +
         missing.map((n) => `    - ${n}`).join('\n') +
-        `\n\n  El dist se versiona: ejecuta \`npm run build\` y commitea dist/kore-ui.js.\n`
+        `\n\n  El dist se versiona: ejecuta \`npm run build\` y commitea ${BUNDLE}.\n`
     );
-    process.exit(1);
+    fallos++;
+    continue;
 }
 
 console.log(`✓ ${BUNDLE}: los ${registered.length} registros de ${ENTRY} están en el bundle`);
+}
+
+if (fallos > 0) process.exit(1);

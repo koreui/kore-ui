@@ -23,9 +23,10 @@ Contenedor con header, body, footer, imágenes, modo colapsable y estado de load
 | `collapsible` | `bool` | `false` | Permite colapsar el contenido |
 | `collapsed` | `bool` | `false` | Estado inicial colapsado |
 | `loading` | `bool` | `false` | Overlay de loading |
-| `bordered` | `bool` | `config(true)` | Borde visible |
-| `shadow` | `bool` | `config(true)` | Sombra |
-| `padding` | `bool` | `true` | Padding interno |
+| `bordered` | `bool\|null` | `null` | Borde visible. Ver [aspecto](look.md) |
+| `shadow` | `bool\|null` | `null` | Sombra. Ver [aspecto](look.md) |
+| `padding` | `bool\|null` | `null` | Relleno interior. Ver [aspecto](look.md) |
+| `skeleton` | `bool\|int` | `false` | Silueta mientras no hay datos; el entero elige las líneas del cuerpo. Ver [skeleton](skeleton.md#siluetas-de-componente) |
 
 ## Slots
 
@@ -49,3 +50,8 @@ Contenedor con header, body, footer, imágenes, modo colapsable y estado de load
     Descripción de la imagen.
 </x-kore::card>
 ```
+
+## Aspecto
+
+`bordered`, `shadow`, `padding` y `compact` se pueden fijar también para toda la
+librería desde `config/kore-ui.php`. Ver [aspecto de las superficies](look.md).

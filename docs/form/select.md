@@ -41,6 +41,7 @@ The most feature-rich component: native/custom, searchable, multi-select with ch
 | `debounce` | int | 300 | Debounce for async search (ms) |
 | `minSearch` | int | 2 | Min chars before async fires |
 | `disabled` | bool | false | Disabled state |
+| `readonly` | bool | false | No abre el panel; el valor se envía. Ver [getting-started](getting-started.md#disabled-y-readonly) |
 | `required` | bool | false | Required indicator |
 | `showError` | bool | true | Auto-detect errors |
 

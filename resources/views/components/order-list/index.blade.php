@@ -6,6 +6,7 @@
     'items' => [],
     'reorderable' => true,
     'disabled' => false,
+    'readonly' => false,
     'required' => false,
     'showError' => true,
 ])
@@ -42,6 +43,11 @@
 
     $rowClass = 'flex items-center gap-2 rounded-kore-md border border-kore-border bg-kore-surface px-3 py-2';
     $iconBtnClass = 'inline-flex items-center justify-center size-6 rounded-kore-sm text-kore-muted-fg enabled:hover:bg-kore-muted enabled:hover:text-kore-fg disabled:opacity-30 disabled:cursor-not-allowed transition-colors';
+    // Solo lectura: el orden se ve y se envía, pero no se cambia. Se van el asa
+    // de arrastre y el `x-sort` que la escucha, y las flechas de subir y bajar
+    // quedan apagadas.
+    $edicionBloqueada = $disabled || $readonly;
+
 @endphp
 
 <x-kore::field
@@ -58,13 +64,13 @@
          y la lista seguía enseñando cuatro. Igual que las opciones del select. --}}
     <script type="application/json" id="{{ $itemsId }}" data-kore-order-list-items>{!! $itemsJson !!}</script>
 
-    <div x-data="KoreOrderList({ itemsId: '{{ $itemsId }}' })" wire:ignore class="{{ $disabled ? 'opacity-50 pointer-events-none' : '' }}">
+    <div x-data="KoreOrderList({ itemsId: '{{ $itemsId }}' })" wire:ignore @if($readonly) aria-readonly="true" @endif class="{{ $disabled ? 'opacity-50 pointer-events-none' : '' }}">
         <input type="hidden" x-ref="hiddenInput" {{ $wireModelAttr }} @if($name) name="{{ $name }}" @endif id="{{ $fieldId }}" />
 
-        <ul @if($reorderable) x-sort="move($item, $position)" @endif class="space-y-1.5">
+        <ul @if($reorderable && ! $edicionBloqueada) x-sort="move($item, $position)" @endif class="space-y-1.5">
             <template x-for="(item, index) in orderedItems" :key="item.value">
-                <li @if($reorderable) x-sort:item="item.value" @endif class="{{ $rowClass }}">
-                    @if($reorderable)
+                <li @if($reorderable && ! $edicionBloqueada) x-sort:item="item.value" @endif class="{{ $rowClass }}">
+                    @if($reorderable && ! $edicionBloqueada)
                         <button type="button" x-sort:handle class="shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg transition-colors" aria-label="{{ config('kore-ui.ui.translations.drag', 'Arrastrar') }}">
                             <x-lucide-grip-vertical class="size-4" />
                         </button>
@@ -73,10 +79,10 @@
                     <span class="flex-1 text-sm text-kore-fg" x-text="item.label"></span>
 
                     <div class="flex items-center gap-0.5 shrink-0">
-                        <button type="button" class="{{ $iconBtnClass }}" x-on:click="moveUp(index)" x-bind:disabled="index === 0" aria-label="{{ config('kore-ui.ui.translations.move_up', 'Subir') }}">
+                        <button type="button" class="{{ $iconBtnClass }}" x-on:click="moveUp(index)" x-bind:disabled="{{ $edicionBloqueada ? 'true' : 'index === 0' }}" aria-label="{{ config('kore-ui.ui.translations.move_up', 'Subir') }}">
                             <x-lucide-chevron-up class="size-4" />
                         </button>
-                        <button type="button" class="{{ $iconBtnClass }}" x-on:click="moveDown(index)" x-bind:disabled="index === orderedItems.length - 1" aria-label="{{ config('kore-ui.ui.translations.move_down', 'Bajar') }}">
+                        <button type="button" class="{{ $iconBtnClass }}" x-on:click="moveDown(index)" x-bind:disabled="{{ $edicionBloqueada ? 'true' : 'index === orderedItems.length - 1' }}" aria-label="{{ config('kore-ui.ui.translations.move_down', 'Bajar') }}">
                             <x-lucide-chevron-down class="size-4" />
                         </button>
                     </div>

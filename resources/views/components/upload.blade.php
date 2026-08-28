@@ -12,6 +12,7 @@
     'static' => false,
     'staticFiles' => null,
     'disabled' => false,
+    'readonly' => false,
     'label' => null,
     'hint' => null,
     'name' => null,
@@ -85,6 +86,12 @@
     // porque vive en el input oculto: duplicarlos daría dos ids iguales y dos
     // enlaces al mismo modelo.
     $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
+    // Solo lectura: la lista de archivos se ve y se descarga, pero no entra ni
+    // sale ninguno. Desaparecen la zona de selección, el botón de borrar, el de
+    // subir pendientes y el de limpiar; y se corta el pegado, que es la vía por
+    // la que un archivo entraba sin tocar la zona.
+    $edicionBloqueada = $disabled || $readonly;
+
 @endphp
 
 <x-kore::field
@@ -97,7 +104,8 @@
 >
     <div
         x-data="KoreUpload({{ $jsConfig }})"
-        x-on:paste.prevent="onPaste($event)"
+        @if(! $edicionBloqueada) x-on:paste.prevent="onPaste($event)" @endif
+        @if($readonly) aria-readonly="true" @endif
         {{ $atributosRaiz->merge(['class' => "relative"]) }}
     >
         {{-- File input for selection --}}
@@ -129,7 +137,10 @@
             />
         @endif
 
-        @if(!$static)
+        {{-- Con `readonly` la zona de selección sobra: no hay nada que arrastrar
+             ahí. Con `disabled` se queda a la vista, atenuada e inerte, que es
+             como se comportaba antes y como se comporta el resto de la librería. --}}
+        @if(! $static && ! $readonly)
             @if($variant === 'button')
                 {{-- Button variant --}}
                 <button
@@ -234,7 +245,7 @@
                         </template>
 
                         {{-- Delete button --}}
-                        @if($deletable)
+                        @if($deletable && ! $edicionBloqueada)
                             <button type="button" x-on:click="removeFile(file.id)"
                                 class="text-kore-muted-fg hover:text-kore-destructive transition-colors shrink-0"
                                 x-bind:aria-label="@js(config('kore-ui.form.translations.remove_file', 'Quitar archivo')) + ': ' + file.name">
@@ -265,7 +276,7 @@
         {{-- Action buttons --}}
         <div class="flex items-center gap-3 mt-2">
             {{-- Upload pending button (staging mode) --}}
-            @if(!$autoUpload)
+            @if(! $autoUpload && ! $edicionBloqueada)
                 <template x-if="hasPendingFiles && !uploading">
                     <button type="button" x-on:click="uploadPending()"
                         class="text-sm text-kore-primary hover:text-kore-primary/80 transition-colors inline-flex items-center gap-1 font-medium">
@@ -276,7 +287,7 @@
             @endif
 
             {{-- Clear all button --}}
-            @if($clearable)
+            @if($clearable && ! $edicionBloqueada)
                 <template x-if="hasFiles && !uploading">
                     <button type="button" x-on:click="clear()"
                         class="text-sm text-kore-muted-fg hover:text-kore-fg transition-colors inline-flex items-center gap-1">

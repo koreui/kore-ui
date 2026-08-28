@@ -7,6 +7,7 @@
     'searchable' => null,
     'titles' => null,
     'disabled' => false,
+    'readonly' => false,
     'required' => false,
     'showError' => true,
 ])
@@ -52,6 +53,11 @@
     $searchClass = 'w-full border-0 border-b border-kore-border bg-transparent px-3 py-2 text-sm text-kore-fg placeholder:text-kore-muted-fg focus:ring-0 outline-none';
     $rowClass = 'flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-kore-muted/50 transition-colors';
     $moveBtnClass = 'inline-flex items-center justify-center size-8 rounded-kore-md border border-kore-border text-kore-muted-fg enabled:hover:bg-kore-muted enabled:hover:text-kore-fg disabled:opacity-40 disabled:cursor-not-allowed transition-colors';
+    // Solo lectura: las dos listas se leen y se buscan —buscar no es editar—,
+    // pero no se marca ni se mueve nada. Los cuatro botones del centro se apagan
+    // y las filas dejan de responder al clic.
+    $edicionBloqueada = $disabled || $readonly;
+
 @endphp
 
 <x-kore::field
@@ -72,6 +78,7 @@
     <div
         x-data="KoreTransfer({ itemsId: '{{ $itemsId }}' })"
         wire:ignore
+        @if($readonly) aria-readonly="true" @endif
         class="grid grid-cols-[1fr_auto_1fr] items-stretch gap-3 {{ $disabled ? 'opacity-50 pointer-events-none' : '' }}"
     >
         <input type="hidden" x-ref="hiddenInput" {{ $wireModelAttr }} @if($name) name="{{ $name }}" @endif id="{{ $fieldId }}" />
@@ -91,8 +98,9 @@
             @endif
             <ul class="flex-1 overflow-y-auto max-h-64 divide-y divide-kore-border">
                 <template x-for="item in sourceItems" :key="item.value">
-                    <li class="{{ $rowClass }}" :class="isChecked('source', item.value) && 'bg-kore-primary/5'" x-on:click="toggleCheck('source', item.value)">
+                    <li class="{{ $rowClass }}" :class="isChecked('source', item.value) && 'bg-kore-primary/5'" @if(! $edicionBloqueada) x-on:click="toggleCheck('source', item.value)" @endif>
                         <input type="checkbox" :checked="isChecked('source', item.value)"
+                               @if($edicionBloqueada) disabled @endif
                                :aria-label="@js($tElegir).replace(':item', item.label)"
                                class="pointer-events-none rounded-kore-sm border-kore-input text-kore-primary" />
                         <span class="text-kore-fg" x-text="item.label"></span>
@@ -106,16 +114,16 @@
 
         {{-- Move buttons --}}
         <div class="flex flex-col justify-center gap-2">
-            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveAllToTarget()" aria-label="{{ config('kore-ui.ui.translations.transfer_move_all', 'Mover todo a seleccionados') }}">
+            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveAllToTarget()" @if($edicionBloqueada) disabled @endif aria-label="{{ config('kore-ui.ui.translations.transfer_move_all', 'Mover todo a seleccionados') }}">
                 <x-lucide-chevrons-right class="size-4" />
             </button>
-            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveToTarget()" x-bind:disabled="checkedSource.length === 0" aria-label="{{ config('kore-ui.ui.translations.transfer_move', 'Mover seleccionados') }}">
+            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveToTarget()" x-bind:disabled="{{ $edicionBloqueada ? 'true' : 'checkedSource.length === 0' }}" aria-label="{{ config('kore-ui.ui.translations.transfer_move', 'Mover seleccionados') }}">
                 <x-lucide-chevron-right class="size-4" />
             </button>
-            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveToSource()" x-bind:disabled="checkedTarget.length === 0" aria-label="{{ config('kore-ui.ui.translations.transfer_take', 'Quitar seleccionados') }}">
+            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveToSource()" x-bind:disabled="{{ $edicionBloqueada ? 'true' : 'checkedTarget.length === 0' }}" aria-label="{{ config('kore-ui.ui.translations.transfer_take', 'Quitar seleccionados') }}">
                 <x-lucide-chevron-left class="size-4" />
             </button>
-            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveAllToSource()" aria-label="{{ config('kore-ui.ui.translations.transfer_take_all', 'Quitar todo') }}">
+            <button type="button" class="{{ $moveBtnClass }}" x-on:click="moveAllToSource()" @if($edicionBloqueada) disabled @endif aria-label="{{ config('kore-ui.ui.translations.transfer_take_all', 'Quitar todo') }}">
                 <x-lucide-chevrons-left class="size-4" />
             </button>
         </div>
@@ -133,8 +141,9 @@
             @endif
             <ul class="flex-1 overflow-y-auto max-h-64 divide-y divide-kore-border">
                 <template x-for="item in targetItems" :key="item.value">
-                    <li class="{{ $rowClass }}" :class="isChecked('target', item.value) && 'bg-kore-primary/5'" x-on:click="toggleCheck('target', item.value)">
+                    <li class="{{ $rowClass }}" :class="isChecked('target', item.value) && 'bg-kore-primary/5'" @if(! $edicionBloqueada) x-on:click="toggleCheck('target', item.value)" @endif>
                         <input type="checkbox" :checked="isChecked('target', item.value)"
+                               @if($edicionBloqueada) disabled @endif
                                :aria-label="@js($tElegir).replace(':item', item.label)"
                                class="pointer-events-none rounded-kore-sm border-kore-input text-kore-primary" />
                         <span class="text-kore-fg" x-text="item.label"></span>

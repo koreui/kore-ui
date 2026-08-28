@@ -11,6 +11,7 @@
     'placeholder' => null,
     'clearable' => false,
     'disabled' => false,
+    'readonly' => false,
     'required' => false,
     'showError' => true,
 ])
@@ -66,6 +67,12 @@
         'addOnBlur' => !$addOnBlur ? false : null,
     ], fn($v) => $v !== null));
 
+    // Un campo de solo lectura enseña sus etiquetas y las manda al servidor, pero
+    // no deja añadir ni quitar ninguna: fuera las «x» de cada chip y la de
+    // limpiar, y el input de texto queda `readonly` —sin él, Backspace sobre el
+    // campo vacío seguía borrando la última etiqueta—.
+    $edicionBloqueada = $disabled || $readonly;
+
     // Los atributos que el consumidor escribe en la etiqueta y que ningún
     // @props declara —`data-*`, `class`, `style`, `aria-*`, `x-on:*`— no los
     // consumía nadie: se quedaban en el bag y no llegaban al DOM. No daba error,
@@ -87,6 +94,7 @@
     <div
         x-data="KoreTagInput({{ $jsConfig }})"
         wire:ignore
+        @if($readonly) aria-readonly="true" @endif
         {{ $atributosRaiz->merge(['class' => 'flex flex-wrap items-center gap-1.5 rounded-kore-md border ' . $borderClasses . ' focus-within:ring-2 bg-kore-bg ' . $sizeClasses . ' ' . ($disabled ? 'opacity-50 cursor-not-allowed' : '')]) }}
         x-on:click="$refs.textInput.focus()"
     >
@@ -102,7 +110,7 @@
         <template x-for="(tag, index) in tags" :key="index">
             <span class="inline-flex items-center gap-1 rounded-kore-sm bg-kore-primary/10 text-kore-primary-text {{ $chipSize }}">
                 <span x-text="tag"></span>
-                @if(!$disabled)
+                @if(! $edicionBloqueada)
                     <button
                         type="button"
                         x-on:click.stop="removeTag(index)"
@@ -123,15 +131,18 @@
             class="flex-1 min-w-[80px] bg-transparent border-0 outline-none focus:ring-0 p-0 text-kore-fg placeholder:text-kore-muted-fg {{ match($size) { 'sm' => 'text-xs', 'lg' => 'text-base', default => 'text-sm' } }}"
             @if($placeholder) placeholder="{{ $placeholder }}" @endif
             @if($disabled) disabled @endif
-            x-on:keydown="onKeydown($event)"
-            x-on:paste="onPaste($event)"
-            @if($addOnBlur)
-                x-on:blur="addCurrentTag()"
+            @if($readonly) readonly @endif
+            @if(! $edicionBloqueada)
+                x-on:keydown="onKeydown($event)"
+                x-on:paste="onPaste($event)"
+                @if($addOnBlur)
+                    x-on:blur="addCurrentTag()"
+                @endif
             @endif
         />
 
         {{-- Clear all button --}}
-        @if($clearable && !$disabled)
+        @if($clearable && ! $edicionBloqueada)
             <button
                 type="button"
                 x-show="tags.length > 0"

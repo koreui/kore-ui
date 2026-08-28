@@ -51,6 +51,10 @@ export default (config) => ({
                     placement: 'bottom-start',
                     offset: 4,
                     sameWidth: true,
+                    // Si el disparador deja de pintarse —una pestaña que cambia, un
+                    // acordeón que se cierra— el panel se cerraba a medias: dejaba de
+                    // tener contra qué colocarse pero seguía en pantalla.
+                    onClose: () => this.close(),
                 });
             }
             this._addClickAwayListener();

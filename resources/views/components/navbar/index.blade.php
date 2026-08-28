@@ -11,7 +11,9 @@
     $config = config('kore-ui.shell.navbar', []);
 
     $sticky = $sticky ?? ($config['sticky'] ?? true);
-    $bordered = $bordered ?? ($config['bordered'] ?? true);
+    // La sección de la barra vive en `shell`, no en `ui`, pero su borde entra en
+    // la misma cascada que el resto de superficies.
+    $bordered = \KoreUi\Core\Support\Look::resolver('shell.navbar', 'bordered', $bordered, true);
 @endphp
 
 {{-- La barra superior del shell.
