@@ -7,7 +7,17 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
-## [No publicado]
+## [2.2.0] — 2026-08-28
+
+**Poner al día la documentación, y los once defectos que sacó a la luz.** No
+había plan de tocar código: el trabajo era cerrar el hueco entre lo que hacen los
+componentes y lo que cuentan sus páginas. Pero comprobar prop a prop si la tabla
+decía la verdad es justo lo que destapa las promesas que no se cumplen — cuatro
+ajustes de configuración que no se aplicaban jamás, dos props declaradas que no
+leía nadie, un `size` que no llegaba a ninguna parte y once textos que no se
+podían traducir.
+
+Cada defecto de abajo salió de una línea de documentación que había que escribir.
 
 ### Fixed
 
