@@ -7,6 +7,40 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [No publicado]
+
+### Fixed
+
+- **El medidor de fuerza de `<x-kore::password>` hablaba en inglés.** «Weak», «Fair», «Good», «Strong», «One uppercase letter», «At least 8 characters»: texto **visible**, en una librería que responde en español desde la 2.0.0. Y el botón del ojo se anunciaba «Show password» / «Hide password». Se escaparon del barrido de textos de aquella versión porque no estaban donde se miró: los del medidor vivían dentro de `resources/js/form/password.js` —ahí no llegaba ni publicar las vistas, había que recompilar el bundle— y los del ojo, dentro de una expresión de Alpine (`x-bind:aria-label="show ? '…' : '…'"`), que el cepo descarta a propósito porque su valor es una expresión y no un texto. Los once textos salen ahora de `kore-ui.form.translations` (`password_show`, `password_hide`, `password_weak`…) y viajan al plugin dentro de su configuración, como ya hacía `upload` con sus mensajes de validación. El plugin conserva los suyos en español por si se le llama sin ellos.
+
+- **`kore-ui.shell.sidebar.smart` y `.navigate` no llegaban a los items.** El prop escrito en la etiqueta sí —los items lo heredan con `@aware`—, pero `@aware` lee los datos **tal y como los recibió el padre**, no las variables que el padre resuelva luego en su bloque PHP: el sidebar las reasignaba contra la configuración y el hijo nunca veía el resultado. Dos líneas que existían para nada, y un bloque de configuración documentado en `docs/shell/getting-started.md` que no hacía nada. Ahora el item cae en `kore-ui.shell.sidebar` por su cuenta. El orden manda así: lo que diga el item, luego el sidebar, luego la configuración.
+
+- **`size` en `<x-kore::repeater>` no hacía nada.** Estaba declarado y resuelto contra `kore-ui.form.size`, y los campos de cada fila llevaban su tamaño escrito a mano. Ahora lo heredan con `@aware`, con las mismas medidas que `<x-kore::input>` — un repeater `md` deja las filas 2 px más altas que antes, y a cambio deja de desentonar al lado de un campo suelto.
+
+- **Dos props declaradas que no leía nadie, y documentadas**: el `inline` de `<x-kore::field>` y el `perPage` / `perPageOptions` de `<x-kore::table.pagination>`, que no pinta ningún selector de tamaño de página. Se quitan de la vista y de su documentación. Es el tercer caso después del `bordered` de `table`, así que ahora hay cepo: **`PropsMuertasTest`**.
+
+- **Cuatro ajustes de `config/kore-ui.php` no se aplicaban nunca**: los tres de `maskable` (`slot_char`, `emit_formatted`, `auto_clear`) y el `allow_custom` de `color-picker`. Las cuatro props traían su valor por defecto escrito en el `@props` —`'slotChar' => '_'`—, así que el `?? config(...)` de debajo no disparaba jamás: el `??` solo mira si el valor es null. La documentación prometía cuatro ajustes que se ignoraban en silencio. Las props pasan a `null` y resuelven contra la configuración, que es el patrón del resto de la librería.
+
+- **`<x-kore::range range>` se tragaba los atributos de la etiqueta.** El barrido de la 2.0.0 dejó a `range` entre los que «mergean en su control nativo», y eso solo vale para su modo simple: en modo doble hay dos deslizadores y un input oculto, ninguno recibía el bag y la raíz tampoco. Un `class`, un `data-*` o un `x-on:` escrito en la etiqueta desaparecía sin dar error. Ahora se vuelca en la raíz, como en el resto de compuestos.
+
+- **El aspa de un paso del spotlight decía «Quitar » + el paso**, escrito dentro de la expresión. Mismo agujero, mismo arreglo: `ui.translations.spotlight_remove_step`.
+
+### Accessibility
+
+- **Cinco textos más que no se podían traducir**, y los últimos que quedaban: «Ordenar por», en las tres cabeceras de tabla que lo pintan; «Quitar filtro» y «Quitar orden», en las píldoras del DataTable; y el «de» que separaba los números en el nombre de cada estrella del `rating`. Los cinco iban **pegados a una interpolación** (`aria-label="Ordenar por {{ $columna }}"`), y es exactamente lo que el cepo daba por bueno: exige que el valor no lleve `{{ }}` ni `$` dentro, así que un valor que sí los lleva quedaba exento entero. Ahora la frase va completa en las traducciones, con un marcador dentro: `datatable.translations.sort_by` (`'Ordenar por :columna'`), `remove_filter`, `remove_sort` y `form.translations.rating_stars` (`':n de :total estrellas'`). Enteras y no por trozos porque en otro idioma el nombre no va en el mismo sitio. `form.translations.star` y `stars` desaparecen: la primera no la leía nadie y la segunda la sustituye `rating_stars`.
+
+- **El botón AM/PM se anunciaba «AM», y eso es el estado, no lo que hace.** Su texto dice en qué periodo estás; nada decía que al pulsarlo cambia. La clave `form.translations.toggle_period` («Cambiar entre AM y PM») se añadió en la 2.0.0 **y no se conectó nunca**: llevaba dos versiones esperando en `config/kore-ui.php`. Va en un `sr-only` dentro del botón y no en un `aria-label`, que habría tapado el estado en vez de sumarse a él. Son dos botones, uno en `time-picker` y otro en el reloj del calendario.
+
+- **Seis botones de solo icono seguían sin nombre.** El inventario de la 2.0.0 nombró el aspa de limpiar de `input`, `select` y `datepicker` y se dejó las otras tres —`maskable`, `time-picker` y el aspa de `tag-input` que borra **todas** las etiquetas, que no es la de una etiqueta suelta—; el aspa que descarta un aviso de `upload`; las cuatro flechas del reloj **del calendario**, que son otras que las del `time-picker` y estaban en otra vista; y el chevron que despliega el resto de la fila en el DataTable en modo `collapse`, que además no decía si la fila estaba abierta (lleva ahora `aria-expanded`). Todos salen de las traducciones que ya existían, salvo `datatable.translations.expand_row`, que es nueva.
+
+### Cepos
+
+- **Cepo `PropsMuertasTest`**, con tres comprobaciones. La primera busca props declaradas que la vista no lee —contando como «no leerla» el `$x = $x ?? config(...)` que solo la resuelve contra sí misma, que es como se escondía el `perPage`—. La segunda busca claves de traducción que no lee nadie —así se encontró el `toggle_period` de arriba—, con exención para las que se piden con el nombre construido al vuelo (`editor_*`, `presence_*`). La tercera busca **`@php` dentro de un comentario de Blade**: el compilador ve la directiva igual, abre un bloque de PHP de verdad y se traga todo hasta el siguiente `@endphp`. No da error de compilación, y lo que se pierde aparece como «Undefined variable» lejos de la causa. Mordió dos veces escribiendo estos mismos arreglos.
+
+- **`TextosEnInglesTest` pasa de una comprobación a tres.** La original solo miraba los literales limpios, y las dos formas de esconder un texto se le escapaban por el mismo sitio: **dentro de un binding de Alpine** —una expresión puede llevar el texto entre comillas, y por ahí se coló el botón del ojo de `password`— y **pegado a una interpolación** —el valor lleva `{{ }}` dentro, que era justo lo que lo eximía—. La segunda mira solo lo que va entre comillas en la expresión; la tercera quita lo interpolado y juzga lo que queda: un espacio o un paréntesis no son texto, dos letras seguidas sí. Lo que viene de `@js(config(...))` o de `{{ __() }}` no salta, que es la diferencia que importa. De paso, los cepos informan el número de línea de verdad: al quitar los comentarios `{{-- --}}` se conservan sus saltos de línea, y hasta ahora no.
+
+---
+
 ## [2.1.0] — 2026-08-27
 
 **Un editor de texto enriquecido, y la cosecha de comparar la librería con

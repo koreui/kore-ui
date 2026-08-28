@@ -17,10 +17,16 @@
 ])
 
 {{-- Heredados del <x-kore::sidebar> que los envuelve. @aware es la vía de Blade para
-     esto: atraviesa también el sidebar.group intermedio. --}}
+     esto: atraviesa también el sidebar.group intermedio.
+
+     Los dos por defecto a `null`, no a `true`/`false`: @aware lee los datos que
+     recibió el padre, NO las variables que el padre resuelva luego en su bloque PHP,
+     así que la configuración del sidebar no llegaba hasta aquí. Con un valor
+     escrito, el `?? config(...)` de abajo no dispararía nunca y
+     `kore-ui.shell.sidebar.navigate` seguiría sin hacer nada. --}}
 @aware([
-    'smart' => true,
-    'navigate' => false,
+    'smart' => null,
+    'navigate' => null,
 ])
 
 @php
@@ -36,8 +42,13 @@
     $hasChildren = trim($slotHtml) !== '';
     $hasActiveChild = $hasChildren && str_contains($slotHtml, 'data-kore-active="true"');
 
-    $smartRouting = $attributes->has('smart') ? $attributes->get('smart') : $smart;
-    $useNavigate = $navigate ?? false;
+    $config = config('kore-ui.shell.sidebar', []);
+
+    $smartRouting = $attributes->has('smart')
+        ? $attributes->get('smart')
+        : ($smart ?? ($config['smart'] ?? true));
+
+    $useNavigate = $navigate ?? ($config['navigate'] ?? false);
 
     $resolvedHref = NavigationMatcher::href($route, $routeParams, $href);
 

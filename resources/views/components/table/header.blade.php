@@ -30,7 +30,7 @@
     'font-semibold text-kore-muted-fg uppercase tracking-wider whitespace-nowrap',
 ]) }}>
     @if($sortable)
-        <button type="button" aria-label="Ordenar por {{ $label }}" class="inline-flex items-center gap-1 group hover:text-kore-fg transition-colors">
+        <button type="button" aria-label="{{ str_replace(':columna', $label, config('kore-ui.datatable.translations.sort_by', 'Ordenar por :columna')) }}" class="inline-flex items-center gap-1 group hover:text-kore-fg transition-colors">
             <span>{{ $label }}</span>
             <x-dynamic-component :component="'lucide-' . $sortIcon" :class="$sortIconClass" />
         </button>

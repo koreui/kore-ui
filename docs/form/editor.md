@@ -243,6 +243,7 @@ uno hay que tocar el otro.
 | `disabled` | `bool` | `false` | Atenuado y sin barra |
 | `readonly` | `bool` | `false` | Se lee y se envía, pero no se edita |
 | `required` | `bool` | `false` | Marca el campo y añade `aria-required` |
+| `showError` | `bool` | `true` | Pinta los errores de validación. A `false` calla **todos**: ni el bag `$errors` ni un `error` escrito a mano |
 
 ## La barra
 

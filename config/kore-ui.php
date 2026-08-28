@@ -221,9 +221,26 @@ return [
             'range_to'        => 'Hasta',
             'range_min'       => 'mínimo',
             'range_max'       => 'máximo',
-            'star'            => 'estrella',
-            'stars'           => 'estrellas',
+            // El nombre de cada estrella, entero: el «de» que las separaba
+            // estaba escrito en la vista, y un conector suelto no se traduce.
+            'rating_stars'    => ':n de :total estrellas',
             'custom_color'    => 'Color personalizado',
+
+            // El medidor de fuerza de `password`. Vivían dentro de
+            // `resources/js/form/password.js`, en inglés: el único texto de la
+            // librería que no se podía cambiar ni publicando las vistas, porque
+            // hacía falta recompilar el bundle.
+            'password_show'          => 'Mostrar la contraseña',
+            'password_hide'          => 'Ocultar la contraseña',
+            'password_weak'          => 'Débil',
+            'password_fair'          => 'Regular',
+            'password_good'          => 'Buena',
+            'password_strong'        => 'Fuerte',
+            'password_rule_length'   => 'Al menos :min caracteres',
+            'password_rule_uppercase' => 'Una letra mayúscula',
+            'password_rule_lowercase' => 'Una letra minúscula',
+            'password_rule_number'   => 'Un número',
+            'password_rule_special'  => 'Un carácter especial',
 
             // Textos visibles. Estaban escritos en inglés dentro de las vistas,
             // mientras el resto de la librería respondía en español: una misma
@@ -340,6 +357,7 @@ return [
             'spotlight' => 'Búsqueda rápida',
             'spotlight_search' => 'Buscar',
             'spotlight_results' => 'Resultados',
+            'spotlight_remove_step' => 'Quitar :paso',
             'funnel' => 'Embudo de conversión',
 
             // Barra lateral. El nombre del `<nav>` estaba además en inglés:
@@ -622,6 +640,13 @@ return [
             'clear_view'    => 'Salir de la vista',
             'sorted_by'     => 'Ordenado por',
             'clear_sorts'   => 'Limpiar ordenamiento',
+            // Nombres accesibles con la columna dentro. El texto de fuera estaba
+            // escrito en la vista: la interpolación de al lado lo escondía del
+            // cepo, y «Ordenar por» no se podía traducir.
+            'sort_by'       => 'Ordenar por :columna',
+            'remove_filter' => 'Quitar el filtro :filtro',
+            'remove_sort'   => 'Quitar el orden :columna',
+            'expand_row'    => 'Ver el resto de la fila',
             'copy'          => 'Copiar',
 
             // Nombres accesibles que estaban escritos dentro de las vistas y no

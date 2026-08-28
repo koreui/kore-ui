@@ -131,3 +131,35 @@ it('shows hint when no error', function () {
 
     $view->assertSee('Format: (XX) XXXX-XXXX');
 });
+
+/**
+ * Los tres ajustes de `kore-ui.form.maskable` no se aplicaban nunca.
+ *
+ * Las props traían su valor por defecto escrito en el `@props`
+ * (`'slotChar' => '_'`), así que el `?? config(...)` de debajo no disparaba
+ * jamás: el `??` solo mira si el valor es null. La documentación prometía tres
+ * ajustes que no hacían nada, y no daban error — simplemente se ignoraban.
+ */
+it('respeta el carácter de hueco de la configuración', function () {
+    config()->set('kore-ui.form.maskable.slot_char', '*');
+
+    $this->blade('<x-kore::maskable label="Tel" name="t" mask="(##) ####" />')
+        ->assertSee('(**) ****', false);
+});
+
+it('respeta emit_formatted y auto_clear de la configuración', function () {
+    config()->set('kore-ui.form.maskable.emit_formatted', true);
+    config()->set('kore-ui.form.maskable.auto_clear', true);
+
+    $html = (string) $this->blade('<x-kore::maskable label="Tel" name="t" mask="(##) ####" />');
+
+    expect($html)->toContain('emitFormatted')
+        ->and($html)->toContain('autoClear');
+});
+
+it('la prop de la etiqueta gana a la configuración', function () {
+    config()->set('kore-ui.form.maskable.slot_char', '*');
+
+    $this->blade('<x-kore::maskable label="Tel" name="t" mask="(##) ####" slot-char="_" />')
+        ->assertSee('(__) ____', false);
+});

@@ -148,6 +148,7 @@
                 x-show="tags.length > 0"
                 x-cloak
                 x-on:click.stop="clearAll()"
+                aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
                 class="ml-auto text-kore-muted-fg hover:text-kore-fg transition-colors shrink-0"
             >
                 <x-lucide-x class="{{ $iconSize }}" />

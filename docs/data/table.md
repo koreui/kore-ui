@@ -202,9 +202,10 @@ Los sub-componentes se usan internamente pero estan disponibles para composicion
 | Prop | Tipo | Default |
 |---|---|---|
 | `paginator` | `Paginator\|null` | `null` |
-| `perPage` | `int` | `25` |
-| `perPageOptions` | `array` | `config` |
 | `showingText` | `string\|null` | `null` |
+
+Pinta el recuento y los enlaces del paginador, y nada más: el selector de «por
+página» es del DataTable, no de aquí.
 
 ## Aspecto
 

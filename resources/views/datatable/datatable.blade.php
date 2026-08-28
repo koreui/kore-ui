@@ -312,7 +312,7 @@
                                         <button
                                             type="button"
                                             wire:click="sortBy(@js($column->getSortField()))"
-                                            aria-label="Ordenar por {{ $column->getLabel() }}"
+                                            aria-label="{{ str_replace(':columna', $column->getLabel(), config('kore-ui.datatable.translations.sort_by', 'Ordenar por :columna')) }}"
                                             class="inline-flex items-center gap-1 group hover:text-kore-fg transition-colors min-w-0 uppercase"
                                         >
                                             <span class="truncate">{{ $column->getLabel() }}</span>

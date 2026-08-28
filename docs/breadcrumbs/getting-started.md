@@ -226,6 +226,25 @@ En `config/kore-ui.php`:
 ],
 ```
 
+## Accesibilidad
+
+- El contenedor es un `<nav>` con nombre: «Ruta de navegación», de
+  `kore-ui.ui.translations.breadcrumb`. Decía «Breadcrumb», en inglés, hasta la
+  2.0.0.
+- El último item lleva `aria-current="page"`.
+- Los separadores son `aria-hidden`: son decoración, y un lector que los leyera
+  diría «chevron derecha» entre cada dos niveles.
+- El botón que despliega los pasos ocultos también tiene nombre
+  (`ui.translations.breadcrumb_expand`).
+
+> El desplegable de `max-items` **no desplegaba nada** hasta la 2.0.0: el bloque
+> metía los `<li>` ocultos dentro de otro `<li>`, y eso es HTML inválido — el
+> parser cierra el `<li>` exterior al encontrarse el interior, así que el botón
+> acababa fuera del elemento que llevaba el `x-data`. No daba error de
+> compilación y solo se veía mirando el DOM ya parseado.
+
+---
+
 ### Convivencia con otras librerias
 
 Si ya usas `diglactic/laravel-breadcrumbs` u otra libreria que carga `routes/breadcrumbs.php`, no hay conflicto: koreUi usa su propio archivo (`routes/kore-breadcrumbs.php`).

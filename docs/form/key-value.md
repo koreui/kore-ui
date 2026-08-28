@@ -32,6 +32,7 @@ public array $meta = ['env' => 'production'];
 | `disabled` | `bool` | `false` | Desactiva el editor |
 | `readonly` | bool | false | No añade, borra ni reordena pares; el valor se envía |
 | `required` | `bool` | `false` | Marca el campo como obligatorio |
+| `showError` | `bool` | `true` | Pinta los errores de validación. A `false` calla **todos**: ni el bag `$errors` ni un `error` escrito a mano |
 
 ## Reordenable
 

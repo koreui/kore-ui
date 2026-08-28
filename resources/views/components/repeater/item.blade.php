@@ -5,8 +5,26 @@
     'readonly' => false,
 ])
 
+{{-- El tamaño lo pone el <x-kore::repeater> que envuelve. Lo declaraba y lo
+     resolvía contra la configuración, pero no se lo pasaba a nadie: los campos
+     de las filas llevaban su tamaño escrito a mano, así que `size` no hacía
+     nada. --}}
+@aware([
+    'size' => null,
+])
+
 @php
-    $inputBase = 'w-full rounded-kore-md border border-kore-input bg-kore-bg text-kore-fg placeholder:text-kore-muted-fg focus:ring-2 focus:ring-kore-ring focus:border-kore-primary outline-none transition-colors text-sm py-1.5 px-2.5';
+    $size = $size ?? config('kore-ui.form.size', 'md');
+
+    // Las mismas medidas que <x-kore::input>, para que una fila del repeater no
+    // desentone al lado de un campo suelto.
+    $sizeClasses = match($size) {
+        'sm' => 'text-xs py-1.5 px-2.5',
+        'lg' => 'text-base py-2.5 px-3.5',
+        default => 'text-sm py-2 px-3',
+    };
+
+    $inputBase = 'w-full rounded-kore-md border border-kore-input bg-kore-bg text-kore-fg placeholder:text-kore-muted-fg focus:ring-2 focus:ring-kore-ring focus:border-kore-primary outline-none transition-colors ' . $sizeClasses;
 
     // Literal grid classes so Tailwind v4 picks them up from the source (no runtime interpolation).
     $gridCols = match(count($fields)) {

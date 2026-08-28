@@ -5,9 +5,10 @@
     'error' => null,
     'size' => null,
     'mask' => null,
-    'emitFormatted' => false,
-    'slotChar' => '_',
-    'autoClear' => false,
+    // Los tres van a `null`, no a su valor: ver la nota de abajo.
+    'emitFormatted' => null,
+    'slotChar' => null,
+    'autoClear' => null,
     'icon' => null,
     'iconRight' => null,
     'clearable' => false,
@@ -19,6 +20,11 @@
 
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
+
+    // Ojo con el valor por defecto: tiene que ser `null`. Con `false` —o con
+    // `'_'`— el `?? config(...)` de abajo NO dispara nunca, porque el `??` solo
+    // mira si es null, y entonces el ajuste de `config/kore-ui.php` no se aplica
+    // jamás por mucho que la documentación lo prometa.
     $emitFormatted = $emitFormatted ?? config('kore-ui.form.maskable.emit_formatted', false);
     $slotChar = $slotChar ?? config('kore-ui.form.maskable.slot_char', '_');
     $autoClear = $autoClear ?? config('kore-ui.form.maskable.auto_clear', false);
@@ -156,6 +162,7 @@
                         x-show="formatted.length > 0"
                         x-cloak
                         x-on:click="clear(); $refs.input.focus()"
+                        aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
                         class="text-kore-muted-fg hover:text-kore-fg transition-colors"
                     >
                         <x-lucide-x class="{{ $iconSizeClasses }}" />

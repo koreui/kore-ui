@@ -59,7 +59,7 @@
                         <button
                             type="button"
                             wire:click="sortBy('{{ $column->getSortField() }}')"
-                            aria-label="Ordenar por {{ $column->getLabel() }}"
+                            aria-label="{{ str_replace(':columna', $column->getLabel(), config('kore-ui.datatable.translations.sort_by', 'Ordenar por :columna')) }}"
                             class="inline-flex items-center gap-1 group hover:text-kore-fg transition-colors uppercase"
                         >
                             <span>{{ $column->getLabel() }}</span>
@@ -88,6 +88,8 @@
                         <button
                             type="button"
                             x-on:click="toggleExpand(@js((string) $rowId))"
+                            aria-label="{{ config('kore-ui.datatable.translations.expand_row', 'Ver el resto de la fila') }}"
+                            x-bind:aria-expanded="isExpanded({{ \Illuminate\Support\Js::from((string) $rowId) }}) ? 'true' : 'false'"
                             class="p-0.5 rounded hover:bg-kore-muted transition-colors"
                         >
                             {{-- Js::from() y no @js(): ver la nota en datatable.blade.php --}}

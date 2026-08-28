@@ -1,48 +1,71 @@
-export default (config) => ({
-    show: false,
-    value: '',
+// Los textos llegan del Blade (`kore-ui.form.translations`). Estaban escritos
+// aquí, en inglés, y eran los únicos de la librería que no se podían cambiar sin
+// recompilar el bundle: ni publicar las vistas servía.
+const NIVELES = ['Débil', 'Regular', 'Buena', 'Fuerte'];
 
-    _rules: [
-        { id: 'length', label: `At least ${config.minLength || 8} characters`,
-          test: (v) => v.length >= (config.minLength || 8) },
-        { id: 'uppercase', label: 'One uppercase letter',
-          test: (v) => /[A-Z]/.test(v) },
-        { id: 'lowercase', label: 'One lowercase letter',
-          test: (v) => /[a-z]/.test(v) },
-        { id: 'number', label: 'One number',
-          test: (v) => /\d/.test(v) },
-        { id: 'special', label: 'One special character',
-          test: (v) => /[^a-zA-Z0-9]/.test(v) },
-    ],
+const REGLAS = {
+    length: 'Al menos :min caracteres',
+    uppercase: 'Una letra mayúscula',
+    lowercase: 'Una letra minúscula',
+    number: 'Un número',
+    special: 'Un carácter especial',
+};
 
-    onInput(e) { this.value = e.target.value; },
+export default (config = {}) => {
+    const minLength = config.minLength || 8;
+    const textos = config.textos || {};
+    const niveles = textos.niveles || NIVELES;
+    const reglas = textos.reglas || {};
 
-    get rules() {
-        return this._rules.map(r => ({
-            id: r.id, label: r.label, passed: r.test(this.value),
-        }));
-    },
+    const etiqueta = (id) => reglas[id]
+        ?? REGLAS[id].replace(':min', minLength);
 
-    get passedCount() { return this.rules.filter(r => r.passed).length; },
+    return {
+        show: false,
+        value: '',
 
-    get level() {
-        const c = this.passedCount;
-        if (c === 0) return 0;
-        if (c <= 1) return 1;
-        if (c <= 2) return 2;
-        if (c <= 3) return 3;
-        return 4;
-    },
+        _rules: [
+            { id: 'length', label: etiqueta('length'),
+              test: (v) => v.length >= minLength },
+            { id: 'uppercase', label: etiqueta('uppercase'),
+              test: (v) => /[A-Z]/.test(v) },
+            { id: 'lowercase', label: etiqueta('lowercase'),
+              test: (v) => /[a-z]/.test(v) },
+            { id: 'number', label: etiqueta('number'),
+              test: (v) => /\d/.test(v) },
+            { id: 'special', label: etiqueta('special'),
+              test: (v) => /[^a-zA-Z0-9]/.test(v) },
+        ],
 
-    get levelLabel() {
-        return ['', 'Weak', 'Fair', 'Good', 'Strong'][this.level];
-    },
+        onInput(e) { this.value = e.target.value; },
 
-    get levelColorClass() {
-        return ['bg-kore-muted', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'][this.level];
-    },
+        get rules() {
+            return this._rules.map(r => ({
+                id: r.id, label: r.label, passed: r.test(this.value),
+            }));
+        },
 
-    get levelTextClass() {
-        return ['text-kore-muted-fg', 'text-red-500', 'text-orange-500', 'text-yellow-500', 'text-green-500'][this.level];
-    },
-});
+        get passedCount() { return this.rules.filter(r => r.passed).length; },
+
+        get level() {
+            const c = this.passedCount;
+            if (c === 0) return 0;
+            if (c <= 1) return 1;
+            if (c <= 2) return 2;
+            if (c <= 3) return 3;
+            return 4;
+        },
+
+        get levelLabel() {
+            return ['', ...niveles][this.level];
+        },
+
+        get levelColorClass() {
+            return ['bg-kore-muted', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'][this.level];
+        },
+
+        get levelTextClass() {
+            return ['text-kore-muted-fg', 'text-red-500', 'text-orange-500', 'text-yellow-500', 'text-green-500'][this.level];
+        },
+    };
+};

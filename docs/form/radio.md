@@ -1,58 +1,51 @@
 # Radio
 
-Radio buttons with radio group wrapper for vertical and inline layouts.
+Un botón de opción. Para varios, ver [radio-group](radio-group.md).
 
-## Basic Usage
+## Uso básico
 
-```html
-<x-kore::radio wire:model="plan" value="basic" label="Basic" name="plan" />
+```blade
+<x-kore::radio wire:model="plan" value="basico" label="Básico" name="plan" />
 <x-kore::radio wire:model="plan" value="pro" label="Pro" name="plan" />
 ```
 
-## Radio Props
+## Props de `radio`
 
-| Prop | Type | Default | Description |
+| Prop | Tipo | Default | Descripción |
 |------|------|---------|-------------|
-| `label` | string | null | Label text |
-| `description` | string | null | Secondary text |
-| `value` | string | null | Radio value |
-| `size` | string | `'md'` | Size: `sm`, `md`, `lg` |
-| `disabled` | bool | false | Disabled state |
-| `name` | string | null | Group name |
-| `error` | string | null | Manual error |
-| `showError` | bool | true | Auto-detect errors |
+| `label` | `string\|null` | `null` | Etiqueta |
+| `description` | `string\|null` | `null` | Texto secundario |
+| `value` | `string\|null` | `null` | Valor de la opción |
+| `size` | `string\|null` | config `md` | Tamaño: `sm`, `md`, `lg`. Sale de `kore-ui.form.size` |
+| `disabled` | `bool` | `false` | Desactivado |
+| `name` | `string\|null` | `null` | Nombre del grupo. Si falta se deduce del `wire:model` |
+| `error` | `string\|null` | `null` | Mensaje de error manual |
+| `showError` | `bool` | `true` | Pinta los errores de validación. A `false` calla **todos**: ni el bag `$errors` ni un `error` escrito a mano |
 
-## Radio Group
+El `id` de cada opción lleva su `value` pegado (`kore-plan-pro`), que es lo que
+mantiene distintas a dos opciones del mismo grupo.
 
-Wraps radios with label, error handling, and layout control:
+## Grupo
 
-```html
-<x-kore::radio-group label="Select your plan">
-    <x-kore::radio wire:model="plan" value="free" label="Free" description="$0/month" />
-    <x-kore::radio wire:model="plan" value="pro" label="Pro" description="$29/month" />
-    <x-kore::radio wire:model="plan" value="enterprise" label="Enterprise" description="Contact us" />
+Las opciones sueltas funcionan, pero lo normal es envolverlas en un
+[`radio-group`](radio-group.md), que les pone etiqueta, ayuda y error, y las
+presenta como **un solo campo** ante un lector de pantalla:
+
+```blade
+<x-kore::radio-group label="Elige tu plan">
+    <x-kore::radio wire:model="plan" value="gratis" label="Gratis" description="0 €/mes" />
+    <x-kore::radio wire:model="plan" value="pro" label="Pro" description="29 €/mes" />
 </x-kore::radio-group>
 ```
 
-## Radio Group Props
+Sus props, la maquetación en línea y el porqué de su `aria-labelledby` están en
+[radio-group](radio-group.md).
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `label` | string | null | Group label |
-| `hint` | string | null | Help text |
-| `inline` | bool | false | Horizontal layout |
-| `error` | string | null | Manual error |
-| `name` | string | null | Name for error detection |
-| `required` | bool | false | Required indicator |
-| `showError` | bool | true | Auto-detect errors |
+## Accesibilidad
 
-## Inline Layout
-
-```html
-<x-kore::radio-group label="Layout" inline>
-    <x-kore::radio wire:model="layout" value="grid" label="Grid" />
-    <x-kore::radio wire:model="layout" value="list" label="List" />
-</x-kore::radio-group>
-```
-
-Uses `flex gap-4` instead of `space-y-2`.
+- El `id` de cada opción es estable entre renders (`IdContext`) y lleva su
+  `value` pegado, que es lo que mantiene el `label[for]` apuntando a la opción
+  correcta.
+- La `description` se enlaza con `aria-describedby`; si hay error, se enlaza el
+  error, que se pinta en un `role="alert"`.
+- Los atributos escritos en la etiqueta llegan al `<input type="radio">`.

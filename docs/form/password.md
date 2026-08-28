@@ -1,94 +1,126 @@
 # Password
 
-Password input with toggleable visibility.
+Campo de contraseña con botón para verla, y un medidor de fuerza opcional.
 
-## Basic Usage
+## Uso básico
 
-```html
-<x-kore::password wire:model="password" label="Password" />
+```blade
+<x-kore::password wire:model="password" label="Contraseña" />
 ```
 
 ## Props
 
-| Prop | Type | Default | Description |
+| Prop | Tipo | Default | Descripción |
 |------|------|---------|-------------|
-| `label` | string | null | Label text |
-| `hint` | string | null | Help text |
-| `name` | string | null | Name for error detection |
-| `error` | string | null | Manual error |
-| `size` | string | `'md'` | Size: `sm`, `md`, `lg` |
-| `icon` | string | null | Left Lucide icon name |
-| `toggleable` | bool | true | Show eye toggle button (configurable via `kore-ui.form.password.toggleable`) |
-| `disabled` | bool | false | Disabled state |
-| `readonly` | bool | false | Readonly state |
-| `required` | bool | false | Required indicator |
-| `showError` | bool | true | Auto-detect errors |
+| `label` | `string\|null` | `null` | Etiqueta |
+| `hint` | `string\|null` | `null` | Texto de ayuda |
+| `name` | `string\|null` | `null` | Nombre. Si falta se deduce del `wire:model` |
+| `error` | `string\|null` | `null` | Mensaje de error manual |
+| `size` | `string\|null` | config `md` | Tamaño: `sm`, `md`, `lg`. Sale de `kore-ui.form.size` |
+| `icon` | `string\|null` | `null` | Icono Lucide a la izquierda |
+| `toggleable` | `bool\|null` | config `true` | Botón del ojo. Sale de `kore-ui.form.password.toggleable` |
+| `strength` | `bool\|null` | config `false` | Medidor de fuerza. Sale de `kore-ui.form.password.strength` |
+| `minLength` | `int\|null` | config `8` | Longitud mínima que exige el medidor. Sale de `kore-ui.form.password.min_length` |
+| `showRules` | `bool` | `true` | Lista de reglas bajo la barra |
+| `disabled` | `bool` | `false` | Desactivado |
+| `readonly` | `bool` | `false` | Se lee y se envía, pero no se edita |
+| `required` | `bool` | `false` | Obligatorio, con asterisco |
+| `showError` | `bool` | `true` | Pinta los errores de validación. A `false` calla **todos**: ni el bag `$errors` ni un `error` escrito a mano |
 
-## With Icon
+## Con icono
 
-```html
-<x-kore::password wire:model="password" label="Password" icon="lock" />
+```blade
+<x-kore::password wire:model="password" label="Contraseña" icon="lock" />
 ```
 
-## Without Toggle
+## Sin el ojo
 
-```html
+```blade
 <x-kore::password wire:model="pin" label="PIN" :toggleable="false" />
 ```
 
-## Strength Meter
+## Medidor de fuerza
 
-Visual password strength indicator with a progress bar and rules checklist:
+Una barra de cuatro tramos y la lista de reglas que faltan:
 
-```html
-<x-kore::password wire:model="password" label="New Password" :strength="true" />
+```blade
+<x-kore::password wire:model="password" label="Contraseña nueva" :strength="true" />
 ```
 
-### Strength Props
+### Cómo puntúa
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `strength` | bool | false | Enable strength meter (configurable via `kore-ui.form.password.strength`) |
-| `minLength` | int | 8 | Minimum password length (configurable via `kore-ui.form.password.min_length`) |
-| `showRules` | bool | true | Show individual rules checklist |
+Se miden cinco reglas: longitud mínima, mayúscula, minúscula, número y carácter
+especial. El nivel sale de **cuántas se cumplen**, no de la longitud:
 
-### Strength Levels
+| Reglas cumplidas | Nivel | Color |
+|------------------|-------|-------|
+| 0 | — | Atenuado |
+| 1 | Débil | Rojo |
+| 2 | Regular | Naranja |
+| 3 | Buena | Amarillo |
+| 4-5 | Fuerte | Verde |
 
-The meter evaluates 5 rules: minimum length, uppercase letter, lowercase letter, number, and special character.
+### Sin la lista de reglas
 
-| Rules Passed | Level | Color |
-|-------------|-------|-------|
-| 0 | — | Muted |
-| 1 | Weak | Red |
-| 2 | Fair | Orange |
-| 3 | Good | Yellow |
-| 4-5 | Strong | Green |
+Solo la barra:
 
-### Without Rules Checklist
-
-Show only the progress bar without the individual rules:
-
-```html
-<x-kore::password wire:model="password" label="Password"
+```blade
+<x-kore::password wire:model="password" label="Contraseña"
     :strength="true" :show-rules="false" />
 ```
 
-### Custom Min Length
+### Otro mínimo
 
-```html
-<x-kore::password wire:model="password" label="Admin Password"
+```blade
+<x-kore::password wire:model="password" label="Contraseña de administrador"
     :strength="true" :min-length="12" />
 ```
 
-### With Icon and Strength
+El mínimo viaja a la regla de longitud: con `12` la lista dice «Al menos 12
+caracteres».
 
-```html
-<x-kore::password wire:model="password" label="Password"
-    icon="lock" :strength="true" />
+### Los textos se traducen
+
+Los nombres de los cuatro niveles y de las cinco reglas salen de
+`kore-ui.form.translations`, igual que el resto de la librería:
+
+```php
+// config/kore-ui.php
+'form' => [
+    'translations' => [
+        'password_weak'          => 'Weak',
+        'password_fair'          => 'Fair',
+        'password_good'          => 'Good',
+        'password_strong'        => 'Strong',
+        'password_rule_length'   => 'At least :min characters',
+        'password_rule_uppercase' => 'One uppercase letter',
+        // …
+    ],
+],
 ```
 
-> **Note:** When `strength` is enabled, the component uses an external Alpine component (`KorePassword`) instead of inline `x-data`. The `wire:model` is applied directly on the `<input>` — no hidden input pattern is used. The strength meter only reads the input value to calculate strength.
+`:min` se sustituye por el mínimo que tenga el campo. Estos textos vivían dentro
+de `resources/js/form/password.js`, en inglés, y eran los únicos de la librería
+que no se podían cambiar ni publicando las vistas: hacía falta recompilar el
+bundle.
 
-## Implementation
+## Cómo está montado
 
-Without `strength`, uses Alpine inline `x-data="{ show: false }"`. With `strength`, uses `KorePassword` Alpine component. The input type toggles between `password` and `text` via `x-bind:type`. The eye icon switches between `lucide-eye` and `lucide-eye-off`.
+Sin `strength`, el componente es un `x-data="{ show: false }"` en línea. Con
+`strength`, monta el plugin `KorePassword`, que recibe el mínimo y los textos.
+
+En los dos casos el `wire:model` va **directamente en el `<input>`**: no hay
+input oculto de por medio. El medidor solo lee el valor del campo para puntuarlo.
+
+El tipo del campo alterna entre `password` y `text` con `x-bind:type`, y el icono
+entre `lucide-eye` y `lucide-eye-off`.
+
+## Accesibilidad
+
+- El botón del ojo dice qué va a hacer, y cambia con el estado: «Mostrar la
+  contraseña» / «Ocultar la contraseña», de
+  `kore-ui.form.translations.password_show` y `password_hide`. Decía «Show
+  password» / «Hide password» hasta la 2.1: estaba escrito dentro de la expresión
+  de Alpine, que es donde no miraba el cepo de textos.
+- El `id` es estable entre renders (`IdContext`), y el `hint` y el error se
+  enlazan con `aria-describedby`.

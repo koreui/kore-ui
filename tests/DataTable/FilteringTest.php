@@ -219,3 +219,28 @@ it('empty filter value is ignored', function () {
         ->assertSee('Bob')
         ->assertSee('Charlie');
 });
+
+/**
+ * Las píldoras de filtro y de orden llevaban «Quitar filtro» y «Quitar orden»
+ * escritos en la vista, pegados al nombre: la interpolación de al lado los
+ * escondía del cepo de textos.
+ */
+it('nombra el aspa de una píldora de filtro con el filtro dentro', function () {
+    Livewire::test(TestFilterTable::class)
+        ->set('filters.name', 'Ali')
+        ->assertSeeHtml('aria-label="Quitar el filtro ');
+});
+
+it('permite traducir el nombre de esa aspa', function () {
+    config()->set('kore-ui.datatable.translations.remove_filter', 'Remove :filtro');
+
+    Livewire::test(TestFilterTable::class)
+        ->set('filters.name', 'Ali')
+        ->assertSeeHtml('aria-label="Remove ');
+});
+
+it('nombra el aspa de una píldora de orden con la columna dentro', function () {
+    Livewire::test(TestFilterTable::class)
+        ->call('sortBy', 'name')
+        ->assertSeeHtml('aria-label="Quitar el orden ');
+});

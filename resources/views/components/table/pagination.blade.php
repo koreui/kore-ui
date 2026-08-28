@@ -1,12 +1,13 @@
 @props([
     'paginator' => null,
-    'perPage' => 25,
-    'perPageOptions' => [],
     'showingText' => null,
 ])
 
+{{-- Aquí no hay selector de «por página»: esta vista pinta el recuento y los
+     enlaces, nada más. Declaraba `perPage` y `perPageOptions` y no los leía
+     nadie — el selector del DataTable vive en su propia barra. --}}
+
 @php
-    $perPageOptions = $perPageOptions ?: config('kore-ui.datatable.per_page_options', [10, 25, 50, 100]);
     $translations = config('kore-ui.datatable.translations', []);
 @endphp
 

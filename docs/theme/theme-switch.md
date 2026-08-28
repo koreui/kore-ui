@@ -17,14 +17,18 @@ Component for switching between light, dark, and system themes. Three variants i
 
 ## Props
 
-| Prop | Type | Default | Description |
+| Prop | Tipo | Default | Descripción |
 |------|------|---------|-------------|
-| `variant` | string | `'segmented'` | Visual variant: `segmented`, `toggle`, `dropdown` |
-| `size` | string | `'md'` | Size: `sm`, `md`, `lg` |
-| `labels` | bool | false | Show text labels alongside icons |
-| `lightLabel` | string | `'Light'` | Label for light mode |
-| `darkLabel` | string | `'Dark'` | Label for dark mode |
-| `systemLabel` | string | `'System'` | Label for system mode |
+| `variant` | `string` | `segmented` | Variante visual: `segmented`, `toggle`, `dropdown` |
+| `size` | `string` | `md` | Tamaño: `sm`, `md`, `lg` |
+| `labels` | `bool` | `false` | Muestra el texto junto al icono |
+| `lightLabel` | `string\|null` | `Claro` | Nombre del modo claro |
+| `darkLabel` | `string\|null` | `Oscuro` | Nombre del modo oscuro |
+| `systemLabel` | `string\|null` | `Sistema` | Nombre del modo sistema |
+| `ariaLabel` | `string\|null` | `Tema` | Nombre accesible del control. **No lo usa la variante `toggle`** (ver abajo) |
+
+Los cuatro últimos salen de `kore-ui.ui.translations` cuando no se pasan:
+`theme_light`, `theme_dark`, `theme_system` y `theme`.
 
 ## Variants
 
@@ -86,14 +90,40 @@ Toggle variant track sizes match the form toggle component:
 | `md` | `h-6 w-11` | `size-4.5` |
 | `lg` | `h-7 w-14` | `size-5.5` |
 
-## Custom Labels
+## Textos propios
 
-Override label text for i18n:
+Los tres nombres de modo se sobrescriben en la etiqueta:
 
 ```html
 <x-kore::theme-switch :labels="true"
-    light-label="Claro" dark-label="Oscuro" system-label="Auto" />
+    light-label="Light" dark-label="Dark" system-label="Auto" />
 ```
+
+Si el cambio es para toda la aplicación, va en `config/kore-ui.php` bajo
+`ui.translations` y no hace falta repetirlo en cada instancia.
+
+## Nombre accesible
+
+`ariaLabel` es el nombre del **control entero** —lo que anuncia un lector antes
+de leer las opciones—, no el de cada modo:
+
+```html
+<x-kore::theme-switch aria-label="Apariencia de la interfaz" />
+```
+
+Dónde aterriza, según la variante:
+
+| Variante | Qué nombra `ariaLabel` |
+|----------|------------------------|
+| `segmented` | El `role="radiogroup"`. Cada botón se sigue nombrando con su `lightLabel` / `systemLabel` / `darkLabel` |
+| `dropdown` | El botón disparador **y** el `role="menu"` del panel |
+| `toggle` | **Nada.** Ver abajo |
+
+La variante `toggle` es la excepción: su nombre es siempre
+`ui.translations.theme_toggle` («Cambiar entre claro y oscuro»), porque describe
+una acción y no un selector. `ariaLabel` se filtra ahí de forma explícita, así
+que escribirlo no da error ni tiene efecto —para cambiarlo hay que tocar la
+configuración—.
 
 ## Shared State
 

@@ -126,7 +126,7 @@
                     :label="$addLabel"
                     icon="plus"
                     variant="outline"
-                    size="sm"
+                    :size="$size === 'lg' ? 'md' : 'sm'"
                 />
             </div>
         @endif

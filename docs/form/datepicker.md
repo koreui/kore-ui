@@ -230,3 +230,15 @@ Same pattern as Select — teleported to `<body>` via `x-teleport`, `position: f
 - **Multiple mode**: syncs as array `['date1', 'date2', ...]` via `$wire.$set()`
 
 Range, multiple, and `with-time` modes use `wire:ignore` to prevent Livewire morphs from interfering with the Alpine dropdown state.
+
+## Accesibilidad
+
+- Con `with-time`, las cuatro flechas del reloj tienen nombre —«Subir la hora», «Bajar los
+  minutos»…—, de `kore-ui.form.translations`. Son botones con un chevron dentro y
+  nada más.
+- El botón AM/PM enseña el **estado** («AM») y lleva la acción en un `sr-only`:
+  «Cambiar entre AM y PM», de `form.translations.toggle_period`. Va así y no en
+  un `aria-label` porque un `aria-label` habría tapado el estado en vez de
+  sumarse a él — el lector diría qué hace el botón, pero no en qué periodo estás.
+- El botón de limpiar se anuncia «Limpiar», y el calendario empotrado (`inline`) se
+  nombra con `aria-labelledby` en vez de con un `for` huérfano.

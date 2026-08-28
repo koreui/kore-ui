@@ -23,6 +23,10 @@ $componentes = [
     'repeater'     => '<x-kore::repeater label="P" class="mia" data-prueba="1" :fields="[[\'key\' => \'a\']]" />',
     'select'       => '<x-kore::select label="S" class="mia" data-prueba="1" :options="[]" />',
     'radio-group'  => '<x-kore::radio-group label="G" class="mia" data-prueba="1"><x-kore::radio value="a" label="A" /></x-kore::radio-group>',
+    // El modo doble de `range` no tiene UN control donde mergear —dos
+    // deslizadores y un input oculto— y se quedó fuera del barrido: solo se miró
+    // su modo simple, que sí mergea en el suyo.
+    'range doble'  => '<x-kore::range label="R" class="mia" data-prueba="1" range />',
 ];
 
 foreach ($componentes as $nombre => $plantilla) {

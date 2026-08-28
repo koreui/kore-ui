@@ -64,6 +64,33 @@
         $icon ? match($size) { 'sm' => 'pl-8', 'lg' => 'pl-11', default => 'pl-10' } : '',
         $toggleable ? match($size) { 'sm' => 'pr-8', 'lg' => 'pr-11', default => 'pr-10' } : '',
     ])->filter()->implode(' ');
+
+    $tr = fn (string $clave, string $porDefecto) => config("kore-ui.form.translations.$clave", $porDefecto);
+
+    $mostrarLabel = $tr('password_show', 'Mostrar la contraseña');
+    $ocultarLabel = $tr('password_hide', 'Ocultar la contraseña');
+
+    // Los textos del medidor viajan al plugin: estaban escritos en inglés dentro
+    // de `resources/js/form/password.js`, y ahí no llegaba ni publicar las
+    // vistas — había que recompilar el bundle para cambiarlos.
+    $jsConfig = json_encode([
+        'minLength' => $minLength,
+        'textos' => [
+            'niveles' => [
+                $tr('password_weak', 'Débil'),
+                $tr('password_fair', 'Regular'),
+                $tr('password_good', 'Buena'),
+                $tr('password_strong', 'Fuerte'),
+            ],
+            'reglas' => [
+                'length' => str_replace(':min', (string) $minLength, $tr('password_rule_length', 'Al menos :min caracteres')),
+                'uppercase' => $tr('password_rule_uppercase', 'Una letra mayúscula'),
+                'lowercase' => $tr('password_rule_lowercase', 'Una letra minúscula'),
+                'number' => $tr('password_rule_number', 'Un número'),
+                'special' => $tr('password_rule_special', 'Un carácter especial'),
+            ],
+        ],
+    ], JSON_UNESCAPED_UNICODE);
 @endphp
 
 <x-kore::field
@@ -75,7 +102,7 @@
     :required="$required"
 >
     @if($isStrengthEnabled)
-    <div x-data="KorePassword({ minLength: {{ $minLength }} })">
+    <div x-data="KorePassword({{ $jsConfig }})">
         <div class="relative">
             @if($icon)
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -105,7 +132,7 @@
                         type="button"
                         x-on:click="show = !show"
                         class="text-kore-muted-fg hover:text-kore-fg transition-colors focus:outline-none"
-                        x-bind:aria-label="show ? 'Hide password' : 'Show password'"
+                        x-bind:aria-label="show ? @js($ocultarLabel) : @js($mostrarLabel)"
                     >
                         <x-lucide-eye x-show="!show" class="{{ $iconSizeClasses }}" />
                         <x-lucide-eye-off x-show="show" x-cloak class="{{ $iconSizeClasses }}" />
@@ -174,7 +201,7 @@
                     type="button"
                     x-on:click="show = !show"
                     class="text-kore-muted-fg hover:text-kore-fg transition-colors focus:outline-none"
-                    x-bind:aria-label="show ? 'Hide password' : 'Show password'"
+                    x-bind:aria-label="show ? @js($ocultarLabel) : @js($mostrarLabel)"
                 >
                     <x-lucide-eye x-show="!show" class="{{ $iconSizeClasses }}" />
                     <x-lucide-eye-off x-show="show" x-cloak class="{{ $iconSizeClasses }}" />

@@ -64,3 +64,14 @@ The value always syncs as `HH:mm` in 24-hour format, regardless of the display f
 ## Dropdown Positioning
 
 Teleported to `<body>` via `x-teleport`, `position: fixed`, repositions on scroll/resize, flips above when insufficient space below.
+
+## Accesibilidad
+
+- Las cuatro flechas del reloj tienen nombre —«Subir la hora», «Bajar los
+  minutos»…—, de `kore-ui.form.translations`. Son botones con un chevron dentro y
+  nada más.
+- El botón AM/PM enseña el **estado** («AM») y lleva la acción en un `sr-only`:
+  «Cambiar entre AM y PM», de `form.translations.toggle_period`. Va así y no en
+  un `aria-label` porque un `aria-label` habría tapado el estado en vez de
+  sumarse a él — el lector diría qué hace el botón, pero no en qué periodo estás.
+- El botón de limpiar se anuncia «Limpiar». No tenía nombre hasta la 2.1.

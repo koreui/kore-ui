@@ -125,6 +125,7 @@
                         <button
                             type="button"
                             x-on:click.stop="clear()"
+                            aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
                             class="text-kore-muted-fg hover:text-kore-fg transition-colors"
                         >
                             <x-lucide-x class="{{ $iconSizeClasses }}" />
@@ -227,12 +228,18 @@
                     {{-- AM/PM toggle --}}
                     @if($timeFormat === '12')
                         <div class="flex flex-col items-center ml-2">
+                            {{-- El texto del botón es «AM» o «PM», y eso es el
+                                 ESTADO, no lo que hace al pulsarlo. La acción va
+                                 en un sr-only para no perder ninguna de las dos:
+                                 con un aria-label, el estado dejaría de leerse. --}}
                             <button
                                 type="button"
                                 x-on:click="toggleAmPm()"
-                                x-text="ampm"
                                 class="px-3 py-2 text-sm font-medium rounded-kore-md border border-kore-input bg-kore-bg text-kore-fg hover:bg-kore-muted transition-colors"
-                            ></button>
+                            >
+                                <span x-text="ampm"></span>
+                                <span class="sr-only">{{ config('kore-ui.form.translations.toggle_period', 'Cambiar entre AM y PM') }}</span>
+                            </button>
                         </div>
                     @endif
                 </div>

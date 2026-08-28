@@ -80,5 +80,37 @@ it('forwards wire:model directly on input with strength', function () {
 it('passes minLength config', function () {
     $view = $this->blade('<x-kore::password label="Password" name="password" :strength="true" :min-length="12" />');
 
-    $view->assertSee('minLength: 12', false);
+    $view->assertSee('&quot;minLength&quot;:12', false);
+});
+
+/**
+ * Los textos del medidor de fuerza estaban escritos en inglés dentro de
+ * `resources/js/form/password.js` —«Weak», «One uppercase letter»—, donde no
+ * llegaba ni publicar las vistas: había que recompilar el bundle. Ahora viajan
+ * desde `kore-ui.form.translations` dentro de la configuración del plugin.
+ */
+it('manda los textos del medidor al plugin', function () {
+    $view = $this->blade('<x-kore::password label="Contraseña" name="password" :strength="true" />');
+
+    $view->assertSee('Débil', false)
+        ->assertSee('Regular', false)
+        ->assertSee('Buena', false)
+        ->assertSee('Fuerte', false)
+        ->assertSee('Una letra mayúscula', false)
+        ->assertSee('Un carácter especial', false);
+});
+
+it('interpola el mínimo en la regla de longitud', function () {
+    $this->blade('<x-kore::password label="Contraseña" name="password" :strength="true" :min-length="12" />')
+        ->assertSee('Al menos 12 caracteres', false)
+        ->assertDontSee(':min', false);
+});
+
+it('los textos del medidor se cambian por configuración', function () {
+    config()->set('kore-ui.form.translations.password_weak', 'Weak');
+    config()->set('kore-ui.form.translations.password_rule_number', 'One number');
+
+    $this->blade('<x-kore::password label="Password" name="password" :strength="true" />')
+        ->assertSee('Weak', false)
+        ->assertSee('One number', false);
 });

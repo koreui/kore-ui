@@ -63,3 +63,21 @@ Cada tarjeta (`<x-kore::kanban.card>`) muestra `title`, `description` y un `badg
 `moveCard($cardId, $position, $toColumn)` se dispara **en cada drop**, tanto al reordenar dentro de una columna como al mover entre columnas. `$toColumn` es siempre la columna destino (se conoce al renderizar). Persiste el cambio y vuelve a exponer las tarjetas actualizadas en el siguiente render.
 
 > **`wire:key` por tarjeta.** El board pone `wire:key="kore-card-{id}"` en cada tarjeta para que el morphing de Livewire reconcilie bien tras un drop.
+
+## Accesibilidad
+
+Cada columna es un `role="list"` con el nombre de la columna, y cada tarjeta un
+`role="listitem"`: un lector de pantalla recorre el tablero y sabe en qué columna
+está y cuántas tarjetas hay.
+
+**Lo que todavía no hay es teclado.** El tablero se maneja solo con el ratón o el
+dedo: no hay ningún control enfocable para recoger una tarjeta y soltarla en otra
+columna, así que quien navegue con teclado puede leer el tablero pero no moverlo.
+Está medido y sin resolver a propósito desde la 2.0.0 —es una función nueva, no
+un arreglo: pide decidir el modelo de interacción entero (¿se recoge con
+`Espacio`? ¿se mueve con flechas? ¿cómo se anuncia el destino?)—.
+
+Si el tablero es la única vía para una tarea, hace falta una alternativa: un
+`<x-kore::select>` de columna en el formulario de edición de la tarjeta ya
+resuelve el caso. Para una lista de un solo eje,
+[`order-list`](../ui/order-list.md) sí trae botones de subir y bajar.

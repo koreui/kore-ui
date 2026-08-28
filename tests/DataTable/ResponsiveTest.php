@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Schema;
 use KoreUi\DataTable\Columns\Column;
+use KoreUi\Tests\DataTable\Fixtures\TestCollapseTable;
 use KoreUi\Tests\DataTable\Fixtures\TestTable;
 use KoreUi\Tests\DataTable\Fixtures\TestUser;
 use Livewire\Livewire;
@@ -57,4 +58,41 @@ it('column supports collapseOnTablet', function () {
 
     expect($column->isCollapsedOnTablet())->toBeTrue()
         ->and($column->isCollapsedOnMobile())->toBeFalse();
+});
+
+/**
+ * El botón que despliega el resto de la fila en modo `collapse` era un chevron y
+ * nada más: sin nombre, un lector anunciaba «botón» y ya, y tampoco decía si la
+ * fila estaba abierta o cerrada.
+ */
+it('nombra el botón que despliega el resto de la fila', function () {
+    $component = Livewire::test(TestCollapseTable::class)->call('setViewport', true);
+
+    $component->assertSeeHtml('aria-label="Ver el resto de la fila"')
+        ->assertSeeHtml('x-bind:aria-expanded');
+});
+
+it('permite traducir ese nombre desde la configuración', function () {
+    config()->set('kore-ui.datatable.translations.expand_row', 'Show the rest of the row');
+
+    Livewire::test(TestCollapseTable::class)
+        ->call('setViewport', true)
+        ->assertSeeHtml('aria-label="Show the rest of the row"');
+});
+
+/**
+ * «Ordenar por», «Quitar filtro» y «Quitar orden» estaban escritos en la vista,
+ * pegados a la columna: la interpolación de al lado los escondía del cepo de
+ * textos, así que eran los últimos que no se podían traducir.
+ */
+it('nombra el botón de ordenar con la columna dentro', function () {
+    Livewire::test(TestTable::class)
+        ->assertSeeHtml('aria-label="Ordenar por Nombre"');
+});
+
+it('permite traducir ese nombre, con la columna en otro sitio', function () {
+    config()->set('kore-ui.datatable.translations.sort_by', 'Sort by :columna');
+
+    Livewire::test(TestTable::class)
+        ->assertSeeHtml('aria-label="Sort by Nombre"');
 });

@@ -1,61 +1,90 @@
-# Range / Slider
+# Range
 
-Range slider with single and dual-handle modes, custom min/max/step, value display, and wire:model binding.
+Deslizador con un asa o con dos, mínimo, máximo y paso propios, valor a la vista
+y `wire:model`.
 
-## Basic Usage
+## Uso básico
 
 ```blade
-<x-kore::range wire:model="volume" label="Volume" />
+<x-kore::range wire:model="volumen" label="Volumen" />
 ```
 
-## Range Mode
+## Modo doble
 
 ```blade
-<x-kore::range wire:model="priceRange" label="Price" range :min="0" :max="200" />
+<x-kore::range wire:model="precio" label="Precio" range :min="0" :max="200" />
 ```
 
 ## Props
 
-| Prop | Type | Default | Description |
+| Prop | Tipo | Default | Descripción |
 |------|------|---------|-------------|
-| `label` | `string\|null` | `null` | Label text |
-| `hint` | `string\|null` | `null` | Hint text below the field |
-| `name` | `string\|null` | `null` | Input name (auto-detected from wire:model) |
-| `error` | `string\|null` | `null` | Manual error message |
-| `size` | `string` | `'md'` | Size variant: `sm`, `md`, `lg` |
-| `min` | `number` | `0` | Minimum value |
-| `max` | `number` | `100` | Maximum value |
-| `step` | `number` | `1` | Step increment |
-| `range` | `bool` | `false` | Enable dual-handle range mode |
-| `show-value` | `bool` | `false` | Display current value above the slider |
-| `show-labels` | `bool` | `false` | Display min/max labels below the slider |
-| `disabled` | `bool` | `false` | Disabled state |
-| `required` | `bool` | `false` | Required indicator |
-| `show-error` | `bool` | `true` | Show validation errors |
+| `label` | `string\|null` | `null` | Etiqueta |
+| `hint` | `string\|null` | `null` | Texto de ayuda debajo |
+| `name` | `string\|null` | `null` | Nombre. Si falta se deduce del `wire:model` |
+| `error` | `string\|null` | `null` | Mensaje de error manual |
+| `size` | `string\|null` | config `md` | Tamaño: `sm`, `md`, `lg`. Sale de `kore-ui.form.size` |
+| `min` | `number` | `0` | Valor mínimo |
+| `max` | `number` | `100` | Valor máximo |
+| `step` | `number` | `1` | Salto entre valores |
+| `range` | `bool` | `false` | Dos asas en vez de una |
+| `showValue` | `bool` | `false` | Enseña el valor sobre el deslizador |
+| `showLabels` | `bool` | `false` | Enseña el mínimo y el máximo debajo |
+| `disabled` | `bool` | `false` | Desactivado |
+| `required` | `bool` | `false` | Obligatorio, con asterisco |
+| `showError` | `bool` | `true` | Pinta los errores de validación. A `false` calla **todos**: ni el bag `$errors` ni un `error` escrito a mano |
 
 ## wire:model
 
-- **Single mode**: Number value (e.g., `50`)
-- **Range mode**: Array with two values (e.g., `[20, 80]`)
+- **Un asa**: un número (`50`)
+- **Dos asas**: un array de dos (`[20, 80]`)
 
 ```php
-// Livewire component
-public int $volume = 50;
-public array $priceRange = [20, 80];
+// En el componente Livewire
+public int $volumen = 50;
+public array $precio = [20, 80];
 ```
 
-## Sizes
+## Tamaños
 
-Track height and thumb size scale with the size prop:
+La barra y el asa escalan con `size`:
 
-| Size | Track | Thumb |
-|------|-------|-------|
-| `sm` | 4px | 14px |
-| `md` | 8px | 18px |
-| `lg` | 12px | 22px |
+| Tamaño | Barra | Asa |
+|--------|-------|-----|
+| `sm` | 4 px | 14 px |
+| `md` | 8 px | 18 px |
+| `lg` | 12 px | 22 px |
 
-## Value Display
+## Valor y extremos
 
 ```blade
 <x-kore::range show-value show-labels :min="0" :max="100" />
 ```
+
+## Accesibilidad
+
+Los dos deslizadores de un `range` doble tienen **nombres distintos**: la
+etiqueta del campo más «mínimo» y «máximo» (`kore-ui.form.translations.range_min`
+y `range_max`). Con `label="Precio"` se anuncian «Precio — mínimo» y «Precio —
+máximo».
+
+Antes eran dos controles idénticos y sin nombre, y ninguno de los dos era el que
+apuntaba la etiqueta del campo: quien navegaba por voz o con lector no tenía
+forma de saber cuál estaba tocando.
+
+> Ojo con los nombres parecidos: `range_from` y `range_to` («Desde» / «Hasta») no
+> son de este componente, sino del filtro de rango numérico del DataTable.
+
+## Dónde aterrizan los atributos
+
+Depende del modo, porque el HTML no es el mismo:
+
+- **Un asa**: hay un solo control, y ahí se mergean —como en `input` o
+  `textarea`—.
+- **Dos asas**: hay dos deslizadores y un input oculto, así que se vuelcan en la
+  **raíz** del componente, como en el resto de compuestos. Se quedan fuera el
+  `id`, que lo lleva el input oculto, y el `wire:model`, que vive en él.
+
+En modo doble desaparecían sin dejar rastro hasta la 2.1: el barrido que arregló
+esto en los demás componentes dio a `range` por bueno mirando solo su modo
+simple.

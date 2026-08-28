@@ -28,8 +28,11 @@
     $collapsible   = $collapsible   ?? ($config['collapsible'] ?? true);
     $placement     = $placement === 'right' ? 'right' : 'left';
     $persist       = $persist       ?? ($config['persist'] ?? true);
-    $smart         = $smart         ?? ($config['smart'] ?? true);
-    $navigate      = $navigate      ?? ($config['navigate'] ?? false);
+    // `smart` y `navigate` NO se resuelven aquí: los hereda cada
+    // <x-kore::sidebar.item> con @aware, que lee los datos tal y como llegaron a
+    // este componente. Reasignarlos aquí abajo no cambiaba lo que ve el hijo,
+    // así que la línea existía para nada y la configuración no se aplicaba. El
+    // item cae en `kore-ui.shell.sidebar` por su cuenta.
     $overlay       = $overlay       ?? ($config['overlay'] ?? true);
     $rail          = $rail          ?? ($config['rail'] ?? false);
     $expandOnHover = $expandOnHover ?? ($config['expand_on_hover'] ?? false);

@@ -45,6 +45,16 @@
         default => 'gap-1',
     };
 
+    // El nombre de cada estrella sale de una plantilla entera. Antes era
+    // «{{ $i }} de {{ $stars }} {{ estrellas }}», con el «de» escrito en la
+    // vista: un conector suelto entre dos interpolaciones no se traduce, y en
+    // inglés ni siquiera va en el mismo sitio.
+    $nombreEstrella = fn (int $i) => str_replace(
+        [':n', ':total'],
+        [$i, $stars],
+        config('kore-ui.form.translations.rating_stars', ':n de :total estrellas'),
+    );
+
     $wireModelAttr = $attributes->whereStartsWith('wire:model');
 
     $jsConfig = json_encode(array_filter([
@@ -119,7 +129,7 @@
                     @endif
                     role="radio"
                     :aria-checked="displayValue >= {{ $i }} ? 'true' : 'false'"
-                    aria-label="{{ $i }} de {{ $stars }} {{ config('kore-ui.form.translations.stars', 'estrellas') }}"
+                    aria-label="{{ $nombreEstrella($i) }}"
                 @endif
             >
                 {{-- La caja de la estrella, contra la que se posicionan las

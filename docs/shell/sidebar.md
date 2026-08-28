@@ -30,12 +30,38 @@ Normalmente va dentro de un [`<x-kore::shell>`](shell.md), que es quien reserva 
 | `collapsedWidth` | `string` | `'4rem'` | Ancho en modo iconos |
 | `breakpoint` | `'sm'\|'md'\|'lg'\|'xl'` | `'lg'` | Por debajo de esto, el sidebar es un drawer |
 | `persist` | `bool` | `true` | Recordar el estado entre visitas (cookie `kore_sidebar`) |
-| `smart` | `bool` | `true` | Detectar sola la ruta activa. Lo heredan los items |
-| `navigate` | `bool` | `false` | Añadir `wire:navigate` a los enlaces. Lo heredan los items |
+| `smart` | `bool\|null` | config `true` | Detectar sola la ruta activa. Lo heredan los items |
+| `navigate` | `bool\|null` | config `false` | Añadir `wire:navigate` a los enlaces. Lo heredan los items |
 | `overlay` | `bool` | `true` | Fondo oscuro tras el drawer móvil |
 | `rail` | `bool` | `false` | Modo rail: solo iconos, se expande **sobre** el contenido al pasar el ratón |
 | `expandOnHover` | `bool` | `false` | Como rail, pero partiendo de expandido |
-| `ariaLabel` | `string` | `'Sidebar'` | Nombre de la región de navegación |
+| `ariaLabel` | `string\|null` | config `Navegación` | Nombre de la región de navegación. Sale de `kore-ui.ui.translations.sidebar` |
+
+## Qué heredan los items
+
+`smart` y `navigate` no los usa el sidebar: los lee cada
+[`sidebar.item`](sidebar-item.md) con `@aware`, que va a buscarlos al componente
+que lo envuelve y atraviesa también el `sidebar.group` de en medio.
+
+Mandan en este orden, y gana el primero que diga algo:
+
+1. Lo que escriba el propio item.
+2. Lo que escriba el sidebar.
+3. `kore-ui.shell.sidebar` en la configuración.
+
+```blade
+{{-- wire:navigate en todos los enlaces de este sidebar… --}}
+<x-kore::sidebar :navigate="true">
+    <x-kore::sidebar.item label="Panel" route="panel" />
+
+    {{-- …menos en este --}}
+    <x-kore::sidebar.item label="Informe" href="/informe.pdf" :navigate="false" />
+</x-kore::sidebar>
+```
+
+El tercer escalón no existía hasta la 2.1: `@aware` lee los datos **tal y como
+llegaron** al sidebar, no las variables que el sidebar resuelva después, así que
+poner `navigate` en la configuración no hacía nada. Ahora lo resuelve el item.
 
 ## Slots
 

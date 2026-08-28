@@ -221,6 +221,7 @@
                         x-on:mouseleave="stopHold()"
                         x-on:touchstart.prevent="startHold(() => incrementHour())"
                         x-on:touchend="stopHold()"
+                        aria-label="{{ config('kore-ui.form.translations.increment_hour', 'Subir la hora') }}"
                         class="p-0.5 text-kore-muted-fg hover:text-kore-fg transition-colors"
                     >
                         <x-lucide-chevron-up class="size-4" />
@@ -236,6 +237,7 @@
                         x-on:mouseleave="stopHold()"
                         x-on:touchstart.prevent="startHold(() => decrementHour())"
                         x-on:touchend="stopHold()"
+                        aria-label="{{ config('kore-ui.form.translations.decrement_hour', 'Bajar la hora') }}"
                         class="p-0.5 text-kore-muted-fg hover:text-kore-fg transition-colors"
                     >
                         <x-lucide-chevron-down class="size-4" />
@@ -253,6 +255,7 @@
                         x-on:mouseleave="stopHold()"
                         x-on:touchstart.prevent="startHold(() => incrementMinute())"
                         x-on:touchend="stopHold()"
+                        aria-label="{{ config('kore-ui.form.translations.increment_minute', 'Subir los minutos') }}"
                         class="p-0.5 text-kore-muted-fg hover:text-kore-fg transition-colors"
                     >
                         <x-lucide-chevron-up class="size-4" />
@@ -268,6 +271,7 @@
                         x-on:mouseleave="stopHold()"
                         x-on:touchstart.prevent="startHold(() => decrementMinute())"
                         x-on:touchend="stopHold()"
+                        aria-label="{{ config('kore-ui.form.translations.decrement_minute', 'Bajar los minutos') }}"
                         class="p-0.5 text-kore-muted-fg hover:text-kore-fg transition-colors"
                     >
                         <x-lucide-chevron-down class="size-4" />
@@ -276,12 +280,16 @@
 
                 {{-- AM/PM toggle --}}
                 @if($timeFormat === '12')
+                    {{-- «AM» es el estado, no la acción: ver la nota en
+                         time-picker.blade.php. --}}
                     <button
                         type="button"
                         x-on:click="toggleAmPm()"
-                        x-text="ampm"
                         class="ml-1 px-2 py-1 text-sm font-medium rounded-kore-sm border border-kore-input bg-kore-bg text-kore-fg hover:bg-kore-muted transition-colors"
-                    ></button>
+                    >
+                        <span x-text="ampm"></span>
+                        <span class="sr-only">{{ config('kore-ui.form.translations.toggle_period', 'Cambiar entre AM y PM') }}</span>
+                    </button>
                 @endif
             </div>
         @endif

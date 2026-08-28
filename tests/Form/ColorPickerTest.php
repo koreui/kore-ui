@@ -95,3 +95,18 @@ it('shows hint when no error', function () {
 
     $view->assertSee('Pick your brand color');
 });
+
+/**
+ * `allow_custom` de la configuración no se aplicaba: la prop traía `true`
+ * escrito en el `@props`, así que el `?? config(...)` no disparaba nunca. Solo se
+ * notaba al ponerlo a `false`, que es justo para lo que existe el ajuste.
+ */
+it('respeta allow_custom de la configuración', function () {
+    config()->set('kore-ui.form.color_picker.allow_custom', false);
+
+    $conConfig = (string) $this->blade('<x-kore::color-picker label="C" name="c" />');
+    $conProp = (string) $this->blade('<x-kore::color-picker label="C" name="c" :allow-custom="true" />');
+
+    expect($conConfig)->not->toContain('customHex')
+        ->and($conProp)->toContain('customHex');
+});

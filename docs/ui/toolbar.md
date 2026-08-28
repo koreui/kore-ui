@@ -22,6 +22,7 @@ Contenedor flex para agrupar acciones y controles en una barra horizontal.
 |------|------|---------|-------------|
 | `variant` | `string` | `default` | Variante visual: `default`, `bordered` |
 | `justify` | `string` | `between` | Justificación: `between`, `start`, `end`, `center` |
+| `role` | `string\|false` | `toolbar` | Rol ARIA del contenedor. Con `:role="false"` no se emite ninguno |
 
 ## Slots
 
@@ -75,4 +76,26 @@ Contenedor flex para agrupar acciones y controles en una barra horizontal.
         <x-kore::button label="Publicar" />
     </x-slot:end>
 </x-kore::toolbar>
+```
+
+## Cuándo quitar el rol
+
+`role="toolbar"` le promete a un lector de pantalla un widget que se recorre con
+las flechas, no con el tabulador. Si la barra es solo una fila de botones
+sueltos, la promesa es falsa y conviene retirarla —así lo hace la navbar del
+shell—:
+
+```blade
+<x-kore::toolbar :role="false">
+    <x-kore::button label="Guardar" />
+</x-kore::toolbar>
+```
+
+Tiene que ser `false`, no `null`: `@props` resuelve con `??`, así que un `null`
+explícito cae en el valor por defecto igual que si no hubieras escrito nada, y
+el `role="toolbar"` seguiría ahí. Cualquier otra cadena se emite tal cual, por
+si la barra es en realidad un `group`:
+
+```blade
+<x-kore::toolbar role="group" aria-label="Formato de texto">…</x-kore::toolbar>
 ```

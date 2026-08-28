@@ -265,6 +265,7 @@
                         <x-lucide-alert-triangle class="size-4 shrink-0" />
                         <span x-text="err.message" class="flex-1"></span>
                         <button type="button" x-on:click="removeValidationError(ei)"
+                            aria-label="{{ config('kore-ui.form.translations.dismiss_error', 'Descartar el aviso') }}"
                             class="text-kore-muted-fg hover:text-kore-fg transition-colors shrink-0">
                             <x-lucide-x class="size-3.5" />
                         </button>

@@ -18,6 +18,14 @@ El layout de la aplicación. Coloca los sidebars, reserva el espacio del conteni
 </x-kore::shell>
 ```
 
+## Props
+
+| Prop | Tipo | Default | Descripción |
+|------|------|---------|-------------|
+| `skipLink` | `bool` | `true` | Pinta el enlace de «saltar al contenido» como primer elemento del shell |
+| `skipLabel` | `string\|null` | `Saltar al contenido` | Su texto. Sale de `kore-ui.ui.translations.skip_to_content` |
+| `mainId` | `string` | `kore-contenido` | `id` del `<main>`, y destino del enlace de salto |
+
 ## Slots
 
 | Slot | Descripción |
@@ -43,6 +51,33 @@ El shell distingue entre:
 - **El espacio que reserva el contenido**
 
 Normalmente coinciden, pero en **modo rail** no: el sidebar se expande *por encima* del contenido al pasar el ratón, y el contenido no debe moverse. Con una sola medida eso sería imposible.
+
+## Saltar al contenido
+
+El shell pinta como **primer elemento del documento** un enlace que salta al
+`<main>`. Solo se ve al enfocarlo con el tabulador; el resto del tiempo es un
+`sr-only`.
+
+Está porque sin él, quien navega con teclado tenía que recorrer todo el menú
+—seis pulsaciones con un sidebar de tres niveles— antes de llegar al contenido,
+y en **cada** página.
+
+El `<main>` recibe `id="kore-contenido"` y `tabindex="-1"`. El `tabindex` no es
+decorativo: sin él, el salto mueve el foco del navegador pero algunos lectores
+de pantalla siguen leyendo desde donde estaban.
+
+```blade
+{{-- Sin enlace de salto: la página ya lo pone por su cuenta --}}
+<x-kore::shell :skip-link="false">…</x-kore::shell>
+
+{{-- Con otro texto y otro id de destino --}}
+<x-kore::shell skip-label="Ir al contenido" main-id="contenido">…</x-kore::shell>
+```
+
+`mainId` cambia las dos puntas a la vez —el `href` del enlace y el `id` del
+`<main>`—, así que siguen apuntándose. Tócalo solo si ya tienes un `id`
+comprometido en tu CSS o en tus enlaces; si además pones `:skip-link="false"`,
+el `<main>` conserva `id` y `tabindex` para que tu propio enlace funcione.
 
 ## Contenido a pantalla completa
 

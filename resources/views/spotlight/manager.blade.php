@@ -58,7 +58,7 @@
                                 type="button"
                                 @click="removeStep(i)"
                                 class="ml-0.5 hover:text-kore-primary/70 focus:outline-none"
-                                :aria-label="'Quitar ' + step.label"
+                                :aria-label="@js(config('kore-ui.ui.translations.spotlight_remove_step', 'Quitar :paso')).replace(':paso', step.label)"
                             >&#x2715;</button>
                         </span>
                     </template>

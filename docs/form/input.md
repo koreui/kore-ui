@@ -1,75 +1,95 @@
 # Input
 
-Text input with icon, prefix/suffix addons, clearable button, and full `wire:model` support.
+Campo de texto con icono, adornos de prefijo y sufijo, botón de limpiar y
+`wire:model`.
 
-## Basic Usage
+## Uso básico
 
-```html
-<x-kore::input wire:model="name" label="Name" placeholder="Enter your name" />
+```blade
+<x-kore::input wire:model="nombre" label="Nombre" placeholder="Tu nombre" />
 ```
 
 ## Props
 
-| Prop | Type | Default | Description |
+| Prop | Tipo | Default | Descripción |
 |------|------|---------|-------------|
-| `label` | string | null | Label text above the input |
-| `hint` | string | null | Help text below (hidden when error shown) |
-| `name` | string | null | Input name (also used for error detection) |
-| `error` | string | null | Manual error message |
-| `type` | string | `'text'` | HTML input type |
-| `size` | string | `'md'` | Size variant: `sm`, `md`, `lg` |
-| `icon` | string | null | Left Lucide icon name |
-| `iconRight` | string | null | Right Lucide icon name |
-| `prefix` | string | null | Text addon on the left |
-| `suffix` | string | null | Text addon on the right |
-| `clearable` | bool | false | Show clear (X) button when input has value |
-| `disabled` | bool | false | Disabled state |
-| `readonly` | bool | false | Readonly state |
-| `required` | bool | false | Required with asterisk indicator |
-| `showError` | bool | true | Auto-detect errors from `$errors` bag |
+| `label` | `string\|null` | `null` | Etiqueta sobre el campo |
+| `hint` | `string\|null` | `null` | Texto de ayuda debajo. Se oculta mientras hay error |
+| `name` | `string\|null` | `null` | Nombre del campo. Si falta se deduce del `wire:model`, y con él se busca el error |
+| `error` | `string\|null` | `null` | Mensaje de error manual |
+| `type` | `string` | `text` | Tipo del `<input>` |
+| `size` | `string\|null` | config `md` | Tamaño: `sm`, `md`, `lg`. Sale de `kore-ui.form.size` |
+| `icon` | `string\|null` | `null` | Icono Lucide a la izquierda |
+| `iconRight` | `string\|null` | `null` | Icono Lucide a la derecha |
+| `prefix` | `string\|null` | `null` | Adorno de texto a la izquierda |
+| `suffix` | `string\|null` | `null` | Adorno de texto a la derecha |
+| `clearable` | `bool` | `false` | Aspa para vaciar el campo cuando tiene contenido |
+| `disabled` | `bool` | `false` | Desactivado |
+| `readonly` | `bool` | `false` | Se lee y se envía, pero no se edita |
+| `required` | `bool` | `false` | Obligatorio, con asterisco en la etiqueta |
+| `showError` | `bool` | `true` | Pinta los errores de validación. A `false` calla **todos**: ni el bag `$errors` ni un `error` escrito a mano |
 
-## Icons
+## Iconos
 
-```html
-<x-kore::input label="Search" icon="search" placeholder="Search..." />
-<x-kore::input label="Email" icon="mail" icon-right="check" />
+```blade
+<x-kore::input label="Buscar" icon="search" placeholder="Buscar…" />
+<x-kore::input label="Correo" icon="mail" icon-right="check" />
 ```
 
-Icons use [Lucide](https://lucide.dev/) via `blade-lucide-icons`. Pass the icon name without the `lucide-` prefix.
+Los iconos son de [Lucide](https://lucide.dev/), vía `blade-lucide-icons`. El
+nombre va sin el prefijo `lucide-`.
 
-## Prefix & Suffix
+## Prefijo y sufijo
 
-Text addons rendered as inline segments with a muted background:
+Adornos de texto, en un segmento propio con fondo atenuado:
 
-```html
-<x-kore::input label="Website" prefix="https://" suffix=".com" />
-<x-kore::input label="Price" prefix="$" suffix="USD" />
+```blade
+<x-kore::input label="Web" prefix="https://" suffix=".com" />
+<x-kore::input label="Precio" prefix="€" suffix="EUR" />
 ```
 
-Prefix/suffix use a flex layout — they take their natural width regardless of text length.
+Van en un `flex`, así que ocupan su anchura natural sea cual sea el texto. Con
+prefijo o sufijo el borde pasa al contenedor y el `<input>` se queda sin el suyo:
+el foco se dibuja alrededor del conjunto.
 
-## Clearable
+## Limpiar
 
-```html
-<x-kore::input wire:model="search" label="Search" icon="search" clearable />
+```blade
+<x-kore::input wire:model="busqueda" label="Buscar" icon="search" clearable />
 ```
 
-Shows an X button when the input has a value. Clicking it clears the value and dispatches an `input` event for `wire:model` compatibility.
+El aspa aparece cuando el campo tiene contenido. Al pulsarla vacía el valor,
+dispara un evento `input` —para que `wire:model` se entere— y devuelve el foco al
+campo. Su nombre accesible sale de `kore-ui.form.translations.clear`
+(«Limpiar»): es un botón que solo lleva un icono, y sin nombre un lector de
+pantalla anuncia «botón» y nada más.
 
-## States
+## Estados
 
-```html
-<x-kore::input label="Disabled" disabled />
-<x-kore::input label="Readonly" value="Can't change" readonly />
-<x-kore::input label="Required" required />
-<x-kore::input label="Error" error="This field is required" />
+```blade
+<x-kore::input label="Desactivado" disabled />
+<x-kore::input label="Solo lectura" value="No se toca" readonly />
+<x-kore::input label="Obligatorio" required />
+<x-kore::input label="Con error" error="Este campo es obligatorio" />
 ```
 
-## Attribute Forwarding
+## Dónde aterrizan los atributos
 
-All extra attributes pass through to the native `<input>` element:
+Todo lo que se escriba en la etiqueta y no sea una prop llega al `<input>`
+nativo: es un componente que envuelve un control, no uno compuesto. La diferencia
+importa y está contada en [«Atributos, `id` y morph»](getting-started.md).
 
-```html
-<x-kore::input wire:model.live="email" label="Email" type="email"
-    placeholder="you@example.com" autocomplete="email" />
+```blade
+<x-kore::input wire:model.live="email" label="Correo" type="email"
+    placeholder="tu@ejemplo.test" autocomplete="email" />
 ```
+
+## Accesibilidad
+
+- El `id` del campo es **estable entre renders** —lo da `IdContext`, no un
+  `uniqid()`—, que es lo que mantiene en pie el `label[for]` y evita que Livewire
+  sustituya el nodo en cada ida y vuelta al servidor.
+- El `hint` y el mensaje de error se enlazan con el control por
+  `aria-describedby`, y un campo con error lleva `aria-invalid="true"`.
+- Un `name` con corchetes se normaliza al derivar el `id`: `items[0]` da
+  `kore-items-0` y no `kore-items[0]`, que obliga a escapar en cualquier selector.

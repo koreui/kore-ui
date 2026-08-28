@@ -27,7 +27,10 @@ Un enlace de navegación del sidebar. Si le metes hijos, se convierte en un desp
 | `badgeMax` | `int` | `99` | Tope del contador en modo iconos. Por encima, `"99+"` |
 | `disabled` | `bool` | `false` | Deshabilitar |
 | `target` | `string` | `null` | `_blank`, etc. Añade `rel="noopener noreferrer"` |
-| `navigate` | `bool` | heredado | `wire:navigate`. Por defecto lo hereda del sidebar |
+| `navigate` | `bool\|null` | heredado | `wire:navigate` en el enlace. Sin valor, lo hereda del sidebar y luego de la configuración |
+| `smart` | `bool\|null` | heredado | Detección de la ruta activa. Misma herencia que `navigate` |
+
+Sobre la herencia de esos dos, ver [qué heredan los items](sidebar.md#qué-heredan-los-items).
 
 ## Ruta activa
 

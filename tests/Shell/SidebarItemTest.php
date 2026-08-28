@@ -212,3 +212,36 @@ it('does not add wire:navigate by default', function () {
 
     $view->assertDontSee('wire:navigate', false);
 });
+
+/**
+ * `smart` y `navigate` se heredan del sidebar con `@aware`, y eso funcionaba.
+ * Lo que no llegaba era la CONFIGURACIÓN: `@aware` lee los datos tal y como los
+ * recibió el padre, no las variables que el padre resuelva luego en su `@php`,
+ * así que `kore-ui.shell.sidebar.navigate` no hacía nada por mucho que la
+ * documentación lo listara.
+ */
+it('hereda navigate del sidebar por la etiqueta', function () {
+    $this->blade('<x-kore::sidebar :navigate="true"><x-kore::sidebar.item label="Inicio" href="/" /></x-kore::sidebar>')
+        ->assertSee('wire:navigate', false);
+});
+
+it('hereda navigate de la configuración cuando la etiqueta no dice nada', function () {
+    config()->set('kore-ui.shell.sidebar.navigate', true);
+
+    $this->blade('<x-kore::sidebar><x-kore::sidebar.item label="Inicio" href="/" /></x-kore::sidebar>')
+        ->assertSee('wire:navigate', false);
+});
+
+it('la etiqueta del sidebar gana a la configuración', function () {
+    config()->set('kore-ui.shell.sidebar.navigate', true);
+
+    $this->blade('<x-kore::sidebar :navigate="false"><x-kore::sidebar.item label="Inicio" href="/" /></x-kore::sidebar>')
+        ->assertDontSee('wire:navigate', false);
+});
+
+it('y el item gana a los dos', function () {
+    config()->set('kore-ui.shell.sidebar.navigate', true);
+
+    $this->blade('<x-kore::sidebar><x-kore::sidebar.item label="Inicio" href="/" :navigate="false" /></x-kore::sidebar>')
+        ->assertDontSee('wire:navigate', false);
+});

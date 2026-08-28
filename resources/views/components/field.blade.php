@@ -5,7 +5,6 @@
     'errorMessage' => null,
     'fieldId' => null,
     'required' => false,
-    'inline' => false,
 
     // `<label for>` solo vale contra un control de formulario. Cuando lo que
     // envuelve el field es un contenedor —un role="radiogroup", un calendario

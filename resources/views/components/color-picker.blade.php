@@ -5,7 +5,7 @@
     'error' => null,
     'size' => null,
     'colors' => null,
-    'allowCustom' => true,
+    'allowCustom' => null,
     'inline' => false,
     'clearable' => true,
     'columns' => null,
@@ -21,6 +21,8 @@
     $textoVacio = config('kore-ui.form.translations.pick_color', 'Elegir color');
     $size = $size ?? config('kore-ui.form.size', 'md');
     $columns = $columns ?? config('kore-ui.form.color_picker.columns', 8);
+    // `null` y no `true` en el @props: con un valor escrito, el `??` no
+    // dispara nunca y `allow_custom` de la configuración no se aplica.
     $allowCustom = $allowCustom ?? config('kore-ui.form.color_picker.allow_custom', true);
 
     $name = $name ?? $attributes->whereStartsWith('wire:model')->first();

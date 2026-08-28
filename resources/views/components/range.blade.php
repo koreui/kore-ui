@@ -61,6 +61,14 @@
         'step' => (float) $step,
         'single' => !$range,
     ]);
+
+    // En modo doble no hay UN control donde mergear —hay dos deslizadores y un
+    // input oculto—, y el bag no se volcaba en ninguna parte: un `class`, un
+    // `data-*` o un `x-on:` escrito en la etiqueta desaparecía sin decir nada.
+    // El modo simple sí mergeaba en su control, y por eso se dio por bueno.
+    // `id` se queda fuera porque lo lleva el input oculto, y `wire:model` porque
+    // vive en él.
+    $atributosRaiz = $attributes->whereDoesntStartWith('wire:model')->except(['id']);
 @endphp
 
 <x-kore::field
@@ -75,8 +83,8 @@
         {{-- Range mode (two handles) --}}
         <div
             x-data="KoreRange({{ $jsConfig }})"
-            class="w-full {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
             style="--kore-thumb-size: {{ $thumbVar }}; --kore-track-height: {{ $trackPx }}"
+            {{ $atributosRaiz->class(['w-full', 'opacity-50 cursor-not-allowed' => $disabled]) }}
         >
             {{-- Hidden input for wire:model --}}
             <input
