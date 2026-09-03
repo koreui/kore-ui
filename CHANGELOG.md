@@ -7,6 +7,12 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [2.3.1] — 2026-09-03
+
+### Fixed
+
+- **El job JS del CI estaba en rojo desde antes de la 2.2.0.** El paso `markdown:check` compara el parser JavaScript con `src/Editor/Markdown.php`, y para eso lanza `php -r` con `vendor/autoload.php`; el job solo hacía `npm ci`, así que moría con «Failed opening required 'vendor/autoload.php'». Ahora instala PHP y Composer antes. Solo cambia el CI: la librería es la misma que en 2.3.0.
+
 ## [2.3.0] — 2026-09-03
 
 ### Added

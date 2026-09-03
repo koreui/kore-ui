@@ -48,6 +48,20 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # markdown:check compara el parser JS con src/Editor/Markdown.php, y para
+      # eso lanza `php -r` con vendor/autoload.php: este job necesita Composer
+      # aunque sea el de JS. Sin esto el paso moría con "Failed opening required
+      # 'vendor/autoload.php'".
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, mbstring
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress --no-dev
+
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
