@@ -5,7 +5,7 @@ A modern UI component library for Laravel, built with Livewire 4, Tailwind CSS v
 ## Requirements
 
 - PHP ^8.2
-- Laravel ^12.0
+- Laravel ^12.0 | ^13.0
 - Livewire ^4.0
 - Tailwind CSS v4 (installed in your project)
 

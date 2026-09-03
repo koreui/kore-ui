@@ -7,12 +7,17 @@ on:
 
 jobs:
   php-tests:
-    name: PHP ${{ matrix.php }}
+    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         php: ['8.2', '8.3', '8.4']
+        laravel: ['12', '13']
+        exclude:
+          # Laravel 13 exige PHP 8.3+.
+          - php: '8.2'
+            laravel: '13'
     steps:
       - uses: actions/checkout@v5
 
@@ -25,9 +30,14 @@ jobs:
           # never depends on the runner's defaults.
           extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite3, pdo_sqlite, bcmath
           coverage: none
+          ini-values: memory_limit=-1
 
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
+      # No hay composer.lock versionado: cada job resuelve el framework que le toca
+      # con la restricción explícita. laravel/framework reemplaza a todos los
+      # illuminate/*, así que fijar uno fija el resto (y arrastra a testbench y pest
+      # a la mayor que lo soporte).
+      - name: Install Composer dependencies (Laravel ${{ matrix.laravel }})
+        run: composer update --prefer-dist --no-interaction --no-progress --with "illuminate/support:^${{ matrix.laravel }}.0"
 
       - name: Run Pest
         run: ./vendor/bin/pest

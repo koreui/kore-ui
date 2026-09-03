@@ -7,6 +7,12 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [2.3.0] — 2026-09-03
+
+### Added
+
+- **Soporte para Laravel 13.** Las cinco dependencias `illuminate/*` pasan de `^12.0` a `^12.0|^13.0`; el código no cambia. Verificado con la suite completa (2200 tests) sobre Laravel 13.30 y con la suite E2E entera del boilerplate. `php` sigue en `^8.2`: Laravel 13 exige 8.3+, pero quien siga en 12 no pierde nada. En `require-dev`, `orchestra/testbench` admite `^11.0` y `pestphp/pest` `^5.0`, y el CI prueba ahora las dos mayores del framework en su matriz (8.2 solo con 12).
+
 ## [2.2.0] — 2026-08-28
 
 **Poner al día la documentación, y los once defectos que sacó a la luz.** No

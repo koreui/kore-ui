@@ -7,11 +7,11 @@
     "require": {
         "php": "^8.2",
         "blade-ui-kit/blade-icons": "^1.9",
-        "illuminate/contracts": "^12.0",
-        "illuminate/database": "^12.0",
-        "illuminate/pagination": "^12.0",
-        "illuminate/support": "^12.0",
-        "illuminate/validation": "^12.0",
+        "illuminate/contracts": "^12.0|^13.0",
+        "illuminate/database": "^12.0|^13.0",
+        "illuminate/pagination": "^12.0|^13.0",
+        "illuminate/support": "^12.0|^13.0",
+        "illuminate/validation": "^12.0|^13.0",
         "livewire/livewire": "^4.0",
         "mallardduck/blade-lucide-icons": "^1.26"
     },
@@ -19,8 +19,8 @@
         "ext-intl": "Formato de moneda y de número por locale en NumberColumn::money() y ::locale(). Sin ella se usa un fallback con number_format()."
     },
     "require-dev": {
-        "orchestra/testbench": "^10.0",
-        "pestphp/pest": "^3.0"
+        "orchestra/testbench": "^10.0|^11.0",
+        "pestphp/pest": "^3.0|^5.0"
     },
     "autoload": {
         "psr-4": {
