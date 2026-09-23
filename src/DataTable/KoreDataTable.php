@@ -3,9 +3,11 @@
 namespace KoreUi\DataTable;
 
 use Illuminate\Database\Eloquent\Builder;
+use KoreUi\DataTable\Columns\ActionColumn;
 use KoreUi\DataTable\Columns\Column;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
+use ReflectionMethod;
 
 abstract class KoreDataTable extends Component
 {
@@ -310,6 +312,44 @@ abstract class KoreDataTable extends Component
         if ($deactivatePreset && property_exists($this, 'activeSavedView')) {
             $this->activeSavedView = null;
         }
+    }
+
+    /**
+     * Autoriza el callback de una acción de fila con ->confirm().
+     *
+     * Ese diálogo se abre desde el navegador con el payload de
+     * RowAction::buildKoreConfirmPayload(), sin pasar por Confirm::send(), así
+     * que su método nunca entra en $koreConfirmable y el callback se descartaba
+     * en silencio. Aquí se autoriza a partir de columns(), que es del servidor.
+     *
+     * No abre nada nuevo: sin confirm, el mismo método ya se llama con
+     * wire:click y la clave de la fila. Por eso se exige lo mismo que exige ese
+     * camino —que el método sea público— y que llegue un solo argumento escalar,
+     * la clave.
+     */
+    protected function authorizesConfirmCallback(string $method, array $params): bool
+    {
+        if (count($params) !== 1 || ! array_is_list($params) || ! is_scalar($params[0])) {
+            return false;
+        }
+
+        if (! method_exists($this, $method) || ! (new ReflectionMethod($this, $method))->isPublic()) {
+            return false;
+        }
+
+        foreach ($this->cachedColumns() as $column) {
+            if (! $column instanceof ActionColumn) {
+                continue;
+            }
+
+            foreach ($column->getActions() as $action) {
+                if ($action->hasConfirm() && $action->getWireMethod() === $method) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

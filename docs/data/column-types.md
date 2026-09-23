@@ -364,7 +364,7 @@ RowAction::make('id', 'Label')
 | `dispatch(event, array\|Closure)` | Dispara un CustomEvent en el browser sin round-trip al servidor. La Closure recibe `$row` |
 | `openOverlay(name, array\|Closure)` | Shorthand de `dispatch('kore:open', ...)` para abrir un overlay de kore-ui. La Closure recibe `$row` |
 | `wireMethod(string)` | Metodo Livewire a ejecutar (recibe el primary key como argumento). Causa re-render |
-| `confirm(string, string)` | Dialogo de confirmacion antes de ejecutar `wireMethod` |
+| `confirm(string, string)` | Dialogo de confirmacion antes de ejecutar `wireMethod`. El metodo tiene que ser publico, igual que sin confirm |
 | `hidden(Closure)` | Callback `fn($row) => bool` para ocultar por fila |
 | `separator()` | Agrega separador visual antes de la accion en el dropdown |
 

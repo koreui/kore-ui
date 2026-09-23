@@ -43,7 +43,8 @@ trait InteractsWithFeedback
      *
      * Security: only methods previously authorized server-side by Confirm::send()
      * (i.e. wired through ->onConfirm()/->onCancel()) are executed, and each
-     * authorization is consumed on use. This blocks forged kore:confirm-callback
+     * authorization is consumed on use; anything else must pass
+     * authorizesConfirmCallback(). This blocks forged kore:confirm-callback
      * events from the browser that try to invoke arbitrary or protected/private
      * methods (e.g. runBulkAction) while skipping the confirmation dialog.
      */
@@ -56,13 +57,24 @@ trait InteractsWithFeedback
 
         $index = array_search($method, $this->koreConfirmable, true);
 
-        if ($index === false) {
+        if ($index !== false) {
+            unset($this->koreConfirmable[$index]);
+            $this->koreConfirmable = array_values($this->koreConfirmable);
+        } elseif (! $this->authorizesConfirmCallback($method, $params)) {
             return;
         }
 
-        unset($this->koreConfirmable[$index]);
-        $this->koreConfirmable = array_values($this->koreConfirmable);
-
         $this->{$method}(...$params);
+    }
+
+    /**
+     * Second authorization path, for confirm dialogs opened from the browser
+     * without going through Confirm::send() (so nothing was added to
+     * $koreConfirmable). Denies by default; a component overrides it to allow
+     * callbacks derived from its own server-side definition.
+     */
+    protected function authorizesConfirmCallback(string $method, array $params): bool
+    {
+        return false;
     }
 }
