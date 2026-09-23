@@ -7,6 +7,12 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [2.3.2] — 2026-09-23
+
+### Fixed
+
+- **Las acciones de fila con `->confirm()` no hacían nada al aceptar.** El diálogo se abre desde el navegador con el payload de `RowAction::buildKoreConfirmPayload()`, sin pasar por `Confirm::send()`, así que el método nunca entraba en `$koreConfirmable` y `handleConfirmCallback()` descartaba el callback sin avisar. `InteractsWithFeedback` tiene ahora un segundo camino de autorización, `authorizesConfirmCallback()`, que niega por defecto; `KoreDataTable` lo implementa aceptando solo métodos públicos declarados como `wireMethod` de una acción con `confirm()` en `columns()`, con un único argumento escalar. Afectaba al menos desde la 2.0.1.
+
 ## [2.3.1] — 2026-09-03
 
 ### Fixed
