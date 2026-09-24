@@ -7,6 +7,12 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [2.3.3] — 2026-09-24
+
+### Fixed
+
+- **Dos toasts con el mismo tipo y título se juntaban aunque su descripción fuera distinta, y el segundo mensaje se perdía.** `canGroup()` comparaba solo `type` + `title`: con un título genérico («¡Listo!») y el mensaje real en la descripción, el segundo toast subía el contador «(2)» y se quedaba la descripción del primero. Ahora la descripción también tiene que coincidir. Además, un toast que ya se está cerrando no agrupa: el nuevo se sumaba a él y desaparecía en la animación de salida, lo que hacía el fallo intermitente en pruebas E2E.
+
 ## [2.3.2] — 2026-09-23
 
 ### Fixed
