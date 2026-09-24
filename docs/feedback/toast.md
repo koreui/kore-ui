@@ -97,12 +97,14 @@ Loading toasts are persistent, not dismissible, and don't group.
 
 ## Grouping
 
-Identical toasts (same type + title) automatically merge into one with a counter badge:
+Identical toasts (same type, title and description) automatically merge into one with a counter badge:
 
 ```php
 // Click 3 times → shows "Record saved (3)" instead of 3 separate toasts
 $this->toast()->success('Record saved')->send();
 ```
+
+Toasts that share a title but not a description stay separate, so a generic title such as "Done!" with the real message in the description never hides the second message.
 
 Grouping is disabled automatically when a toast has actions, confirm/cancel options, or hooks.
 

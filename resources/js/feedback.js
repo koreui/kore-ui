@@ -82,11 +82,9 @@ export default function KoreFeedback(flash = null, config = {}) {
                 this.toasts = [];
             }
 
-            // Grouping — merge with existing toast of same type+title
+            // Grouping — merge only with an identical toast still on screen
             if (this.canGroup(toast)) {
-                const existing = this.toasts.find(t =>
-                    t.type === toast.type && t.title === toast.title
-                );
+                const existing = this.toasts.find(t => this.isSameToast(t, toast));
                 if (existing) {
                     existing.count = (existing.count || 1) + 1;
                     existing.timeout = toast.timeout;
@@ -100,6 +98,7 @@ export default function KoreFeedback(flash = null, config = {}) {
             toast._visible = false;
             toast._hovered = false;
             toast._hoverTimer = null;
+            toast._dismissing = false;
 
             this.toasts.push(toast);
         },
@@ -117,6 +116,7 @@ export default function KoreFeedback(flash = null, config = {}) {
 
             // Animate out
             toast._visible = false;
+            toast._dismissing = true;
 
             setTimeout(() => {
                 this.toasts = this.toasts.filter(t => t.id !== id);
@@ -161,6 +161,16 @@ export default function KoreFeedback(flash = null, config = {}) {
             if (toast.options?.confirm) return false;
             if (toast.hooks && Object.keys(toast.hooks).length) return false;
             return true;
+        },
+
+        isSameToast(existing, toast) {
+            // La descripción cuenta: con un título genérico («¡Listo!») el mensaje real va
+            // en ella, y agrupar por título descartaba el segundo aviso.
+            // Un toast que ya se está cerrando no agrupa: el nuevo se iría con él.
+            return !existing._dismissing
+                && existing.type === toast.type
+                && existing.title === toast.title
+                && (existing.description ?? null) === (toast.description ?? null);
         },
 
         // --- Timer ---

@@ -115,3 +115,61 @@ describe('setHovered', () => {
         expect(toast._hovered).toBe(false);
     });
 });
+
+describe('add — grouping', () => {
+    // add() reinicia la barra de progreso al agrupar; en node no hay DOM que buscar.
+    beforeEach(() => {
+        globalThis.document = { querySelector: () => null };
+    });
+    afterEach(() => {
+        delete globalThis.document;
+    });
+
+    it('groups identical toasts into one with a counter', () => {
+        const fb = makeFeedback();
+
+        fb.add(makeToast({ id: 'a', type: 'success', title: '¡Listo!', description: 'Cliente guardado' }));
+        fb.add(makeToast({ id: 'b', type: 'success', title: '¡Listo!', description: 'Cliente guardado' }));
+
+        expect(fb.toasts).toHaveLength(1);
+        expect(fb.toasts[0].count).toBe(2);
+    });
+
+    it('keeps toasts apart when only the description differs', () => {
+        // Regression: grouping matched type + title only, so the second toast's
+        // description was dropped and the user never saw "Cliente eliminado".
+        const fb = makeFeedback();
+
+        fb.add(makeToast({ id: 'a', type: 'success', title: '¡Listo!', description: 'Cliente guardado' }));
+        fb.add(makeToast({ id: 'b', type: 'success', title: '¡Listo!', description: 'Cliente eliminado' }));
+
+        expect(fb.toasts.map(t => t.description)).toEqual(['Cliente guardado', 'Cliente eliminado']);
+        expect(fb.toasts.every(t => t.count === 1)).toBe(true);
+    });
+
+    it('treats a missing description and null as the same', () => {
+        // PHP sends null; the JS API may omit the key.
+        const fb = makeFeedback();
+
+        fb.add(makeToast({ id: 'a', description: null }));
+        fb.add(makeToast({ id: 'b' }));
+
+        expect(fb.toasts).toHaveLength(1);
+        expect(fb.toasts[0].count).toBe(2);
+    });
+
+    it('does not merge into a toast that is being dismissed', () => {
+        // The dismissing toast is removed 300ms later; merging into it would take the
+        // new toast down with it.
+        vi.useFakeTimers();
+        const fb = makeFeedback();
+
+        fb.add(makeToast({ id: 'a' }));
+        fb.dismiss('a');
+        fb.add(makeToast({ id: 'b' }));
+        vi.advanceTimersByTime(300);
+
+        expect(fb.toasts.map(t => t.id)).toEqual(['b']);
+        vi.useRealTimers();
+    });
+});
