@@ -36,6 +36,9 @@
         }
     },
     "extra": {
+        "branch-alias": {
+            "dev-main": "2.x-dev"
+        },
         "laravel": {
             "providers": [
                 "KoreUi\\KoreUiServiceProvider"
