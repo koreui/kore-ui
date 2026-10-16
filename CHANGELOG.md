@@ -7,6 +7,13 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **`window.KoreUi.utils`: las utilidades de posicionamiento, foco y scroll, accesibles para los paquetes que dependen de kore-ui.** El bundle es un IIFE que no exportaba nada, así que un paquete con su propio bundle (el futuro `kore-ui/calendar`) tenía que empaquetar otra copia de `@floating-ui` y su propio contador de bloqueos de scroll, y dos contadores no se ponen de acuerdo sobre quién tiene el scroll bloqueado. Ahora se exponen congeladas `floating` (`startFloating`, `stopFloating`, `virtualReference`), `focusTrap` (`createFocusTrap`) y `scrollLock` (`lockScroll`, `unlockScroll`, `isScrollLocked`). Existen nada más evaluarse el bundle, antes de `alpine:init`. Son API pública: un test fija su forma. Cuesta 90 bytes gzip.
+- **`branch-alias` `dev-main` → `2.x-dev` en `composer.json`.** Instalado desde un path repository, kore-ui se resolvía como `dev-main`, y un paquete que exigiera `^2.3` no podía instalarse junto a él en el demo.
+
 ## [2.3.3] — 2026-09-24
 
 ### Fixed

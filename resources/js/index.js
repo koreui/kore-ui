@@ -1,5 +1,7 @@
 import collapse from '@alpinejs/collapse';
 import { createFocusTrap } from './utils/focus-trap.js';
+import { startFloating, stopFloating, virtualReference } from './utils/floating.js';
+import { lockScroll, unlockScroll, isScrollLocked } from './utils/scroll-lock.js';
 import KoreOverlay from './overlay.js';
 import KoreFeedback from './feedback.js';
 import KoreSelect from './form/select.js';
@@ -35,6 +37,26 @@ import KoreDataTable from './datatable.js';
 import KoreSpotlight from './spotlight.js';
 import KoreTheme from './theme.js';
 import KoreSidebarStore from './sidebar.js';
+
+/**
+ * Las utilidades que usan los paquetes que dependen de kore-ui (kore-ui/calendar).
+ *
+ * Van en `window` porque cada paquete trae su propio bundle IIFE: sin esto, el
+ * calendario tendría que empaquetar otra copia de @floating-ui y su propio
+ * contador de bloqueos de scroll, y dos contadores no se ponen de acuerdo sobre
+ * quién tiene el scroll bloqueado. Se asignan al evaluar el bundle, no en
+ * `alpine:init`, para que existan antes de que arranque cualquier componente.
+ *
+ * Es API pública: cambiar una firma de aquí rompe a los paquetes que dependen
+ * de kore-ui, así que cuenta como cambio incompatible.
+ */
+window.KoreUi = Object.assign(window.KoreUi || {}, {
+    utils: Object.freeze({
+        floating: Object.freeze({ startFloating, stopFloating, virtualReference }),
+        focusTrap: Object.freeze({ createFocusTrap }),
+        scrollLock: Object.freeze({ lockScroll, unlockScroll, isScrollLocked }),
+    }),
+});
 
 document.addEventListener('alpine:init', () => {
     // Los bundles que se cargan aparte —el editor— necesitan saber si llegaron
