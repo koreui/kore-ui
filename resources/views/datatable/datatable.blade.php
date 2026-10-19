@@ -195,8 +195,11 @@
                     display:none inicial: el overlay nacería visible y se quedaría pegado para
                     siempre sobre la tabla, porque el JS solo lo apaga al TERMINAR una petición.
 
-                 z-30 lo mantiene por encima del thead sticky (z-20). --}}
-            <div wire:loading.delay.flex style="display: none" class="absolute inset-0 z-30 flex items-center justify-center bg-kore-surface/80 backdrop-blur-[1px]">
+                 z-30 lo mantiene por encima del thead sticky (z-20).
+
+                 wire:target.except="setViewport": informar del ancho no cambia los
+                 datos, así que no debe tapar la tabla en cada carga de página. --}}
+            <div wire:loading.delay.flex style="display: none" wire:target.except="setViewport" class="absolute inset-0 z-30 flex items-center justify-center bg-kore-surface/80 backdrop-blur-[1px]">
                 {{-- Sin anunciar: la paginación de abajo ya tiene su `aria-live`
                      con el recuento, y con los dos un lector oía «Cargando» y a
                      continuación «Mostrando 1 de 1» en cada filtrado. --}}

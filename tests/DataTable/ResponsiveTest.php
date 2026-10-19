@@ -96,3 +96,12 @@ it('permite traducir ese nombre, con la columna en otro sitio', function () {
     Livewire::test(TestTable::class)
         ->assertSeeHtml('aria-label="Sort by Nombre"');
 });
+
+/**
+ * setViewport solo informa del ancho; no cambia los datos. Sin el target, el velo
+ * de carga tapaba la tabla en cada carga de página mientras viajaba esa petición.
+ */
+it('no muestra el velo de carga mientras se informa del ancho', function () {
+    Livewire::test(TestCollapseTable::class)
+        ->assertSeeHtml('style="display: none" wire:target.except="setViewport"');
+});

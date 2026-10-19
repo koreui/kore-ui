@@ -296,6 +296,14 @@ export default (config = {}) => ({
         // datatable dentro de un panel estrecho colapse aunque la pantalla sea
         // ancha.
         const width = this.$root ? this.$root.clientWidth : window.innerWidth;
+
+        // Ancho 0 = el contenedor no se dibuja (un padre con display:none: el
+        // x-cloak del <body> antes de que Alpine lo quite, una pestaña, un modal
+        // o un x-show cerrados). Medir ahí daría «móvil» en escritorio y un viaje
+        // al servidor que habría que deshacer. El ResizeObserver vuelve a llamar
+        // cuando el contenedor tenga tamaño.
+        if (this.$root && width === 0) return;
+
         const isMobile = width < this.responsiveBreakpoint;
 
         if (isMobile === this.isMobileView && this.viewportReported) return;
