@@ -7,6 +7,13 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [2.4.1] — 2026-10-19
+
+### Fixed
+
+- **Las tablas con `responsiveMode` `card` o `collapse` pedían la vista móvil al cargar en escritorio si un contenedor padre estaba oculto.** `checkBreakpoint()` leía `clientWidth` en `init()`, y con un padre en `display:none` (el `x-cloak` del `<body>`, que Alpine quita después de iniciar a los hijos, o una pestaña, modal o `x-show` cerrados) leía 0 y llamaba a `setViewport(true)`. Luego el `ResizeObserver` medía el ancho real y llamaba a `setViewport(false)`: dos viajes al servidor y la tabla desaparecía durante el primero. Ahora, con ancho 0, no se informa y espera al `ResizeObserver`.
+- **El velo de carga del datatable aparecía también con `setViewport`**, una petición que no cambia los datos, y tapaba la tabla en cada carga de página. Lleva `wire:target.except="setViewport"`.
+
 ## [2.4.0] — 2026-10-16
 
 ### Added
