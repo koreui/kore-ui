@@ -7,6 +7,13 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- **Con `manualInput`, escribir la fecha y pulsar Enter guardaba la fecha de hoy.** Enter subía al `onKeydown` del contenedor, que con el calendario abierto elige el día enfocado —hoy, si no había fecha—, y lo escrito aún no se había aplicado porque `onManualInput` va con debounce de 500 ms. Ahora Enter en el campo de texto aplica lo escrito al momento (`onManualEnter`) y cierra; si no es una fecha válida no elige ninguna y el calendario sigue abierto. Lo escrito también mueve el foco del calendario.
+- **La entrada manual solo entendía `AAAA-MM-DD`.** Acepta además `DD/MM/AAAA` (también con `-` o `.`), y descarta las fechas que no existen (31/02) en lugar de desbordarlas al mes siguiente.
+
 ## [2.4.1] — 2026-10-19
 
 ### Fixed

@@ -162,6 +162,7 @@
                     @if(! $edicionBloqueada)
                         x-on:focus="openDropdown()"
                         x-on:input.debounce.500ms="onManualInput($event)"
+                        x-on:keydown.enter.stop.prevent="onManualEnter($event)"
                     @endif
                     x-bind:value="displayValue"
                     id="{{ $fieldId }}"

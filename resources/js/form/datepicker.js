@@ -896,13 +896,62 @@ export default (config) => ({
     onManualInput(e) {
         const val = e.target.value;
         if (!val) return;
-        const parsed = this._parseDate(val);
-        if (parsed && !isNaN(parsed.getTime()) && !this.isDisabled(parsed)) {
-            this.selected = parsed;
-            this.viewDate = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
-            this.buildCalendar();
-            this.syncModel();
+        this._aplicarFechaEscrita(val);
+    },
+
+    /**
+     * Enter en el campo de texto toma lo escrito, sin esperar al debounce de
+     * `onManualInput`. Antes Enter subía al `onKeydown` del contenedor, que con
+     * el calendario abierto elegía el día enfocado —hoy, si no había fecha—, y
+     * lo escrito se perdía. Si lo escrito no es una fecha válida no se elige
+     * ninguna: el calendario sigue abierto para corregir.
+     */
+    onManualEnter(e) {
+        const val = e.target.value.trim();
+        if (val === '' || val === this.displayValue) {
+            this.close();
+            return;
         }
+        if (this._aplicarFechaEscrita(val)) {
+            this.close();
+        }
+    },
+
+    /** @returns {boolean} si lo escrito era una fecha válida y quedó elegida. */
+    _aplicarFechaEscrita(val) {
+        const parsed = this._parseManual(val);
+        if (!parsed || this.isDisabled(parsed)) {
+            return false;
+        }
+        this.selected = parsed;
+        this.focusedDate = new Date(parsed);
+        this.viewDate = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
+        this.buildCalendar();
+        this.syncModel();
+        return true;
+    },
+
+    /**
+     * Lo que se escribe a mano: `AAAA-MM-DD` o, como se escribe en español,
+     * `DD/MM/AAAA` (también con `-` o `.`). Una fecha que no existe (31/02)
+     * se descarta en lugar de desbordarse al mes siguiente.
+     */
+    _parseManual(str) {
+        const s = String(str).trim();
+        let y, m, d;
+        let match = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+        if (match) {
+            [, y, m, d] = match;
+        } else if ((match = s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/))) {
+            [, d, m, y] = match;
+        } else {
+            return null;
+        }
+        const date = new Date(+y, +m - 1, +d);
+        if (date.getFullYear() !== +y || date.getMonth() !== +m - 1 || date.getDate() !== +d) {
+            return null;
+        }
+        return date;
     },
 
     // ── Keyboard ─────────────────────────────────────────────────

@@ -42,7 +42,7 @@ Full-featured date selection: single, range, multiple modes with calendar naviga
 | `timeFormat` | string | `'24'` | Time format: `'24'` or `'12'` (AM/PM) |
 | `presets` | bool\|array | false | Show preset ranges sidebar (range mode only). `true` for defaults, or array of custom presets |
 | `helpers` | bool | false | Show Yesterday/Today/Tomorrow buttons (single mode) |
-| `manualInput` | bool | false | Allow typing date directly in `YYYY-MM-DD` format |
+| `manualInput` | bool | false | Allow typing the date: `YYYY-MM-DD` or `DD/MM/YYYY` (also with `-` or `.`). Enter applies what was typed; an invalid date selects nothing |
 | `requiresConfirmation` | bool | false | Apply/Cancel buttons, selection doesn't commit until confirmed |
 
 ## Configuration
