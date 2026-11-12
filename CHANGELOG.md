@@ -11,7 +11,7 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ### Added
 
-- **Los textos de la librería en inglés, y la opción `locale`.** Los textos seguían solo en español, en `config/kore-ui.php`: una aplicación en inglés tenía que traducir a mano doscientas claves en el config publicado. `'locale' => 'auto'` aplica el paquete del idioma de la aplicación —la librería trae `en`, con las 212 claves y los tres textos sueltos— y `'locale' => 'en'` lo fija. De fábrica es `null` y no cambia nada. Un texto que la aplicación haya cambiado, en el config o en tiempo de ejecución, se respeta. Los paquetes se publican con `--tag=kore-ui-lang`, para corregir uno o añadir otro idioma. Ver [docs/idiomas.md](docs/idiomas.md).
+- **Los textos de la librería en inglés, y la opción `locale`.** Los textos seguían solo en español, en `config/kore-ui.php`: una aplicación en inglés tenía que traducir a mano doscientas claves en el config publicado. `'locale' => 'auto'` aplica el paquete del idioma de la aplicación —la librería trae `en`, con las 212 claves y los tres textos sueltos— y `'locale' => 'en'` lo fija. De fábrica es `null` y no cambia nada. Un texto que la aplicación haya cambiado, en el config o en tiempo de ejecución, se respeta. Los paquetes se publican con `--tag=kore-ui-lang`, para corregir uno o añadir otro idioma. Ver [docs/idiomas.md](docs/ui/idiomas.md).
 
 ## [3.0.1] — 2026-11-12
 

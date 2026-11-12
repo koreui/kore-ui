@@ -87,7 +87,7 @@ Los textos vienen en español. Para una aplicación en inglés, o en varios idio
 'locale' => 'auto',   // el idioma de la aplicación; null (de fábrica) deja el español
 ```
 
-Ver [idiomas](idiomas.md).
+Ver [idiomas](ui/idiomas.md).
 
 ## JavaScript (Alpine.js plugins)
 
