@@ -23,7 +23,7 @@ Tarjeta de estadística con valor numérico animado, indicador de tendencia e ic
 | `color` | `string` | `primary` | Color del icono: `primary`, `success`, `warning`, `destructive`, `info` |
 | `skeleton` | `bool\|int` | `false` | Silueta mientras no hay cifra. Ver [skeleton](skeleton.md#siluetas-de-componente) |
 | `bordered` | `bool\|null` | `null` | Borde de la superficie. Ver [aspecto](look.md) |
-| `shadow` | `bool\|null` | `null` | Sombra de la superficie (de fábrica, no). Ver [aspecto](look.md) |
+| `shadow` | `bool\|null` | `null` | Sombra de la superficie (de fábrica, sí, como `card`). Ver [aspecto](look.md) |
 | `padding` | `bool\|null` | `null` | Relleno interior. Ver [aspecto](look.md) |
 
 ## Con tendencia

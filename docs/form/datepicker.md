@@ -41,7 +41,7 @@ Full-featured date selection: single, range, multiple modes with calendar naviga
 | `withTime` | bool | false | Enable time picker below calendar |
 | `timeFormat` | string | `'24'` | Time format: `'24'` or `'12'` (AM/PM) |
 | `presets` | bool\|array | false | Show preset ranges sidebar (range mode only). `true` for defaults, or array of custom presets |
-| `helpers` | bool | false | Show Yesterday/Today/Tomorrow buttons (single mode) |
+| `helpers` | bool | false | Show Ayer/Hoy/Mañana buttons (single mode). Labels: `form.translations.date_*` |
 | `manualInput` | bool | false | Allow typing the date: `YYYY-MM-DD` or `DD/MM/YYYY` (also with `-` or `.`). Enter applies what was typed; an invalid date selects nothing |
 | `requiresConfirmation` | bool | false | Apply/Cancel buttons, selection doesn't commit until confirmed |
 
@@ -106,7 +106,7 @@ Quick-select sidebar for common date ranges. Only available in `range` mode.
     mode="range" :presets="true" clearable />
 ```
 
-Built-in presets: Today, Last 7 days, Last 30 days, This month, Last month, This year.
+Built-in presets: Hoy, Últimos 7 días, Últimos 30 días, Este mes, Mes pasado, Este año. Their labels come from `form.translations.date_*` in `config/kore-ui.php`.
 
 ### Custom Presets
 
@@ -122,7 +122,7 @@ Pass an array of presets with `label`, `start`, and `end` keys:
 
 ## Helpers
 
-Yesterday/Today/Tomorrow quick-select buttons. Only available in `single` mode.
+Ayer/Hoy/Mañana quick-select buttons (labels from `form.translations.date_*`). Only available in `single` mode.
 
 ```html
 <x-kore::datepicker wire:model="date" label="Date"

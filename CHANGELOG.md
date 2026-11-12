@@ -7,7 +7,47 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
-## [Unreleased]
+## [Unreleased] — 3.0.0
+
+Rediseño de la librería. La API de los componentes no cambia; cambia el aspecto por defecto. Guía: [docs/upgrade-3.0.md](docs/upgrade-3.0.md).
+
+### Changed
+
+- **El aspecto sale de tokens, y de ningún otro sitio.** Cada plantilla escribía sus sombras, su anillo de foco, su radio y la duración de sus transiciones con utilidades sueltas de Tailwind: 50 `shadow` a secas, 29 `rounded` sin token, seis duraciones (75 a 500 ms) y el foco como `focus:` en 37 sitios y `focus-visible:` en 20. Ahora hay tokens de elevación (`--kore-shadow-xs`…`xl`), de movimiento (`--kore-duration-fast/base/slow`, `--kore-ease-*`), de foco (`--kore-ring-width`, `-offset`, `-halo`) y de altura de control, y las plantillas nombran utilidades compartidas: `kore-control`, `kore-panel`, `kore-focus`, `kore-transition`, `kore-pop`, `kore-option`, `kore-checkmark`. Documentado en [docs/theme/design-tokens.md](docs/theme/design-tokens.md).
+- **Neutros con tinte y fondo de página separado de las superficies.** Los grises llevan el matiz del primario con un croma muy bajo; `--kore-bg` deja de ser blanco puro para que tarjetas y tablas se distingan de él. Las luminosidades no cambian, salvo `--kore-muted-fg` (0.55 → 0.52), que sobre un fondo gris no llegaba a AA. Token nuevo `--kore-field` para el fondo de los campos.
+- **Todos los campos son el mismo campo.** Input, textarea, password, number, maskable, select, datepicker, time-picker, color-picker, tag-input, input-otp, key-value, editor y clipboard comparten borde, sombra, halo de foco y estado de error. El error ya no es una clase de borde: sale de `aria-invalid` o de `.kore-invalid`.
+- **Los controles del mismo tamaño miden lo mismo.** Un botón sólido medía dos píxeles menos que un campo; el campo de etiquetas y `key-value`, cuatro menos. Ahora son 30, 38 y 46 px en todos.
+- **Botón:** el sólido lleva brillo superior y sombra corta, el de contorno neutro usa el borde y la sombra de un campo, todos ceden al pulsarlos, y uno que solo lleva icono es cuadrado.
+- **Los paneles se abren sin `x-transition`.** Menú, select, calendario, selector de hora y de color, tooltip, spotlight y los filtros de la tabla animan con CSS (`@starting-style` + `allow-discrete`). Eran seis atributos por panel que Alpine tenía que leer y ejecutar.
+- **La casilla de la tabla, del árbol y del transfer es la de `<x-kore::checkbox>`**, no la del navegador. La palomita viaja en un token (`--kore-check-icon`) en vez de en una clase arbitraria con un SVG de 700 bytes por casilla, y en oscuro deja de ser blanca sobre un primario claro.
+- **La opción elegida de un select** se marca con negrita y una palomita; el fondo queda para la opción bajo el cursor.
+- **`<x-kore::stats>` lleva sombra por defecto**, como `<x-kore::card>`.
+- **El color usado como texto usa el token `-text`** en toda la librería (82 sitios), no solo en las variantes suaves.
+
+- **Datatable:** la barra de herramientas usa un solo botón (`kore-tool`) en lugar de nueve escritos a mano con dos bordes distintos, y todos sus controles miden lo mismo que el buscador. Las cabeceras dejan las mayúsculas, el icono de orden activo va en primario y el menú de columna aparece al pasar por la cabecera. La página actual del paginador es un control con borde, no un sólido primario. La tabla lleva sombra y el pie un fondo tenue. Con cero filas el recuento dice «Sin resultados» (`datatable.translations.showing_none`) en vez de «Mostrando 0 a 0 de 0 resultados».
+- **Pestañas con indicador deslizante.** Una sola pieza se mueve hasta la pestaña elegida, en las tres variantes y en vertical, en lugar de un borde que se apaga en una y se enciende en otra.
+- **Acordeón, stepper, empty-state, alert y subida:** el acordeón tiene superficie y sombra; el paso activo del stepper lleva halo y los conectores son más gruesos; el icono del estado vacío y el de la zona de subida van en una tesela con borde; el alert de contorno tiene fondo de superficie.
+- **Las pistas de `progress` y `range` usan `--kore-accent`**: con `--kore-muted` casi no se distinguían del fondo de página.
+
+### Added
+
+- **`<x-kore::table :paginator="$users">` y la vista `kore::pagination.links`.** La tabla normal pinta su pie de paginación dentro del marco, igual que el DataTable. Antes `<x-kore::table.pagination>` llamaba a `$paginator->links()`, que usa la vista por defecto del framework: grises fijos de Tailwind, otro radio y otro foco. La vista nueva sirve dentro de Livewire (`wire:click`) y fuera (`href`), y se puede usar suelta.
+- **El movimiento se puede apagar**, en tres niveles: `'motion' => false` en la configuración, `data-kore-motion="off"` en cualquier contenedor y `:animated="false"` en un componente. Los tres ponen a cero los mismos tokens, y los paneles teleportados a `<body>` heredan el ajuste de su disparador. Ver [docs/theme/motion.md](docs/theme/motion.md).
+- **Traducciones que faltaban.** Estaban escritos en la vista o en el JavaScript, varios en inglés: `Apply`/`Cancel` del calendario y del selector de color, los atajos del calendario (`Today`, `Last 7 days`…), la zona de subida (`Drag & drop or browse`, `Upload N files`, `Clear all`), `Create` del select y los textos del spotlight, el repeater y el transfer. Ahora son claves de `form.translations` y `ui.translations`.
+- **Tests de guardia:** `CoherenciaVisualTest` (nadie se sale de los tokens), `MotionTest` y `TraduccionesTest` (toda clave usada existe en la configuración y no queda texto escrito a mano).
+- **Banco de rendimiento** en `demo/e2e/specs/60-rendimiento`: páginas que mezclan componentes, con mediana de cinco cargas y comparación entre ejecuciones.
+
+### Fixed
+
+- **El recuento de `<x-kore::table.pagination>` decía «de 11tal resultados».** Sustituía con `str_replace`, que va en orden: `:to` se comía el principio de `:total`.
+- **El valor copiable de una celda del datatable salía centrado cuando ocupaba dos líneas**: es un `<button>`, que centra su texto por defecto.
+- **En un grupo de avatares, las iniciales del de atrás se leían a través del de delante**: el fondo es el color al veinte por ciento y no había nada opaco debajo.
+- **El lápiz de una celda editable saltaba a una segunda línea** cuando el texto llenaba la columna: la fila crecía y el valor quedaba pegado arriba.
+- **La línea de restricciones de la subida estaba en inglés dentro del JavaScript** («Max 2 MB per file. Up to 3 files.»). Ahora son `form.translations.upload_max_size`, `upload_max_files_one` y `upload_max_files_many`.
+- **El ojo de `password` y el botón de quitar un paso del spotlight no tenían señal de foco**: llevaban `focus:outline-none` sin sustituto.
+- **`shadow-kore-xl` del spotlight no existía**: la clase estaba en la plantilla y ningún token la definía.
+- **El velo del panel de filtros usaba `bg-black/30`** en vez de `--kore-backdrop`.
+
 
 ### Fixed
 

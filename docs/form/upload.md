@@ -28,7 +28,7 @@ File upload with drag & drop, real-time progress via Livewire, client-side valid
 | `preview` | bool | true | Show image thumbnails for image files |
 | `deletable` | bool | false | Show delete button on each file |
 | `deleteMethod` | string | `'deleteUpload'` | Livewire method to call on delete |
-| `clearable` | bool | false | Show "Clear all" button |
+| `clearable` | bool | false | Show the «Quitar todos» button (`form.translations.upload_clear_all`) |
 | `pasteable` | bool | true | Allow pasting files from clipboard |
 | `static` | bool | false | Display pre-existing files (no upload zone) |
 | `staticFiles` | array | null | Array of existing file objects for static mode |
@@ -162,7 +162,7 @@ public function deleteUpload($data)
 
 ### Clear All
 
-Show a "Clear all" button below the file list.
+Show a «Quitar todos» button below the file list.
 
 ```html
 <x-kore::upload wire:model="files" label="Files"

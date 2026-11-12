@@ -94,3 +94,8 @@ Page load
 With Livewire 4, `wire:navigate` performs soft navigation by morphing the DOM — Alpine **is not** destroyed or recreated between navigations. However, the morph can strip the `.dark` class and `data-theme` attribute from `<html>`.
 
 The store handles this automatically: during `init()` it registers a `livewire:navigated` listener that re-applies the theme to `<html>` after each navigation. No extra configuration is required.
+
+## Más allá del color
+
+- [Tokens de diseño](design-tokens.md): elevación, radios, foco, altura de los controles y las utilidades que comparten todos los componentes.
+- [Movimiento](motion.md): duraciones, curvas y las tres maneras de apagar las animaciones.

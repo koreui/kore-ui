@@ -48,7 +48,7 @@ conserva el aspecto que ya tenía. La cascada va de más fuerte a más débil:
 | Componente | `bordered` | `shadow` | `padding` | `compact` | Defectos |
 |---|:--:|:--:|:--:|:--:|---|
 | `card` | ✓ | ✓ | ✓ | — | borde, sombra y relleno |
-| `stats` | ✓ | ✓ | ✓ | — | borde y relleno, sin sombra |
+| `stats` | ✓ | ✓ | ✓ | — | borde, sombra y relleno |
 | `table` | ✓ | ✓ | — | ✓ | ni bordes internos ni sombra |
 | `descriptions` | ✓ | — | — | — | sin borde |
 | `navbar` | ✓ | — | — | — | con borde inferior |

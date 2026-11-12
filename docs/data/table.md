@@ -207,6 +207,30 @@ Los sub-componentes se usan internamente pero estan disponibles para composicion
 Pinta el recuento y los enlaces del paginador, y nada más: el selector de «por
 página» es del DataTable, no de aquí.
 
+## Paginación
+
+Pasa un paginador de Laravel en `paginator` y la tabla pinta su pie dentro del
+propio marco, con el mismo aspecto que el del DataTable:
+
+```blade
+<x-kore::table
+    :headers="$headers"
+    :rows="$users->items()"
+    :paginator="$users"
+/>
+```
+
+Los controles usan la vista `kore::pagination.links`, no la del framework. Dentro
+de un componente Livewire con `WithPagination` son botones con `wire:click`;
+fuera, enlaces con `href`. Esa vista también sirve suelta, para paginar
+cualquier otra cosa con el aspecto de la librería:
+
+```blade
+{{ $users->links('kore::pagination.links') }}
+```
+
+Con una sola página no se pinta nada.
+
 ## Aspecto
 
 `bordered`, `shadow`, `padding` y `compact` se pueden fijar también para toda la
