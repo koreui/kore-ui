@@ -60,4 +60,24 @@ describe('paginación de la tabla normal', function () {
         $this->blade('<x-kore::table.pagination :paginator="$p" />', ['p' => $paginador()])
             ->assertSee('Ves a la pàgina 3');
     });
+
+    it('usa la ventana corta del DataTable y no la de Laravel', function () {
+        // Página 9 de 19: primera, 7 a 11 y última. Con la ventana del framework
+        // salían hasta diez números seguidos.
+        $p = new \Illuminate\Pagination\LengthAwarePaginator([['name' => 'x']], 95, 5, 9, ['path' => '/usuarios']);
+        $html = (string) $this->blade('<x-kore::table.pagination :paginator="$p" />', ['p' => $p]);
+
+        preg_match_all('/(?:aria-current="page">|page=\d+"[^>]*>)(\d+)</', $html, $m);
+
+        expect($m[1])->toBe(['1', '7', '8', '9', '10', '11', '19'])
+            ->and(substr_count($html, '>…<'))->toBe(2);
+    });
+
+    it('sin huecos no pinta elipsis', function () {
+        $p = new \Illuminate\Pagination\LengthAwarePaginator([['name' => 'x']], 20, 5, 2, ['path' => '/usuarios']);
+        $html = (string) $this->blade('<x-kore::table.pagination :paginator="$p" />', ['p' => $p]);
+
+        expect(substr_count($html, '>…<'))->toBe(0)
+            ->and($html)->toContain('page=4');
+    });
 });

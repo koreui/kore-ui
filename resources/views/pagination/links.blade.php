@@ -26,6 +26,25 @@
     $tSiguiente = config('kore-ui.datatable.translations.next', 'Siguiente');
     $tPagina = config('kore-ui.datatable.translations.go_to_page', 'Ir a la página :page');
 
+    // La misma ventana que el paginador del DataTable: la primera, dos a cada
+    // lado de la actual y la última. No se usa `$elements`, la ventana de
+    // Laravel, que pinta hasta diez números seguidos: dos tablas en la misma
+    // pantalla tenían pies de anchos distintos. Un paginador simple o por
+    // cursor no sabe cuál es la última página y se queda en las dos flechas.
+    $paginas = [];
+    if (method_exists($paginator, 'lastPage')) {
+        $actual = $paginator->currentPage();
+        $ultima = $paginator->lastPage();
+        $desde = max(2, $actual - 2);
+        $hasta = min($ultima - 1, $actual + 2);
+
+        $paginas[] = 1;
+        if ($desde > 2) $paginas[] = null;
+        for ($i = $desde; $i <= $hasta; $i++) $paginas[] = $i;
+        if ($hasta < $ultima - 1) $paginas[] = null;
+        if ($ultima > 1) $paginas[] = $ultima;
+    }
+
     $flechaAnterior = 'M15.75 19.5 8.25 12l7.5-7.5';
     $flechaSiguiente = 'm8.25 4.5 7.5 7.5-7.5 7.5';
 @endphp
@@ -47,23 +66,16 @@
             </a>
         @endif
 
-        {{-- Números. Un paginador simple o por cursor no trae `$elements`: se
-             queda en las dos flechas. --}}
-        @foreach ($elements ?? [] as $element)
-            @if (is_string($element))
+        {{-- Números --}}
+        @foreach ($paginas as $numero)
+            @if ($numero === null)
                 <span class="{{ $btnBase }} {{ $btnDisabled }}" aria-hidden="true">…</span>
-            @endif
-
-            @if (is_array($element))
-                @foreach ($element as $numero => $url)
-                    @if ($numero == $paginator->currentPage())
-                        <span class="{{ $btnBase }} {{ $btnActive }}" aria-current="page">{{ $numero }}</span>
-                    @elseif ($enLivewire)
-                        <button type="button" wire:click="gotoPage({{ $numero }}, '{{ $pagina }}')" class="{{ $btnBase }} {{ $btnNormal }}" aria-label="{{ str_replace(':page', $numero, $tPagina) }}">{{ $numero }}</button>
-                    @else
-                        <a href="{{ $url }}" class="{{ $btnBase }} {{ $btnNormal }}" aria-label="{{ str_replace(':page', $numero, $tPagina) }}">{{ $numero }}</a>
-                    @endif
-                @endforeach
+            @elseif ($numero == $paginator->currentPage())
+                <span class="{{ $btnBase }} {{ $btnActive }}" aria-current="page">{{ $numero }}</span>
+            @elseif ($enLivewire)
+                <button type="button" wire:click="gotoPage({{ $numero }}, '{{ $pagina }}')" class="{{ $btnBase }} {{ $btnNormal }}" aria-label="{{ str_replace(':page', $numero, $tPagina) }}">{{ $numero }}</button>
+            @else
+                <a href="{{ $paginator->url($numero) }}" class="{{ $btnBase }} {{ $btnNormal }}" aria-label="{{ str_replace(':page', $numero, $tPagina) }}">{{ $numero }}</a>
             @endif
         @endforeach
 
