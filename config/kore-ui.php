@@ -4,6 +4,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Idioma de los textos
+    |--------------------------------------------------------------------------
+    |
+    | Los textos de la librería son los `translations` de este archivo, en
+    | español. Para otro idioma no hace falta reescribirlos: `locale` aplica
+    | encima un paquete de `lang/{idioma}/kore-ui.php` (la librería trae `en`).
+    |
+    |   null     los textos de este archivo, tal cual
+    |   'auto'   el idioma de la aplicación (`app()->getLocale()`), y lo sigue
+    |            si cambia en un middleware
+    |   'en'     ese idioma, fijo
+    |
+    | Un texto que cambies aquí se respeta: el paquete solo sustituye los que
+    | siguen con su valor de fábrica. Un idioma sin paquete deja todo como está.
+    | Para añadir uno: `php artisan vendor:publish --tag=kore-ui-lang`.
+    |
+    */
+    'locale' => null,
+
+    /*
+    |--------------------------------------------------------------------------
     | Overlay Defaults
     |--------------------------------------------------------------------------
     |

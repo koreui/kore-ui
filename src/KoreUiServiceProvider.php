@@ -64,6 +64,16 @@ class KoreUiServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'kore');
 
+        // Los paquetes de idioma (`lang/en/kore-ui.php`). Se vuelcan sobre el config según
+        // `kore-ui.locale`; con `'auto'` hay que repetirlo cuando la aplicación cambia de
+        // idioma, que suele pasar en un middleware, después de este boot().
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'kore-ui');
+        \KoreUi\Core\Support\Translations::apply();
+        $this->app['events']->listen(
+            \Illuminate\Foundation\Events\LocaleUpdated::class,
+            fn () => \KoreUi\Core\Support\Translations::apply(),
+        );
+
         Blade::anonymousComponentPath(__DIR__.'/../resources/views/components', 'kore');
         Blade::componentNamespace('KoreUi\\View\\Components', 'kore');
 
@@ -130,6 +140,11 @@ class KoreUiServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../resources/views' => resource_path('views/vendor/kore'),
             ], 'kore-ui-views');
+
+            // Los paquetes de idioma, para corregir uno o añadir el de otro idioma.
+            $this->publishes([
+                __DIR__.'/../lang' => $this->app->langPath('vendor/kore-ui'),
+            ], 'kore-ui-lang');
         }
     }
 
