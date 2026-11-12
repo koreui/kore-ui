@@ -7,7 +7,7 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
-## [Unreleased] — 3.0.0
+## [3.0.0] — 2026-11-12
 
 Rediseño de la librería. La API de los componentes no cambia; cambia el aspecto por defecto. Guía: [docs/upgrade-3.0.md](docs/upgrade-3.0.md).
 
@@ -53,10 +53,6 @@ Rediseño de la librería. La API de los componentes no cambia; cambia el aspect
 - **El ojo de `password` y el botón de quitar un paso del spotlight no tenían señal de foco**: llevaban `focus:outline-none` sin sustituto.
 - **`shadow-kore-xl` del spotlight no existía**: la clase estaba en la plantilla y ningún token la definía.
 - **El velo del panel de filtros usaba `bg-black/30`** en vez de `--kore-backdrop`.
-
-
-### Fixed
-
 - **Con `manualInput`, escribir la fecha y pulsar Enter guardaba la fecha de hoy.** Enter subía al `onKeydown` del contenedor, que con el calendario abierto elige el día enfocado —hoy, si no había fecha—, y lo escrito aún no se había aplicado porque `onManualInput` va con debounce de 500 ms. Ahora Enter en el campo de texto aplica lo escrito al momento (`onManualEnter`) y cierra; si no es una fecha válida no elige ninguna y el calendario sigue abierto. Lo escrito también mueve el foco del calendario.
 - **La entrada manual solo entendía `AAAA-MM-DD`.** Acepta además `DD/MM/AAAA` (también con `-` o `.`), y descarta las fechas que no existen (31/02) en lugar de desbordarlas al mes siguiente.
 
