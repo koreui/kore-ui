@@ -26,7 +26,12 @@
     'retryable' => null,
     'maxRetries' => null,
     'retryDelay' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $deleteMethod = $deleteMethod ?? config('kore-ui.form.upload.delete_method', 'deleteUpload');
@@ -70,6 +75,11 @@
         // Con `?? config(...)` en vez de `?? null`: el mensaje por defecto del
         // plugin estaba escrito en inglés dentro del JavaScript, donde no hay
         // forma de tocarlo sin recompilar el bundle.
+        'labels' => array_filter([
+            'maxSize' => $maxSize ? config('kore-ui.form.translations.upload_max_size', 'Máximo {size} MB por archivo') : null,
+            'maxFilesMany' => $maxFiles ? config('kore-ui.form.translations.upload_max_files_many', 'Hasta {count} archivos') : null,
+            'maxFilesOne' => $maxFiles ? config('kore-ui.form.translations.upload_max_files_one', 'Un solo archivo') : null,
+        ]) ?: null,
         'invalidSizeMessage' => $invalidSizeMessage ?? config('kore-ui.form.translations.invalid_size'),
         'invalidTypeMessage' => $invalidTypeMessage ?? config('kore-ui.form.translations.invalid_type'),
         'autoUpload' => !$autoUpload ? false : null,
@@ -148,7 +158,7 @@
                     x-on:click="openFilePicker()"
                     class="inline-flex items-center gap-2 rounded-kore-md border border-kore-input
                            bg-kore-bg text-kore-fg text-sm py-2 px-3
-                           hover:bg-kore-muted transition-colors cursor-pointer
+                           hover:bg-kore-muted kore-transition cursor-pointer
                            disabled:opacity-50 disabled:cursor-not-allowed"
                     @if($disabled) disabled @endif
                 >
@@ -164,8 +174,8 @@
                     x-on:dragleave="onDragLeave($event)"
                     x-on:drop.prevent="onDrop($event)"
                     x-bind:class="{ 'border-kore-primary bg-kore-primary/5': dragging }"
-                    class="border-2 border-dashed rounded-kore-lg p-6 text-center cursor-pointer
-                           hover:border-kore-primary/50 hover:bg-kore-primary/5 transition-colors duration-150
+                    class="border border-dashed rounded-kore-lg bg-kore-field p-6 text-center cursor-pointer
+                           hover:border-kore-primary/60 hover:bg-kore-primary/5 kore-transition kore-focus
                            {{ $hasError ? 'border-kore-destructive' : 'border-kore-input' }}
                            {{ $disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}"
                     role="button"
@@ -174,9 +184,11 @@
                     x-on:keydown.space.prevent="openFilePicker()"
                     x-bind:aria-busy="uploading"
                 >
-                    <x-lucide-upload-cloud class="size-8 mx-auto text-kore-muted-fg mb-2" />
+                    <div class="mx-auto mb-3 flex size-10 items-center justify-center rounded-kore-lg border border-kore-border bg-kore-surface shadow-kore-xs">
+                        <x-lucide-upload-cloud class="size-5 text-kore-muted-fg" />
+                    </div>
                     <p class="text-sm text-kore-fg font-medium">
-                        Drag & drop or <span class="text-kore-primary underline">browse</span>
+                        {!! str_replace(':browse', '<span class="text-kore-primary-text underline underline-offset-2">' . e(config('kore-ui.form.translations.upload_browse', 'búscalos')) . '</span>', e(config('kore-ui.form.translations.upload_dropzone', 'Arrastra archivos aquí o :browse'))) !!}
                     </p>
                     <template x-if="constraintsText">
                         <p x-text="constraintsText" class="text-xs text-kore-muted-fg mt-1"></p>
@@ -207,7 +219,7 @@
                             {{-- Progress bar --}}
                             <div x-show="file.status === 'uploading'" x-cloak class="mt-1.5">
                                 <div class="h-1.5 rounded-full bg-kore-muted overflow-hidden">
-                                    <div class="h-full rounded-full bg-kore-primary transition-all duration-300"
+                                    <div class="h-full rounded-full bg-kore-primary transition-all kore-duration-slow"
                                          x-bind:style="'width: ' + file.progress + '%'"></div>
                                 </div>
                             </div>
@@ -223,14 +235,14 @@
 
                         {{-- Status indicators --}}
                         <template x-if="file.status === 'complete' || file.status === 'static' || file.status === 'ready'">
-                            <x-lucide-check-circle-2 class="size-5 text-kore-success shrink-0" />
+                            <x-lucide-check-circle-2 class="size-5 text-kore-success-text shrink-0" />
                         </template>
                         <template x-if="file.status === 'error'">
                             <div class="flex items-center gap-1.5 shrink-0">
-                                <x-lucide-alert-circle class="size-5 text-kore-destructive" />
+                                <x-lucide-alert-circle class="size-5 text-kore-destructive-text" />
                                 @if($retryable)
                                     <button type="button" x-on:click="retryFile(file.id)"
-                                        class="text-kore-muted-fg hover:text-kore-warning transition-colors"
+                                        class="text-kore-muted-fg hover:text-kore-warning-text kore-transition"
                                         x-bind:aria-label="@js(config('kore-ui.form.translations.retry_upload', 'Reintentar la subida')) + ': ' + file.name">
                                         <x-lucide-refresh-cw class="size-4" />
                                     </button>
@@ -239,7 +251,7 @@
                         </template>
                         <template x-if="file.status === 'retrying'">
                             <div class="flex items-center gap-1.5 shrink-0">
-                                <x-lucide-loader-2 class="size-5 text-kore-warning animate-spin" />
+                                <x-lucide-loader-2 class="size-5 text-kore-warning-text animate-spin" />
                                 <span class="text-xs text-kore-muted-fg" x-text="@js(config('kore-ui.form.translations.retry', 'Reintento')) + ' ' + file.retries + '/{{ $maxRetries }}'"></span>
                             </div>
                         </template>
@@ -247,7 +259,7 @@
                         {{-- Delete button --}}
                         @if($deletable && ! $edicionBloqueada)
                             <button type="button" x-on:click="removeFile(file.id)"
-                                class="text-kore-muted-fg hover:text-kore-destructive transition-colors shrink-0"
+                                class="text-kore-muted-fg hover:text-kore-destructive-text kore-transition shrink-0"
                                 x-bind:aria-label="@js(config('kore-ui.form.translations.remove_file', 'Quitar archivo')) + ': ' + file.name">
                                 <x-lucide-trash-2 class="size-4" />
                             </button>
@@ -261,12 +273,12 @@
         <template x-if="validationErrors.length > 0">
             <ul class="mt-2 space-y-1" role="alert" aria-live="polite">
                 <template x-for="(err, ei) in validationErrors" :key="ei">
-                    <li class="flex items-center gap-2 text-sm text-kore-destructive">
+                    <li class="flex items-center gap-2 text-sm text-kore-destructive-text">
                         <x-lucide-alert-triangle class="size-4 shrink-0" />
                         <span x-text="err.message" class="flex-1"></span>
                         <button type="button" x-on:click="removeValidationError(ei)"
                             aria-label="{{ config('kore-ui.form.translations.dismiss_error', 'Descartar el aviso') }}"
-                            class="text-kore-muted-fg hover:text-kore-fg transition-colors shrink-0">
+                            class="text-kore-muted-fg hover:text-kore-fg kore-transition shrink-0">
                             <x-lucide-x class="size-3.5" />
                         </button>
                     </li>
@@ -280,9 +292,9 @@
             @if(! $autoUpload && ! $edicionBloqueada)
                 <template x-if="hasPendingFiles && !uploading">
                     <button type="button" x-on:click="uploadPending()"
-                        class="text-sm text-kore-primary hover:text-kore-primary/80 transition-colors inline-flex items-center gap-1 font-medium">
+                        class="text-sm text-kore-primary-text hover:text-kore-primary/80 kore-transition inline-flex items-center gap-1 font-medium">
                         <x-lucide-upload class="size-3.5" />
-                        Upload <span x-text="pendingCount"></span> file<span x-show="pendingCount > 1">s</span>
+                        <span x-text="pendingCount === 1 ? @js(config('kore-ui.form.translations.upload_pending_one', 'Subir 1 archivo')) : @js(config('kore-ui.form.translations.upload_pending_many', 'Subir :count archivos')).replace(':count', pendingCount)"></span>
                     </button>
                 </template>
             @endif
@@ -291,9 +303,9 @@
             @if($clearable && ! $edicionBloqueada)
                 <template x-if="hasFiles && !uploading">
                     <button type="button" x-on:click="clear()"
-                        class="text-sm text-kore-muted-fg hover:text-kore-fg transition-colors inline-flex items-center gap-1">
+                        class="text-sm text-kore-muted-fg hover:text-kore-fg kore-transition inline-flex items-center gap-1">
                         <x-lucide-x class="size-3.5" />
-                        Clear all
+                        {{ config('kore-ui.form.translations.upload_clear_all', 'Quitar todos') }}
                     </button>
                 </template>
             @endif

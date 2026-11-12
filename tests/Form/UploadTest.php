@@ -13,15 +13,15 @@ it('renders with label and name', function () {
 it('renders dropzone by default', function () {
     $view = $this->blade('<x-kore::upload label="File" name="file" />');
 
-    $view->assertSee('Drag & drop', false)
-        ->assertSee('browse')
+    $view->assertSee('Arrastra archivos aquí', false)
+        ->assertSee('búscalos')
         ->assertSee('role="button"', false);
 });
 
 it('renders upload icon area in dropzone', function () {
     $view = $this->blade('<x-kore::upload name="file" />');
 
-    $view->assertSee('size-8 mx-auto text-kore-muted-fg mb-2', false);
+    $view->assertSee('size-5 text-kore-muted-fg', false);
 });
 
 it('forwards wire:model on file input', function () {
@@ -45,7 +45,7 @@ it('renders button variant', function () {
 it('renders dropzone variant as default', function () {
     $view = $this->blade('<x-kore::upload label="File" name="file" />');
 
-    $view->assertSee('Drag & drop', false);
+    $view->assertSee('Arrastra archivos aquí', false);
 });
 
 // --- Error handling ---
@@ -201,7 +201,7 @@ it('does not render dropzone in static mode', function () {
 it('renders clear all button when clearable', function () {
     $view = $this->blade('<x-kore::upload name="file" clearable />');
 
-    $view->assertSee('Clear all');
+    $view->assertSee('Quitar todos');
 });
 
 it('does not render clear all button when not clearable', function () {

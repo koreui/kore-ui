@@ -19,12 +19,12 @@
     $colorClasses = match($variant) {
         'solid' => match($color) {
             'primary' => 'bg-kore-primary text-kore-primary-fg',
-            'secondary' => 'bg-kore-secondary text-kore-secondary-fg',
+            'secondary' => 'bg-kore-secondary text-kore-secondary-fg ring-1 ring-inset ring-kore-border',
             'success' => 'bg-kore-success text-kore-success-fg',
             'warning' => 'bg-kore-warning text-kore-warning-fg',
             'destructive' => 'bg-kore-destructive text-kore-destructive-fg',
             'info' => 'bg-kore-info text-kore-info-fg',
-            'muted' => 'bg-kore-muted text-kore-muted-fg',
+            'muted' => 'bg-kore-muted text-kore-muted-fg ring-1 ring-inset ring-kore-border',
             default => 'bg-kore-primary text-kore-primary-fg',
         },
         'outline' => match($color) {
@@ -38,14 +38,14 @@
             default => 'border border-kore-primary text-kore-primary-text',
         },
         default => match($color) {
-            'primary' => 'bg-kore-primary/10 text-kore-primary-text',
-            'secondary' => 'bg-kore-secondary text-kore-secondary-fg',
-            'success' => 'bg-kore-success/10 text-kore-success-text',
-            'warning' => 'bg-kore-warning/10 text-kore-warning-text',
-            'destructive' => 'bg-kore-destructive/10 text-kore-destructive-text',
-            'info' => 'bg-kore-info/10 text-kore-info-text',
-            'muted' => 'bg-kore-muted text-kore-muted-fg',
-            default => 'bg-kore-primary/10 text-kore-primary-text',
+            'primary' => 'bg-kore-primary/10 text-kore-primary-text ring-1 ring-inset ring-kore-primary/20',
+            'secondary' => 'bg-kore-secondary text-kore-secondary-fg ring-1 ring-inset ring-kore-border',
+            'success' => 'bg-kore-success/10 text-kore-success-text ring-1 ring-inset ring-kore-success/20',
+            'warning' => 'bg-kore-warning/10 text-kore-warning-text ring-1 ring-inset ring-kore-warning/20',
+            'destructive' => 'bg-kore-destructive/10 text-kore-destructive-text ring-1 ring-inset ring-kore-destructive/20',
+            'info' => 'bg-kore-info/10 text-kore-info-text ring-1 ring-inset ring-kore-info/20',
+            'muted' => 'bg-kore-muted text-kore-muted-fg ring-1 ring-inset ring-kore-border',
+            default => 'bg-kore-primary/10 text-kore-primary-text ring-1 ring-inset ring-kore-primary/20',
         },
     };
 

@@ -10,16 +10,16 @@
     ">
         @switch($type)
             @case('warning')
-                <x-lucide-triangle-alert class="h-6 w-6 text-kore-warning" aria-hidden="true" />
+                <x-lucide-triangle-alert class="h-6 w-6 text-kore-warning-text" aria-hidden="true" />
             @break
             @case('error')
-                <x-lucide-circle-x class="h-6 w-6 text-kore-destructive" aria-hidden="true" />
+                <x-lucide-circle-x class="h-6 w-6 text-kore-destructive-text" aria-hidden="true" />
             @break
             @case('info')
-                <x-lucide-info class="h-6 w-6 text-kore-info" aria-hidden="true" />
+                <x-lucide-info class="h-6 w-6 text-kore-info-text" aria-hidden="true" />
             @break
             @default
-                <x-lucide-circle-help class="h-6 w-6 text-kore-primary" aria-hidden="true" />
+                <x-lucide-circle-help class="h-6 w-6 text-kore-primary-text" aria-hidden="true" />
         @endswitch
     </div>
 
@@ -45,7 +45,7 @@
             wire:click="reject"
             class="inline-flex w-full justify-center rounded-kore-md px-3 py-2 text-sm font-semibold
                    bg-kore-secondary text-kore-secondary-fg ring-1 ring-inset ring-kore-border
-                   hover:bg-kore-accent transition-colors sm:w-auto"
+                   hover:bg-kore-accent kore-transition sm:w-auto"
         >
             {{ $cancelText }}
         </button>
@@ -55,7 +55,7 @@
             wire:click="accept"
             autofocus
             class="inline-flex w-full justify-center rounded-kore-md px-3 py-2 text-sm font-semibold
-                   transition-colors sm:w-auto
+                   kore-transition sm:w-auto
                    @if(in_array($type, ['warning', 'error']))
                        bg-kore-destructive text-kore-destructive-fg hover:bg-kore-destructive/90
                    @else

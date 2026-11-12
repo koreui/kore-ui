@@ -11,7 +11,12 @@
     'disabled' => false,
     'block' => false,
     'type' => 'button',
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $size = $size ?? config('kore-ui.ui.size', 'md');
@@ -26,65 +31,76 @@
     // AA. Medido en un navegador, antes: success 3,01 · info 3,24 ·
     // destructive 3,91 · primary 4,08. Ver la nota de `--kore-warning-text` en
     // kore-theme.css, que ya lo resolvía para un color de cinco.
+    // El sólido lleva `shadow-kore-solid`: un brillo de un píxel en el canto
+    // superior y una sombra corta debajo. Es lo que lo separa de un rectángulo
+    // de color plano, y lo que hace que «primario» se lea como EL botón.
+    //
+    // TODAS las variantes llevan borde de un píxel, visible o transparente. Sin
+    // él, un botón sólido medía dos píxeles menos que un campo o que un botón
+    // con contorno, y en una fila de filtros —campo, select, botón— el botón
+    // quedaba más bajo que todo lo demás.
     $colorClasses = match($variant) {
         'solid' => match($color) {
-            'primary' => 'bg-kore-primary text-kore-primary-fg hover:bg-kore-primary/90',
-            'secondary' => 'bg-kore-secondary text-kore-secondary-fg hover:bg-kore-secondary/80',
-            'destructive' => 'bg-kore-destructive text-kore-destructive-fg hover:bg-kore-destructive/90',
-            'success' => 'bg-kore-success text-kore-success-fg hover:bg-kore-success/90',
-            'warning' => 'bg-kore-warning text-kore-warning-fg hover:bg-kore-warning/90',
-            'info' => 'bg-kore-info text-kore-info-fg hover:bg-kore-info/90',
-            default => 'bg-kore-primary text-kore-primary-fg hover:bg-kore-primary/90',
+            'secondary' => 'border-kore-border bg-kore-secondary text-kore-secondary-fg hover:bg-kore-accent',
+            'destructive' => 'border-transparent bg-kore-destructive text-kore-destructive-fg shadow-kore-solid hover:bg-kore-destructive/90',
+            'success' => 'border-transparent bg-kore-success text-kore-success-fg shadow-kore-solid hover:bg-kore-success/90',
+            'warning' => 'border-transparent bg-kore-warning text-kore-warning-fg shadow-kore-solid hover:bg-kore-warning/90',
+            'info' => 'border-transparent bg-kore-info text-kore-info-fg shadow-kore-solid hover:bg-kore-info/90',
+            default => 'border-transparent bg-kore-primary text-kore-primary-fg shadow-kore-solid hover:bg-kore-primary/90',
         },
         'outline' => match($color) {
-            'primary' => 'border border-kore-primary text-kore-primary-text hover:bg-kore-primary/10',
-            'secondary' => 'border border-kore-border text-kore-fg hover:bg-kore-muted',
-            'destructive' => 'border border-kore-destructive text-kore-destructive-text hover:bg-kore-destructive/10',
-            'success' => 'border border-kore-success text-kore-success-text hover:bg-kore-success/10',
-            'warning' => 'border border-kore-warning text-kore-warning-text hover:bg-kore-warning/10',
-            'info' => 'border border-kore-info text-kore-info-text hover:bg-kore-info/10',
-            default => 'border border-kore-primary text-kore-primary-text hover:bg-kore-primary/10',
+            // El contorno neutro es el botón «por defecto» de un sistema: fondo de
+            // campo, borde de campo y la misma sombra corta que un input.
+            'secondary' => 'border-kore-input bg-kore-field text-kore-fg shadow-kore-xs hover:bg-kore-muted hover:border-kore-input-hover',
+            'destructive' => 'border-kore-destructive/45 text-kore-destructive-text hover:bg-kore-destructive/10 hover:border-kore-destructive/70',
+            'success' => 'border-kore-success/45 text-kore-success-text hover:bg-kore-success/10 hover:border-kore-success/70',
+            'warning' => 'border-kore-warning/55 text-kore-warning-text hover:bg-kore-warning/10 hover:border-kore-warning/80',
+            'info' => 'border-kore-info/45 text-kore-info-text hover:bg-kore-info/10 hover:border-kore-info/70',
+            default => 'border-kore-primary/45 text-kore-primary-text hover:bg-kore-primary/10 hover:border-kore-primary/70',
         },
         'ghost' => match($color) {
-            'primary' => 'text-kore-primary-text hover:bg-kore-primary/10',
-            'secondary' => 'text-kore-fg hover:bg-kore-muted',
-            'destructive' => 'text-kore-destructive-text hover:bg-kore-destructive/10',
-            'success' => 'text-kore-success-text hover:bg-kore-success/10',
-            'warning' => 'text-kore-warning-text hover:bg-kore-warning/10',
-            'info' => 'text-kore-info-text hover:bg-kore-info/10',
-            default => 'text-kore-primary-text hover:bg-kore-primary/10',
+            'secondary' => 'border-transparent text-kore-fg hover:bg-kore-muted',
+            'destructive' => 'border-transparent text-kore-destructive-text hover:bg-kore-destructive/10',
+            'success' => 'border-transparent text-kore-success-text hover:bg-kore-success/10',
+            'warning' => 'border-transparent text-kore-warning-text hover:bg-kore-warning/10',
+            'info' => 'border-transparent text-kore-info-text hover:bg-kore-info/10',
+            default => 'border-transparent text-kore-primary-text hover:bg-kore-primary/10',
         },
         'soft' => match($color) {
-            'primary' => 'bg-kore-primary/10 text-kore-primary-text hover:bg-kore-primary/20',
-            'secondary' => 'bg-kore-secondary text-kore-secondary-fg hover:bg-kore-secondary/80',
-            'destructive' => 'bg-kore-destructive/10 text-kore-destructive-text hover:bg-kore-destructive/20',
-            'success' => 'bg-kore-success/10 text-kore-success-text hover:bg-kore-success/20',
-            'warning' => 'bg-kore-warning/10 text-kore-warning-text hover:bg-kore-warning/20',
-            'info' => 'bg-kore-info/10 text-kore-info-text hover:bg-kore-info/20',
-            default => 'bg-kore-primary/10 text-kore-primary-text hover:bg-kore-primary/20',
+            'secondary' => 'border-transparent bg-kore-secondary text-kore-secondary-fg hover:bg-kore-accent',
+            'destructive' => 'border-transparent bg-kore-destructive/10 text-kore-destructive-text hover:bg-kore-destructive/20',
+            'success' => 'border-transparent bg-kore-success/10 text-kore-success-text hover:bg-kore-success/20',
+            'warning' => 'border-transparent bg-kore-warning/10 text-kore-warning-text hover:bg-kore-warning/20',
+            'info' => 'border-transparent bg-kore-info/10 text-kore-info-text hover:bg-kore-info/20',
+            default => 'border-transparent bg-kore-primary/10 text-kore-primary-text hover:bg-kore-primary/20',
         },
         'link' => match($color) {
-            'primary' => 'text-kore-primary-text underline-offset-4 hover:underline',
-            'secondary' => 'text-kore-fg underline-offset-4 hover:underline',
-            'destructive' => 'text-kore-destructive-text underline-offset-4 hover:underline',
-            default => 'text-kore-primary-text underline-offset-4 hover:underline',
+            'secondary' => 'border-transparent text-kore-fg underline-offset-4 hover:underline',
+            'destructive' => 'border-transparent text-kore-destructive-text underline-offset-4 hover:underline',
+            default => 'border-transparent text-kore-primary-text underline-offset-4 hover:underline',
         },
-        default => 'bg-kore-primary text-kore-primary-fg hover:bg-kore-primary/90',
+        default => 'border-transparent bg-kore-primary text-kore-primary-fg shadow-kore-solid hover:bg-kore-primary/90',
     };
+
+    // Un botón que solo lleva icono es cuadrado: con el relleno horizontal de
+    // uno con texto salía un rectángulo apaisado alrededor de un icono.
+    $soloIcono = ! $label && $slot->isEmpty() && ($icon || $loading) && ! $iconRight;
 
     $sizeClasses = match($size) {
-        'sm' => 'text-xs px-3 py-1.5 gap-1.5',
-        'lg' => 'text-base px-5 py-2.5 gap-2.5',
-        default => 'text-sm px-4 py-2 gap-2',
+        'sm' => 'text-xs py-1.5 gap-1 ' . ($soloIcono ? 'px-1.5' : 'px-3'),
+        'lg' => 'text-base py-2.5 gap-2 ' . ($soloIcono ? 'px-2.5' : 'px-5'),
+        default => 'text-sm py-2 gap-1.5 ' . ($soloIcono ? 'px-2' : 'px-4'),
     };
 
+    // El icono ocupa la altura de una línea de texto: así un botón de solo
+    // icono mide exactamente lo mismo que uno con etiqueta.
     $iconSize = match($size) {
-        'sm' => 'size-3.5',
-        'lg' => 'size-5',
-        default => 'size-4',
+        'sm' => 'size-4 p-px',
+        'lg' => 'size-6 p-0.5',
+        default => 'size-5 p-0.5',
     };
 
-    $baseClasses = 'inline-flex items-center justify-center font-medium rounded-kore-md transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2 ring-offset-kore-bg disabled:opacity-50 disabled:pointer-events-none';
+    $baseClasses = 'inline-flex items-center justify-center border font-medium rounded-kore-md select-none whitespace-nowrap kore-transition kore-focus kore-press disabled:opacity-50 disabled:pointer-events-none';
 @endphp
 
 <{{ $tag }}

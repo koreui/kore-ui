@@ -4,7 +4,12 @@
     'label' => null,
     'secret' => false,
     'feedbackDuration' => 2000,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $variant = $variant ?? config('kore-ui.ui.clipboard.variant', 'input');
@@ -27,16 +32,16 @@
     // que los separa. Es el mismo reparto que en `number` y en los addons de
     // `input`. El botón se distingue del input, ya dentro del marco, con un
     // fondo propio al recibir el foco.
-    $anilloBoton = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2 ring-offset-kore-bg';
+    $anilloBoton = 'kore-focus';
 @endphp
 
 <div x-data="KoreClipboard({ text: @js($text), feedbackDuration: @js($feedbackDuration) })"
      {{ $attributes->class(['inline-flex']) }}>
     @if($variant === 'input')
-        <div class="flex rounded-kore-md border border-kore-border overflow-hidden w-full transition-colors focus-within:ring-2 focus-within:ring-kore-ring focus-within:border-kore-primary">
+        <div class="flex overflow-hidden w-full kore-control">
             @if($label)
                 <label for="{{ $campoId }}"
-                       class="px-3 py-2 bg-kore-muted text-kore-muted-fg text-sm border-r border-kore-border flex items-center shrink-0">
+                       class="px-3 py-2 bg-kore-muted/60 text-kore-muted-fg text-sm border-r border-kore-input flex items-center shrink-0">
                     {{ $label }}
                 </label>
             @endif
@@ -45,15 +50,15 @@
                    value="{{ $text }}"
                    readonly
                    @unless($label) aria-label="{{ $copiar }}" @endunless
-                   class="flex-1 px-3 py-2 text-sm bg-kore-surface text-kore-fg outline-none min-w-0" />
+                   class="flex-1 px-3 py-2 text-sm bg-transparent text-kore-fg outline-none min-w-0" />
             <button type="button" x-on:click="copy()"
                     x-bind:aria-label="copied ? @js($copiado) : @js($copiar)"
-                    class="px-3 border-l border-kore-border bg-kore-surface hover:bg-kore-muted focus-visible:bg-kore-muted focus-visible:outline-none transition-colors flex items-center">
+                    class="px-3 border-l border-kore-input hover:bg-kore-muted focus-visible:bg-kore-muted outline-none kore-transition flex items-center">
                 <template x-if="!copied">
                     <x-lucide-copy class="size-4 text-kore-muted-fg" />
                 </template>
                 <template x-if="copied">
-                    <x-lucide-check class="size-4 text-kore-success" />
+                    <x-lucide-check class="size-4 text-kore-success-text" />
                 </template>
             </button>
         </div>
@@ -64,12 +69,12 @@
             </span>
             <button type="button" x-on:click="copy()"
                     x-bind:aria-label="copied ? @js($copiado) : @js($copiar)"
-                    class="p-1 rounded-kore-sm hover:bg-kore-muted transition-colors {{ $anilloBoton }}">
+                    class="p-1 rounded-kore-sm hover:bg-kore-muted kore-transition {{ $anilloBoton }}">
                 <template x-if="!copied">
                     <x-lucide-copy class="size-4 text-kore-muted-fg" />
                 </template>
                 <template x-if="copied">
-                    <x-lucide-check class="size-4 text-kore-success" />
+                    <x-lucide-check class="size-4 text-kore-success-text" />
                 </template>
             </button>
         </div>
@@ -80,12 +85,12 @@
              librería. --}}
         <button type="button" x-on:click="copy()"
                 x-bind:aria-label="copied ? @js($copiado) : @js($copiar)"
-                class="p-2 rounded-kore-md hover:bg-kore-muted transition-colors {{ $anilloBoton }}">
+                class="p-2 rounded-kore-md hover:bg-kore-muted kore-transition {{ $anilloBoton }}">
             <template x-if="!copied">
                 <x-lucide-copy class="size-4 text-kore-muted-fg" />
             </template>
             <template x-if="copied">
-                <x-lucide-check class="size-4 text-kore-success" />
+                <x-lucide-check class="size-4 text-kore-success-text" />
             </template>
         </button>
     @endif

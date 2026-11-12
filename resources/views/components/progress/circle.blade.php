@@ -58,14 +58,14 @@
     <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
         {{-- Track --}}
         <circle
-            class="stroke-kore-muted fill-none"
+            class="stroke-kore-accent fill-none"
             cx="50" cy="50"
             r="{{ $radius }}"
             stroke-width="{{ $strokeWidth }}"
         />
         {{-- Progress --}}
         <circle
-            class="{{ $strokeColor }} fill-none transition-all duration-500"
+            class="{{ $strokeColor }} fill-none transition-all kore-duration-slow"
             cx="50" cy="50"
             r="{{ $radius }}"
             stroke-width="{{ $strokeWidth }}"

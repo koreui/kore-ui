@@ -10,7 +10,7 @@
             <x-slot:trigger>
                 <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-kore-md border border-kore-input bg-kore-bg px-3 py-1.5 text-sm text-kore-fg hover:bg-kore-muted transition-colors"
+                    class="kore-tool"
                 >
                     <x-lucide-filter class="size-4" />
                     <span>{{ $translations['filters'] ?? 'Filtros' }}</span>
@@ -30,7 +30,7 @@
             </x-slot:trigger>
 
             <div class="p-4 space-y-4">
-                <div class="text-xs font-semibold text-kore-muted-fg uppercase tracking-wider">
+                <div class="text-sm font-semibold text-kore-fg">
                     {{ $translations['filters'] ?? 'Filtros' }}
                 </div>
 

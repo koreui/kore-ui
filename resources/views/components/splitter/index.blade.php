@@ -2,7 +2,12 @@
     'orientation' => null,
     'gutterSize' => null,
     'stateKey' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $orientation = $orientation ?? config('kore-ui.ui.splitter.orientation', 'horizontal');

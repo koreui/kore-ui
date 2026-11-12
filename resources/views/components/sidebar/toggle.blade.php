@@ -24,9 +24,9 @@
     aria-controls="{{ $for }}"
     aria-label="{{ $label }}"
     {{ $attributes->except('class')->class([
-        'inline-flex size-9 items-center justify-center rounded-kore-md text-kore-muted-fg transition-colors',
+        'inline-flex size-9 items-center justify-center rounded-kore-md text-kore-muted-fg kore-transition',
         'hover:bg-kore-muted hover:text-kore-fg',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring/50',
+        'kore-focus',
         $attributes->get('class'),
     ]) }}
 >

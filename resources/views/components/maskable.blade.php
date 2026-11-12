@@ -16,7 +16,12 @@
     'readonly' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
@@ -82,10 +87,10 @@
     $wireModelAttr = $attributes->whereStartsWith('wire:model');
 
     $borderClasses = $hasError
-        ? 'border-kore-destructive focus:ring-kore-destructive/30 focus:border-kore-destructive'
-        : 'border-kore-input';
+        ? 'kore-invalid'
+        : '';
 
-    $inputBaseClasses = 'bg-kore-bg text-kore-fg placeholder:text-kore-muted-fg transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed';
+    $inputBaseClasses = '';
 
     $jsConfig = json_encode(array_filter([
         'masks' => json_decode($maskJson),
@@ -144,7 +149,7 @@
             {{ $disabled ? 'disabled' : '' }}
             {{ $readonly ? 'readonly' : '' }}
             {{ $required ? 'required' : '' }}
-            class="{{ $inputBaseClasses }} block w-full rounded-kore-md border {{ $borderClasses }} focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary {{ $sizeClasses }} {{ $iconPaddingLeft }} {{ $iconPaddingRight }}"
+            class="{{ $inputBaseClasses }} block w-full {{ $borderClasses }} kore-control {{ $sizeClasses }} {{ $iconPaddingLeft }} {{ $iconPaddingRight }}"
             x-on:input.prevent="_onInput($event)"
             x-on:paste="_onPaste($event)"
             x-on:blur="_onBlur()"
@@ -163,7 +168,7 @@
                         x-cloak
                         x-on:click="clear(); $refs.input.focus()"
                         aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
-                        class="text-kore-muted-fg hover:text-kore-fg transition-colors"
+                        class="text-kore-muted-fg hover:text-kore-fg kore-transition"
                     >
                         <x-lucide-x class="{{ $iconSizeClasses }}" />
                     </button>

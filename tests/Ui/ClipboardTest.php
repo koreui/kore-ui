@@ -85,7 +85,7 @@ it('marca el foco de teclado en las tres variantes', function (string $variante,
 })->with([
     // En `input` el anillo va en el marco, no en cada pieza: dentro se apilarían
     // en la costura entre el campo y el botón.
-    'input'  => ['input', 'focus-within:ring-2'],
-    'inline' => ['inline', 'focus-visible:ring-2'],
-    'icon'   => ['icon', 'focus-visible:ring-2'],
+    'input'  => ['input', 'kore-control'],
+    'inline' => ['inline', 'kore-focus'],
+    'icon'   => ['icon', 'kore-focus'],
 ]);

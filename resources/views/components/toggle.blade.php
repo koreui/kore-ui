@@ -9,7 +9,12 @@
     'name' => null,
     'error' => null,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
@@ -71,10 +76,9 @@
 
         {{-- Visual track: label wraps the native checkbox --}}
         <label
-            class="{{ $trackSize }} relative inline-flex shrink-0 rounded-full border-2 border-transparent
-                   bg-kore-muted has-[:checked]:bg-kore-primary
-                   transition-colors duration-200 ease-in-out
-                   focus-within:ring-2 focus-within:ring-kore-ring focus-within:ring-offset-2 ring-offset-kore-bg
+            class="{{ $trackSize }} group relative inline-flex shrink-0 rounded-full border-2 border-transparent
+                   bg-kore-input hover:bg-kore-input-hover has-[:checked]:bg-kore-primary has-[:checked]:hover:bg-kore-primary/90
+                   kore-transition-base kore-focus-within
                    {{ $disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer' }}"
         >
             {{-- role="switch" exposes this as a switch to assistive tech; the
@@ -109,7 +113,7 @@
             @endif
 
             {{-- Thumb --}}
-            <span class="{{ $thumbSize }} {{ $thumbCheckedClass }} pointer-events-none inline-block transform rounded-full bg-white shadow-sm ring-0 translate-x-0 transition duration-200 ease-in-out"></span>
+            <span class="{{ $thumbSize }} {{ $thumbCheckedClass }} pointer-events-none inline-block transform rounded-full bg-white shadow-kore-sm ring-0 translate-x-0 kore-transition-base"></span>
         </label>
 
         @if($label || $description)
@@ -130,6 +134,6 @@
     </div>
 
     @if($hasError && $errorMessage)
-        <p @if($fieldId) id="{{ $fieldId }}-error" @endif class="mt-1 text-sm text-kore-destructive" role="alert">{{ $errorMessage }}</p>
+        <p @if($fieldId) id="{{ $fieldId }}-error" @endif class="mt-1 text-sm text-kore-destructive-text" role="alert">{{ $errorMessage }}</p>
     @endif
 </div>

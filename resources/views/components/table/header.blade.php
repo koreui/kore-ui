@@ -20,17 +20,17 @@
     };
 
     $sortIconClass = $sortDirection
-        ? 'size-3.5 text-kore-fg'
-        : 'size-3.5 text-kore-muted-fg/50 group-hover:text-kore-muted-fg transition-colors';
+        ? 'size-3.5 text-kore-primary-text'
+        : 'size-3.5 text-kore-muted-fg/50 group-hover:text-kore-muted-fg kore-transition';
 @endphp
 
 <th scope="col" @if($sortable) aria-sort="{{ $sortDirection === 'asc' ? 'ascending' : ($sortDirection === 'desc' ? 'descending' : 'none') }}" @endif {{ $attributes->class([
     $densityClasses,
     $alignClass,
-    'font-semibold text-kore-muted-fg uppercase tracking-wider whitespace-nowrap',
+    'font-medium text-kore-muted-fg whitespace-nowrap',
 ]) }}>
     @if($sortable)
-        <button type="button" aria-label="{{ str_replace(':columna', $label, config('kore-ui.datatable.translations.sort_by', 'Ordenar por :columna')) }}" class="inline-flex items-center gap-1 group hover:text-kore-fg transition-colors">
+        <button type="button" aria-label="{{ str_replace(':columna', $label, config('kore-ui.datatable.translations.sort_by', 'Ordenar por :columna')) }}" class="inline-flex items-center gap-1 group hover:text-kore-fg kore-transition">
             <span>{{ $label }}</span>
             <x-dynamic-component :component="'lucide-' . $sortIcon" :class="$sortIconClass" />
         </button>

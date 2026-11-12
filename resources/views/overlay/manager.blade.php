@@ -12,10 +12,10 @@
     {{-- Backdrop --}}
     <div
         x-show="show"
-        x-transition:enter="ease-out duration-300"
+        x-transition:enter="kore-duration-slow"
         x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100"
-        x-transition:leave="ease-in duration-200"
+        x-transition:leave="kore-duration-base ease-kore-in"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
         x-on:click="closeOnClickAway()"
@@ -23,7 +23,7 @@
              el tema, así que en modo oscuro este velo salía casi blanco y
              ACLARABA la página en vez de atenuarla —el fondo acababa más claro
              que el propio modal—. --}}
-        class="fixed inset-0 bg-kore-backdrop/50 transition-opacity"
+        class="fixed inset-0 bg-kore-backdrop/50 kore-transition"
         x-bind:class="backdropBlur ? 'backdrop-blur-sm' : ''"
         aria-hidden="true"
     ></div>
@@ -52,7 +52,7 @@
                     x-transition:leave-end="{{ $anim['leave']['to'] }}"
                     x-trap.inert="show && current === '{{ $id }}'"
                     :style="getSwipeStyle()"
-                    class="pointer-events-auto relative w-full transform bg-kore-surface text-kore-surface-fg shadow-xl transition-all {{ $containerClass }} {{ $sizeClass }}"
+                    class="pointer-events-auto relative w-full transform bg-kore-surface text-kore-surface-fg shadow-kore-xl kore-transition {{ $containerClass }} {{ $sizeClass }}"
                     role="dialog"
                     aria-modal="true"
                     {{-- Sin nombre, un lector anuncia «diálogo» y nada más. El

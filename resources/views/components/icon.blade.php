@@ -23,13 +23,13 @@
         default => 'size-4',
     };
 
-    $colorClass = $error ? 'text-kore-destructive' : match($color) {
-        'primary' => 'text-kore-primary',
+    $colorClass = $error ? 'text-kore-destructive-text' : match($color) {
+        'primary' => 'text-kore-primary-text',
         'secondary' => 'text-kore-secondary-fg',
-        'success' => 'text-kore-success',
-        'warning' => 'text-kore-warning',
-        'destructive' => 'text-kore-destructive',
-        'info' => 'text-kore-info',
+        'success' => 'text-kore-success-text',
+        'warning' => 'text-kore-warning-text',
+        'destructive' => 'text-kore-destructive-text',
+        'info' => 'text-kore-info-text',
         'muted' => 'text-kore-muted-fg',
         default => '',
     };

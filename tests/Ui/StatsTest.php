@@ -24,7 +24,7 @@ it('renders with icon', function () {
 it('renders as link when href is provided', function () {
     $view = $this->blade('<x-kore::stats label="Users" :value="100" href="/users" />');
     $view->assertSee('href="/users"', false)
-        ->assertSee('hover:shadow-md', false);
+        ->assertSee('hover:shadow-kore-md', false);
 });
 
 it('renders trend up', function () {

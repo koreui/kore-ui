@@ -121,7 +121,10 @@ it('renders error border class when error present', function () {
 
     $view = $this->blade('<x-kore::input label="Email" name="email" />');
 
-    $view->assertSee('border-kore-destructive', false);
+    // El error ya no es una clase de borde: el campo lo lee del propio
+    // `aria-invalid`, que es el que tiene que estar de todas formas.
+    $view->assertSee('aria-invalid="true"', false)
+        ->assertSee('kore-control', false);
 });
 
 it('renders required indicator', function () {

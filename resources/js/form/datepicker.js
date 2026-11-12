@@ -2,6 +2,15 @@ import { startFloating, stopFloating } from '../utils/floating.js';
 
 export default (config) => ({
     open: false,
+    // El panel no existe hasta que se abre por primera vez.
+    //
+    // Antes vivía en el DOM desde la carga, oculto: un calendario cerrado eran
+    // 152 nodos y un select 53, con todas sus directivas ya registradas. En un
+    // formulario de 48 campos, dos tercios de los nodos de la página eran
+    // paneles que nadie había abierto. La plantilla lo envuelve en un
+    // `x-if="montado"`; una vez montado se queda, y a partir de ahí abrir y
+    // cerrar es el `x-show` de siempre.
+    montado: false,
     currentView: 'date',
     viewDate: null,
     selected: null,
@@ -103,6 +112,7 @@ export default (config) => ({
     },
 
     openDropdown() {
+        this.montado = true;
         this.open = true;
         this.currentView = 'date';
         this.buildCalendar();
@@ -848,27 +858,32 @@ export default (config) => ({
 
         // Default presets when presets === true
         const today = new Date();
+        // Las etiquetas llegan del servidor (`form.translations.date_*`). Los
+        // literales de aquí solo son el último recurso si alguien monta el
+        // componente a mano sin ellas.
+        const t = config.labels || {};
         return [
-            { label: 'Today', start: today, end: today },
-            { label: 'Last 7 days', start: this._subDays(today, 6), end: today },
-            { label: 'Last 30 days', start: this._subDays(today, 29), end: today },
-            { label: 'This month', start: this._startOfMonth(today), end: this._endOfMonth(today) },
+            { label: t.today || 'Hoy', start: today, end: today },
+            { label: t.last7 || 'Últimos 7 días', start: this._subDays(today, 6), end: today },
+            { label: t.last30 || 'Últimos 30 días', start: this._subDays(today, 29), end: today },
+            { label: t.thisMonth || 'Este mes', start: this._startOfMonth(today), end: this._endOfMonth(today) },
             {
-                label: 'Last month',
+                label: t.lastMonth || 'Mes pasado',
                 start: this._startOfMonth(new Date(today.getFullYear(), today.getMonth() - 1, 1)),
                 end: this._endOfMonth(new Date(today.getFullYear(), today.getMonth() - 1, 1)),
             },
-            { label: 'This year', start: new Date(today.getFullYear(), 0, 1), end: new Date(today.getFullYear(), 11, 31) },
+            { label: t.thisYear || 'Este año', start: new Date(today.getFullYear(), 0, 1), end: new Date(today.getFullYear(), 11, 31) },
         ];
     },
 
     get helperDates() {
         if (!config.helpers) return [];
         const today = new Date();
+        const t = config.labels || {};
         const helpers = [
-            { label: 'Yesterday', date: this._subDays(today, 1) },
-            { label: 'Today', date: today },
-            { label: 'Tomorrow', date: this._addDays(today, 1) },
+            { label: t.yesterday || 'Ayer', date: this._subDays(today, 1) },
+            { label: t.today || 'Hoy', date: today },
+            { label: t.tomorrow || 'Mañana', date: this._addDays(today, 1) },
         ];
         return helpers.filter(h => !this.isDisabled(h.date));
     },

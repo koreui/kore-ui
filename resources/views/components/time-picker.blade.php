@@ -14,7 +14,12 @@
     // Time
     'timeFormat' => '24',
     'minuteStep' => 1,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
@@ -49,11 +54,8 @@
     };
 
     $baseClasses = collect([
-        'w-full rounded-kore-md border bg-kore-bg text-kore-fg',
-        'transition-colors duration-150',
-        'focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary',
-        'disabled:opacity-50 disabled:cursor-not-allowed',
-        $hasError ? 'border-kore-destructive focus:ring-kore-destructive/30 focus:border-kore-destructive' : 'border-kore-input',
+        'w-full kore-control',
+        $hasError ? 'kore-invalid' : '',
         $sizeClasses,
     ])->filter()->implode(' ');
 
@@ -126,7 +128,7 @@
                             type="button"
                             x-on:click.stop="clear()"
                             aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
-                            class="text-kore-muted-fg hover:text-kore-fg transition-colors"
+                            class="text-kore-muted-fg hover:text-kore-fg kore-transition"
                         >
                             <x-lucide-x class="{{ $iconSizeClasses }}" />
                         </button>
@@ -137,24 +139,21 @@
         </button>
 
         {{-- Time panel --}}
+        {{-- El panel no se monta hasta la primera apertura: cerrado no aporta
+             ni un nodo ni una directiva. Ver `montado` en el componente. --}}
+        <template x-if="montado">
         <template x-teleport="body">
             <div
                 data-kore-teleport
                 x-ref="dropdown"
                 x-show="open"
                 x-cloak
-                x-transition:enter="transition ease-out duration-100"
-                x-transition:enter-start="opacity-0 scale-95"
-                x-transition:enter-end="opacity-100 scale-100"
-                x-transition:leave="transition ease-in duration-75"
-                x-transition:leave-start="opacity-100 scale-100"
-                x-transition:leave-end="opacity-0 scale-95"
                 {{-- El panel escucha el teclado él mismo: teleportado a
                      `<body>`, los eventos de dentro no burbujean por la raíz del
                      componente, y aquí hay botones tabulables. --}}
                 x-on:keydown="onKeydown($event)"
                 x-on:mousedown.stop
-                class="fixed z-[9999] rounded-kore-lg border border-kore-border bg-kore-bg text-kore-fg shadow-lg p-4"
+                class="kore-pop fixed z-[9999] kore-panel p-4"
                 role="dialog"
                 aria-label="{{ config('kore-ui.form.translations.choose_time', 'Elegir hora') }}"
             >
@@ -169,7 +168,7 @@
                             x-on:touchstart.prevent="startHold(() => incrementHour())"
                             x-on:touchend="stopHold()"
                             aria-label="{{ config('kore-ui.form.translations.increment_hour', 'Subir la hora') }}"
-                            class="p-1 text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded-kore-sm transition-colors"
+                            class="p-1 text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded-kore-sm kore-transition"
                         >
                             <x-lucide-chevron-up class="size-5" />
                         </button>
@@ -185,7 +184,7 @@
                             x-on:touchstart.prevent="startHold(() => decrementHour())"
                             x-on:touchend="stopHold()"
                             aria-label="{{ config('kore-ui.form.translations.decrement_hour', 'Bajar la hora') }}"
-                            class="p-1 text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded-kore-sm transition-colors"
+                            class="p-1 text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded-kore-sm kore-transition"
                         >
                             <x-lucide-chevron-down class="size-5" />
                         </button>
@@ -203,7 +202,7 @@
                             x-on:touchstart.prevent="startHold(() => incrementMinute())"
                             x-on:touchend="stopHold()"
                             aria-label="{{ config('kore-ui.form.translations.increment_minute', 'Subir los minutos') }}"
-                            class="p-1 text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded-kore-sm transition-colors"
+                            class="p-1 text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded-kore-sm kore-transition"
                         >
                             <x-lucide-chevron-up class="size-5" />
                         </button>
@@ -219,7 +218,7 @@
                             x-on:touchstart.prevent="startHold(() => decrementMinute())"
                             x-on:touchend="stopHold()"
                             aria-label="{{ config('kore-ui.form.translations.decrement_minute', 'Bajar los minutos') }}"
-                            class="p-1 text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded-kore-sm transition-colors"
+                            class="p-1 text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded-kore-sm kore-transition"
                         >
                             <x-lucide-chevron-down class="size-5" />
                         </button>
@@ -235,7 +234,7 @@
                             <button
                                 type="button"
                                 x-on:click="toggleAmPm()"
-                                class="px-3 py-2 text-sm font-medium rounded-kore-md border border-kore-input bg-kore-bg text-kore-fg hover:bg-kore-muted transition-colors"
+                                class="px-3 py-2 text-sm font-medium rounded-kore-md border border-kore-input bg-kore-bg text-kore-fg hover:bg-kore-muted kore-transition"
                             >
                                 <span x-text="ampm"></span>
                                 <span class="sr-only">{{ config('kore-ui.form.translations.toggle_period', 'Cambiar entre AM y PM') }}</span>
@@ -244,6 +243,7 @@
                     @endif
                 </div>
             </div>
+        </template>
         </template>
     </div>
 </x-kore::field>

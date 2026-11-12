@@ -14,7 +14,12 @@
     'readonly' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
@@ -55,10 +60,12 @@
     $hasAddon = $prefix || $suffix;
 
     $borderClasses = $hasError
-        ? 'border-kore-destructive focus-within:ring-kore-destructive/30 focus-within:border-kore-destructive'
-        : 'border-kore-input';
+        ? 'kore-invalid'
+        : '';
 
-    $inputBaseClasses = 'bg-kore-bg text-kore-fg placeholder:text-kore-muted-fg transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed';
+    // Con prefijo o sufijo, el campo es el GRUPO: él lleva borde, sombra y halo
+    // de foco, y el `<input>` de dentro va desnudo.
+    $inputDesnudo = 'bg-transparent text-kore-fg placeholder:text-kore-muted-fg border-0 outline-none disabled:cursor-not-allowed';
 
     // Icon-only padding (absolute positioned icons)
     $iconPaddingLeft = $icon ? match($size) {
@@ -98,13 +105,14 @@
     @if($hasAddon)
         {{-- Flex layout for prefix/suffix --}}
         <div
-            class="flex items-stretch rounded-kore-md border {{ $borderClasses }} focus-within:ring-2 focus-within:ring-kore-ring focus-within:border-kore-primary overflow-hidden {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
+            class="flex items-stretch overflow-hidden kore-control {{ $borderClasses }}"
+            @if($disabled) data-disabled @endif
             @if($clearable)
                 x-data="{ v: '{{ $attributes->get('value', '') }}' }"
             @endif
         >
             @if($prefix)
-                <span class="flex items-center shrink-0 {{ $addonPadding }} bg-kore-muted text-kore-muted-fg {{ $addonTextSize }} border-r border-kore-input select-none whitespace-nowrap">{{ $prefix }}</span>
+                <span class="flex items-center shrink-0 {{ $addonPadding }} bg-kore-muted/60 text-kore-muted-fg {{ $addonTextSize }} border-r border-kore-input select-none whitespace-nowrap">{{ $prefix }}</span>
             @endif
 
             <div class="relative flex-1 min-w-0">
@@ -124,7 +132,7 @@
                         'required' => $required,
                         'aria-invalid' => $hasError ? 'true' : null,
                         'aria-describedby' => $describedBy,
-                        'class' => $inputBaseClasses . ' block w-full border-0 focus:outline-none focus:ring-0 ' . $sizeClasses . ' ' . $iconPaddingLeft . ' ' . $iconPaddingRight,
+                        'class' => $inputDesnudo . ' block w-full ' . $sizeClasses . ' ' . $iconPaddingLeft . ' ' . $iconPaddingRight,
                     ])->except(['label', 'hint', 'error', 'size', 'icon', 'icon-right', 'prefix', 'suffix', 'clearable', 'show-error']) }}
                     @if($clearable)
                         x-ref="input"
@@ -141,7 +149,7 @@
                                 x-cloak
                                 x-on:click="v = ''; $refs.input.value = ''; $refs.input.dispatchEvent(new Event('input', { bubbles: true })); $refs.input.focus()"
                                 aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
-                                class="text-kore-muted-fg hover:text-kore-fg transition-colors"
+                                class="text-kore-muted-fg hover:text-kore-fg kore-transition"
                             >
                                 <x-lucide-x class="{{ $iconSizeClasses }}" />
                             </button>
@@ -154,7 +162,7 @@
             </div>
 
             @if($suffix)
-                <span class="flex items-center shrink-0 {{ $addonPadding }} bg-kore-muted text-kore-muted-fg {{ $addonTextSize }} border-l border-kore-input select-none whitespace-nowrap">{{ $suffix }}</span>
+                <span class="flex items-center shrink-0 {{ $addonPadding }} bg-kore-muted/60 text-kore-muted-fg {{ $addonTextSize }} border-l border-kore-input select-none whitespace-nowrap">{{ $suffix }}</span>
             @endif
         </div>
     @else
@@ -181,7 +189,7 @@
                     'required' => $required,
                     'aria-invalid' => $hasError ? 'true' : null,
                     'aria-describedby' => $describedBy,
-                    'class' => $inputBaseClasses . ' block w-full rounded-kore-md border ' . ($hasError ? 'border-kore-destructive focus:ring-kore-destructive/30 focus:border-kore-destructive' : 'border-kore-input') . ' focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary ' . $sizeClasses . ' ' . $iconPaddingLeft . ' ' . $iconPaddingRight,
+                    'class' => 'block w-full kore-control ' . $sizeClasses . ' ' . $iconPaddingLeft . ' ' . $iconPaddingRight,
                 ])->except(['label', 'hint', 'error', 'size', 'icon', 'icon-right', 'prefix', 'suffix', 'clearable', 'show-error']) }}
                 @if($clearable)
                     x-ref="input"
@@ -198,7 +206,7 @@
                             x-cloak
                             x-on:click="v = ''; $refs.input.value = ''; $refs.input.dispatchEvent(new Event('input', { bubbles: true })); $refs.input.focus()"
                             aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
-                            class="text-kore-muted-fg hover:text-kore-fg transition-colors"
+                            class="text-kore-muted-fg hover:text-kore-fg kore-transition"
                         >
                             <x-lucide-x class="{{ $iconSizeClasses }}" />
                         </button>

@@ -4,7 +4,7 @@
     'icon' => true,
     'trend' => true,
     'bordered' => true,
-    'shadow' => false,
+    'shadow' => true,
     'padding' => true,
 ])
 
@@ -17,7 +17,7 @@
     {{ $attributes->class([
         'block rounded-kore-lg bg-kore-surface',
         'border border-kore-border' => $bordered,
-        'shadow-sm' => $shadow,
+        'shadow-kore-sm' => $shadow,
         'p-4' => $padding && $compacta,
         'p-6' => $padding && ! $compacta,
     ]) }}

@@ -66,11 +66,10 @@ export default (config) => ({
         this.open = true;
         this.highlighted = -1;
         this._marcarTrigger();
-        // Pre-apply position:fixed + visibility:hidden before $nextTick so the
-        // panel never exists in normal document flow when Alpine makes it visible.
-        // This prevents the ~17px scrollbar layout shift on h-screen layouts.
+        // El panel nace `fixed` en la plantilla para no existir nunca en el flujo
+        // normal del documento —al hacerse visible metía ~17px de scrollbar en
+        // un layout a pantalla completa—, y se oculta hasta tener coordenadas.
         if (this.$refs.dropdown) {
-            this.$refs.dropdown.style.position = 'fixed';
             this.$refs.dropdown.style.visibility = 'hidden';
         }
         this.$nextTick(() => {

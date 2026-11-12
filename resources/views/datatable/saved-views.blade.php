@@ -10,7 +10,7 @@
     <x-slot:trigger>
         <button
             type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border border-kore-border rounded-kore-md bg-kore-surface hover:bg-kore-muted transition-colors text-kore-fg"
+            class="kore-tool"
         >
             <x-lucide-bookmark class="size-4 text-kore-muted-fg" />
             <span>{{ $t['views'] ?? 'Vistas' }}</span>
@@ -28,7 +28,7 @@
                         type="button"
                         wire:click="applySavedView(@js($view->id))"
                         x-on:click="close()"
-                        class="flex-1 flex items-center gap-2 px-2 py-2 text-sm text-left rounded-kore-sm transition-colors hover:bg-kore-muted focus:bg-kore-muted focus:outline-none {{ $activeSavedView === $view->id ? 'text-kore-primary font-medium' : 'text-kore-fg' }}"
+                        class="flex-1 flex items-center gap-2 px-2 py-2 text-sm text-left rounded-kore-sm kore-option hover:bg-kore-accent focus:bg-kore-accent {{ $activeSavedView === $view->id ? 'text-kore-primary-text font-medium' : 'text-kore-fg' }}"
                         role="menuitem"
                     >
                         <x-lucide-bookmark class="size-3.5 shrink-0 text-kore-muted-fg" />
@@ -39,7 +39,7 @@
                         type="button"
                         wire:click="deleteSavedView(@js($view->id))"
                         aria-label="{{ ($t['delete_view'] ?? 'Eliminar vista') . ': ' . $view->name }}"
-                        class="p-1.5 rounded-kore-sm text-kore-muted-fg/0 group-hover:text-kore-muted-fg hover:!text-kore-destructive-text hover:bg-kore-destructive/10 transition-colors focus:text-kore-muted-fg focus:outline-none"
+                        class="p-1.5 rounded-kore-sm text-kore-muted-fg/0 group-hover:text-kore-muted-fg hover:!text-kore-destructive-text hover:bg-kore-destructive/10 kore-transition focus-visible:text-kore-muted-fg kore-focus"
                     >
                         <x-lucide-trash-2 class="size-3.5" />
                     </button>
@@ -67,12 +67,12 @@
                 wire:keydown.enter="saveCurrentView"
                 maxlength="60"
                 placeholder="{{ $t['view_name'] ?? 'Nombre' }}"
-                class="flex-1 min-w-0 bg-kore-bg text-kore-fg placeholder:text-kore-muted-fg rounded-kore-md border border-kore-input focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary text-xs py-1.5 px-2.5"
+                class="flex-1 min-w-0 kore-control text-xs py-1.5 px-2.5"
             />
             <button
                 type="button"
                 wire:click="saveCurrentView"
-                class="shrink-0 inline-flex items-center justify-center rounded-kore-md bg-kore-primary px-2.5 py-1.5 text-xs font-medium text-kore-primary-fg hover:bg-kore-primary/90 transition-colors"
+                class="shrink-0 inline-flex items-center justify-center rounded-kore-md bg-kore-primary px-2.5 py-1.5 text-xs font-medium text-kore-primary-fg hover:bg-kore-primary/90 kore-transition"
             >
                 {{ $t['save'] ?? 'Guardar' }}
             </button>
@@ -85,7 +85,7 @@
                 type="button"
                 wire:click="clearSavedView"
                 x-on:click="close()"
-                class="text-xs text-kore-primary hover:text-kore-primary/80 transition-colors"
+                class="text-xs text-kore-primary-text hover:text-kore-primary/80 kore-transition"
             >
                 {{ $t['clear_view'] ?? 'Salir de la vista' }}
             </button>

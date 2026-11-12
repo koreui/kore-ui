@@ -5,7 +5,7 @@
 @endphp
 
 @if(count($presets) > 0)
-    <div class="relative border-b border-kore-border bg-kore-bg">
+    <div class="relative border-b border-kore-border bg-kore-muted/40">
         <div class="flex items-center gap-1 overflow-x-auto px-4 py-2 scrollbar-none">
         @foreach($presets as $preset)
             @php
@@ -16,9 +16,9 @@
             <button
                 type="button"
                 wire:click="applyPreset('{{ $preset->getIdentifier() }}')"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-kore-md border whitespace-nowrap transition-colors
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[0.8125rem] font-medium rounded-kore-md border whitespace-nowrap kore-transition kore-focus
                     {{ $isActive
-                        ? 'bg-kore-primary/10 text-kore-primary-text border-kore-primary'
+                        ? 'bg-kore-field text-kore-fg border-kore-input shadow-kore-xs'
                         : 'text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted border-transparent'
                     }}"
             >
@@ -29,7 +29,7 @@
                 <span>{{ $preset->getLabel() }}</span>
 
                 @if($count !== null)
-                    <span class="inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs rounded-full {{ $isActive ? 'bg-kore-primary/20 text-kore-primary-text' : 'bg-kore-muted text-kore-muted-fg' }}">
+                    <span class="inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs rounded-full tabular-nums {{ $isActive ? 'bg-kore-primary/10 text-kore-primary-text' : 'bg-kore-accent text-kore-muted-fg' }}">
                         {{ $count }}
                     </span>
                 @endif
@@ -41,7 +41,7 @@
                 type="button"
                 wire:click="clearPreset"
                 aria-label="{{ config('kore-ui.datatable.translations.clear_preset', 'Limpiar el filtro guardado') }}"
-                class="inline-flex items-center gap-1 ml-1 px-2 py-1.5 text-xs text-kore-muted-fg hover:text-kore-fg transition-colors"
+                class="inline-flex items-center gap-1 ml-1 px-2 py-1.5 text-xs text-kore-muted-fg hover:text-kore-fg kore-transition"
             >
                 <x-lucide-x class="size-3" />
             </button>

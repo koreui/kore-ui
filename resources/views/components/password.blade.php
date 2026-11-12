@@ -13,7 +13,12 @@
     'readonly' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
@@ -55,11 +60,8 @@
     };
 
     $inputClasses = collect([
-        'block w-full rounded-kore-md border bg-kore-bg text-kore-fg placeholder:text-kore-muted-fg',
-        'transition-colors duration-150',
-        'focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary',
-        'disabled:opacity-50 disabled:cursor-not-allowed',
-        $hasError ? 'border-kore-destructive focus:ring-kore-destructive/30 focus:border-kore-destructive' : 'border-kore-input',
+        'block w-full kore-control',
+        $hasError ? 'kore-invalid' : '',
         $sizeClasses,
         $icon ? match($size) { 'sm' => 'pl-8', 'lg' => 'pl-11', default => 'pl-10' } : '',
         $toggleable ? match($size) { 'sm' => 'pr-8', 'lg' => 'pr-11', default => 'pr-10' } : '',
@@ -131,7 +133,7 @@
                     <button
                         type="button"
                         x-on:click="show = !show"
-                        class="text-kore-muted-fg hover:text-kore-fg transition-colors focus:outline-none"
+                        class="rounded-kore-sm text-kore-muted-fg hover:text-kore-fg kore-transition kore-focus"
                         x-bind:aria-label="show ? @js($ocultarLabel) : @js($mostrarLabel)"
                     >
                         <x-lucide-eye x-show="!show" class="{{ $iconSizeClasses }}" />
@@ -147,7 +149,7 @@
             <div class="flex gap-1">
                 <template x-for="i in 4" :key="i">
                     <div
-                        class="h-1.5 flex-1 rounded-full transition-colors duration-300"
+                        class="h-1.5 flex-1 rounded-full kore-transition-slow"
                         x-bind:class="i <= level ? levelColorClass : 'bg-kore-muted'"
                     ></div>
                 </template>
@@ -160,12 +162,12 @@
                 <template x-for="rule in rules" :key="rule.id">
                     <li class="flex items-center gap-1.5 text-xs">
                         <template x-if="rule.passed">
-                            <x-lucide-check class="size-3 text-green-500" />
+                            <x-lucide-check class="size-3 text-kore-success-text" />
                         </template>
                         <template x-if="!rule.passed">
                             <x-lucide-x class="size-3 text-kore-muted-fg" />
                         </template>
-                        <span x-bind:class="rule.passed ? 'text-green-600 dark:text-green-400' : 'text-kore-muted-fg'" x-text="rule.label"></span>
+                        <span x-bind:class="rule.passed ? 'text-kore-success-text' : 'text-kore-muted-fg'" x-text="rule.label"></span>
                     </li>
                 </template>
             </ul>
@@ -200,7 +202,7 @@
                 <button
                     type="button"
                     x-on:click="show = !show"
-                    class="text-kore-muted-fg hover:text-kore-fg transition-colors focus:outline-none"
+                    class="rounded-kore-sm text-kore-muted-fg hover:text-kore-fg kore-transition kore-focus"
                     x-bind:aria-label="show ? @js($ocultarLabel) : @js($mostrarLabel)"
                 >
                     <x-lucide-eye x-show="!show" class="{{ $iconSizeClasses }}" />

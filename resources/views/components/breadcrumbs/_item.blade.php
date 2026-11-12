@@ -13,7 +13,7 @@
     @else
         <a
             href="{{ $item->url }}"
-            class="flex items-center {{ $s['gap'] }} {{ $s['text'] }} text-kore-muted-fg hover:text-kore-fg transition-colors"
+            class="flex items-center {{ $s['gap'] }} {{ $s['text'] }} text-kore-muted-fg hover:text-kore-fg rounded-kore-sm kore-transition kore-focus"
             @if ($item->tooltip) x-data x-tooltip="{{ $item->tooltip }}" @endif
         >
             @if ($item->icon)

@@ -43,7 +43,7 @@
         <button
             type="button"
             {{ $p }}:handle
-            class="shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg transition-colors"
+            class="shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg kore-transition"
             aria-label="{{ config('kore-ui.ui.translations.reorder', 'Arrastrar para reordenar') }}"
         >
             <x-lucide-grip-vertical class="size-4" />

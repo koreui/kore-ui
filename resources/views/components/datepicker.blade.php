@@ -40,7 +40,12 @@
     'helpers' => false,
     'manualInput' => false,
     'requiresConfirmation' => false,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
@@ -77,11 +82,8 @@
     };
 
     $baseClasses = collect([
-        'w-full rounded-kore-md border bg-kore-bg text-kore-fg',
-        'transition-colors duration-150',
-        'focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary',
-        'disabled:opacity-50 disabled:cursor-not-allowed',
-        $hasError ? 'border-kore-destructive focus:ring-kore-destructive/30 focus:border-kore-destructive' : 'border-kore-input',
+        'w-full kore-control',
+        $hasError ? 'kore-invalid' : '',
         $sizeClasses,
     ])->filter()->implode(' ');
 
@@ -108,6 +110,18 @@
         'helpers' => $helpers ?: null,
         'manualInput' => $manualInput ?: null,
         'requiresConfirmation' => $requiresConfirmation ?: null,
+        // Los atajos solo viajan si alguien los va a ver: son ocho cadenas por
+        // calendario, y la mayoría no los usa.
+        'labels' => ($presets === true || $helpers) ? [
+            'today' => config('kore-ui.form.translations.date_today', 'Hoy'),
+            'yesterday' => config('kore-ui.form.translations.date_yesterday', 'Ayer'),
+            'tomorrow' => config('kore-ui.form.translations.date_tomorrow', 'Mañana'),
+            'last7' => config('kore-ui.form.translations.date_last_7', 'Últimos 7 días'),
+            'last30' => config('kore-ui.form.translations.date_last_30', 'Últimos 30 días'),
+            'thisMonth' => config('kore-ui.form.translations.date_this_month', 'Este mes'),
+            'lastMonth' => config('kore-ui.form.translations.date_last_month', 'Mes pasado'),
+            'thisYear' => config('kore-ui.form.translations.date_this_year', 'Este año'),
+        ] : null,
     ], fn ($v) => $v !== null));
 
     // Los atributos que el consumidor escribe en la etiqueta y que ningún
@@ -179,7 +193,7 @@
                             x-cloak
                             x-on:click.stop="clear()"
                             aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
-                            class="text-kore-muted-fg hover:text-kore-fg transition-colors"
+                            class="text-kore-muted-fg hover:text-kore-fg kore-transition"
                         >
                             <x-lucide-x class="{{ $iconSizeClasses }}" />
                         </button>
@@ -211,7 +225,7 @@
                                     type="button"
                                     x-on:click.stop="clear()"
                                     aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
-                                    class="text-kore-muted-fg hover:text-kore-fg transition-colors"
+                                    class="text-kore-muted-fg hover:text-kore-fg kore-transition"
                                 >
                                     <x-lucide-x class="{{ $iconSizeClasses }}" />
                                 </button>
@@ -238,18 +252,15 @@
                 @include('kore::components._datepicker-panel')
             </div>
         @else
+            {{-- El panel no se monta hasta la primera apertura: cerrado no aporta
+                 ni un nodo ni una directiva. Ver `montado` en el componente. --}}
+            <template x-if="montado">
             <template x-teleport="body">
                 <div
                     data-kore-teleport
                     x-ref="dropdown"
                     x-show="open"
                     x-cloak
-                    x-transition:enter="transition ease-out duration-100"
-                    x-transition:enter-start="opacity-0 scale-95"
-                    x-transition:enter-end="opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-75"
-                    x-transition:leave-start="opacity-100 scale-100"
-                    x-transition:leave-end="opacity-0 scale-95"
                     {{-- El panel escucha el teclado él mismo: teleportado a
                          `<body>`, los eventos de dentro no burbujean por la raíz
                          del componente. Hoy el foco no suele entrar aquí —el
@@ -258,12 +269,13 @@
                          foco llega el teclado tiene que seguir funcionando. --}}
                     x-on:keydown="onKeydown($event)"
                     x-on:mousedown.stop
-                    class="fixed z-[9999] rounded-kore-lg border border-kore-border bg-kore-bg text-kore-fg shadow-lg p-3"
+                    class="kore-pop fixed z-[9999] kore-panel p-3"
                     role="dialog"
                     aria-label="{{ config('kore-ui.form.translations.choose_date', 'Elegir fecha') }}"
                 >
                     @include('kore::components._datepicker-panel')
                 </div>
+            </template>
             </template>
         @endif
     </div>

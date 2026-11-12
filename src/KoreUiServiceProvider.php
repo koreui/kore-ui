@@ -108,7 +108,7 @@ class KoreUiServiceProvider extends ServiceProvider
             ->name('kore-ui.scripts.editor');
 
         Blade::directive('koreScripts', function () {
-            return "<?php echo '<script src=\"'.\KoreUi\KoreUiServiceProvider::scriptUrl().'\"></script>'; ?>";
+            return "<?php echo '<script src=\"'.\KoreUi\KoreUiServiceProvider::scriptUrl().'\"'.(config('kore-ui.ui.motion', true) ? '' : ' data-kore-motion=\"off\"').'></script>'; ?>";
         });
 
         Blade::directive('koreThemeScript', function () {

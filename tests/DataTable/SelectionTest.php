@@ -251,3 +251,17 @@ it('clamps an out-of-range page instead of showing an empty page', function () {
         ->and($rows->count())->toBeGreaterThan(0)
         ->and($rows->currentPage())->toBe($rows->lastPage());
 });
+
+it('no dice «Mostrando 0 a 0 de 0» cuando no hay filas', function () {
+    $tabla = new \KoreUi\Tests\DataTable\Fixtures\TestTable();
+
+    $vacio = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
+    $conFilas = new \Illuminate\Pagination\LengthAwarePaginator([1, 2, 3], 3, 10);
+
+    expect($tabla->getShowingText($vacio))->toBe('Sin resultados')
+        ->and($tabla->getShowingText($conFilas))->toBe('Mostrando 1 a 3 de 3 resultados');
+
+    config()->set('kore-ui.datatable.translations.showing_none', 'Res a mostrar');
+
+    expect($tabla->getShowingText($vacio))->toBe('Res a mostrar');
+});

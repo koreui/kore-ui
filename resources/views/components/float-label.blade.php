@@ -1,7 +1,12 @@
 @props([
     'label' => null,
     'variant' => 'over',
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     // Resting position (no focus, no content)
@@ -17,11 +22,11 @@
     // Active position (focus or has content)
     $activeClasses = match($variant) {
         // In: shrinks but stays inside the input
-        'in' => '!top-1 !text-[10px] text-kore-primary',
+        'in' => '!top-1 !text-[10px] text-kore-primary-text',
         // On: just changes color
-        'on' => 'text-kore-primary',
+        'on' => 'text-kore-primary-text',
         // Over: floats up to the border with bg cutout (like "on" but animated)
-        default => '!-top-2.5 !-translate-y-0 !text-xs !bg-kore-bg !px-1 text-kore-primary',
+        default => '!-top-2.5 !-translate-y-0 !text-xs !bg-kore-bg !px-1 text-kore-primary-text',
     };
 
     // Only "in" needs extra padding (label stays inside, text goes below)
@@ -57,7 +62,7 @@
         @if($label)
             <label
                 x-ref="etiqueta"
-                class="absolute pointer-events-none text-kore-muted-fg transition-all duration-200 origin-top-left {{ $restClasses }}"
+                class="absolute pointer-events-none text-kore-muted-fg transition-all kore-duration-base origin-top-left {{ $restClasses }}"
                 x-bind:class="(focused || filled) && '{{ $activeClasses }}'"
             >
                 {{ $label }}

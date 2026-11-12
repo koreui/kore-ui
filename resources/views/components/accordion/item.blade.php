@@ -26,12 +26,12 @@
     }}
     data-accordion-item="{{ $id }}"
     @if($open) data-open="true" @endif
-    x-bind:class="variant === 'separated' && 'border border-kore-border rounded-kore-lg overflow-hidden'"
+    x-bind:class="variant === 'separated' && 'border border-kore-border rounded-kore-lg overflow-hidden bg-kore-surface shadow-kore-xs'"
 >
     {{-- Header --}}
     <button
         type="button"
-        class="flex items-center justify-between gap-3 w-full text-left px-4 py-3 text-sm font-medium text-kore-fg transition-colors hover:bg-kore-muted/50 disabled:opacity-50 disabled:cursor-not-allowed"
+        class="flex items-center justify-between gap-3 w-full text-left px-4 py-3 text-sm font-medium text-kore-fg kore-transition kore-focus-inset hover:bg-kore-muted/60 aria-expanded:bg-kore-muted/40 disabled:opacity-50 disabled:cursor-not-allowed"
         x-on:click="!{{ $disabled ? 'false' : 'true' }} || toggle('{{ $id }}')"
         x-bind:aria-expanded="isOpen('{{ $id }}')"
         aria-controls="panel-{{ $id }}"
@@ -45,14 +45,14 @@
             <span class="truncate">{{ $title }}</span>
         </span>
         <x-lucide-chevron-down
-            class="size-4 shrink-0 text-kore-muted-fg transition-transform duration-200"
+            class="size-4 shrink-0 text-kore-muted-fg kore-transition-base"
             x-bind:class="isOpen('{{ $id }}') && 'rotate-180'"
         />
     </button>
 
     {{-- Panel --}}
     <div
-        class="grid transition-[grid-template-rows] duration-300"
+        class="grid transition-[grid-template-rows] kore-duration-slow"
         x-bind:class="isOpen('{{ $id }}') ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
         role="region"
         aria-labelledby="header-{{ $id }}"

@@ -13,7 +13,12 @@
     'readonly' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     // Era «Select color» dentro de la expresión de Alpine, sin forma de
@@ -80,8 +85,8 @@
     $wireModelAttr = $attributes->whereStartsWith('wire:model');
 
     $borderClasses = $hasError
-        ? 'border-kore-destructive focus-within:ring-kore-destructive/30'
-        : 'border-kore-input';
+        ? 'kore-invalid'
+        : '';
 
     $jsConfig = json_encode(array_filter([
         'inline' => $inline ?: null,
@@ -147,7 +152,7 @@
                     x-on:keydown.enter.prevent="toggle()"
                     x-on:keydown.space.prevent="toggle()"
                 @endif
-                class="flex items-center gap-2 w-full rounded-kore-md border {{ $borderClasses }} {{ $sizeClasses }} bg-kore-bg text-kore-fg transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary {{ $disabled ? 'pointer-events-none' : '' }}"
+                class="flex items-center gap-2 w-full {{ $borderClasses }} {{ $sizeClasses }} cursor-pointer kore-control {{ $disabled ? 'pointer-events-none' : '' }}"
             >
                 {{-- Color preview swatch --}}
                 <span
@@ -166,7 +171,7 @@
                         x-cloak
                         x-on:click.stop="clear()"
                         role="button"
-                        class="text-kore-muted-fg hover:text-kore-fg transition-colors shrink-0 cursor-pointer"
+                        class="text-kore-muted-fg hover:text-kore-fg kore-transition shrink-0 cursor-pointer"
                     >
                         <x-lucide-x class="{{ $iconSize }}" />
                     </span>
@@ -174,7 +179,7 @@
 
                 {{-- Chevron --}}
                 @if(! $edicionBloqueada)
-                <x-lucide-chevron-down class="{{ $iconSize }} text-kore-muted-fg shrink-0 transition-transform duration-150" ::class="open && 'rotate-180'" />
+                <x-lucide-chevron-down class="{{ $iconSize }} text-kore-muted-fg shrink-0 kore-transition" ::class="open && 'rotate-180'" />
                 @endif
             </div>
         @endif
@@ -188,7 +193,7 @@
                         @php $checkColor = $isLightColor($hex) ? 'text-black' : 'text-white'; @endphp
                         <button
                             type="button"
-                            class="{{ $swatchDim }} rounded-kore-sm border border-kore-border/50 flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-kore-ring"
+                            class="{{ $swatchDim }} rounded-kore-sm border border-kore-border/50 flex items-center justify-center kore-transition hover:scale-110 kore-focus"
                             style="background-color: {{ $hex }}"
                             x-on:click="selectColor('{{ $hex }}')"
                             aria-label="{{ config('kore-ui.form.translations.pick_color', 'Elegir color') }} {{ $hex }}"
@@ -214,39 +219,36 @@
                             x-model="customHex"
                             placeholder="#000000"
                             aria-label="{{ config('kore-ui.form.translations.custom_color', 'Color personalizado') }}"
-                            class="flex-1 min-w-0 text-sm bg-kore-bg text-kore-fg border border-kore-input rounded-kore-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary"
+                            class="flex-1 min-w-0 text-sm rounded-kore-sm px-2 py-1 kore-control"
                             x-on:keydown.enter.prevent="applyCustom()"
                             maxlength="7"
                         />
                         <button
                             type="button"
                             x-on:click="applyCustom()"
-                            class="text-xs font-medium px-2 py-1 rounded-kore-sm bg-kore-primary text-kore-primary-fg hover:opacity-90 transition-opacity"
+                            class="text-xs font-medium px-2 py-1 rounded-kore-sm bg-kore-primary text-kore-primary-fg shadow-kore-solid hover:bg-kore-primary/90 kore-transition kore-press"
                         >
-                            Apply
+                            {{ config('kore-ui.form.translations.apply', 'Aplicar') }}
                         </button>
                     </div>
                 @endif
             </div>
         @else
             {{-- Dropdown panel (teleported) --}}
+            {{-- El panel no se monta hasta la primera apertura: cerrado no aporta
+                 ni un nodo ni una directiva. Ver `montado` en el componente. --}}
+            <template x-if="montado">
             <template x-teleport="body">
                 <div
                     data-kore-teleport
                     x-ref="dropdown"
                     x-show="open"
                     x-cloak
-                    x-transition:enter="transition ease-out duration-100"
-                    x-transition:enter-start="opacity-0 scale-95"
-                    x-transition:enter-end="opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-75"
-                    x-transition:leave-start="opacity-100 scale-100"
-                    x-transition:leave-end="opacity-0 scale-95"
                     {{-- También aquí: el panel está teleportado a `<body>`, así
                          que las teclas pulsadas con el foco dentro no burbujean
                          hasta la raíz que lleva el otro manejador. --}}
                     x-on:keydown.escape="onEscape($event)"
-                    class="rounded-kore-md border border-kore-border bg-kore-bg shadow-lg p-3 z-50"
+                    class="kore-pop fixed kore-panel p-3 z-50"
                     style="position: fixed"
                 >
                     {{-- Swatch grid --}}
@@ -255,7 +257,7 @@
                             @php $checkColor = $isLightColor($hex) ? 'text-black' : 'text-white'; @endphp
                             <button
                                 type="button"
-                                class="{{ $swatchDim }} rounded-kore-sm border border-kore-border/50 flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-kore-ring"
+                                class="{{ $swatchDim }} rounded-kore-sm border border-kore-border/50 flex items-center justify-center kore-transition hover:scale-110 kore-focus"
                                 style="background-color: {{ $hex }}"
                                 x-on:click="selectColor('{{ $hex }}')"
                                 aria-label="{{ config('kore-ui.form.translations.pick_color', 'Elegir color') }} {{ $hex }}"
@@ -281,20 +283,21 @@
                                 x-model="customHex"
                                 placeholder="#000000"
                                 aria-label="{{ config('kore-ui.form.translations.custom_color', 'Color personalizado') }}"
-                                class="flex-1 min-w-0 text-sm bg-kore-bg text-kore-fg border border-kore-input rounded-kore-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary"
+                                class="flex-1 min-w-0 text-sm rounded-kore-sm px-2 py-1 kore-control"
                                 x-on:keydown.enter.prevent="applyCustom()"
                                 maxlength="7"
                             />
                             <button
                                 type="button"
                                 x-on:click="applyCustom()"
-                                class="text-xs font-medium px-2 py-1 rounded-kore-sm bg-kore-primary text-kore-primary-fg hover:opacity-90 transition-opacity"
+                                class="text-xs font-medium px-2 py-1 rounded-kore-sm bg-kore-primary text-kore-primary-fg shadow-kore-solid hover:bg-kore-primary/90 kore-transition kore-press"
                             >
-                                Apply
+                                {{ config('kore-ui.form.translations.apply', 'Aplicar') }}
                             </button>
                         </div>
                     @endif
                 </div>
+            </template>
             </template>
         @endif
     </div>

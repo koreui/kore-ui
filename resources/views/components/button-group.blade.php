@@ -1,6 +1,11 @@
 @props([
     'ariaLabel' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     // Tres botones sueltos y un grupo de tres botones no son lo mismo para un

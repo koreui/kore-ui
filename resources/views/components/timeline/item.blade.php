@@ -19,12 +19,12 @@
     };
 
     $markerText = match($resolvedColor) {
-        'success' => 'text-kore-success',
-        'warning' => 'text-kore-warning',
-        'destructive' => 'text-kore-destructive',
-        'info' => 'text-kore-info',
+        'success' => 'text-kore-success-text',
+        'warning' => 'text-kore-warning-text',
+        'destructive' => 'text-kore-destructive-text',
+        'info' => 'text-kore-info-text',
         'muted' => 'text-kore-muted-fg',
-        default => 'text-kore-primary',
+        default => 'text-kore-primary-text',
     };
 
     $dotColor = match($resolvedColor) {

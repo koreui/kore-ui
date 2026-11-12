@@ -6,7 +6,12 @@
     'darkLabel' => null,
     'systemLabel' => null,
     'ariaLabel' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     // Los tres modos y el nombre del control, desde la configuración: eran
@@ -75,24 +80,24 @@
         x-on:click="$store.koreTheme.setMode($store.koreTheme.isDark ? 'light' : 'dark')"
         aria-label="{{ $toggleLabel }}"
         {{ $attributes->except(['ariaLabel'])->class([
-            'kore-theme-switch relative inline-flex shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2 ring-offset-kore-bg',
+            'kore-theme-switch relative inline-flex shrink-0 cursor-pointer rounded-full border-2 border-transparent kore-transition-base kore-focus',
             $trackSize,
         ]) }}
         x-bind:class="$store.koreTheme.isDark ? 'bg-kore-primary' : 'bg-kore-muted'"
     >
         {{-- Thumb --}}
         <span
-            class="{{ $thumbSize }} pointer-events-none relative inline-block transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+            class="{{ $thumbSize }} pointer-events-none relative inline-block transform rounded-full bg-white shadow-kore-sm ring-0 kore-transition-base"
             x-bind:class="$store.koreTheme.isDark ? '{{ $thumbTranslate }}' : 'translate-x-0'"
         >
             {{-- Sun icon --}}
             <x-lucide-sun
-                class="{{ $thumbIconSize }} absolute inset-0 m-auto text-amber-500 transition-opacity duration-200"
+                class="{{ $thumbIconSize }} absolute inset-0 m-auto text-amber-500 kore-transition-base"
                 x-bind:class="$store.koreTheme.isDark ? 'opacity-0' : 'opacity-100'"
             />
             {{-- Moon icon --}}
             <x-lucide-moon
-                class="{{ $thumbIconSize }} absolute inset-0 m-auto text-slate-600 transition-opacity duration-200"
+                class="{{ $thumbIconSize }} absolute inset-0 m-auto text-slate-600 kore-transition-base"
                 x-bind:class="$store.koreTheme.isDark ? 'opacity-100' : 'opacity-0'"
             />
         </span>
@@ -131,7 +136,7 @@
             aria-haspopup="true"
             x-bind:aria-expanded="open.toString()"
             aria-label="{{ $ariaLabel }}"
-            class="{{ $buttonPadding }} inline-flex items-center gap-2 rounded-kore-md border border-kore-border bg-kore-bg text-kore-fg transition-colors duration-200 hover:bg-kore-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring"
+            class="{{ $buttonPadding }} inline-flex items-center gap-2 rounded-kore-md border border-kore-border bg-kore-bg text-kore-fg kore-transition-base hover:bg-kore-muted kore-focus"
         >
             <x-lucide-sun
                 class="{{ $iconSize }}"
@@ -162,13 +167,7 @@
             {{-- También aquí: el panel está teleportado a `<body>`, así que las
                  teclas pulsadas con el foco dentro no burbujean por la raíz. --}}
             x-on:keydown.escape="if (open) { $event.preventDefault(); open = false }"
-            x-transition:enter="transition ease-out duration-100"
-            x-transition:enter-start="opacity-0 scale-95"
-            x-transition:enter-end="opacity-100 scale-100"
-            x-transition:leave="transition ease-in duration-75"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-95"
-            class="fixed z-[9999] w-40 rounded-kore-lg border border-kore-border bg-kore-bg text-kore-fg p-1 shadow-lg"
+            class="kore-pop fixed z-[9999] w-40 kore-panel p-1"
             x-bind:style="'top:' + position.top + ';left:' + position.left"
             role="menu"
             aria-label="{{ $ariaLabel }}"
@@ -178,8 +177,8 @@
                 type="button"
                 role="menuitem"
                 x-on:click="$store.koreTheme.setMode('light'); open = false"
-                class="flex w-full items-center gap-2 rounded-kore-md px-2.5 py-2 {{ $labelSize }} text-kore-fg transition-colors duration-150 hover:bg-kore-muted focus-visible:outline-none focus-visible:bg-kore-muted"
-                x-bind:class="$store.koreTheme.mode === 'light' && 'bg-kore-muted font-medium'"
+                class="flex w-full items-center gap-2 px-2.5 py-1.5 {{ $labelSize }} text-kore-fg kore-option hover:bg-kore-accent focus-visible:bg-kore-accent"
+                x-bind:class="$store.koreTheme.mode === 'light' && 'bg-kore-accent font-medium'"
             >
                 <x-lucide-sun class="{{ $iconSize }}" />
                 {{ $lightLabel }}
@@ -190,8 +189,8 @@
                 type="button"
                 role="menuitem"
                 x-on:click="$store.koreTheme.setMode('system'); open = false"
-                class="flex w-full items-center gap-2 rounded-kore-md px-2.5 py-2 {{ $labelSize }} text-kore-fg transition-colors duration-150 hover:bg-kore-muted focus-visible:outline-none focus-visible:bg-kore-muted"
-                x-bind:class="$store.koreTheme.mode === 'system' && 'bg-kore-muted font-medium'"
+                class="flex w-full items-center gap-2 px-2.5 py-1.5 {{ $labelSize }} text-kore-fg kore-option hover:bg-kore-accent focus-visible:bg-kore-accent"
+                x-bind:class="$store.koreTheme.mode === 'system' && 'bg-kore-accent font-medium'"
             >
                 <x-lucide-monitor class="{{ $iconSize }}" />
                 {{ $systemLabel }}
@@ -202,8 +201,8 @@
                 type="button"
                 role="menuitem"
                 x-on:click="$store.koreTheme.setMode('dark'); open = false"
-                class="flex w-full items-center gap-2 rounded-kore-md px-2.5 py-2 {{ $labelSize }} text-kore-fg transition-colors duration-150 hover:bg-kore-muted focus-visible:outline-none focus-visible:bg-kore-muted"
-                x-bind:class="$store.koreTheme.mode === 'dark' && 'bg-kore-muted font-medium'"
+                class="flex w-full items-center gap-2 px-2.5 py-1.5 {{ $labelSize }} text-kore-fg kore-option hover:bg-kore-accent focus-visible:bg-kore-accent"
+                x-bind:class="$store.koreTheme.mode === 'dark' && 'bg-kore-accent font-medium'"
             >
                 <x-lucide-moon class="{{ $iconSize }}" />
                 {{ $darkLabel }}
@@ -235,8 +234,8 @@
             aria-label="{{ $lightLabel }}"
             x-bind:aria-checked="($store.koreTheme.mode === 'light').toString()"
             x-on:click="$store.koreTheme.setMode('light')"
-            class="{{ $buttonPadding }} inline-flex items-center gap-1.5 rounded-kore-md {{ $labelSize }} font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring"
-            x-bind:class="$store.koreTheme.mode === 'light' ? 'bg-kore-bg text-kore-fg shadow-sm' : 'text-kore-muted-fg hover:text-kore-fg'"
+            class="{{ $buttonPadding }} inline-flex items-center gap-1.5 rounded-kore-md {{ $labelSize }} font-medium kore-transition-base kore-focus"
+            x-bind:class="$store.koreTheme.mode === 'light' ? 'bg-kore-bg text-kore-fg shadow-kore-sm' : 'text-kore-muted-fg hover:text-kore-fg'"
         >
             <x-lucide-sun class="{{ $iconSize }}" />
             @if($labels)
@@ -251,8 +250,8 @@
             aria-label="{{ $systemLabel }}"
             x-bind:aria-checked="($store.koreTheme.mode === 'system').toString()"
             x-on:click="$store.koreTheme.setMode('system')"
-            class="{{ $buttonPadding }} inline-flex items-center gap-1.5 rounded-kore-md {{ $labelSize }} font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring"
-            x-bind:class="$store.koreTheme.mode === 'system' ? 'bg-kore-bg text-kore-fg shadow-sm' : 'text-kore-muted-fg hover:text-kore-fg'"
+            class="{{ $buttonPadding }} inline-flex items-center gap-1.5 rounded-kore-md {{ $labelSize }} font-medium kore-transition-base kore-focus"
+            x-bind:class="$store.koreTheme.mode === 'system' ? 'bg-kore-bg text-kore-fg shadow-kore-sm' : 'text-kore-muted-fg hover:text-kore-fg'"
         >
             <x-lucide-monitor class="{{ $iconSize }}" />
             @if($labels)
@@ -267,8 +266,8 @@
             aria-label="{{ $darkLabel }}"
             x-bind:aria-checked="($store.koreTheme.mode === 'dark').toString()"
             x-on:click="$store.koreTheme.setMode('dark')"
-            class="{{ $buttonPadding }} inline-flex items-center gap-1.5 rounded-kore-md {{ $labelSize }} font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring"
-            x-bind:class="$store.koreTheme.mode === 'dark' ? 'bg-kore-bg text-kore-fg shadow-sm' : 'text-kore-muted-fg hover:text-kore-fg'"
+            class="{{ $buttonPadding }} inline-flex items-center gap-1.5 rounded-kore-md {{ $labelSize }} font-medium kore-transition-base kore-focus"
+            x-bind:class="$store.koreTheme.mode === 'dark' ? 'bg-kore-bg text-kore-fg shadow-kore-sm' : 'text-kore-muted-fg hover:text-kore-fg'"
         >
             <x-lucide-moon class="{{ $iconSize }}" />
             @if($labels)

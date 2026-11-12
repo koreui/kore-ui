@@ -6,7 +6,7 @@
 
 <tr {{ $attributes->class([
     'bg-kore-muted/30' => $striped && $index % 2 === 1,
-    'hover:bg-kore-muted/40 transition-colors' => $hoverable,
+    'hover:bg-kore-muted/60 kore-transition' => $hoverable,
 ]) }}>
     {{ $slot }}
 </tr>

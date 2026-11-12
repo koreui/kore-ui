@@ -6,7 +6,12 @@
     'color' => 'muted',
     'size' => 'md',
     'variant' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $variant = $variant ?? config('kore-ui.ui.chip.variant', 'soft');
@@ -20,7 +25,7 @@
     $colorClasses = match($variant) {
         'solid' => match($color) {
             'primary' => 'bg-kore-primary text-kore-primary-fg',
-            'secondary' => 'bg-kore-secondary text-kore-secondary-fg',
+            'secondary' => 'bg-kore-secondary text-kore-secondary-fg ring-1 ring-inset ring-kore-border',
             'success' => 'bg-kore-success text-kore-success-fg',
             'warning' => 'bg-kore-warning text-kore-warning-fg',
             'destructive' => 'bg-kore-destructive text-kore-destructive-fg',
@@ -37,13 +42,13 @@
             default => 'border border-kore-border text-kore-fg',
         },
         default => match($color) {
-            'primary' => 'bg-kore-primary/10 text-kore-primary-text',
-            'secondary' => 'bg-kore-secondary text-kore-secondary-fg',
-            'success' => 'bg-kore-success/10 text-kore-success-text',
-            'warning' => 'bg-kore-warning/10 text-kore-warning-text',
-            'destructive' => 'bg-kore-destructive/10 text-kore-destructive-text',
-            'info' => 'bg-kore-info/10 text-kore-info-text',
-            default => 'bg-kore-muted text-kore-fg',
+            'primary' => 'bg-kore-primary/10 text-kore-primary-text ring-1 ring-inset ring-kore-primary/20',
+            'secondary' => 'bg-kore-secondary text-kore-secondary-fg ring-1 ring-inset ring-kore-border',
+            'success' => 'bg-kore-success/10 text-kore-success-text ring-1 ring-inset ring-kore-success/20',
+            'warning' => 'bg-kore-warning/10 text-kore-warning-text ring-1 ring-inset ring-kore-warning/20',
+            'destructive' => 'bg-kore-destructive/10 text-kore-destructive-text ring-1 ring-inset ring-kore-destructive/20',
+            'info' => 'bg-kore-info/10 text-kore-info-text ring-1 ring-inset ring-kore-info/20',
+            default => 'bg-kore-muted text-kore-fg ring-1 ring-inset ring-kore-border',
         },
     };
 
@@ -75,7 +80,7 @@
              para que el chip no crezca. --}}
         <button type="button" x-on:click="visible = false; $dispatch('chip-removed')"
             aria-label="{{ config('kore-ui.ui.translations.remove', 'Quitar') }}"
-            class="-mr-2 inline-flex size-6 shrink-0 items-center justify-center rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+            class="-mr-2 inline-flex size-6 shrink-0 items-center justify-center rounded-full hover:bg-current/15 kore-transition kore-focus">
             <x-lucide-x class="{{ $iconSize }}" />
         </button>
     @endif

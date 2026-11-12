@@ -5,7 +5,12 @@
     'items' => [],
     'color' => 'primary',
     'size' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $icon = $icon ?? config('kore-ui.ui.speed-dial.icon', 'plus');
@@ -89,25 +94,19 @@
         {{-- FAB Button --}}
         <button type="button"
                 x-on:click="toggle()"
-                class="inline-flex items-center justify-center rounded-full shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:ring-offset-2 ring-offset-kore-bg {{ $fabSize }} {{ $colorClasses }}"
+                class="inline-flex items-center justify-center rounded-full shadow-kore-lg kore-transition-base kore-focus {{ $fabSize }} {{ $colorClasses }}"
                 :aria-expanded="open"
                 aria-haspopup="true"
                 aria-label="{{ config('kore-ui.ui.translations.speed_dial', 'Acciones rápidas') }}">
             <x-dynamic-component :component="'lucide-' . $icon"
-                class="{{ $fabIconSize }} transition-transform duration-200"
+                class="{{ $fabIconSize }} kore-transition-base"
                 x-bind:class="open && 'rotate-45'" />
         </button>
 
         {{-- Items --}}
         <div x-show="open"
              x-on:click.outside="close()"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="flex items-center {{ $containerDirection }} gap-2"
+             class="kore-pop flex items-center {{ $containerDirection }} gap-2"
              role="menu"
              aria-label="{{ config('kore-ui.ui.translations.speed_dial', 'Acciones rápidas') }}">
             @foreach($items as $index => $item)
@@ -120,7 +119,7 @@
                     @if(!empty($item['href']))
                         <a href="{{ $item['href'] }}"
                            role="menuitem"
-                           class="inline-flex items-center justify-center rounded-full shadow-md transition-all duration-150 bg-kore-surface text-kore-surface-fg border border-kore-border hover:bg-kore-accent hover:text-kore-accent-fg focus:outline-none focus:ring-2 focus:ring-kore-ring {{ $itemSize }}"
+                           class="inline-flex items-center justify-center rounded-full shadow-kore-md kore-transition bg-kore-surface text-kore-surface-fg border border-kore-border hover:bg-kore-accent hover:text-kore-accent-fg kore-focus {{ $itemSize }}"
                            @if(!empty($item['label'])) aria-label="{{ $item['label'] }}" @endif>
                             @if(!empty($item['icon']))
                                 <x-dynamic-component :component="'lucide-' . $item['icon']" class="{{ $itemIconSize }}" />
@@ -131,7 +130,7 @@
                                 role="menuitem"
                                 @if(!empty($item['wireClick'])) wire:click="{{ $item['wireClick'] }}" @endif
                                 x-on:click="close()"
-                                class="inline-flex items-center justify-center rounded-full shadow-md transition-all duration-150 bg-kore-surface text-kore-surface-fg border border-kore-border hover:bg-kore-accent hover:text-kore-accent-fg focus:outline-none focus:ring-2 focus:ring-kore-ring {{ $itemSize }}"
+                                class="inline-flex items-center justify-center rounded-full shadow-kore-md kore-transition bg-kore-surface text-kore-surface-fg border border-kore-border hover:bg-kore-accent hover:text-kore-accent-fg kore-focus {{ $itemSize }}"
                                 @if(!empty($item['label'])) aria-label="{{ $item['label'] }}" @endif>
                             @if(!empty($item['icon']))
                                 <x-dynamic-component :component="'lucide-' . $item['icon']" class="{{ $itemIconSize }}" />
@@ -141,7 +140,7 @@
 
                     {{-- Tooltip --}}
                     @if(!empty($item['label']))
-                        <span class="pointer-events-none fixed z-50 whitespace-nowrap rounded-kore-md bg-kore-fg text-kore-bg px-2 py-1 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                        <span class="pointer-events-none fixed z-50 whitespace-nowrap rounded-kore-md bg-kore-fg text-kore-bg px-2 py-1 text-xs font-medium opacity-0 group-hover:opacity-100 kore-transition"
                               x-init="$nextTick(() => {
                                   const btn = $el.previousElementSibling;
                                   const pos = '{{ $tooltipPosition }}';

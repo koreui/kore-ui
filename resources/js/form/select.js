@@ -23,6 +23,15 @@ function leerOpciones(config) {
 
 export default (config) => ({
     open: false,
+    // El panel no existe hasta que se abre por primera vez.
+    //
+    // Antes vivía en el DOM desde la carga, oculto: un calendario cerrado eran
+    // 152 nodos y un select 53, con todas sus directivas ya registradas. En un
+    // formulario de 48 campos, dos tercios de los nodos de la página eran
+    // paneles que nadie había abierto. La plantilla lo envuelve en un
+    // `x-if="montado"`; una vez montado se queda, y a partir de ahí abrir y
+    // cerrar es el `x-show` de siempre.
+    montado: false,
     search: '',
     selected: config.multiple ? (config.value ?? []) : (config.value ?? null),
     options: leerOpciones(config),
@@ -111,6 +120,7 @@ export default (config) => ({
     },
 
     openDropdown() {
+        this.montado = true;
         this.open = true;
         this.highlighted = -1;
         this.search = '';

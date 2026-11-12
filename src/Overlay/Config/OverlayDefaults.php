@@ -63,60 +63,60 @@ class OverlayDefaults
                 'enter' => [
                     'from' => 'opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95',
                     'to' => 'opacity-100 translate-y-0 sm:scale-100',
-                    'duration' => 'ease-out duration-300',
+                    'duration' => 'kore-duration-slow',
                 ],
                 'leave' => [
                     'from' => 'opacity-100 translate-y-0 sm:scale-100',
                     'to' => 'opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95',
-                    'duration' => 'ease-in duration-200',
+                    'duration' => 'kore-duration-base ease-kore-in',
                 ],
             ],
             'drawer' => [
                 'enter' => [
                     'from' => 'opacity-0 translate-x-full',
                     'to' => 'opacity-100 translate-x-0',
-                    'duration' => 'ease-out duration-300',
+                    'duration' => 'kore-duration-slow',
                 ],
                 'leave' => [
                     'from' => 'opacity-100 translate-x-0',
                     'to' => 'opacity-0 translate-x-full',
-                    'duration' => 'ease-in duration-200',
+                    'duration' => 'kore-duration-base ease-kore-in',
                 ],
             ],
             'confirm' => [
                 'enter' => [
                     'from' => 'opacity-0 scale-95',
                     'to' => 'opacity-100 scale-100',
-                    'duration' => 'ease-out duration-200',
+                    'duration' => 'kore-duration-base',
                 ],
                 'leave' => [
                     'from' => 'opacity-100 scale-100',
                     'to' => 'opacity-0 scale-95',
-                    'duration' => 'ease-in duration-150',
+                    'duration' => 'kore-duration-fast ease-kore-in',
                 ],
             ],
             'bottom-sheet' => [
                 'enter' => [
                     'from' => 'opacity-0 translate-y-full',
                     'to' => 'opacity-100 translate-y-0',
-                    'duration' => 'ease-out duration-300',
+                    'duration' => 'kore-duration-slow',
                 ],
                 'leave' => [
                     'from' => 'opacity-100 translate-y-0',
                     'to' => 'opacity-0 translate-y-full',
-                    'duration' => 'ease-in duration-200',
+                    'duration' => 'kore-duration-base ease-kore-in',
                 ],
             ],
             'fullscreen' => [
                 'enter' => [
                     'from' => 'opacity-0',
                     'to' => 'opacity-100',
-                    'duration' => 'ease-out duration-200',
+                    'duration' => 'kore-duration-base',
                 ],
                 'leave' => [
                     'from' => 'opacity-100',
                     'to' => 'opacity-0',
-                    'duration' => 'ease-in duration-150',
+                    'duration' => 'kore-duration-fast ease-kore-in',
                 ],
             ],
         ];
@@ -148,9 +148,9 @@ class OverlayDefaults
     public static function typeContainerClasses(): array
     {
         return [
-            'modal' => 'my-auto rounded-kore-lg',
+            'modal' => 'my-auto rounded-kore-xl border border-kore-border',
             'drawer' => 'h-full overflow-y-auto',
-            'confirm' => 'my-auto rounded-kore-lg',
+            'confirm' => 'my-auto rounded-kore-xl border border-kore-border',
             'bottom-sheet' => 'rounded-t-kore-xl max-h-[80dvh] overflow-y-auto',
             'fullscreen' => 'min-h-screen overflow-y-auto',
         ];

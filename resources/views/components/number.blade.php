@@ -18,7 +18,12 @@
     'readonly' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
@@ -87,29 +92,22 @@
     // mismo patrón que los addons de <x-kore::input>: grupo con borde +
     // focus-within, piezas internas sin borde propio y divisores entre ellas.
     $groupBorderClasses = $hasError
-        ? 'border-kore-destructive focus-within:ring-kore-destructive/30 focus-within:border-kore-destructive'
-        : 'border-kore-input focus-within:ring-kore-ring focus-within:border-kore-primary';
+        ? 'kore-invalid'
+        : '';
 
     $groupClasses = collect([
         'flex items-stretch',
-        $controls ? 'inline-flex rounded-kore-md border overflow-hidden bg-kore-bg transition-colors duration-150 focus-within:ring-2 ' . $groupBorderClasses : '',
+        $controls ? 'inline-flex overflow-hidden kore-control ' . $groupBorderClasses : '',
         $controls && $disabled ? 'opacity-50 cursor-not-allowed' : '',
     ])->filter()->implode(' ');
 
     // Sin controles el input sigue siendo el que pinta borde, radio y anillo.
     $inputStateClasses = $controls
-        ? 'border-0 rounded-none bg-transparent focus:outline-none focus:ring-0'
-        : collect([
-            'border rounded-kore-md bg-kore-bg disabled:opacity-50',
-            'focus:outline-none focus:ring-2',
-            $hasError
-                ? 'border-kore-destructive focus:ring-kore-destructive/30 focus:border-kore-destructive'
-                : 'border-kore-input focus:ring-kore-ring focus:border-kore-primary',
-        ])->implode(' ');
+        ? 'border-0 rounded-none bg-transparent outline-none text-kore-fg placeholder:text-kore-muted-fg'
+        : 'kore-control';
 
     $inputClasses = collect([
-        'block w-full min-w-0 text-kore-fg text-center placeholder:text-kore-muted-fg',
-        'transition-colors duration-150',
+        'block w-full min-w-0 text-center',
         'disabled:cursor-not-allowed',
         '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
         $inputStateClasses,
@@ -117,8 +115,7 @@
     ])->filter()->implode(' ');
 
     $currencyInputClasses = collect([
-        'block w-full min-w-0 text-kore-fg text-right placeholder:text-kore-muted-fg',
-        'transition-colors duration-150',
+        'block w-full min-w-0 text-right',
         'disabled:cursor-not-allowed',
         $inputStateClasses,
         $sizeClasses,
@@ -134,7 +131,7 @@
     // Los botones ya no dibujan su propio recuadro: solo el divisor que los
     // separa del input dentro del marco común.
     $buttonBaseClasses = collect([
-        'inline-flex items-center justify-center shrink-0 bg-kore-bg text-kore-muted-fg transition-colors disabled:cursor-not-allowed',
+        'inline-flex items-center justify-center shrink-0 bg-kore-bg text-kore-muted-fg kore-transition disabled:cursor-not-allowed',
         $controlsInert ? '' : 'hover:bg-kore-muted hover:text-kore-fg',
         $readonly && ! $disabled ? 'opacity-50' : '',
     ])->filter()->implode(' ');

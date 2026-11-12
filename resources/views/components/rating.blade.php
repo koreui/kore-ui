@@ -11,7 +11,12 @@
     'disabled' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
@@ -120,7 +125,7 @@
                      así que el botón no podía ser más grande que la estrella sin
                      descolocarla. Medido: 20×20 en tamaño medio y 16×16 en
                      pequeño, por debajo del mínimo de 24×24 de WCAG 2.2. --}}
-                class="inline-flex min-w-6 min-h-6 items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring rounded-sm {{ $disabled || $readonly ? 'pointer-events-none' : '' }}"
+                class="inline-flex min-w-6 min-h-6 items-center justify-center cursor-pointer kore-focus rounded-kore-sm {{ $disabled || $readonly ? 'pointer-events-none' : '' }}"
                 @if(!$readonly && !$disabled)
                     x-on:click="rate({{ $i }})"
                     x-on:mouseenter="preview({{ $i }})"
@@ -142,7 +147,7 @@
 
                     {{-- Foreground star (full) --}}
                     <x-lucide-star
-                        class="{{ $starSize }} absolute inset-0 text-kore-warning fill-kore-warning transition-opacity duration-100"
+                        class="{{ $starSize }} absolute inset-0 text-kore-warning-text fill-kore-warning kore-transition"
                         x-show="getStarFill({{ $i }}) === 'full'"
                         x-cloak
                     />
@@ -150,7 +155,7 @@
                     {{-- Foreground star (half) --}}
                     @if($allowHalf)
                         <x-lucide-star
-                            class="{{ $starSize }} absolute inset-0 text-kore-warning fill-kore-warning transition-opacity duration-100"
+                            class="{{ $starSize }} absolute inset-0 text-kore-warning-text fill-kore-warning kore-transition"
                             style="clip-path: inset(0 50% 0 0)"
                             x-show="getStarFill({{ $i }}) === 'half'"
                             x-cloak

@@ -14,7 +14,7 @@
         <button
             type="button"
             aria-label="{{ ($t['column_options'] ?? 'Opciones de columna') . ': ' . $column->getLabel() }}"
-            class="p-0.5 rounded text-kore-muted-fg/60 hover:text-kore-fg hover:bg-kore-border/60 transition-colors"
+            class="p-0.5 rounded-kore-sm text-kore-muted-fg hover:text-kore-fg hover:bg-kore-border/60 kore-transition kore-focus opacity-0 group-hover/th:opacity-100 focus-visible:opacity-100 aria-expanded:opacity-100 [@media(hover:none)]:opacity-100"
         >
             <x-lucide-chevron-down class="size-3.5" />
         </button>
@@ -25,7 +25,7 @@
             type="button"
             wire:click="setSort(@js($sortField), 'asc')"
             x-on:click="close()"
-            class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left transition-colors hover:bg-kore-muted focus:bg-kore-muted focus:outline-none {{ $currentSort === 'asc' ? 'text-kore-primary font-medium' : 'text-kore-fg' }}"
+            class="flex items-center gap-2 w-full px-2.5 py-1.5 text-sm text-left kore-option hover:bg-kore-accent focus:bg-kore-accent {{ $currentSort === 'asc' ? 'text-kore-primary-text font-medium' : 'text-kore-fg' }}"
             role="menuitem"
         >
             <x-lucide-arrow-up class="size-4 shrink-0 text-kore-muted-fg" />
@@ -36,7 +36,7 @@
             type="button"
             wire:click="setSort(@js($sortField), 'desc')"
             x-on:click="close()"
-            class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left transition-colors hover:bg-kore-muted focus:bg-kore-muted focus:outline-none {{ $currentSort === 'desc' ? 'text-kore-primary font-medium' : 'text-kore-fg' }}"
+            class="flex items-center gap-2 w-full px-2.5 py-1.5 text-sm text-left kore-option hover:bg-kore-accent focus:bg-kore-accent {{ $currentSort === 'desc' ? 'text-kore-primary-text font-medium' : 'text-kore-fg' }}"
             role="menuitem"
         >
             <x-lucide-arrow-down class="size-4 shrink-0 text-kore-muted-fg" />
@@ -48,7 +48,7 @@
                 type="button"
                 wire:click="removeSortBy(@js($sortField))"
                 x-on:click="close()"
-                class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left text-kore-fg transition-colors hover:bg-kore-muted focus:bg-kore-muted focus:outline-none"
+                class="flex items-center gap-2 w-full px-2.5 py-1.5 text-sm text-left text-kore-fg kore-option hover:bg-kore-accent focus:bg-kore-accent"
                 role="menuitem"
             >
                 <x-lucide-x class="size-4 shrink-0 text-kore-muted-fg" />
@@ -63,7 +63,7 @@
         type="button"
         wire:click="toggleColumnPin(@js($field), 'left')"
         x-on:click="close()"
-        class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left transition-colors hover:bg-kore-muted focus:bg-kore-muted focus:outline-none {{ $currentPin === 'left' ? 'text-kore-primary font-medium' : 'text-kore-fg' }}"
+        class="flex items-center gap-2 w-full px-2.5 py-1.5 text-sm text-left kore-option hover:bg-kore-accent focus:bg-kore-accent {{ $currentPin === 'left' ? 'text-kore-primary-text font-medium' : 'text-kore-fg' }}"
         role="menuitem"
     >
         <x-lucide-pin class="size-4 shrink-0 text-kore-muted-fg" />
@@ -74,7 +74,7 @@
         type="button"
         wire:click="toggleColumnPin(@js($field), 'right')"
         x-on:click="close()"
-        class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left transition-colors hover:bg-kore-muted focus:bg-kore-muted focus:outline-none {{ $currentPin === 'right' ? 'text-kore-primary font-medium' : 'text-kore-fg' }}"
+        class="flex items-center gap-2 w-full px-2.5 py-1.5 text-sm text-left kore-option hover:bg-kore-accent focus:bg-kore-accent {{ $currentPin === 'right' ? 'text-kore-primary-text font-medium' : 'text-kore-fg' }}"
         role="menuitem"
     >
         <x-lucide-pin class="size-4 shrink-0 text-kore-muted-fg rotate-90" />
@@ -88,7 +88,7 @@
             type="button"
             wire:click="toggleColumnVisibility(@js($field))"
             x-on:click="close()"
-            class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left text-kore-fg transition-colors hover:bg-kore-muted focus:bg-kore-muted focus:outline-none"
+            class="flex items-center gap-2 w-full px-2.5 py-1.5 text-sm text-left text-kore-fg kore-option hover:bg-kore-accent focus:bg-kore-accent"
             role="menuitem"
         >
             <x-lucide-eye-off class="size-4 shrink-0 text-kore-muted-fg" />

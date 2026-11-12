@@ -12,7 +12,12 @@
     'bordered' => null,
     'shadow' => null,
     'padding' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     // El aspecto sale de la cascada: prop → `ui.card` → `ui.look` → el defecto
@@ -50,8 +55,8 @@
         ->class([
             'relative rounded-kore-lg bg-kore-surface overflow-hidden',
             'border border-kore-border' => $bordered,
-            'shadow-sm' => $shadow,
-            'hover:shadow-md transition-shadow' => $href,
+            'shadow-kore-sm' => $shadow,
+            'hover:shadow-kore-md kore-transition' => $href,
             'flex' => $image && $imagePosition === 'left',
         ])
     }}
@@ -81,7 +86,7 @@
                 >
                     <div class="min-w-0 flex-1">
                         <h3 class="flex items-center gap-2 text-base font-semibold text-kore-fg">
-                            <x-lucide-chevron-right class="size-4 shrink-0 transition-transform duration-200" x-bind:class="open && 'rotate-90'" />
+                            <x-lucide-chevron-right class="size-4 shrink-0 kore-transition-base" x-bind:class="open && 'rotate-90'" />
                             {{ $title }}
                         </h3>
                         @if($subtitle)
@@ -121,7 +126,7 @@
         {{-- Body --}}
         @if($collapsible)
             <div
-                class="grid transition-[grid-template-rows] duration-300"
+                class="grid transition-[grid-template-rows] kore-duration-slow"
                 x-bind:class="open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
             >
                 <div class="overflow-hidden">

@@ -8,14 +8,8 @@
     {{-- Backdrop --}}
     <div
         x-show="isOpen"
-        x-transition:enter="transition ease-out duration-150"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition ease-in duration-100"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
         @click="close()"
-        class="fixed inset-0"
+        class="kore-fade fixed inset-0"
         {{-- El mismo token que el overlay manager: el velo se cambia en un solo
              sitio y los dos sistemas se ven igual. Antes era un negro fijo
              escrito aquí a mano. --}}
@@ -27,18 +21,12 @@
     {{-- Panel --}}
     <div
         x-show="isOpen"
-        x-transition:enter="transition ease-out duration-150"
-        x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
-        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-        x-transition:leave="transition ease-in duration-100"
-        x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-        x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
         role="dialog"
         aria-modal="true"
         aria-label="{{ config('kore-ui.ui.translations.spotlight', 'Búsqueda rápida') }}"
         @keydown.escape.prevent="close()"
         @keydown.tab="trapFocus($event)"
-        class="fixed left-1/2 top-[15%] -translate-x-1/2 w-full max-w-2xl px-4 {{ $config['zIndex'] }}"
+        class="kore-pop fixed left-1/2 top-[15%] -translate-x-1/2 w-full max-w-2xl px-4 {{ $config['zIndex'] }}"
         x-cloak
     >
         <div class="bg-kore-surface border border-kore-border rounded-kore-lg shadow-kore-xl overflow-hidden">
@@ -52,12 +40,12 @@
                 {{-- Pills (completed steps) --}}
                 <div class="flex items-center gap-1 flex-wrap" x-show="steps.length > 0">
                     <template x-for="(step, i) in steps" :key="i">
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-kore-primary/10 text-kore-primary-text border border-kore-primary/20">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-kore-sm text-xs font-medium bg-kore-primary/10 text-kore-primary-text border border-kore-primary/20">
                             <span x-text="step.label"></span>
                             <button
                                 type="button"
                                 @click="removeStep(i)"
-                                class="ml-0.5 hover:text-kore-primary/70 focus:outline-none"
+                                class="ml-0.5 rounded-kore-sm hover:text-kore-primary/70 kore-focus"
                                 :aria-label="@js(config('kore-ui.ui.translations.spotlight_remove_step', 'Quitar :paso')).replace(':paso', step.label)"
                             >&#x2715;</button>
                         </span>
@@ -89,7 +77,7 @@
                     autocorrect="off"
                     autocapitalize="off"
                     spellcheck="false"
-                    class="flex-1 bg-transparent text-kore-fg placeholder:text-kore-muted-fg text-sm focus:outline-none min-w-0"
+                    class="flex-1 bg-transparent text-kore-fg placeholder:text-kore-muted-fg text-sm outline-none min-w-0"
                 >
 
                 {{-- Loading spinner --}}
@@ -100,7 +88,7 @@
                 {{-- Shortcut badge --}}
                 <kbd
                     x-show="!isSearching"
-                    class="shrink-0 hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium text-kore-muted-fg border border-kore-border"
+                    class="shrink-0 hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-kore-sm text-xs font-medium text-kore-muted-fg border border-kore-border"
                 >
                     <span class="text-xs">⌘</span>{{ strtoupper($config['shortcut']) }}
                 </kbd>
@@ -115,7 +103,7 @@
                     class="py-12 text-center"
                 >
                     <x-lucide-search class="mx-auto mb-3 size-8 text-kore-muted-fg opacity-40" />
-                    <p class="text-sm text-kore-muted-fg">Sin resultados para "<span x-text="query" class="font-medium"></span>"</p>
+                    <p class="text-sm text-kore-muted-fg" x-text="@js(config('kore-ui.ui.translations.spotlight_no_results', 'Sin resultados para «:query»')).replace(':query', query)"></p>
                 </div>
 
                 {{-- Empty state (no query, no recent, no items) --}}
@@ -124,7 +112,7 @@
                     class="py-12 text-center"
                 >
                     <x-lucide-zap class="mx-auto mb-3 size-8 text-kore-muted-fg opacity-40" />
-                    <p class="text-sm text-kore-muted-fg">Comienza a escribir para buscar acciones</p>
+                    <p class="text-sm text-kore-muted-fg">{{ config('kore-ui.ui.translations.spotlight_hint', 'Comienza a escribir para buscar acciones') }}</p>
                 </div>
 
                 <ul
@@ -138,7 +126,7 @@
                         <li role="presentation">
                             <div role="group" aria-labelledby="kore-group-recientes">
                                 <p id="kore-group-recientes" role="none" class="px-4 pt-2 pb-1 text-xs font-semibold text-kore-muted-fg uppercase tracking-wider">
-                                    Recientes
+                                    {{ config('kore-ui.ui.translations.spotlight_recent', 'Recientes') }}
                                 </p>
                                 <ul>
                                     <template x-for="item in recentItems" :key="'recent-' + item.id">
@@ -148,8 +136,8 @@
                                             :aria-selected="activeIndex === item._index"
                                             @click="selectItem(item)"
                                             @mouseenter="activeIndex = item._index ?? -1"
-                                            :class="activeIndex === item._index ? 'bg-kore-primary/10 text-kore-primary-text' : 'text-kore-fg hover:bg-kore-surface-hover'"
-                                            class="flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors duration-75 group"
+                                            :class="activeIndex === item._index ? 'bg-kore-primary/10 text-kore-primary-text' : 'text-kore-fg hover:bg-kore-accent'"
+                                            class="flex items-center gap-3 px-4 py-2.5 cursor-pointer kore-transition group"
                                         >
                                             <span class="size-5 flex items-center justify-center text-kore-muted-fg group-hover:text-inherit shrink-0">
                                                 <template x-if="item.iconHtml">
@@ -185,8 +173,8 @@
                                             :aria-selected="activeIndex === item._index"
                                             @click="selectItem(item)"
                                             @mouseenter="activeIndex = item._index"
-                                            :class="activeIndex === item._index ? 'bg-kore-primary/10 text-kore-primary-text' : 'text-kore-fg hover:bg-kore-surface-hover'"
-                                            class="flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors duration-75 group"
+                                            :class="activeIndex === item._index ? 'bg-kore-primary/10 text-kore-primary-text' : 'text-kore-fg hover:bg-kore-accent'"
+                                            class="flex items-center gap-3 px-4 py-2.5 cursor-pointer kore-transition group"
                                         >
                                             {{-- Icon --}}
                                             <span class="size-5 flex items-center justify-center text-kore-muted-fg group-hover:text-inherit shrink-0">
@@ -214,7 +202,7 @@
                                                     <x-lucide-chevrons-right class="size-3.5 text-kore-muted-fg" />
                                                 </template>
                                                 <template x-if="item.shortcut && !(item.dependencies && item.dependencies.length > 0)">
-                                                    <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-kore-muted-fg border border-kore-border" x-text="item.shortcut"></kbd>
+                                                    <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-kore-sm text-xs font-medium text-kore-muted-fg border border-kore-border" x-text="item.shortcut"></kbd>
                                                 </template>
                                             </span>
                                         </li>
@@ -230,25 +218,25 @@
             <div class="flex items-center justify-between px-4 py-2 border-t border-kore-border text-xs text-kore-muted-fg">
                 <div class="flex items-center gap-3">
                     <span class="flex items-center gap-1">
-                        <kbd class="px-1 py-0.5 rounded border border-kore-border text-xs">↑↓</kbd>
-                        Navegar
+                        <kbd class="px-1 py-0.5 rounded-kore-sm border border-kore-border text-xs">↑↓</kbd>
+                        {{ config('kore-ui.ui.translations.spotlight_navigate', 'Navegar') }}
                     </span>
                     <span class="flex items-center gap-1">
-                        <kbd class="px-1 py-0.5 rounded border border-kore-border text-xs">↵</kbd>
-                        Seleccionar
+                        <kbd class="px-1 py-0.5 rounded-kore-sm border border-kore-border text-xs">↵</kbd>
+                        {{ config('kore-ui.ui.translations.spotlight_select', 'Seleccionar') }}
                     </span>
                     <span class="flex items-center gap-1">
-                        <kbd class="px-1 py-0.5 rounded border border-kore-border text-xs">Esc</kbd>
-                        Cerrar
+                        <kbd class="px-1 py-0.5 rounded-kore-sm border border-kore-border text-xs">Esc</kbd>
+                        {{ config('kore-ui.ui.translations.spotlight_close', 'Cerrar') }}
                     </span>
                 </div>
                 <template x-if="config.showRecent && recentItems.length > 0 && query.length === 0">
                     <button
                         type="button"
                         @click="clearHistory()"
-                        class="text-kore-muted-fg hover:text-kore-fg transition-colors"
+                        class="text-kore-muted-fg hover:text-kore-fg kore-transition"
                     >
-                        Limpiar historial
+                        {{ config('kore-ui.ui.translations.spotlight_clear_history', 'Limpiar historial') }}
                     </button>
                 </template>
             </div>

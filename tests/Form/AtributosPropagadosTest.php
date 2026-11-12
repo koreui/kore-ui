@@ -45,7 +45,7 @@ it('suma la clase del consumidor a las del componente en vez de sustituirlas', f
     preg_match('/class="([^"]*mia[^"]*)"/', $html, $m);
 
     expect($m[1] ?? '')->toContain('mia')
-        ->and($m[1] ?? '')->toContain('rounded-kore-md');
+        ->and($m[1] ?? '')->toContain('kore-control');
 });
 
 it('no duplica el id al volcar los atributos en la raíz', function () {

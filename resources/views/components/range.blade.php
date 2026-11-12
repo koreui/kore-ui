@@ -13,7 +13,12 @@
     'disabled' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
@@ -104,7 +109,7 @@
 
             <div class="relative w-full" style="height: var(--kore-thumb-size)">
                 {{-- Track background --}}
-                <div class="absolute top-1/2 -translate-y-1/2 left-0 right-0 {{ $trackHeight }} bg-kore-muted rounded-full"></div>
+                <div class="absolute top-1/2 -translate-y-1/2 left-0 right-0 {{ $trackHeight }} bg-kore-accent rounded-full"></div>
 
                 {{-- Filled track --}}
                 <div
@@ -161,7 +166,7 @@
 
             <div class="relative w-full" style="height: var(--kore-thumb-size)">
                 {{-- Track background --}}
-                <div class="absolute top-1/2 -translate-y-1/2 left-0 right-0 {{ $trackHeight }} bg-kore-muted rounded-full"></div>
+                <div class="absolute top-1/2 -translate-y-1/2 left-0 right-0 {{ $trackHeight }} bg-kore-accent rounded-full"></div>
 
                 {{-- Filled track --}}
                 <div

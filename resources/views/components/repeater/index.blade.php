@@ -14,7 +14,12 @@
     'readonly' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $addLabel = $addLabel ?? config('kore-ui.ui.translations.add', 'Añadir');
@@ -114,7 +119,7 @@
 
         {{-- Empty state --}}
         <template x-if="rows.length === 0">
-            <p class="text-sm text-kore-muted-fg py-2">Sin filas. Añade la primera.</p>
+            <p class="text-sm text-kore-muted-fg py-2">{{ config('kore-ui.ui.translations.repeater_empty', 'Sin filas. Añade la primera.') }}</p>
         </template>
 
         {{-- Add button --}}

@@ -24,7 +24,7 @@
         default => 'text-sm py-2 px-3',
     };
 
-    $inputBase = 'w-full rounded-kore-md border border-kore-input bg-kore-bg text-kore-fg placeholder:text-kore-muted-fg focus:ring-2 focus:ring-kore-ring focus:border-kore-primary outline-none transition-colors ' . $sizeClasses;
+    $inputBase = 'w-full kore-control ' . $sizeClasses;
 
     // Literal grid classes so Tailwind v4 picks them up from the source (no runtime interpolation).
     $gridCols = match(count($fields)) {
@@ -44,7 +44,7 @@
         <button
             type="button"
             x-sort:handle
-            class="mt-2 shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg transition-colors"
+            class="mt-2 shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg kore-transition"
             aria-label="{{ config('kore-ui.ui.translations.reorder', 'Arrastrar para reordenar') }}"
         >
             <x-lucide-grip-vertical class="size-4" />
@@ -98,7 +98,7 @@
         <button
             type="button"
             x-on:click="removeRow(index)"
-            class="mt-2 shrink-0 text-kore-muted-fg hover:text-kore-destructive transition-colors"
+            class="mt-2 shrink-0 text-kore-muted-fg hover:text-kore-destructive-text kore-transition"
             aria-label="{{ config('kore-ui.ui.translations.remove_row', 'Eliminar fila') }}"
         >
             <x-lucide-x class="size-4" />

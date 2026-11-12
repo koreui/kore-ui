@@ -24,13 +24,13 @@
     $activeColor = $value ? $trueColor : $falseColor;
 
     $colorClass = match($activeColor) {
-        'primary' => 'text-kore-primary',
-        'success' => 'text-kore-success',
-        'destructive' => 'text-kore-destructive',
-        'warning' => 'text-kore-warning',
-        'info' => 'text-kore-info',
+        'primary' => 'text-kore-primary-text',
+        'success' => 'text-kore-success-text',
+        'destructive' => 'text-kore-destructive-text',
+        'warning' => 'text-kore-warning-text',
+        'info' => 'text-kore-info-text',
         'muted' => 'text-kore-muted-fg',
-        default => 'text-kore-success',
+        default => 'text-kore-success-text',
     };
 
     $sizeClass = match($size) {

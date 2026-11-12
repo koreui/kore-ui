@@ -12,7 +12,7 @@
                     type="button"
                     wire:click="resetFilter('{{ $filter['key'] }}')"
                     aria-label="{{ str_replace(':filtro', $filter['pill'], config('kore-ui.datatable.translations.remove_filter', 'Quitar el filtro :filtro')) }}"
-                    class="ml-0.5 inline-flex items-center justify-center size-3.5 rounded-full hover:bg-kore-primary/20 transition-colors"
+                    class="ml-0.5 inline-flex items-center justify-center size-3.5 rounded-full hover:bg-kore-primary/20 kore-transition"
                 >
                     <x-lucide-x class="size-2.5" />
                 </button>
@@ -22,7 +22,7 @@
         <button
             type="button"
             wire:click="resetAllFilters"
-            class="text-xs text-kore-muted-fg hover:text-kore-fg transition-colors underline underline-offset-2"
+            class="text-xs text-kore-muted-fg hover:text-kore-fg kore-transition underline underline-offset-2"
         >
             {{ $translations['clear_filters'] ?? 'Limpiar filtros' }}
         </button>

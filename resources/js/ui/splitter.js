@@ -11,7 +11,7 @@ export default (config = {}) => {
     const orientation = config.orientation || 'horizontal';
     const gutterSize = config.gutterSize || 8;
     const stateKey = config.stateKey || null;
-    const resizeLabel = config.resizeLabel || 'Resize panels';
+    const resizeLabel = config.resizeLabel || 'Redimensionar paneles';
     const isHorizontal = orientation === 'horizontal';
 
     function collectPanels(el) {

@@ -8,7 +8,12 @@
     'timeout' => null,
     'showIcon' => true,
     'live' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $variant = $variant ?? config('kore-ui.ui.alert.variant', 'soft');
@@ -34,10 +39,10 @@
             default => 'bg-kore-info text-kore-info-fg border border-kore-info',
         },
         'outline' => match($type) {
-            'success' => 'border border-kore-success text-kore-success-text bg-transparent',
-            'warning' => 'border border-kore-warning text-kore-warning-text bg-transparent',
-            'destructive' => 'border border-kore-destructive text-kore-destructive-text bg-transparent',
-            default => 'border border-kore-info text-kore-info-text bg-transparent',
+            'success' => 'border border-kore-success/50 text-kore-success-text bg-kore-surface',
+            'warning' => 'border border-kore-warning/50 text-kore-warning-text bg-kore-surface',
+            'destructive' => 'border border-kore-destructive/50 text-kore-destructive-text bg-kore-surface',
+            default => 'border border-kore-info/50 text-kore-info-text bg-kore-surface',
         },
         default => match($type) {
             'success' => 'bg-kore-success/10 text-kore-success-text border border-kore-success/20',
@@ -69,7 +74,8 @@
     {{ $attributes
         ->except(['title', 'description', 'type', 'icon', 'variant', 'closeable', 'timeout', 'showIcon', 'live'])
         ->class([
-            'relative rounded-kore-md px-4 py-3',
+            'relative rounded-kore-lg px-4 py-3',
+            'kore-slide-down' => $needsAlpine,
             $colorClasses,
         ])
     }}
@@ -77,12 +83,6 @@
     @if($needsAlpine)
         x-data="{ show: true }"
         x-show="show"
-        x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0 -translate-y-1"
-        x-transition:enter-end="opacity-100 translate-y-0"
-        x-transition:leave="transition ease-in duration-150"
-        x-transition:leave-start="opacity-100 translate-y-0"
-        x-transition:leave-end="opacity-0 -translate-y-1"
         @if($timeout)
             x-init="setTimeout(() => show = false, {{ $timeout * 1000 }})"
         @endif
@@ -129,7 +129,7 @@
                  justo en varias combinaciones. --}}
             <button
                 type="button"
-                class="shrink-0 inline-flex size-6 items-center justify-center rounded-kore-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                class="shrink-0 inline-flex size-6 items-center justify-center rounded-kore-md hover:bg-current/15 kore-transition"
                 x-on:click="show = false"
                 aria-label="{{ config('kore-ui.ui.translations.close', 'Cerrar') }}"
             >

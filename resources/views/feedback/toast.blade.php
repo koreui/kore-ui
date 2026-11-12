@@ -1,7 +1,7 @@
 <div
     class="kore-toast pointer-events-auto w-full max-w-sm overflow-hidden rounded-kore-lg
-           bg-kore-surface text-kore-surface-fg shadow-lg ring-1 ring-kore-border
-           transition-all touch-none"
+           bg-kore-surface text-kore-surface-fg shadow-kore-lg ring-1 ring-kore-border
+           kore-transition touch-none"
     :class="{
         'opacity-0 translate-x-full': !toast._visible && toast.position.includes('right'),
         'opacity-0 -translate-x-full': !toast._visible && toast.position.includes('left'),
@@ -21,14 +21,14 @@
     {{-- Header (always visible) --}}
     <div class="flex items-center gap-3 p-4">
         {{-- Icon --}}
-        <div class="kore-toast-icon shrink-0 transition-all duration-200"
+        <div class="kore-toast-icon shrink-0 kore-transition-base"
              :class="{
                 'opacity-0 scale-50': toast.resolving,
-                'text-kore-success': toast.type === 'success',
-                'text-kore-destructive': toast.type === 'error',
-                'text-kore-warning': toast.type === 'warning',
-                'text-kore-info': toast.type === 'info',
-                'text-kore-primary': toast.type === 'question',
+                'text-kore-success-text': toast.type === 'success',
+                'text-kore-destructive-text': toast.type === 'error',
+                'text-kore-warning-text': toast.type === 'warning',
+                'text-kore-info-text': toast.type === 'info',
+                'text-kore-primary-text': toast.type === 'question',
                 'text-kore-muted-fg': toast.type === 'loading',
              }">
             <x-lucide-circle-check  x-show="toast.type === 'success'"  class="h-5 w-5" x-cloak />
@@ -57,7 +57,7 @@
             <button
                 @click="dismiss(toast.id)"
                 class="shrink-0 rounded-kore-sm p-1 text-kore-muted-fg hover:text-kore-fg
-                       hover:bg-kore-fg/5 transition-colors"
+                       hover:bg-kore-fg/5 kore-transition"
                 aria-label="{{ config('kore-ui.ui.translations.close_notification', 'Cerrar notificación') }}"
             >
                 <x-lucide-x class="h-4 w-4" />
@@ -81,7 +81,7 @@
                         <button
                             @click="executeAction(toast, action)"
                             class="inline-flex items-center rounded-kore-md px-2.5 py-1.5 text-xs font-medium
-                                   bg-kore-fg/5 text-kore-fg hover:bg-kore-fg/10 transition-colors"
+                                   bg-kore-fg/5 text-kore-fg hover:bg-kore-fg/10 kore-transition"
                             x-text="action.label"
                         ></button>
                     </template>
@@ -96,14 +96,14 @@
                             @click="executeOption(toast, 'cancel')"
                             class="inline-flex items-center rounded-kore-md px-2.5 py-1.5 text-xs font-medium
                                    bg-kore-secondary text-kore-secondary-fg ring-1 ring-inset ring-kore-border
-                                   hover:bg-kore-accent transition-colors"
+                                   hover:bg-kore-accent kore-transition"
                             x-text="toast.options.cancel.text"
                         ></button>
                     </template>
                     <button
                         @click="executeOption(toast, 'confirm')"
                         class="inline-flex items-center rounded-kore-md px-2.5 py-1.5 text-xs font-medium
-                               bg-kore-primary text-kore-primary-fg hover:bg-kore-primary/90 transition-colors"
+                               bg-kore-primary text-kore-primary-fg hover:bg-kore-primary/90 kore-transition"
                         x-text="toast.options.confirm.text"
                     ></button>
                 </div>

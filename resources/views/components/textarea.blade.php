@@ -11,7 +11,12 @@
     'readonly' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
@@ -46,11 +51,8 @@
     };
 
     $textareaClasses = collect([
-        'block w-full rounded-kore-md border bg-kore-bg text-kore-fg placeholder:text-kore-muted-fg',
-        'transition-colors duration-150',
-        'focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary',
-        'disabled:opacity-50 disabled:cursor-not-allowed',
-        $hasError ? 'border-kore-destructive focus:ring-kore-destructive/30 focus:border-kore-destructive' : 'border-kore-input',
+        'block w-full kore-control',
+        $hasError ? 'kore-invalid' : '',
         $autoResize ? 'resize-none overflow-hidden' : '',
         $sizeClasses,
     ])->filter()->implode(' ');

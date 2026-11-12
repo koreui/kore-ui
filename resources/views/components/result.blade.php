@@ -23,6 +23,11 @@
     $iconColorClass = match($color) {
         'warning' => 'text-kore-warning-text',
         'muted' => 'text-kore-muted-fg',
+        // El token `-text`, no el color base: es un icono sobre su propio tinte.
+        'primary' => 'text-kore-primary-text',
+        'success' => 'text-kore-success-text',
+        'destructive' => 'text-kore-destructive-text',
+        'info' => 'text-kore-info-text',
         default => 'text-kore-' . $color,
     };
 

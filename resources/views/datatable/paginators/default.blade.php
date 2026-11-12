@@ -1,8 +1,10 @@
 {{-- El paginador de siempre: flechas, la ventana de páginas con elipsis y la
      actual en una píldora. --}}
 @php
-    $btnBase = 'inline-flex items-center justify-center size-8 text-sm rounded-kore-md transition-colors focus:outline-none focus:ring-2 focus:ring-kore-ring';
-    $btnActive = 'bg-kore-primary text-kore-primary-fg font-medium';
+    $btnBase = 'inline-flex items-center justify-center min-w-8 h-8 px-2 text-[0.8125rem] tabular-nums rounded-kore-md kore-transition kore-focus';
+    // La página actual es un control, no un botón de acción: borde y sombra de
+    // campo, no el sólido del primario, que competía con los botones de verdad.
+    $btnActive = 'border border-kore-input bg-kore-field text-kore-fg font-semibold shadow-kore-xs';
     $btnNormal = 'text-kore-fg hover:bg-kore-muted';
     $btnDisabled = 'text-kore-muted-fg/40 cursor-not-allowed';
 @endphp

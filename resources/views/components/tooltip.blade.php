@@ -2,7 +2,12 @@
     'text' => null,
     'position' => null,
     'delay' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $position = $position ?? config('kore-ui.ui.tooltip.position', 'top');
@@ -55,19 +60,13 @@
             data-kore-teleport
             x-ref="tooltip"
             x-show="show"
-            x-transition:enter="transition ease-out duration-150"
-            x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100"
-            x-transition:leave="transition ease-in duration-100"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
             x-cloak
             {{-- Decorativo: el texto ya lo lee el `sr-only` de arriba, y sin
                  esto un lector lo encontraría dos veces. --}}
             aria-hidden="true"
-            class="z-[70] pointer-events-none max-w-xs"
+            class="kore-fade z-[70] pointer-events-none max-w-xs"
         >
-            <div class="bg-kore-fg text-kore-bg rounded-kore-md text-xs px-2.5 py-1.5 font-medium">
+            <div class="bg-kore-fg text-kore-bg rounded-kore-md text-xs px-2.5 py-1.5 font-medium shadow-kore-md">
                 {{ $text }}
             </div>
         </div>

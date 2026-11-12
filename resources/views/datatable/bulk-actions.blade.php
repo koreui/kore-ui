@@ -19,7 +19,7 @@
             <button
                 type="button"
                 wire:click="enableSelectAllMatching"
-                class="text-sm font-medium text-kore-primary hover:underline"
+                class="text-sm font-medium text-kore-primary-text hover:underline"
             >
                 {{ $translations['select_all_matching'] ?? 'Seleccionar los' }} {{ $total }}
             </button>
@@ -28,7 +28,7 @@
             <button
                 type="button"
                 wire:click="clearSelection"
-                class="text-sm font-medium text-kore-primary hover:underline"
+                class="text-sm font-medium text-kore-primary-text hover:underline"
             >
                 {{ $translations['clear_selection'] ?? 'Limpiar selección' }}
             </button>
@@ -38,7 +38,7 @@
             <x-slot:trigger>
                 <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-kore-md border border-kore-input bg-kore-bg px-3 py-1.5 text-sm text-kore-fg hover:bg-kore-muted transition-colors"
+                    class="kore-tool"
                 >
                     <x-lucide-more-horizontal class="size-4" />
                     <span>{{ $translations['actions'] ?? 'Acciones' }}</span>
@@ -54,7 +54,7 @@
                     type="button"
                     wire:click="runBulk('{{ $action->getIdentifier() }}')"
                     x-on:click="close()"
-                    class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left transition-colors text-kore-fg hover:bg-kore-muted focus:bg-kore-muted focus:outline-none"
+                    class="flex items-center gap-2 w-full px-2.5 py-1.5 text-sm text-left text-kore-fg kore-option hover:bg-kore-accent focus:bg-kore-accent"
                     role="menuitem"
                 >
                     @if($action->getIcon())

@@ -68,14 +68,14 @@
         </div>
 
         {{-- Right: Export + Column Select + Per Page --}}
-        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto sm:justify-end">
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:justify-end">
             {{-- Export --}}
                 @if($exportEnabled)
                     @if(count($exportFormats) === 1)
                         <button
                             type="button"
                             wire:click="exportAs('{{ $exportFormats[0] }}')"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-kore-fg bg-kore-bg border border-kore-input rounded-kore-md hover:bg-kore-muted transition-colors"
+                            class="kore-tool"
                         >
                             <x-lucide-download class="size-4" />
                             <span>{{ $translations['export'] ?? 'Exportar' }}</span>
@@ -86,7 +86,7 @@
                             <x-slot:trigger>
                                 <button
                                     type="button"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-kore-fg bg-kore-bg border border-kore-input rounded-kore-md hover:bg-kore-muted transition-colors"
+                                    class="kore-tool"
                                 >
                                     <x-lucide-download class="size-4" />
                                     <span>{{ $translations['export'] ?? 'Exportar' }}</span>
@@ -99,7 +99,7 @@
                                     type="button"
                                     wire:click="exportAs('{{ $format }}')"
                                     x-on:click="close()"
-                                    class="w-full text-left px-3 py-1.5 text-sm text-kore-fg hover:bg-kore-muted transition-colors"
+                                    class="w-full text-left px-2.5 py-1.5 text-sm text-kore-fg kore-option hover:bg-kore-accent focus:bg-kore-accent"
                                 >
                                     {{ strtoupper($format) }}
                                 </button>
@@ -127,12 +127,12 @@
                 @endif
 
                 {{-- Per Page --}}
-            <div class="flex items-center gap-2 text-sm text-kore-muted-fg">
+            <div class="flex items-center gap-2 text-[0.8125rem] text-kore-muted-fg">
                 <span>{{ $translations['per_page'] ?? 'Por página' }}</span>
                 <select
                     wire:model.live="perPage"
                     aria-label="{{ $translations['per_page'] ?? 'Por página' }}"
-                    class="bg-kore-bg text-kore-fg border border-kore-input rounded-kore-md text-sm py-1 pl-2 pr-7 focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary"
+                    class="text-[0.8125rem] py-0 pl-2 pr-7 min-h-(--kore-control-sm) kore-control"
                 >
                     @foreach($perPageOptions as $option)
                         <option value="{{ $option }}" @selected(($perPage ?? null) == $option)>{{ $option }}</option>

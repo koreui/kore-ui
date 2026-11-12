@@ -111,3 +111,54 @@ describe('no se rompen los consumidores existentes', () => {
         expect(startFloating(document.getElementById('plot'), null)).toBeNull();
     });
 });
+
+// El panel vive teleportado a <body>, fuera de cualquier contenedor marcado con
+// `data-kore-motion`: el CSS no puede decidir por herencia si se anima. Lo hereda aquí,
+// de donde está su disparador, porque por startFloating pasan todos los paneles.
+describe('el panel hereda el movimiento de su disparador', () => {
+    const montar = (html) => {
+        document.body.innerHTML = html + '<div id="tip"></div>';
+        return [document.getElementById('disparador'), document.getElementById('tip')];
+    };
+
+    it('se queda sin animación si el disparador está en una zona apagada', () => {
+        const [disparador, panel] = montar('<section data-kore-motion="off"><button id="disparador"></button></section>');
+
+        startFloating(disparador, panel);
+
+        expect(panel.dataset.koreMotion).toBe('off');
+    });
+
+    it('y también si el apagado es el propio componente', () => {
+        const [disparador, panel] = montar('<div data-kore-motion="off" id="disparador"></div>');
+
+        startFloating(disparador, panel);
+
+        expect(panel.dataset.koreMotion).toBe('off');
+    });
+
+    it('no marca nada cuando nadie lo pide', () => {
+        const [disparador, panel] = montar('<button id="disparador"></button>');
+
+        startFloating(disparador, panel);
+
+        expect(panel.dataset.koreMotion).toBeUndefined();
+    });
+
+    it('quita la marca si el panel se reutiliza fuera de la zona apagada', () => {
+        const [disparador, panel] = montar('<button id="disparador"></button>');
+        panel.dataset.koreMotion = 'off';
+
+        startFloating(disparador, panel);
+
+        expect(panel.dataset.koreMotion).toBeUndefined();
+    });
+
+    it('no revienta con una referencia virtual, que no tiene ancestros', () => {
+        const [, panel] = montar('<div id="plot"></div>');
+        const punto = virtualReference(document.getElementById('plot'));
+
+        expect(() => startFloating(punto, panel)).not.toThrow();
+        expect(panel.dataset.koreMotion).toBeUndefined();
+    });
+});

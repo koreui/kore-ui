@@ -3,6 +3,15 @@ import { startFloating, stopFloating } from '../utils/floating.js';
 export default (config) => ({
     value: null,
     open: false,
+    // El panel no existe hasta que se abre por primera vez.
+    //
+    // Antes vivía en el DOM desde la carga, oculto: un calendario cerrado eran
+    // 152 nodos y un select 53, con todas sus directivas ya registradas. En un
+    // formulario de 48 campos, dos tercios de los nodos de la página eran
+    // paneles que nadie había abierto. La plantilla lo envuelve en un
+    // `x-if="montado"`; una vez montado se queda, y a partir de ahí abrir y
+    // cerrar es el `x-show` de siempre.
+    montado: false,
     customHex: '',
 
     // Sin declarar, Alpine las escribiría en el x-data ancestro, no aquí.
@@ -43,6 +52,7 @@ export default (config) => ({
     },
 
     openPanel() {
+        this.montado = true;
         this.open = true;
         this.customHex = this.value || '';
         this.$nextTick(() => {

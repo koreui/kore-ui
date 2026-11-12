@@ -25,7 +25,7 @@
     {{ $attributes->class([
         'relative rounded-kore-lg bg-kore-surface overflow-hidden',
         'border border-kore-border' => $bordered,
-        'shadow-sm' => $shadow,
+        'shadow-kore-sm' => $shadow,
         'flex' => $image && $imagePosition === 'left',
     ]) }}
     role="status"

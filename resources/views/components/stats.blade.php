@@ -18,6 +18,14 @@
     $variant = $variant ?? config('kore-ui.ui.stats.variant', 'default');
     $animated = $animated ?? config('kore-ui.ui.stats.animated', true);
 
+    // Sin movimiento no hay ni cuenta progresiva ni transición al pasar por
+    // encima: es el mismo interruptor que el resto de la librería.
+    if (! \KoreUi\Core\Support\Motion::activo()) {
+        $animated = false;
+    }
+
+    $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated ? null : false);
+
     $trendValue = null;
     $trendDirection = $trend;
     if ($trend === 'auto' && $previousValue !== null && $previousValue != 0) {
@@ -34,8 +42,8 @@
     };
 
     $trendColor = match($trendDirection) {
-        'up' => 'text-kore-success',
-        'down' => 'text-kore-destructive',
+        'up' => 'text-kore-success-text',
+        'down' => 'text-kore-destructive-text',
         default => 'text-kore-muted-fg',
     };
 
@@ -44,13 +52,13 @@
     // El marco lo pintaba fijo: borde sí o sí y ninguna sombra, sin forma de
     // decir otra cosa ni desde la etiqueta ni desde la configuración.
     $bordered = \KoreUi\Core\Support\Look::resolver('stats', 'bordered', $bordered, true);
-    $shadow = \KoreUi\Core\Support\Look::resolver('stats', 'shadow', $shadow, false);
+    $shadow = \KoreUi\Core\Support\Look::resolver('stats', 'shadow', $shadow, true);
     $padding = \KoreUi\Core\Support\Look::resolver('stats', 'padding', $padding, true);
 
     $marcoClases = array_filter([
         'block rounded-kore-lg bg-kore-surface',
         $bordered ? 'border border-kore-border' : null,
-        $shadow ? 'shadow-sm' : null,
+        $shadow ? 'shadow-kore-sm' : null,
     ]);
 
     // La silueta mientras no hay cifra. Vale `skeleton` a secas.
@@ -74,7 +82,7 @@
         {{ $attributes->except(['bordered', 'shadow', 'padding'])->class([
             ...$marcoClases,
             'p-4' => $padding,
-            'hover:shadow-md transition-shadow' => $href,
+            'hover:shadow-kore-md kore-transition' => $href,
         ]) }}>
         <div class="flex items-center gap-3">
             @if($icon)
@@ -86,7 +94,7 @@
                 @if($label)
                     <p class="text-xs font-medium text-kore-muted-fg truncate">{{ $label }}</p>
                 @endif
-                <p class="text-xl font-bold text-kore-fg"
+                <p class="text-xl font-semibold tracking-tight tabular-nums text-kore-fg"
                    @if($animated)
                        x-data="KoreStats({ value: @js($value), animated: true })"
                        x-text="displayValue"
@@ -110,14 +118,14 @@
         {{ $attributes->except(['bordered', 'shadow', 'padding'])->class([
             ...$marcoClases,
             'p-6' => $padding,
-            'hover:shadow-md transition-shadow' => $href,
+            'hover:shadow-kore-md kore-transition' => $href,
         ]) }}>
         <div class="flex items-center justify-between">
             <div class="flex-1 min-w-0">
                 @if($label)
                     <p class="text-sm font-medium text-kore-muted-fg">{{ $label }}</p>
                 @endif
-                <p class="mt-1 text-3xl font-bold text-kore-fg"
+                <p class="mt-1 text-3xl font-semibold tracking-tight tabular-nums text-kore-fg"
                    @if($animated)
                        x-data="KoreStats({ value: @js($value), animated: true })"
                        x-text="displayValue"

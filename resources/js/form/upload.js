@@ -435,9 +435,12 @@ export default (config = {}) => ({
     },
 
     get constraintsText() {
+        // Los textos llegan del servidor (`form.translations.upload_*`): estaban
+        // escritos aquí en inglés, sin forma de cambiarlos sin recompilar.
+        const t = config.labels || {};
         const parts = [];
         if (config.maxSize) {
-            parts.push(`Max ${config.maxSize} MB per file`);
+            parts.push((t.maxSize || 'Máximo {size} MB por archivo').replace('{size}', config.maxSize));
         }
         if (config.accept) {
             const tokens = config.accept.split(',').map(t => t.trim()).filter(Boolean);
@@ -449,7 +452,12 @@ export default (config = {}) => ({
             parts.push(labels.join(', '));
         }
         if (config.maxFiles) {
-            parts.push(`Up to ${config.maxFiles} file${config.maxFiles > 1 ? 's' : ''}`);
+            parts.push(
+                (config.maxFiles > 1
+                    ? (t.maxFilesMany || 'Hasta {count} archivos')
+                    : (t.maxFilesOne || 'Un solo archivo')
+                ).replace('{count}', config.maxFiles)
+            );
         }
         return parts.length > 0 ? parts.join('. ') + '.' : '';
     },

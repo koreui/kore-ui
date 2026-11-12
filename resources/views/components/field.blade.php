@@ -23,7 +23,7 @@
         >
             {{ $label }}
             @if($required)
-                <span class="text-kore-destructive ml-0.5">*</span>
+                <span class="text-kore-destructive-text ml-0.5">*</span>
             @endif
         </label>
     @endif
@@ -31,7 +31,7 @@
     {{ $slot }}
 
     @if($hasError && $errorMessage)
-        <p @if($fieldId) id="{{ $fieldId }}-error" @endif class="mt-1 text-sm text-kore-destructive" role="alert">{{ $errorMessage }}</p>
+        <p @if($fieldId) id="{{ $fieldId }}-error" @endif class="mt-1 text-sm text-kore-destructive-text" role="alert">{{ $errorMessage }}</p>
     @elseif($hint)
         <p @if($fieldId) id="{{ $fieldId }}-hint" @endif class="mt-1 text-sm text-kore-muted-fg">{{ $hint }}</p>
     @endif

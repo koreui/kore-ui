@@ -14,7 +14,15 @@
     'caption' => null,
     'captionHidden' => false,
     'skeleton' => false,
+    // Un paginador de Laravel. Con él, la tabla pinta su pie dentro del propio
+    // marco: el recuento y los controles, como en el DataTable.
+    'paginator' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     // `bordered` estaba declarado como prop y no lo leía nadie: escribirlo no
@@ -75,11 +83,14 @@
     />
 @else
 
+{{-- Dos cajas, y no una: el marco recorta las esquinas y lleva la sombra; la
+     de dentro es la que se desplaza a lo ancho. Con una sola, el pie de
+     paginación se iba de lado junto con las columnas. --}}
 <div {{ $attributes->except(['bordered', 'shadow', 'compact'])->class([
-    'rounded-kore-lg border border-kore-border bg-kore-surface',
-    'shadow-sm' => $shadow,
-    'overflow-x-auto' => $responsive,
+    'rounded-kore-lg border border-kore-border bg-kore-surface overflow-hidden',
+    'shadow-kore-sm' => $shadow,
 ]) }}>
+    <div @class(['overflow-x-auto' => $responsive])>
     <table @class([
         'min-w-full divide-y divide-kore-border',
         '[&_th]:border-r [&_td]:border-r [&_th]:border-kore-border [&_td]:border-kore-border [&_th:last-child]:border-r-0 [&_td:last-child]:border-r-0' => $bordered,
@@ -99,7 +110,7 @@
         @endif
 
         @unless($headerless)
-            <thead class="bg-kore-muted/50">
+            <thead class="bg-kore-muted/60">
                 <tr>
                     @foreach($normalizedHeaders as $header)
                         <x-kore::table.header
@@ -155,5 +166,10 @@
             </tfoot>
         @endif
     </table>
+    </div>
+
+    @if($paginator)
+        <x-kore::table.pagination :paginator="$paginator" />
+    @endif
 </div>
 @endif

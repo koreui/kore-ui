@@ -8,7 +8,12 @@
     'numVisible' => null,
     'gap' => null,
     'ariaLabel' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $autoplay = $autoplay ?? config('kore-ui.ui.carousel.autoplay', false);
@@ -66,7 +71,7 @@
          x-ref="viewport"
          @if(! $autoplay) aria-live="polite" @endif>
         <div x-ref="track"
-             class="flex transition-transform duration-300 ease-out"
+             class="flex kore-transition-slow"
              style="gap: {{ $gap }}px;"
              x-on:pointerdown="onPointerDown($event)"
              x-on:pointermove="onPointerMove($event)"
@@ -81,14 +86,14 @@
         <button type="button"
                 x-on:click="prev()"
                 x-show="loop || currentIndex > 0"
-                class="absolute left-2 top-1/2 -translate-y-1/2 z-10 inline-flex items-center justify-center size-9 rounded-full bg-kore-surface/80 text-kore-surface-fg border border-kore-border shadow-sm backdrop-blur-sm hover:bg-kore-surface transition-colors focus:outline-none focus:ring-2 focus:ring-kore-ring"
+                class="absolute left-2 top-1/2 -translate-y-1/2 z-10 inline-flex items-center justify-center size-9 rounded-full bg-kore-surface/80 text-kore-surface-fg border border-kore-border shadow-kore-sm backdrop-blur-sm hover:bg-kore-surface kore-transition kore-focus"
                 aria-label="{{ $t('carousel_previous', 'Diapositiva anterior') }}">
             <x-lucide-chevron-left class="size-5" />
         </button>
         <button type="button"
                 x-on:click="next()"
                 x-show="loop || currentIndex < totalSlides - numVisible"
-                class="absolute right-2 top-1/2 -translate-y-1/2 z-10 inline-flex items-center justify-center size-9 rounded-full bg-kore-surface/80 text-kore-surface-fg border border-kore-border shadow-sm backdrop-blur-sm hover:bg-kore-surface transition-colors focus:outline-none focus:ring-2 focus:ring-kore-ring"
+                class="absolute right-2 top-1/2 -translate-y-1/2 z-10 inline-flex items-center justify-center size-9 rounded-full bg-kore-surface/80 text-kore-surface-fg border border-kore-border shadow-kore-sm backdrop-blur-sm hover:bg-kore-surface kore-transition kore-focus"
                 aria-label="{{ $t('carousel_next', 'Diapositiva siguiente') }}">
             <x-lucide-chevron-right class="size-5" />
         </button>
@@ -108,7 +113,7 @@
                      ratón por encima no vale para quien no usa ratón. --}}
                 <button type="button"
                         x-on:click="toggleParado()"
-                        class="mr-1.5 inline-flex items-center justify-center size-6 rounded-full text-kore-muted-fg hover:bg-kore-muted hover:text-kore-fg transition-colors focus:outline-none focus:ring-2 focus:ring-kore-ring"
+                        class="mr-1.5 inline-flex items-center justify-center size-6 rounded-full text-kore-muted-fg hover:bg-kore-muted hover:text-kore-fg kore-transition kore-focus"
                         x-bind:aria-label="parado
                             ? @js($t('carousel_play', 'Reanudar el carrusel'))
                             : @js($t('carousel_pause', 'Parar el carrusel'))">
@@ -124,7 +129,7 @@
                             :class="currentPage === i - 1
                                 ? 'bg-kore-primary w-6'
                                 : 'bg-kore-border w-2 hover:bg-kore-muted-fg'"
-                            class="h-2 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-kore-ring"
+                            class="h-2 rounded-full kore-transition-base kore-focus"
                             :aria-current="currentPage === i - 1 ? 'true' : null"
                             :aria-label="@js($t('carousel_go_to', 'Ir al grupo')) + ' ' + i">
                     </button>

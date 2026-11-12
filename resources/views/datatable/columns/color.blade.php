@@ -43,13 +43,13 @@
             type="button"
             aria-label="{{ config('kore-ui.datatable.translations.copy', 'Copiar') }} {{ $value }}"
             x-on:click="navigator.clipboard.writeText(@js($value)); copied = true; setTimeout(() => copied = false, 2000)"
-            class="p-0.5 rounded hover:bg-kore-muted transition-colors"
+            class="p-0.5 rounded-kore-sm hover:bg-kore-muted kore-transition"
         >
             <template x-if="!copied">
                 <x-lucide-copy class="size-3.5 text-kore-muted-fg" />
             </template>
             <template x-if="copied">
-                <x-lucide-check class="size-3.5 text-kore-success" />
+                <x-lucide-check class="size-3.5 text-kore-success-text" />
             </template>
         </button>
     @endif

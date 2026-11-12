@@ -9,7 +9,12 @@
     'readonly' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $name = $name ?? $attributes->whereStartsWith('wire:model')->first();
@@ -42,7 +47,7 @@
     $itemsId = \KoreUi\Core\Support\IdContext::secuencia('kore-order-list-items');
 
     $rowClass = 'flex items-center gap-2 rounded-kore-md border border-kore-border bg-kore-surface px-3 py-2';
-    $iconBtnClass = 'inline-flex items-center justify-center size-6 rounded-kore-sm text-kore-muted-fg enabled:hover:bg-kore-muted enabled:hover:text-kore-fg disabled:opacity-30 disabled:cursor-not-allowed transition-colors';
+    $iconBtnClass = 'inline-flex items-center justify-center size-6 rounded-kore-sm text-kore-muted-fg enabled:hover:bg-kore-muted enabled:hover:text-kore-fg disabled:opacity-30 disabled:cursor-not-allowed kore-transition';
     // Solo lectura: el orden se ve y se envía, pero no se cambia. Se van el asa
     // de arrastre y el `x-sort` que la escucha, y las flechas de subir y bajar
     // quedan apagadas.
@@ -71,7 +76,7 @@
             <template x-for="(item, index) in orderedItems" :key="item.value">
                 <li @if($reorderable && ! $edicionBloqueada) x-sort:item="item.value" @endif class="{{ $rowClass }}">
                     @if($reorderable && ! $edicionBloqueada)
-                        <button type="button" x-sort:handle class="shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg transition-colors" aria-label="{{ config('kore-ui.ui.translations.drag', 'Arrastrar') }}">
+                        <button type="button" x-sort:handle class="shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg kore-transition" aria-label="{{ config('kore-ui.ui.translations.drag', 'Arrastrar') }}">
                             <x-lucide-grip-vertical class="size-4" />
                         </button>
                     @endif

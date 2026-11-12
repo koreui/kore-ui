@@ -77,7 +77,7 @@ it('marca el error en el área de escritura', function () {
     $this->blade('<x-kore::editor label="Cuerpo" name="cuerpo" />')
         ->assertSee('Escribe algo')
         ->assertSee('aria-invalid="true"', false)
-        ->assertSee('border-kore-destructive', false);
+        ->assertSee('kore-invalid', false);
 });
 
 it('permite elegir qué botones aparecen', function () {

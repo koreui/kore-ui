@@ -14,7 +14,7 @@
             :component="'lucide-' . $icon"
             @class([
                 'size-5',
-                $isActive ? 'text-kore-primary' : 'text-kore-muted-fg',
+                $isActive ? 'text-kore-primary-text' : 'text-kore-muted-fg',
             ])
         />
 

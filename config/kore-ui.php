@@ -247,6 +247,36 @@ return [
             // pantalla mezclaba «Añadir» con «No options found». Aquí se pueden
             // cambiar sin publicar las vistas.
             'loading'         => 'Cargando…',
+            'apply'           => 'Aplicar',
+            'cancel'          => 'Cancelar',
+            // La opción que crea un valor nuevo en un select `creatable`. Lo que
+            // el usuario ha escrito va después, entre comillas.
+            'create'          => 'Crear',
+
+            // Atajos del calendario. Estaban en inglés dentro de
+            // `resources/js/form/datepicker.js`, igual que pasó con el medidor de
+            // `password`: no se podían cambiar ni publicando las vistas.
+            'date_today'       => 'Hoy',
+            'date_yesterday'   => 'Ayer',
+            'date_tomorrow'    => 'Mañana',
+            'date_last_7'      => 'Últimos 7 días',
+            'date_last_30'     => 'Últimos 30 días',
+            'date_this_month'  => 'Este mes',
+            'date_last_month'  => 'Mes pasado',
+            'date_this_year'   => 'Este año',
+
+            // Zona de subida. `:browse` se sustituye por el enlace, que lleva su
+            // propio texto: el orden de las palabras cambia de un idioma a otro.
+            'upload_dropzone'      => 'Arrastra archivos aquí o :browse',
+            'upload_browse'        => 'búscalos',
+            'upload_pending_one'   => 'Subir 1 archivo',
+            'upload_pending_many'  => 'Subir :count archivos',
+            'upload_clear_all'     => 'Quitar todos',
+            // La línea de restricciones bajo la zona de subida. Llaves y no dos
+            // puntos, como en `invalid_size`: los sustituye el JavaScript.
+            'upload_max_size'        => 'Máximo {size} MB por archivo',
+            'upload_max_files_one'   => 'Un solo archivo',
+            'upload_max_files_many'  => 'Hasta {count} archivos',
             'no_options'      => 'Sin resultados',
             'search'          => 'Buscar',
             'choose_file'     => 'Elegir archivo',
@@ -267,6 +297,21 @@ return [
     */
     'ui' => [
         'size' => 'md',
+
+        /*
+         * Movimiento: transiciones de color y foco, apertura de paneles,
+         * acordeones, el interruptor, la entrada de un modal.
+         *
+         * `false` lo apaga en toda la aplicación de una vez. No hace falta
+         * tocar el layout: `@koreScripts` se encarga.
+         *
+         * Para apagarlo solo en una zona, `data-kore-motion="off"` en cualquier
+         * contenedor; para un componente suelto, `:animated="false"`.
+         *
+         * Con independencia de esto, la librería respeta
+         * `prefers-reduced-motion` del sistema del usuario.
+         */
+        'motion' => true,
 
         /*
          * Aspecto de TODAS las superficies de la librería: tarjetas, tablas,
@@ -320,6 +365,17 @@ return [
             // variante `icon` se quedaba en un `title`, que no basta.
             'copy' => 'Copiar',
             'copied' => 'Copiado',
+
+            // Textos visibles que estaban escritos en las vistas.
+            'repeater_empty' => 'Sin filas. Añade la primera.',
+            'transfer_empty' => 'Sin elementos',
+            'spotlight_no_results' => 'Sin resultados para «:query»',
+            'spotlight_hint' => 'Comienza a escribir para buscar acciones',
+            'spotlight_recent' => 'Recientes',
+            'spotlight_navigate' => 'Navegar',
+            'spotlight_select' => 'Seleccionar',
+            'spotlight_close' => 'Cerrar',
+            'spotlight_clear_history' => 'Limpiar historial',
 
             // Menú desplegable: `role="menu"` sin nombre no dice de qué es.
             'menu' => 'Menú',
@@ -616,6 +672,8 @@ return [
             'search'        => 'Buscar...',
             'per_page'      => 'Por página',
             'showing'       => 'Mostrando :from a :to de :total resultados',
+            // El mismo sitio cuando no hay ninguna fila.
+            'showing_none'  => 'Sin resultados',
             'filters'       => 'Filtros',
             'actions'       => 'Acciones',
             'selected'      => 'seleccionado(s)',
@@ -654,6 +712,8 @@ return [
             'select_all'    => 'Seleccionar todo',
             'select_row'    => 'Seleccionar fila',
             'pagination'    => 'Paginación',
+            // Nombre accesible de cada número del paginador de una tabla normal.
+            'go_to_page'    => 'Ir a la página :page',
             'previous'      => 'Anterior',
             'next'          => 'Siguiente',
             'clear_preset'  => 'Limpiar el filtro guardado',

@@ -32,7 +32,7 @@
                         data-indeterminate="{{ $this->isPagePartiallySelected($rowIds ?? []) ? '1' : '0' }}"
                         x-init="$el.indeterminate = $el.dataset.indeterminate === '1'"
                         wire:click="toggleSelectAll"
-                        class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
+                        class="size-4 kore-checkmark"
                     />
                 </th>
             @endif
@@ -41,7 +41,7 @@
                 <th
                     scope="col"
                     @if($column->isSortable()) aria-sort="{{ $this->getSortDirection($column->getSortField()) === 'asc' ? 'ascending' : ($this->getSortDirection($column->getSortField()) === 'desc' ? 'descending' : 'none') }}" @endif
-                    class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} font-semibold text-kore-muted-fg uppercase tracking-wider whitespace-nowrap"
+                    class="{{ $column->getAlign() === 'center' ? 'text-center' : ($column->getAlign() === 'right' ? 'text-right' : 'text-left') }} font-medium text-kore-muted-fg whitespace-nowrap"
                     :class="headerDensityClasses"
                 >
                     @if($column->isSortable())
@@ -53,14 +53,14 @@
                                 default => 'arrow-up-down',
                             };
                             $sortIconClass = $sortDir
-                                ? 'size-3.5 text-kore-fg'
-                                : 'size-3.5 text-kore-muted-fg/50 group-hover:text-kore-muted-fg transition-colors';
+                                ? 'size-3.5 text-kore-primary-text'
+                                : 'size-3.5 text-kore-muted-fg/50 group-hover:text-kore-muted-fg kore-transition';
                         @endphp
                         <button
                             type="button"
                             wire:click="sortBy('{{ $column->getSortField() }}')"
                             aria-label="{{ str_replace(':columna', $column->getLabel(), config('kore-ui.datatable.translations.sort_by', 'Ordenar por :columna')) }}"
-                            class="inline-flex items-center gap-1 group hover:text-kore-fg transition-colors uppercase"
+                            class="inline-flex items-center gap-1 group rounded-kore-sm hover:text-kore-fg kore-transition kore-focus"
                         >
                             <span>{{ $column->getLabel() }}</span>
                             <x-dynamic-component :component="'lucide-' . $sortIcon" :class="$sortIconClass" />
@@ -81,7 +81,7 @@
             @endphp
             <tr
                 wire:key="row-{{ $rowId }}"
-                class="hover:bg-kore-muted/40 transition-colors {{ $rowSelected ? 'bg-kore-primary/5' : '' }}"
+                class="hover:bg-kore-muted/40 kore-transition {{ $rowSelected ? 'bg-kore-primary/5' : '' }}"
             >
                 @if(count($collapsedCols) > 0)
                     <td class="w-10 text-center" :class="densityClasses">
@@ -90,11 +90,11 @@
                             x-on:click="toggleExpand(@js((string) $rowId))"
                             aria-label="{{ config('kore-ui.datatable.translations.expand_row', 'Ver el resto de la fila') }}"
                             x-bind:aria-expanded="isExpanded({{ \Illuminate\Support\Js::from((string) $rowId) }}) ? 'true' : 'false'"
-                            class="p-0.5 rounded hover:bg-kore-muted transition-colors"
+                            class="p-0.5 rounded-kore-sm hover:bg-kore-muted kore-transition"
                         >
                             {{-- Js::from() y no @js(): ver la nota en datatable.blade.php --}}
                             <x-lucide-chevron-right
-                                class="size-4 text-kore-muted-fg transition-transform duration-200"
+                                class="size-4 text-kore-muted-fg kore-transition-base"
                                 x-bind:class="isExpanded({{ \Illuminate\Support\Js::from((string) $rowId) }}) ? 'rotate-90' : ''"
                             />
                         </button>
@@ -110,7 +110,7 @@
                             @checked($rowSelected)
                             data-checked="{{ $rowSelected ? '1' : '0' }}"
                             x-on:click="onRowCheckboxClick(@js($rowId), $event)"
-                            class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
+                            class="size-4 kore-checkmark"
                         />
                     </td>
                 @endif

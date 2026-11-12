@@ -14,8 +14,8 @@
     {{ $attributes
         ->except(['icon', 'label', 'description', 'href', 'disabled'])
         ->class([
-            'flex items-center gap-2 w-full px-3 py-2 text-sm text-left transition-colors',
-            'text-kore-fg hover:bg-kore-muted focus:bg-kore-muted focus:outline-none' => !$disabled,
+            'flex items-center gap-2 w-full px-2.5 py-1.5 text-sm text-left kore-option',
+            'text-kore-fg hover:bg-kore-accent focus:bg-kore-accent' => !$disabled,
             'text-kore-muted-fg cursor-not-allowed opacity-50' => $disabled,
         ])
     }}

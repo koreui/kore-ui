@@ -15,7 +15,12 @@
     'header' => null,
     'footer' => null,
     'ariaLabel' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $ariaLabel = $ariaLabel ?? config('kore-ui.ui.translations.sidebar', 'Navegación');
@@ -110,7 +115,7 @@
          escritorio el sidebar es parte de la página y no hay nada que cerrar. --}}
     <button
         type="button"
-        class="kore-sidebar-close absolute end-3 top-3 size-8 items-center justify-center rounded-kore-md text-kore-muted-fg transition-colors hover:bg-kore-muted hover:text-kore-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring/50"
+        class="kore-sidebar-close absolute end-3 top-3 size-8 items-center justify-center rounded-kore-md text-kore-muted-fg kore-transition hover:bg-kore-muted hover:text-kore-fg kore-focus"
         x-on:click="$store.koreSidebar.closeMobile(@js($id))"
         aria-label="{{ config('kore-ui.ui.translations.close_nav', 'Cerrar navegación') }}"
     >

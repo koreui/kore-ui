@@ -6,7 +6,7 @@
      a la 10 y las flechas se mueven bajo el cursor. --}}
 @php
     $carril = 'inline-flex items-center gap-0.5 rounded-kore-md border border-kore-border bg-kore-surface p-0.5';
-    $btn = 'inline-flex items-center justify-center size-7 rounded-kore-sm transition-colors focus:outline-none focus:ring-2 focus:ring-kore-ring';
+    $btn = 'inline-flex items-center justify-center size-7 rounded-kore-sm kore-transition kore-focus';
     $btnNormal = 'text-kore-fg hover:bg-kore-muted';
     $btnDisabled = 'text-kore-muted-fg/40 cursor-not-allowed';
 @endphp

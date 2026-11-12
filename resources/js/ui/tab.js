@@ -3,6 +3,62 @@ export default (config) => ({
     tabs: [],
     variant: config.variant ?? 'line',
     orientation: config.orientation ?? 'horizontal',
+    _observador: null,
+
+    init() {
+        // El indicador sigue a la pestaña elegida. Hay que volver a medirlo
+        // cuando cambia la selección, cuando se añade o se cierra una pestaña y
+        // cuando la lista cambia de tamaño —también cuando pasa de estar oculta
+        // (dentro de un modal o de otra pestaña) a verse por primera vez—.
+        this.$watch('selected', () => this._moverIndicador());
+        this.$watch('tabs', () => this._moverIndicador());
+
+        const lista = this.$refs.lista;
+        if (lista && typeof ResizeObserver !== 'undefined') {
+            this._observador = new ResizeObserver(() => this._moverIndicador());
+            this._observador.observe(lista);
+        }
+    },
+
+    destroy() {
+        this._observador?.disconnect();
+    },
+
+    /**
+     * Coloca el indicador sobre la pestaña elegida.
+     *
+     * Son cuatro variables y ninguna clase: la posición y el tamaño los pone
+     * el CSS a partir de ellas, y la transición también, así que apagar el
+     * movimiento no pasa por aquí.
+     */
+    _moverIndicador() {
+        this.$nextTick(() => {
+            const indicador = this.$refs.indicador;
+            if (!indicador) return;
+
+            const boton = this.selected === null
+                ? null
+                : this.$refs.lista?.querySelector(`[data-tab-id="${CSS.escape(String(this.selected))}"]`);
+
+            // Sin pestaña elegida, o con la lista sin pintar (ancho cero), no
+            // hay dónde ponerlo: se esconde en vez de quedarse en la esquina.
+            if (!boton || boton.offsetWidth === 0) {
+                indicador.removeAttribute('data-ready');
+                return;
+            }
+
+            indicador.style.setProperty('--kore-tab-x', boton.offsetLeft + 'px');
+            indicador.style.setProperty('--kore-tab-y', boton.offsetTop + 'px');
+            indicador.style.setProperty('--kore-tab-w', boton.offsetWidth + 'px');
+            indicador.style.setProperty('--kore-tab-h', boton.offsetHeight + 'px');
+
+            // La primera vez aparece ya en su sitio: `data-ready` es lo que
+            // enciende la transición, y se pone un frame después de colocarlo.
+            if (!indicador.hasAttribute('data-ready')) {
+                requestAnimationFrame(() => indicador.setAttribute('data-ready', ''));
+            }
+        });
+    },
 
     registerTab(tab) {
         // Avoid duplicate registration

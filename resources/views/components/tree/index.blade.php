@@ -7,7 +7,12 @@
     'filter' => false,
     'filterPlaceholder' => null,
     'ariaLabel' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $filterPlaceholder = $filterPlaceholder ?? config('kore-ui.ui.translations.tree_filter', 'Filtrar…');
@@ -58,7 +63,7 @@
                             este campo. --}}
                        aria-label="{{ $filterPlaceholder }}"
                        placeholder="{{ $filterPlaceholder }}"
-                       class="w-full pl-9 pr-3 py-2 text-sm rounded-kore-md border border-kore-border bg-kore-bg text-kore-fg placeholder:text-kore-muted-fg focus:outline-none focus:ring-2 focus:ring-kore-ring" />
+                       class="w-full pl-9 pr-3 py-2 text-sm rounded-kore-md border border-kore-border bg-kore-bg text-kore-fg placeholder:text-kore-muted-fg kore-focus" />
             </div>
         </div>
     @endif
@@ -75,7 +80,7 @@
                      tabulador y las flechas mueven el foco dentro. Antes todos
                      valían -1 y no había forma de llegar a un nodo con el
                      teclado —ni, por tanto, de seleccionar nada sin ratón—. --}}
-                <div class="flex items-center gap-1 py-1 px-2 rounded-kore-sm cursor-pointer transition-colors hover:bg-kore-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring"
+                <div class="flex items-center gap-1 py-1 px-2 rounded-kore-sm cursor-pointer kore-transition hover:bg-kore-accent/50 kore-focus"
                      :class="isSelected(item.node.key) && 'bg-kore-primary/10 text-kore-primary-text'"
                      :style="'padding-left: ' + (item.level * 20 + 8) + 'px'"
                      x-on:click="onNodeClick(item.node); focusKey = item.node.key"
@@ -95,7 +100,7 @@
                     <template x-if="item.hasChildren">
                         <button type="button"
                                 x-on:click.stop="toggleExpand(item.node.key)"
-                                class="inline-flex items-center justify-center size-5 rounded-kore-sm hover:bg-kore-accent transition-colors"
+                                class="inline-flex items-center justify-center size-5 rounded-kore-sm hover:bg-kore-accent kore-transition"
                                 {{-- Con un nombre fijo, un lector anuncia lo mismo
                                      en cada rama y no dice cuál está abriendo.
                                      `tabindex=-1` porque quien recorre el árbol
@@ -103,7 +108,7 @@
                                      del tabulador sin aportar destino. --}}
                                 tabindex="-1"
                                 :aria-label="etiquetaDeChevron(item)">
-                            <svg class="size-3.5 transition-transform duration-150"
+                            <svg class="size-3.5 kore-transition"
                                  :class="isExpanded(item.node.key) && 'rotate-90'"
                                  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -121,7 +126,7 @@
                         <input type="checkbox"
                                :checked="isSelected(item.node.key)"
                                x-on:click.stop="toggleSelect(item.node.key)"
-                               class="size-4 rounded border-kore-border text-kore-primary focus:ring-kore-ring" />
+                               class="size-4 kore-checkmark" />
                     @endif
 
                     {{-- Label --}}

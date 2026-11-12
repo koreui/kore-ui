@@ -15,7 +15,12 @@
     'readonly' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $keyPlaceholder = $keyPlaceholder ?? config('kore-ui.ui.translations.key', 'Clave');
@@ -43,16 +48,16 @@
     $wireModelAttr = $attributes->whereStartsWith('wire:model');
 
     $inputSizeClasses = match($size) {
-        'sm' => 'text-xs py-1 px-2',
-        'lg' => 'text-base py-2.5 px-3',
-        default => 'text-sm py-1.5 px-2.5',
+        'sm' => 'text-xs py-1.5 px-2.5',
+        'lg' => 'text-base py-2.5 px-3.5',
+        default => 'text-sm py-2 px-3',
     };
 
     $borderClasses = $hasError
-        ? 'border-kore-destructive focus:ring-kore-destructive/30 focus:border-kore-destructive'
-        : 'border-kore-input focus:ring-kore-ring focus:border-kore-primary';
+        ? 'kore-invalid'
+        : '';
 
-    $inputClasses = "w-full rounded-kore-md border {$borderClasses} bg-kore-bg text-kore-fg placeholder:text-kore-muted-fg focus:ring-2 outline-none transition-colors {$inputSizeClasses}";
+    $inputClasses = "w-full kore-control {$borderClasses} {$inputSizeClasses}";
 
     $jsConfig = json_encode((object) array_filter([
         'max' => $max,
@@ -132,7 +137,7 @@
                         <button
                             type="button"
                             x-on:click="removePair(index)"
-                            class="shrink-0 text-kore-muted-fg hover:text-kore-destructive transition-colors"
+                            class="shrink-0 text-kore-muted-fg hover:text-kore-destructive-text kore-transition"
                             aria-label="{{ config('kore-ui.ui.translations.remove_row', 'Eliminar fila') }}"
                         >
                             <x-lucide-x class="size-4" />

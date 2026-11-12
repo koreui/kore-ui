@@ -85,7 +85,11 @@
 
 <div {{ $attributes
     ->except(['src', 'name', 'icon', 'size', 'shape', 'presence', 'presencePulse'])
-    ->class(['relative inline-flex shrink-0', $sizeClasses])
+    // Base opaca bajo el tinte. El fondo de las iniciales es el color al veinte
+    // por ciento: sin nada debajo, en un grupo los avatares se transparentaban
+    // unos sobre otros y las iniciales del de atrás se leían a través del de
+    // delante.
+    ->class(['relative inline-flex shrink-0 bg-kore-surface', $shapeClasses, $sizeClasses])
 }}>
     @if($src)
         <img
@@ -106,7 +110,7 @@
     @endif
 
     @if($presence)
-        <span class="absolute bottom-0 right-0 block {{ $presenceSize }} {{ $presenceColor }} {{ $shape === 'square' ? 'rounded-sm' : 'rounded-full' }} ring-2 ring-kore-surface">
+        <span class="absolute bottom-0 right-0 block {{ $presenceSize }} {{ $presenceColor }} {{ $shape === 'square' ? 'rounded-kore-sm' : 'rounded-full' }} ring-2 ring-kore-surface">
             <span class="sr-only">{{ $presenceLabel }}</span>
             @if($presencePulse && $presence === 'online')
                 {{-- El pulso es decoración pura: el punto de color sigue ahí sin

@@ -24,7 +24,12 @@
     'readonly' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
@@ -66,11 +71,8 @@
     };
 
     $baseClasses = collect([
-        'w-full rounded-kore-md border bg-kore-bg text-kore-fg',
-        'transition-colors duration-150',
-        'focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary',
-        'disabled:opacity-50 disabled:cursor-not-allowed',
-        $hasError ? 'border-kore-destructive focus:ring-kore-destructive/30 focus:border-kore-destructive' : 'border-kore-input',
+        'w-full kore-control',
+        $hasError ? 'kore-invalid' : '',
         $sizeClasses,
     ])->filter()->implode(' ');
 
@@ -132,7 +134,7 @@
                 'name' => $name,
                 'disabled' => $disabled,
                 'required' => $required,
-                'class' => $baseClasses . ' pr-8',
+                'class' => $baseClasses . ' pr-8 ' . match($size) { 'sm' => 'min-h-(--kore-control-sm)', 'lg' => 'min-h-(--kore-control-lg)', default => 'min-h-(--kore-control-md)' },
             ])->except(['label', 'hint', 'error', 'size', 'options', 'option-label', 'option-value', 'option-description', 'option-image', 'placeholder', 'searchable', 'clearable', 'multiple', 'max', 'native', 'grouped', 'async', 'debounce', 'min-search', 'show-error']) }}
             @if($multiple) multiple @endif
         >
@@ -211,7 +213,10 @@
                 @if($disabled) disabled @endif
                 @if($readonly) aria-readonly="true" @endif
                 aria-haspopup="listbox"
-                aria-controls="{{ $optionsId }}-listbox"
+                {{-- Solo cuando la lista existe: el panel no se monta hasta la primera
+                     apertura, y un `aria-controls` hacia un id que no está es una
+                     referencia rota. --}}
+                x-bind:aria-controls="montado ? '{{ $optionsId }}-listbox' : null"
                 x-bind:aria-expanded="open"
             >
                 <div class="flex-1 truncate min-w-0">
@@ -252,7 +257,7 @@
                                 type="button"
                                 x-on:click.stop="clear()"
                                 aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
-                                class="text-kore-muted-fg hover:text-kore-fg transition-colors"
+                                class="text-kore-muted-fg hover:text-kore-fg kore-transition"
                             >
                                 <x-lucide-x class="{{ $iconSizeClasses }}" />
                             </button>
@@ -260,7 +265,7 @@
                     @endif
                     @if(! $edicionBloqueada)
                     <x-lucide-chevron-down
-                        class="{{ $iconSizeClasses }} text-kore-muted-fg transition-transform duration-200"
+                        class="{{ $iconSizeClasses }} text-kore-muted-fg kore-transition-base"
                         x-bind:class="{ 'rotate-180': open }"
                     />
                     @endif
@@ -268,18 +273,15 @@
             </button>
 
             {{-- Dropdown panel (teleported to body to escape overflow:hidden) --}}
+            {{-- El panel no se monta hasta la primera apertura: cerrado no aporta
+                 ni un nodo ni una directiva. Ver `montado` en el componente. --}}
+            <template x-if="montado">
             <template x-teleport="body">
             <div
                 data-kore-teleport
                 x-ref="dropdown"
                 x-show="open"
                 x-cloak
-                x-transition:enter="transition ease-out duration-100"
-                x-transition:enter-start="opacity-0 scale-95"
-                x-transition:enter-end="opacity-100 scale-100"
-                x-transition:leave="transition ease-in duration-75"
-                x-transition:leave-start="opacity-100 scale-100"
-                x-transition:leave-end="opacity-0 scale-95"
                 x-on:mousedown.stop
                 {{-- El panel escucha el teclado por su cuenta.
 
@@ -293,7 +295,7 @@
                      sordo. No hay doble manejo: cuando el foco está en el
                      disparador el evento pasa por la raíz y no por aquí. --}}
                 x-on:keydown="onKeydown($event)"
-                class="fixed z-[9999] rounded-kore-md border border-kore-border bg-kore-surface text-kore-fg shadow-lg overflow-hidden"
+                class="kore-pop fixed z-[9999] kore-panel overflow-hidden"
                 {{-- SIN `role="listbox"`: este panel contiene la caja de
                      búsqueda, y un listbox solo admite opciones y grupos. Con el
                      rol aquí había además DOS listbox anidados —este y el `<ul>`
@@ -309,7 +311,7 @@
                             aria-label="{{ config('kore-ui.form.translations.search', 'Buscar') }}"
                             @if($async) x-on:input="onSearch()" @endif
                             placeholder="{{ config('kore-ui.form.translations.search', 'Buscar') }}..."
-                            class="w-full rounded-kore-sm border border-kore-input bg-kore-bg px-2.5 py-1.5 text-sm text-kore-fg placeholder:text-kore-muted-fg focus:outline-none focus:ring-1 focus:ring-kore-ring"
+                            class="w-full rounded-kore-sm px-2.5 py-1.5 text-sm kore-control"
                         />
                     </div>
                 @endif
@@ -325,7 +327,7 @@
                 {{-- Options list --}}
                 <ul
                     x-show="!loading"
-                    class="max-h-60 overflow-auto"
+                    class="max-h-60 overflow-auto p-1"
                     id="{{ $optionsId }}-listbox"
                     role="listbox"
                     {{-- Un `role="listbox"` sin nombre se anuncia como «lista» y
@@ -335,7 +337,7 @@
                     @if($multiple) aria-multiselectable="true" @endif
                 >
                     <template x-if="filteredOptions.length === 0 && !loading && !showCreateOption">
-                        <li class="px-3 py-2 text-sm text-kore-muted-fg text-center">{{ config('kore-ui.form.translations.no_options', 'Sin resultados') }}</li>
+                        <li class="px-3 py-3 text-sm text-kore-muted-fg text-center">{{ config('kore-ui.form.translations.no_options', 'Sin resultados') }}</li>
                     </template>
 
                     <template x-for="(opt, index) in filteredOptions" :key="getValue(opt)">
@@ -343,11 +345,10 @@
                             x-on:click="select(opt)"
                             x-bind:data-index="index"
                             x-bind:class="{
-                                'bg-kore-primary text-kore-primary-fg hover:bg-kore-primary/90': isSelected(opt),
-                                'bg-kore-muted': highlighted === index && !isSelected(opt),
-                                'hover:bg-kore-muted': !isSelected(opt),
+                                'font-medium': isSelected(opt),
+                                'bg-kore-accent': highlighted === index,
                             }"
-                            class="flex items-center gap-2 px-3 py-2 cursor-pointer text-sm transition-colors"
+                            class="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer text-sm text-kore-fg kore-option"
                             role="option"
                             x-bind:aria-selected="isSelected(opt)"
                             x-on:mouseenter="highlighted = index"
@@ -360,13 +361,13 @@
                             <div class="flex-1 min-w-0">
                                 <span x-text="getLabel(opt)" class="block truncate"></span>
                                 <template x-if="getDescription(opt)">
-                                    <span x-text="getDescription(opt)" class="block text-xs opacity-70 truncate"></span>
+                                    <span x-text="getDescription(opt)" class="block text-xs font-normal text-kore-muted-fg truncate"></span>
                                 </template>
                             </div>
 
                             {{-- Checkmark for selected --}}
                             <template x-if="isSelected(opt)">
-                                <x-lucide-check class="size-4 shrink-0" />
+                                <x-lucide-check class="size-4 shrink-0 text-kore-primary-text" />
                             </template>
                         </li>
                     </template>
@@ -376,18 +377,19 @@
                         <template x-if="showCreateOption">
                             <li
                                 x-on:click="createFromSearch()"
-                                x-bind:class="{ 'bg-kore-muted': highlighted === filteredOptions.length }"
-                                class="flex items-center gap-2 px-3 py-2 cursor-pointer text-sm transition-colors hover:bg-kore-muted text-kore-primary"
+                                x-bind:class="{ 'bg-kore-accent': highlighted === filteredOptions.length }"
+                                class="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer text-sm kore-option text-kore-primary-text"
                                 role="option"
                                 x-on:mouseenter="highlighted = filteredOptions.length"
                             >
                                 <x-lucide-plus class="{{ $iconSizeClasses }} shrink-0" />
-                                <span>Create "<span x-text="search" class="font-medium"></span>"</span>
+                                <span>{{ config('kore-ui.form.translations.create', 'Crear') }} «<span x-text="search" class="font-medium"></span>»</span>
                             </li>
                         </template>
                     @endif
                 </ul>
             </div>
+            </template>
             </template>
         </div>
     @endif

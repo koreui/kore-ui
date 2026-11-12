@@ -5,7 +5,12 @@
     'toggleFor' => 'main',
     'start' => null,
     'end' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $config = config('kore-ui.shell.navbar', []);

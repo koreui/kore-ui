@@ -67,8 +67,8 @@
     // CSS, no clases de Tailwind: al colapsar tiene que centrarse y perder el hueco y el
     // padding, o el icono queda empujado contra el borde izquierdo en vez de centrado.
     $linkClasses = [
-        'kore-sidebar-link group relative w-full rounded-kore-md py-2 text-sm transition-colors',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring/50',
+        'kore-sidebar-link group relative w-full rounded-kore-md py-2 text-sm kore-transition',
+        'kore-focus',
         $isActive
             ? 'bg-kore-primary/10 font-medium text-kore-primary-text'
             : 'text-kore-fg hover:bg-kore-muted',

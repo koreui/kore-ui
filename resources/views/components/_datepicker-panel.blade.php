@@ -8,7 +8,7 @@
                     type="button"
                     x-on:click="applyPreset(preset)"
                     x-text="preset.label"
-                    class="block w-full text-left text-sm px-2 py-1.5 rounded-kore-sm hover:bg-kore-muted text-kore-fg transition-colors"
+                    class="block w-full text-left text-sm px-2 py-1.5 rounded-kore-sm hover:bg-kore-muted text-kore-fg kore-transition"
                 ></button>
             </template>
         </div>
@@ -27,7 +27,7 @@
                                 x-show="ci === 0"
                                 x-on:click="prevMonth()"
                                 aria-label="{{ config('kore-ui.form.translations.previous_month', 'Mes anterior') }}"
-                                class="p-1 rounded-kore-sm hover:bg-kore-muted text-kore-muted-fg hover:text-kore-fg transition-colors"
+                                class="p-1 rounded-kore-sm hover:bg-kore-muted text-kore-muted-fg hover:text-kore-fg kore-transition"
                             >
                                 <x-lucide-chevron-left class="size-4" />
                             </button>
@@ -43,7 +43,7 @@
                                 x-show="ci === calendars.length - 1"
                                 x-on:click="nextMonth()"
                                 aria-label="{{ config('kore-ui.form.translations.next_month', 'Mes siguiente') }}"
-                                class="p-1 rounded-kore-sm hover:bg-kore-muted text-kore-muted-fg hover:text-kore-fg transition-colors"
+                                class="p-1 rounded-kore-sm hover:bg-kore-muted text-kore-muted-fg hover:text-kore-fg kore-transition"
                             >
                                 <x-lucide-chevron-right class="size-4" />
                             </button>
@@ -75,7 +75,7 @@
                                                     x-on:click="selectDate(cell)"
                                                     x-on:mouseenter="onCellHover(cell)"
                                                     x-text="cell.day"
-                                                    class="w-9 h-9 text-sm rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring"
+                                                    class="w-9 h-9 text-sm rounded-full kore-transition kore-focus"
                                                     x-bind:class="{
                                                         'bg-kore-primary text-kore-primary-fg font-medium': _isCellSelected(cell.date),
                                                         'ring-1 ring-kore-primary': cell.isToday && !_isCellSelected(cell.date),
@@ -107,7 +107,7 @@
                         type="button"
                         x-on:click="currentView === 'year' ? viewDate = new Date(viewDate.getFullYear() - 10, viewDate.getMonth(), 1) : prevMonth()"
                         x-bind:aria-label="currentView === 'year' ? @js(config('kore-ui.form.translations.previous_decade', 'Década anterior')) : @js(config('kore-ui.form.translations.previous_month', 'Mes anterior'))"
-                        class="p-1 rounded-kore-sm hover:bg-kore-muted text-kore-muted-fg hover:text-kore-fg transition-colors"
+                        class="p-1 rounded-kore-sm hover:bg-kore-muted text-kore-muted-fg hover:text-kore-fg kore-transition"
                     >
                         <x-lucide-chevron-left class="size-4" />
                     </button>
@@ -116,14 +116,14 @@
                         type="button"
                         x-on:click="currentView === 'date' ? showMonthView() : (currentView === 'month' ? showYearView() : null)"
                         x-text="viewTitle"
-                        class="text-sm font-medium text-kore-fg hover:bg-kore-muted px-2 py-1 rounded-kore-sm transition-colors"
+                        class="text-sm font-medium text-kore-fg hover:bg-kore-muted px-2 py-1 rounded-kore-sm kore-transition"
                     ></button>
 
                     <button
                         type="button"
                         x-on:click="currentView === 'year' ? viewDate = new Date(viewDate.getFullYear() + 10, viewDate.getMonth(), 1) : nextMonth()"
                         x-bind:aria-label="currentView === 'year' ? @js(config('kore-ui.form.translations.next_decade', 'Década siguiente')) : @js(config('kore-ui.form.translations.next_month', 'Mes siguiente'))"
-                        class="p-1 rounded-kore-sm hover:bg-kore-muted text-kore-muted-fg hover:text-kore-fg transition-colors"
+                        class="p-1 rounded-kore-sm hover:bg-kore-muted text-kore-muted-fg hover:text-kore-fg kore-transition"
                     >
                         <x-lucide-chevron-right class="size-4" />
                     </button>
@@ -155,7 +155,7 @@
                                                 x-on:click="selectDate(cell)"
                                                 x-on:mouseenter="onCellHover(cell)"
                                                 x-text="cell.day"
-                                                class="w-9 h-9 text-sm rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring"
+                                                class="w-9 h-9 text-sm rounded-full kore-transition kore-focus"
                                                 x-bind:class="{
                                                     'bg-kore-primary text-kore-primary-fg font-medium': _isCellSelected(cell.date),
                                                     'ring-1 ring-kore-primary': cell.isToday && !_isCellSelected(cell.date),
@@ -185,7 +185,7 @@
                                 type="button"
                                 x-on:click="goToMonth(mi)"
                                 x-text="month"
-                                class="py-2 text-sm rounded-kore-sm transition-colors hover:bg-kore-muted text-kore-fg"
+                                class="py-2 text-sm rounded-kore-sm kore-transition hover:bg-kore-muted text-kore-fg"
                                 x-bind:class="{ 'bg-kore-primary text-kore-primary-fg hover:bg-kore-primary/90': viewDate.getMonth() === mi }"
                             ></button>
                         </template>
@@ -200,7 +200,7 @@
                                 type="button"
                                 x-on:click="goToYear(year)"
                                 x-text="year"
-                                class="py-2 text-sm rounded-kore-sm transition-colors hover:bg-kore-muted text-kore-fg"
+                                class="py-2 text-sm rounded-kore-sm kore-transition hover:bg-kore-muted text-kore-fg"
                                 x-bind:class="{ 'bg-kore-primary text-kore-primary-fg hover:bg-kore-primary/90': viewDate.getFullYear() === year }"
                             ></button>
                         </template>
@@ -222,7 +222,7 @@
                         x-on:touchstart.prevent="startHold(() => incrementHour())"
                         x-on:touchend="stopHold()"
                         aria-label="{{ config('kore-ui.form.translations.increment_hour', 'Subir la hora') }}"
-                        class="p-0.5 text-kore-muted-fg hover:text-kore-fg transition-colors"
+                        class="p-0.5 text-kore-muted-fg hover:text-kore-fg kore-transition"
                     >
                         <x-lucide-chevron-up class="size-4" />
                     </button>
@@ -238,7 +238,7 @@
                         x-on:touchstart.prevent="startHold(() => decrementHour())"
                         x-on:touchend="stopHold()"
                         aria-label="{{ config('kore-ui.form.translations.decrement_hour', 'Bajar la hora') }}"
-                        class="p-0.5 text-kore-muted-fg hover:text-kore-fg transition-colors"
+                        class="p-0.5 text-kore-muted-fg hover:text-kore-fg kore-transition"
                     >
                         <x-lucide-chevron-down class="size-4" />
                     </button>
@@ -256,7 +256,7 @@
                         x-on:touchstart.prevent="startHold(() => incrementMinute())"
                         x-on:touchend="stopHold()"
                         aria-label="{{ config('kore-ui.form.translations.increment_minute', 'Subir los minutos') }}"
-                        class="p-0.5 text-kore-muted-fg hover:text-kore-fg transition-colors"
+                        class="p-0.5 text-kore-muted-fg hover:text-kore-fg kore-transition"
                     >
                         <x-lucide-chevron-up class="size-4" />
                     </button>
@@ -272,7 +272,7 @@
                         x-on:touchstart.prevent="startHold(() => decrementMinute())"
                         x-on:touchend="stopHold()"
                         aria-label="{{ config('kore-ui.form.translations.decrement_minute', 'Bajar los minutos') }}"
-                        class="p-0.5 text-kore-muted-fg hover:text-kore-fg transition-colors"
+                        class="p-0.5 text-kore-muted-fg hover:text-kore-fg kore-transition"
                     >
                         <x-lucide-chevron-down class="size-4" />
                     </button>
@@ -285,7 +285,7 @@
                     <button
                         type="button"
                         x-on:click="toggleAmPm()"
-                        class="ml-1 px-2 py-1 text-sm font-medium rounded-kore-sm border border-kore-input bg-kore-bg text-kore-fg hover:bg-kore-muted transition-colors"
+                        class="ml-1 px-2 py-1 text-sm font-medium rounded-kore-sm border border-kore-input bg-kore-bg text-kore-fg hover:bg-kore-muted kore-transition"
                     >
                         <span x-text="ampm"></span>
                         <span class="sr-only">{{ config('kore-ui.form.translations.toggle_period', 'Cambiar entre AM y PM') }}</span>
@@ -302,7 +302,7 @@
                         type="button"
                         x-on:click="applyHelper(helper)"
                         x-text="helper.label"
-                        class="px-2.5 py-1 text-xs rounded-kore-sm border border-kore-input text-kore-fg hover:bg-kore-muted transition-colors"
+                        class="px-2.5 py-1 text-xs rounded-kore-sm border border-kore-input text-kore-fg hover:bg-kore-muted kore-transition"
                     ></button>
                 </template>
             </div>
@@ -314,16 +314,16 @@
                 <button
                     type="button"
                     x-on:click="cancel()"
-                    class="px-3 py-1.5 text-sm rounded-kore-md border border-kore-input text-kore-fg hover:bg-kore-muted transition-colors"
+                    class="px-3 py-1.5 text-sm rounded-kore-md border border-kore-input text-kore-fg hover:bg-kore-muted kore-transition"
                 >
-                    Cancel
+                    {{ config('kore-ui.form.translations.cancel', 'Cancelar') }}
                 </button>
                 <button
                     type="button"
                     x-on:click="confirm()"
-                    class="px-3 py-1.5 text-sm rounded-kore-md bg-kore-primary text-kore-primary-fg hover:bg-kore-primary/90 transition-colors"
+                    class="px-3 py-1.5 text-sm rounded-kore-md bg-kore-primary text-kore-primary-fg hover:bg-kore-primary/90 kore-transition"
                 >
-                    Apply
+                    {{ config('kore-ui.form.translations.apply', 'Aplicar') }}
                 </button>
             </div>
         @endif

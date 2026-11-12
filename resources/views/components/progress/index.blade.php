@@ -59,7 +59,7 @@
 
     {{-- Track --}}
     <div
-        class="bg-kore-muted rounded-full overflow-hidden {{ $trackHeight }}"
+        class="bg-kore-accent rounded-full overflow-hidden {{ $trackHeight }}"
         role="progressbar"
         @if(!$indeterminate)
             aria-valuenow="{{ round($percent) }}"
@@ -69,7 +69,7 @@
         @if($label) aria-label="{{ $label }}" @endif
     >
         <div @class([
-            'h-full rounded-full transition-all duration-500',
+            'h-full rounded-full transition-all kore-duration-slow',
             $barColor,
             'kore-progress-striped' => $striped || $animated,
             'kore-progress-animated' => $animated,

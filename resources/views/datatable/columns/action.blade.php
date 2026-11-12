@@ -68,7 +68,7 @@
     @if($isDropdown)
         <x-kore::dropdown position="bottom-end" width="180px">
             <x-slot:trigger>
-                <button type="button" aria-label="{{ $column->getLabel() }}" class="p-1 rounded-kore-md hover:bg-kore-muted transition-colors">
+                <button type="button" aria-label="{{ $column->getLabel() }}" class="p-1 rounded-kore-md hover:bg-kore-muted kore-transition">
                     <x-dynamic-component :component="'lucide-' . ($props['triggerIcon'] ?? 'more-vertical')" class="size-4 text-kore-muted-fg" />
                 </button>
             </x-slot:trigger>
@@ -130,7 +130,7 @@
                     <a
                         href="{{ $action->getUrl($row) }}"
                         @if($action->opensInNewTab()) target="_blank" rel="noopener noreferrer" @endif
-                        class="p-1.5 rounded-kore-md transition-colors {{ $btnColorClass }}"
+                        class="p-1.5 rounded-kore-md kore-transition {{ $btnColorClass }}"
                         @if($btnColorStyle) style="{{ $btnColorStyle }}" @endif
                         aria-label="{{ $action->getLabel() }}"
                         title="{{ $action->getLabel() }}"
@@ -145,7 +145,7 @@
                     <button
                         type="button"
                         x-on:click="window.dispatchEvent(new CustomEvent('{{ $action->getDispatchEvent() }}', { detail: {{ Js::from($action->getDispatchParams($row)) }}, bubbles: true }))"
-                        class="p-1.5 rounded-kore-md transition-colors {{ $btnColorClass }}"
+                        class="p-1.5 rounded-kore-md kore-transition {{ $btnColorClass }}"
                         @if($btnColorStyle) style="{{ $btnColorStyle }}" @endif
                         aria-label="{{ $action->getLabel() }}"
                         title="{{ $action->getLabel() }}"
@@ -170,7 +170,7 @@
                                  Js::from(). No unificar copiando esta línea. --}}
                             wire:click="{{ $action->getWireMethod() }}(@js(data_get($row, $primaryKey ?? 'id')))"
                         @endif
-                        class="p-1.5 rounded-kore-md transition-colors {{ $btnColorClass }}"
+                        class="p-1.5 rounded-kore-md kore-transition {{ $btnColorClass }}"
                         @if($btnColorStyle) style="{{ $btnColorStyle }}" @endif
                         aria-label="{{ $action->getLabel() }}"
                         title="{{ $action->getLabel() }}"

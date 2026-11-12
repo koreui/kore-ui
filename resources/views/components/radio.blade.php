@@ -7,7 +7,12 @@
     'name' => null,
     'error' => null,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
@@ -44,16 +49,7 @@
         default => 'text-sm',
     };
 
-    $radioClasses = collect([
-        $radioSize,
-        'shrink-0 mt-0.5',
-        'rounded-full border appearance-none cursor-pointer',
-        'transition-colors duration-150',
-        'checked:border-[5px] checked:border-kore-primary',
-        'focus:outline-none focus:ring-2 focus:ring-kore-ring focus:ring-offset-2 ring-offset-kore-bg',
-        'disabled:opacity-50 disabled:cursor-not-allowed',
-        $hasError ? 'border-kore-destructive' : 'border-kore-input',
-    ])->filter()->implode(' ');
+    $radioClasses = $radioSize . ' mt-0.5 kore-radiomark';
 @endphp
 
 <div class="kore-radio">
@@ -86,6 +82,6 @@
     </div>
 
     @if($hasError && $errorMessage)
-        <p @if($fieldId) id="{{ $fieldId }}-error" @endif class="mt-1 text-sm text-kore-destructive" role="alert">{{ $errorMessage }}</p>
+        <p @if($fieldId) id="{{ $fieldId }}-error" @endif class="mt-1 text-sm text-kore-destructive-text" role="alert">{{ $errorMessage }}</p>
     @endif
 </div>

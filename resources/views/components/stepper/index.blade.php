@@ -3,7 +3,12 @@
     'linear' => false,
     'variant' => null,
     'skeleton' => false,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $tPaso = config('kore-ui.ui.translations.step', 'Paso');
@@ -47,14 +52,14 @@
                     <div class="flex flex-col items-center shrink-0">
                         <button
                             type="button"
-                            class="relative flex items-center justify-center size-8 rounded-full border-2 text-sm font-semibold transition-all shrink-0 focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2 ring-offset-kore-bg outline-none"
+                            class="relative flex items-center justify-center size-8 rounded-full border-2 text-sm font-semibold tabular-nums kore-transition-base shrink-0 kore-focus "
                             x-on:click="select(step.id)"
                             x-bind:disabled="step.disabled"
                             x-bind:class="{
-                                'border-kore-primary bg-kore-primary text-kore-primary-fg': getStepStatus(step.id) === 'active',
+                                'border-kore-primary bg-kore-primary text-kore-primary-fg shadow-[0_0_0_4px_var(--kore-ring-halo)]': getStepStatus(step.id) === 'active',
                                 'border-kore-success bg-kore-success text-kore-success-fg': getStepStatus(step.id) === 'complete',
                                 'border-kore-destructive bg-kore-destructive text-kore-destructive-fg': getStepStatus(step.id) === 'error',
-                                'border-kore-border bg-kore-surface text-kore-muted-fg': getStepStatus(step.id) === 'pending',
+                                'border-kore-input bg-kore-field text-kore-muted-fg': getStepStatus(step.id) === 'pending',
                                 'opacity-50 cursor-not-allowed': step.disabled,
                                 'cursor-pointer': !step.disabled,
                             }"
@@ -80,18 +85,18 @@
 
                         {{-- Vertical connector --}}
                         <template x-if="index < steps.length - 1">
-                            <div class="w-px flex-1 min-h-6 my-1 transition-colors"
+                            <div class="w-0.5 rounded-full flex-1 min-h-6 my-1 kore-transition-base"
                                  x-bind:class="getStepStatus(steps[index + 1]?.id) !== 'pending' ? 'bg-kore-success' : 'bg-kore-border'"></div>
                         </template>
                     </div>
 
                     {{-- Label + description --}}
                     <div class="ml-3 pb-6 flex-1 min-w-0" x-show="step.label">
-                        <p class="text-sm font-medium pt-1 transition-colors"
+                        <p class="text-sm font-medium pt-1 kore-transition"
                            x-bind:class="{
-                               'text-kore-primary': getStepStatus(step.id) === 'active',
+                               'text-kore-primary-text': getStepStatus(step.id) === 'active',
                                'text-kore-fg': getStepStatus(step.id) === 'complete',
-                               'text-kore-destructive': getStepStatus(step.id) === 'error',
+                               'text-kore-destructive-text': getStepStatus(step.id) === 'error',
                                'text-kore-muted-fg': getStepStatus(step.id) === 'pending',
                            }"
                            x-text="step.label"></p>
@@ -113,20 +118,20 @@
                     {{-- Circle row with split connector halves --}}
                     <div class="flex items-center w-full">
                         {{-- Left connector half --}}
-                        <div class="flex-1 h-px transition-colors"
+                        <div class="flex-1 h-0.5 rounded-full kore-transition-base"
                              x-bind:class="index > 0 ? (getStepStatus(step.id) !== 'pending' ? 'bg-kore-success' : 'bg-kore-border') : 'bg-transparent'"></div>
 
                         {{-- Circle --}}
                         <button
                             type="button"
-                            class="relative flex items-center justify-center size-8 rounded-full border-2 text-sm font-semibold transition-all shrink-0 mx-2 focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-2 ring-offset-kore-bg outline-none"
+                            class="relative flex items-center justify-center size-8 rounded-full border-2 text-sm font-semibold tabular-nums kore-transition-base shrink-0 mx-2 kore-focus "
                             x-on:click="select(step.id)"
                             x-bind:disabled="step.disabled"
                             x-bind:class="{
-                                'border-kore-primary bg-kore-primary text-kore-primary-fg': getStepStatus(step.id) === 'active',
+                                'border-kore-primary bg-kore-primary text-kore-primary-fg shadow-[0_0_0_4px_var(--kore-ring-halo)]': getStepStatus(step.id) === 'active',
                                 'border-kore-success bg-kore-success text-kore-success-fg': getStepStatus(step.id) === 'complete',
                                 'border-kore-destructive bg-kore-destructive text-kore-destructive-fg': getStepStatus(step.id) === 'error',
-                                'border-kore-border bg-kore-surface text-kore-muted-fg': getStepStatus(step.id) === 'pending',
+                                'border-kore-input bg-kore-field text-kore-muted-fg': getStepStatus(step.id) === 'pending',
                                 'opacity-50 cursor-not-allowed': step.disabled,
                                 'cursor-pointer': !step.disabled,
                             }"
@@ -151,18 +156,18 @@
                         </button>
 
                         {{-- Right connector half --}}
-                        <div class="flex-1 h-px transition-colors"
+                        <div class="flex-1 h-0.5 rounded-full kore-transition-base"
                              x-bind:class="index < steps.length - 1 ? (getStepStatus(steps[index + 1]?.id) !== 'pending' ? 'bg-kore-success' : 'bg-kore-border') : 'bg-transparent'"></div>
                     </div>
 
                     {{-- Label below circle (in-flow, no absolute) --}}
                     @if($variant !== 'compact')
                         <div class="mt-2 text-center px-1 w-full" x-show="step.label">
-                            <p class="text-sm font-medium transition-colors"
+                            <p class="text-sm font-medium kore-transition"
                                x-bind:class="{
-                                   'text-kore-primary': getStepStatus(step.id) === 'active',
+                                   'text-kore-primary-text': getStepStatus(step.id) === 'active',
                                    'text-kore-fg': getStepStatus(step.id) === 'complete',
-                                   'text-kore-destructive': getStepStatus(step.id) === 'error',
+                                   'text-kore-destructive-text': getStepStatus(step.id) === 'error',
                                    'text-kore-muted-fg': getStepStatus(step.id) === 'pending',
                                }"
                                x-text="step.label"></p>

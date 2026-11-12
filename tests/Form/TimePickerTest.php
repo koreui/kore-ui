@@ -72,7 +72,7 @@ it('shows error from errors bag', function () {
     ');
 
     $view->assertSee('Time is required')
-        ->assertSee('border-kore-destructive', false);
+        ->assertSee('kore-invalid', false);
 });
 
 it('shows manual error via prop', function () {
@@ -81,7 +81,7 @@ it('shows manual error via prop', function () {
     ');
 
     $view->assertSee('Invalid time')
-        ->assertSee('border-kore-destructive', false);
+        ->assertSee('kore-invalid', false);
 });
 
 it('hides error with show-error false', function () {

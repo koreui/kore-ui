@@ -12,23 +12,27 @@
 @endphp
 
 @if($paginator && $paginator->hasPages())
-    <div {{ $attributes->class('flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3') }}>
+    {{-- El mismo pie que el DataTable: fondo tenue, recuento a la izquierda y
+         los controles a la derecha. --}}
+    <div {{ $attributes->class('flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-2.5 border-t border-kore-border bg-kore-muted/40') }}>
         {{-- Info text --}}
-        <div class="text-sm text-kore-muted-fg">
+        <div class="text-[0.8125rem] text-kore-muted-fg tabular-nums">
             @if($showingText)
                 {{ $showingText }}
             @elseif(method_exists($paginator, 'total'))
-                {{ str_replace(
-                    [':from', ':to', ':total'],
-                    [$paginator->firstItem() ?? 0, $paginator->lastItem() ?? 0, $paginator->total()],
-                    $translations['showing'] ?? 'Mostrando :from a :to de :total resultados'
-                ) }}
+                {{-- `strtr`, no `str_replace`: este último sustituye en orden, y
+                     `:to` se comía el principio de `:total` — el recuento salía
+                     «de 11tal resultados». `strtr` prueba primero la clave más
+                     larga. --}}
+                {{ strtr($translations['showing'] ?? 'Mostrando :from a :to de :total resultados', [
+                    ':from' => $paginator->firstItem() ?? 0,
+                    ':to' => $paginator->lastItem() ?? 0,
+                    ':total' => $paginator->total(),
+                ]) }}
             @endif
         </div>
 
-        {{-- Pagination links --}}
-        <div class="flex items-center gap-2">
-            {{ $paginator->links() }}
-        </div>
+        {{-- Los enlaces, con la vista de la librería y no la del framework. --}}
+        {{ $paginator->links('kore::pagination.links') }}
     </div>
 @endif

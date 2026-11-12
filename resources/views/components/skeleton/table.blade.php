@@ -30,7 +30,7 @@
 <div
     {{ $attributes->class([
         'rounded-kore-lg border border-kore-border bg-kore-surface',
-        'shadow-sm' => $shadow,
+        'shadow-kore-sm' => $shadow,
         'overflow-x-auto' => $responsive,
     ]) }}
     role="status"

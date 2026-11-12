@@ -70,7 +70,7 @@ it('renders large size', function () {
 it('renders icon', function () {
     $view = $this->blade('<x-kore::button label="Save" icon="save" />');
     $view->assertSee('<svg', false)
-        ->assertSee('size-4', false);
+        ->assertSee('size-5', false);
 });
 
 it('renders right icon', function () {

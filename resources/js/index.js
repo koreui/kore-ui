@@ -50,6 +50,24 @@ import KoreSidebarStore from './sidebar.js';
  * Es API pública: cambiar una firma de aquí rompe a los paquetes que dependen
  * de kore-ui, así que cuenta como cambio incompatible.
  */
+/**
+ * El movimiento apagado para toda la aplicación (`'motion' => false`).
+ *
+ * `@koreScripts` lo deja escrito en la propia etiqueta `<script>`, y de ahí
+ * pasa a `<html>`: así no hace falta un script en línea —que choca con una CSP
+ * estricta— ni que el consumidor toque su layout. `currentScript` solo existe
+ * mientras se evalúa el bundle, por eso se lee aquí arriba y no en un evento.
+ */
+const movimientoGlobal = document.currentScript?.dataset.koreMotion;
+
+if (movimientoGlobal) {
+    const aplicar = () => document.documentElement.setAttribute('data-kore-motion', movimientoGlobal);
+    aplicar();
+    // wire:navigate hace morph de <html> y se lleva el atributo, igual que la
+    // clase del tema.
+    document.addEventListener('livewire:navigated', aplicar);
+}
+
 window.KoreUi = Object.assign(window.KoreUi || {}, {
     utils: Object.freeze({
         floating: Object.freeze({ startFloating, stopFloating, virtualReference }),

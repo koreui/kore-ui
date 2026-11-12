@@ -41,7 +41,7 @@ it('shows error from errors bag', function () {
     $view = $this->blade('<x-kore::number label="Qty" name="qty" />');
 
     $view->assertSee('Must be positive')
-        ->assertSee('border-kore-destructive', false);
+        ->assertSee('kore-invalid', false);
 });
 
 it('renders type number for decimal mode (default)', function () {
@@ -99,18 +99,28 @@ it('draws the border and focus ring on the group, not on the inner input', funct
     // el contorno salía a medias, de tres lados.
     $view = $this->blade('<x-kore::number label="Qty" name="qty" />');
 
-    $view->assertSee('focus-within:ring-2', false)
-        ->assertSee('focus-within:border-kore-primary', false)
-        ->assertDontSee('border-x-0', false)
-        ->assertDontSee('focus:ring-2', false);
+    // `kore-control` es borde, sombra y halo de foco en una sola pieza; lleva
+    // `:focus-within`, así que puesto en el grupo rodea el conjunto entero.
+    $html = (string) $view;
+
+    expect($html)->toContain('overflow-hidden kore-control')
+        ->not->toContain('border-x-0');
+
+    // Y el input de dentro va desnudo: sin borde ni campo propios.
+    preg_match('/<input[^>]*class="([^"]*)"/', $html, $m);
+    expect($m[1] ?? '')->toContain('border-0')->not->toContain('kore-control');
 });
 
 it('keeps the ring on the input itself when controls are hidden', function () {
     $view = $this->blade('<x-kore::number label="Qty" name="qty" :controls="false" />');
 
-    $view->assertSee('focus:ring-2', false)
-        ->assertSee('rounded-kore-md', false)
-        ->assertDontSee('focus-within:ring-2', false);
+    $html = (string) $view;
+
+    preg_match('/<input[^>]*class="([^"]*)"/', $html, $m);
+    expect($m[1] ?? '')->toContain('kore-control');
+
+    // Sin controles no hay grupo que pinte el marco.
+    expect($html)->not->toContain('overflow-hidden kore-control');
 });
 
 it('paints the error border around the whole group', function () {
@@ -119,13 +129,12 @@ it('paints the error border around the whole group', function () {
     $view = $this->blade('<x-kore::number label="Qty" name="qty" />');
 
     // El rojo va en el contenedor —junto a overflow-hidden— y no en el input.
-    $view->assertSee('overflow-hidden bg-kore-bg', false)
-        ->assertSee('border-kore-destructive focus-within:ring-kore-destructive/30', false);
+    $view->assertSee('overflow-hidden kore-control kore-invalid', false);
 });
 
 it('draws the border on the group in currency mode too', function () {
     $view = $this->blade('<x-kore::number label="Price" name="price" mode="currency" />');
 
-    $view->assertSee('focus-within:ring-2', false)
+    $view->assertSee('overflow-hidden kore-control', false)
         ->assertDontSee('border-x-0', false);
 });

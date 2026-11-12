@@ -2,6 +2,15 @@ import { startFloating, stopFloating } from '../utils/floating.js';
 
 export default (config) => ({
     open: false,
+    // El panel no existe hasta que se abre por primera vez.
+    //
+    // Antes vivía en el DOM desde la carga, oculto: un calendario cerrado eran
+    // 152 nodos y un select 53, con todas sus directivas ya registradas. En un
+    // formulario de 48 campos, dos tercios de los nodos de la página eran
+    // paneles que nadie había abierto. La plantilla lo envuelve en un
+    // `x-if="montado"`; una vez montado se queda, y a partir de ahí abrir y
+    // cerrar es el `x-show` de siempre.
+    montado: false,
     hours: config.timeFormat === '12' ? 12 : 0,
     minutes: 0,
     ampm: 'AM',
@@ -48,6 +57,7 @@ export default (config) => ({
     },
 
     openDropdown() {
+        this.montado = true;
         this.open = true;
         this.$nextTick(() => {
             this._floatingCleanup = startFloating(this.$refs.trigger, this.$refs.dropdown, {

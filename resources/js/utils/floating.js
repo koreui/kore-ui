@@ -73,6 +73,18 @@ export function startFloating(reference, floating, opts = {}) {
     const gap = opts.offset ?? 4;
     const middleware = [offset(gap), flip(), shift({ padding: 8 })];
 
+    // El panel hereda si se mueve o no de donde está su disparador. Vive
+    // teleportado a <body>, fuera de cualquier contenedor con
+    // `data-kore-motion`, así que el CSS no puede decidirlo por herencia: un
+    // formulario marcado como «sin movimiento» seguía abriendo sus selects con
+    // fundido. Se resuelve aquí, y no en cada plantilla, porque por aquí pasan
+    // todos los paneles flotantes de la librería.
+    if (isDomNode(reference) && floating.dataset) {
+        const contexto = reference.closest?.('[data-kore-motion]');
+        if (contexto) floating.dataset.koreMotion = contexto.dataset.koreMotion;
+        else delete floating.dataset.koreMotion;
+    }
+
     floating.style.position = 'fixed';
     // Keep the panel invisible until coordinates are calculated so it never
     // flashes at an incorrect position (e.g. top-left corner of the viewport).

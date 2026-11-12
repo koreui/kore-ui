@@ -22,7 +22,7 @@
                             @checked($this->isRowSelected(data_get($row, $primaryKey)))
                             data-checked="{{ $this->isRowSelected(data_get($row, $primaryKey)) ? '1' : '0' }}"
                             x-on:click="onRowCheckboxClick(@js(data_get($row, $primaryKey)), $event)"
-                            class="rounded border-kore-input text-kore-primary focus:ring-kore-ring"
+                            class="size-4 kore-checkmark"
                         />
                     @endif
 

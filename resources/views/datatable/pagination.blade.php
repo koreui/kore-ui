@@ -65,13 +65,13 @@
     }
 @endphp
 
-<div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-kore-border">
+<div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-2.5 border-t border-kore-border bg-kore-muted/40">
     {{-- Showing text.
          aria-live: al filtrar o buscar, un lector de pantalla no recibía
          ninguna señal de que la tabla había cambiado. Este texto se reescribe
          en cada render, así que es el sitio natural para anunciarlo. --}}
     @if($showingText)
-        <div class="text-sm text-kore-muted-fg" aria-live="polite" aria-atomic="true">
+        <div class="text-[0.8125rem] text-kore-muted-fg tabular-nums" aria-live="polite" aria-atomic="true">
             {{ $showingText }}
         </div>
     @else

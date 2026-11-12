@@ -31,6 +31,6 @@
         @isset($fieldId) id="{{ $fieldId }}" @endisset
         placeholder="{{ $props['placeholder'] }}"
         wire:model.live.debounce.{{ $props['debounce'] }}ms="filters.{{ $key }}"
-        class="bg-kore-bg text-kore-fg placeholder:text-kore-muted-fg transition-colors duration-150 block w-full rounded-kore-md border border-kore-input focus:outline-none focus:ring-2 focus:ring-kore-ring focus:border-kore-primary text-xs py-1.5 px-2.5 pl-8"
+        class="block w-full kore-control text-xs py-1.5 px-2.5 pl-8"
     />
 </div>

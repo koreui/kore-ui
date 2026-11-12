@@ -38,7 +38,7 @@ it('pinta la variante que diga la configuración', function (string $variante, s
     Livewire::test(TestTable::class)->assertSee($marca, false);
 })->with([
     // Cada una tiene una marca que no comparte con las demás.
-    'default' => ['default', 'bg-kore-primary text-kore-primary-fg'],
+    'default' => ['default', 'bg-kore-field text-kore-fg font-semibold'],
     'compact' => ['compact', 'tabular-nums'],
     'minimal' => ['minimal', 'after:bg-kore-primary'],
     'simple'  => ['simple', 'Anterior'],
@@ -60,7 +60,7 @@ it('una variante inventada cae en la de siempre', function () {
 
     // Sin este cierre, `@include` de una vista que no existe tumba la página
     // entera por un valor mal escrito en la configuración.
-    Livewire::test(TestTable::class)->assertSee('bg-kore-primary text-kore-primary-fg', false);
+    Livewire::test(TestTable::class)->assertSee('bg-kore-field text-kore-fg font-semibold', false);
 });
 
 it('solo `default` y `minimal` gastan en calcular la ventana de páginas', function () {

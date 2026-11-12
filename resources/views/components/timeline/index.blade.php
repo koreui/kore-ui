@@ -1,7 +1,12 @@
 @props([
     'variant' => null,
     'color' => 'primary',
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $variant = $variant ?? config('kore-ui.ui.timeline.variant', 'left');

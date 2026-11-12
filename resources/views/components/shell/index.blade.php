@@ -54,7 +54,7 @@
          se ve al enfocarlo. --}}
     @if($skipLink)
         <a href="#{{ $mainId }}"
-           class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-kore-md focus:bg-kore-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-kore-primary-fg focus:outline-none focus:ring-2 focus:ring-kore-ring focus:ring-offset-2">
+           class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-kore-md focus:bg-kore-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-kore-primary-fg kore-focus">
             {{ $skipLabel }}
         </a>
     @endif
@@ -67,7 +67,7 @@
 
         {{-- `tabindex="-1"`: sin él, saltar aquí mueve el foco del navegador pero
              algunos lectores siguen leyendo desde donde estaban. --}}
-        <main id="{{ $mainId }}" tabindex="-1" class="flex-1 focus:outline-none">
+        <main id="{{ $mainId }}" tabindex="-1" class="flex-1 outline-none">
             {{ $slot }}
         </main>
     </div>

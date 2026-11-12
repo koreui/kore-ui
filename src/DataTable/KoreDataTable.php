@@ -420,6 +420,12 @@ abstract class KoreDataTable extends Component
             return null;
         }
 
+        // Con cero filas la plantilla de siempre decía «Mostrando 0 a 0 de 0
+        // resultados», debajo de un estado vacío que ya dice que no hay nada.
+        if ((int) $paginator->total() === 0) {
+            return config('kore-ui.datatable.translations.showing_none', 'Sin resultados');
+        }
+
         $template = config('kore-ui.datatable.translations.showing', 'Mostrando :from a :to de :total resultados');
 
         return strtr($template, [

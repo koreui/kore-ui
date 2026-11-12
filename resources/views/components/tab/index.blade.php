@@ -3,7 +3,12 @@
     'variant' => null,
     'orientation' => 'horizontal',
     'scrollable' => false,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $variant = $variant ?? config('kore-ui.ui.tab.variant', 'line');
@@ -23,8 +28,9 @@
 
     {{-- Tab list --}}
     <div
+        x-ref="lista"
         @class([
-            'flex',
+            'relative flex',
             'overflow-x-auto' => $scrollable && $orientation === 'horizontal',
             // Line variant
             'border-b border-kore-border' => $variant === 'line' && $orientation === 'horizontal',
@@ -41,6 +47,18 @@
         aria-orientation="{{ $orientation }}"
         x-on:keydown="onKeydown($event)"
     >
+        {{-- El indicador: una sola pieza que se desliza hasta la pestaña elegida,
+             en vez de un borde o un fondo que se apaga en una y se enciende en
+             otra. La coloca `_moverIndicador()`; el aspecto y la transición son
+             de `.kore-tab-indicator`, en kore-theme.css. --}}
+        <span
+            x-ref="indicador"
+            aria-hidden="true"
+            class="kore-tab-indicator"
+            data-variant="{{ $variant === 'line' ? 'line' : 'pill' }}"
+            data-orientation="{{ $orientation }}"
+        ></span>
+
         <template x-for="tab in tabs" :key="tab.id">
             <button
                 type="button"
@@ -55,19 +73,18 @@
                 x-bind:class="{
                     {{-- Line variant --}}
                     @if($variant === 'line')
-                        'border-b-2 border-kore-primary text-kore-primary': isSelected(tab.id) && '{{ $orientation }}' === 'horizontal',
-                        'border-l-2 border-kore-primary text-kore-primary': isSelected(tab.id) && '{{ $orientation }}' === 'vertical',
-                        'border-b-2 border-transparent text-kore-muted-fg hover:text-kore-fg hover:border-kore-border': !isSelected(tab.id) && '{{ $orientation }}' === 'horizontal',
-                        'border-l-2 border-transparent text-kore-muted-fg hover:text-kore-fg hover:border-kore-border': !isSelected(tab.id) && '{{ $orientation }}' === 'vertical',
+                        'text-kore-primary-text': isSelected(tab.id),
+                        'text-kore-muted-fg hover:text-kore-fg': !isSelected(tab.id),
                     @elseif($variant === 'pill' || $variant === 'enclosed')
-                        'bg-kore-surface shadow-sm text-kore-fg': isSelected(tab.id),
+                        'text-kore-fg': isSelected(tab.id),
                         'text-kore-muted-fg hover:text-kore-fg': !isSelected(tab.id),
                     @endif
                     'opacity-50 cursor-not-allowed': tab.disabled,
                 }"
                 @class([
-                    'relative flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-kore-ring focus-visible:ring-offset-1 ring-offset-kore-bg',
-                    'rounded-kore-md' => $variant === 'pill' || $variant === 'enclosed',
+                    'relative z-10 flex items-center gap-2 text-sm font-medium kore-transition whitespace-nowrap',
+                    'px-3.5 py-2.5 kore-focus-inset' => $variant === 'line',
+                    'px-3 py-1.5 rounded-kore-md kore-focus' => $variant === 'pill' || $variant === 'enclosed',
                 ])
             >
                 <span x-show="tab.iconHtml" x-html="tab.iconHtml" class="size-4 shrink-0 [&>svg]:size-4"></span>
@@ -78,7 +95,7 @@
                 <template x-if="tab.closeable">
                     <button
                         type="button"
-                        class="ml-1 p-0.5 rounded hover:bg-kore-muted transition-colors"
+                        class="ml-1 p-0.5 rounded-kore-sm hover:bg-kore-muted kore-transition"
                         x-on:click.stop="closeTab(tab.id)"
                         aria-label="{{ config('kore-ui.ui.translations.close_tab', 'Cerrar pestaña') }}"
                     >

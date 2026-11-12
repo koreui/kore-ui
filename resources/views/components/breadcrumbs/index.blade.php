@@ -5,7 +5,12 @@
     'size' => null,
     'maxItems' => null,
     'jsonLd' => null,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     // Resolve defaults from config
@@ -94,7 +99,7 @@
                 <button
                     type="button"
                     x-on:click="expanded = true"
-                    class="flex items-center text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded px-1 transition-colors"
+                    class="flex items-center text-kore-muted-fg hover:text-kore-fg hover:bg-kore-muted rounded-kore-sm px-1 kore-transition kore-focus"
                     aria-label="{{ config('kore-ui.ui.translations.breadcrumb_expand', 'Mostrar los pasos ocultos') }}"
                 >
                     <x-lucide-ellipsis class="{{ $s['icon'] }}" />

@@ -21,7 +21,12 @@
     'readonly' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $config = config('kore-ui.form.editor', []);
@@ -110,15 +115,14 @@
     ];
 
     $marcoClases = collect([
-        'rounded-kore-md border bg-kore-bg transition-colors',
-        'focus-within:ring-2',
+        'kore-control',
         $hasError
-            ? 'border-kore-destructive focus-within:ring-kore-destructive/30 focus-within:border-kore-destructive'
-            : 'border-kore-input focus-within:ring-kore-ring focus-within:border-kore-primary',
+            ? 'kore-invalid'
+            : '',
         $disabled ? 'opacity-50 cursor-not-allowed' : '',
     ])->filter()->implode(' ');
 
-    $botonClases = 'inline-flex shrink-0 items-center justify-center size-8 rounded-kore-sm text-kore-muted-fg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kore-ring disabled:cursor-not-allowed';
+    $botonClases = 'inline-flex shrink-0 items-center justify-center size-8 rounded-kore-sm text-kore-muted-fg kore-transition kore-focus disabled:cursor-not-allowed';
 
     $jsConfig = json_encode(array_filter([
         'markdown' => $markdown ?: null,
@@ -286,7 +290,7 @@
             <div class="flex justify-end border-t border-kore-border px-3 py-1">
                 <span
                     class="text-xs tabular-nums text-kore-muted-fg"
-                    x-bind:class="{{ $maxlength ? 'caracteres > ' . (int) $maxlength . ' ? \'text-kore-destructive\' : \'\'' : "''" }}"
+                    x-bind:class="{{ $maxlength ? 'caracteres > ' . (int) $maxlength . ' ? \'text-kore-destructive-text\' : \'\'' : "''" }}"
                     aria-live="polite"
                 >
                     <span x-text="caracteres">0</span>@if($maxlength) / {{ (int) $maxlength }}@endif
@@ -313,13 +317,13 @@
                 <div class="h-1 flex-1 overflow-hidden rounded-full bg-kore-muted" role="progressbar"
                      x-bind:aria-valuenow="progresoImagen" aria-valuemin="0" aria-valuemax="100"
                      x-bind:aria-label="@js($tr('image_uploading', 'Subiendo imagen…'))">
-                    <div class="h-full bg-kore-primary transition-[width] duration-150" x-bind:style="`width: ${progresoImagen}%`"></div>
+                    <div class="h-full bg-kore-primary transition-[width] kore-duration-fast" x-bind:style="`width: ${progresoImagen}%`"></div>
                 </div>
                 <span class="text-xs tabular-nums text-kore-muted-fg shrink-0" x-text="`${progresoImagen}%`"></span>
             </div>
 
             <p x-show="errorImagen" x-cloak role="alert"
-               class="border-t border-kore-border px-3 py-1.5 text-xs text-kore-destructive" x-text="errorImagen"></p>
+               class="border-t border-kore-border px-3 py-1.5 text-xs text-kore-destructive-text" x-text="errorImagen"></p>
         @endif
 
         {{-- El diálogo del enlace. Vive dentro del componente y no en un overlay
@@ -341,7 +345,7 @@
                 x-model="urlEnlace"
                 x-on:keydown.enter.prevent="aplicarEnlace()"
                 placeholder="{{ $tr('url_placeholder', 'https://') }}"
-                class="flex-1 basis-40 min-w-0 rounded-kore-sm border border-kore-input bg-kore-bg px-2 py-1 text-sm text-kore-fg outline-none focus:ring-2 focus:ring-kore-ring"
+                class="flex-1 basis-40 min-w-0 rounded-kore-sm border border-kore-input bg-kore-bg px-2 py-1 text-sm text-kore-fg kore-focus"
             />
             <button type="button" x-on:click="aplicarEnlace()" class="rounded-kore-sm bg-kore-primary px-3 py-1.5 text-xs font-medium text-kore-primary-fg min-h-6">
                 {{ $tr('apply', 'Aplicar') }}

@@ -14,7 +14,12 @@
     'readonly' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $size = $size ?? config('kore-ui.form.size', 'md');
@@ -37,9 +42,9 @@
     $fieldId = $attributes->get('id', \KoreUi\Core\Support\IdContext::para($name));
 
     $sizeClasses = match($size) {
-        'sm' => 'text-xs py-1 px-2',
-        'lg' => 'text-base py-2.5 px-3',
-        default => 'text-sm py-1.5 px-2.5',
+        'sm' => 'text-xs py-0.5 px-2 min-h-(--kore-control-sm)',
+        'lg' => 'text-base py-1.5 px-3 min-h-(--kore-control-lg)',
+        default => 'text-sm py-1 px-2.5 min-h-(--kore-control-md)',
     };
 
     $chipSize = match($size) {
@@ -57,8 +62,8 @@
     $wireModelAttr = $attributes->whereStartsWith('wire:model');
 
     $borderClasses = $hasError
-        ? 'border-kore-destructive focus-within:ring-kore-destructive/30 focus-within:border-kore-destructive'
-        : 'border-kore-input focus-within:ring-kore-ring focus-within:border-kore-primary';
+        ? 'kore-invalid'
+        : '';
 
     $jsConfig = json_encode(array_filter([
         'separator' => $separator !== ',' ? $separator : null,
@@ -95,7 +100,7 @@
         x-data="KoreTagInput({{ $jsConfig }})"
         wire:ignore
         @if($readonly) aria-readonly="true" @endif
-        {{ $atributosRaiz->merge(['class' => 'flex flex-wrap items-center gap-1.5 rounded-kore-md border ' . $borderClasses . ' focus-within:ring-2 bg-kore-bg ' . $sizeClasses . ' ' . ($disabled ? 'opacity-50 cursor-not-allowed' : '')]) }}
+        {{ $atributosRaiz->merge(['class' => 'flex flex-wrap items-center gap-1.5 kore-control cursor-text ' . $borderClasses . ' ' . $sizeClasses . ' ' . ($disabled ? 'opacity-50 cursor-not-allowed' : '')]) }}
         x-on:click="$refs.textInput.focus()"
     >
         {{-- Hidden input for wire:model --}}
@@ -115,7 +120,7 @@
                         type="button"
                         x-on:click.stop="removeTag(index)"
                         x-bind:aria-label="@js(config('kore-ui.form.translations.remove_tag', 'Quitar etiqueta')) + ': ' + tag"
-                        class="text-kore-primary/60 hover:text-kore-primary transition-colors"
+                        class="text-kore-primary/60 hover:text-kore-primary-text kore-transition"
                     >
                         <x-lucide-x class="{{ $iconSize }}" />
                     </button>
@@ -128,7 +133,7 @@
             type="text"
             x-ref="textInput"
             id="{{ $fieldId }}"
-            class="flex-1 min-w-[80px] bg-transparent border-0 outline-none focus:ring-0 p-0 text-kore-fg placeholder:text-kore-muted-fg {{ match($size) { 'sm' => 'text-xs', 'lg' => 'text-base', default => 'text-sm' } }}"
+            class="flex-1 min-w-[80px] bg-transparent border-0 outline-none p-0 text-kore-fg placeholder:text-kore-muted-fg {{ match($size) { 'sm' => 'text-xs', 'lg' => 'text-base', default => 'text-sm' } }}"
             @if($placeholder) placeholder="{{ $placeholder }}" @endif
             @if($disabled) disabled @endif
             @if($readonly) readonly @endif
@@ -149,7 +154,7 @@
                 x-cloak
                 x-on:click.stop="clearAll()"
                 aria-label="{{ config('kore-ui.form.translations.clear', 'Limpiar') }}"
-                class="ml-auto text-kore-muted-fg hover:text-kore-fg transition-colors shrink-0"
+                class="ml-auto text-kore-muted-fg hover:text-kore-fg kore-transition shrink-0"
             >
                 <x-lucide-x class="{{ $iconSize }}" />
             </button>

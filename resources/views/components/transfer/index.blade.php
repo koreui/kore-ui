@@ -10,7 +10,12 @@
     'readonly' => false,
     'required' => false,
     'showError' => true,
+    // `false` apaga las transiciones de este componente y de su panel. Ver
+    // KoreUi\Core\Support\Motion.
+    'animated' => null,
 ])
+
+@php $attributes = \KoreUi\Core\Support\Motion::marcar($attributes, $animated); @endphp
 
 @php
     $searchable = $searchable ?? config('kore-ui.ui.transfer.searchable', true);
@@ -50,9 +55,9 @@
     $tElegir = config('kore-ui.ui.translations.transfer_select', 'Elegir :item');
 
     $panelClass = 'flex flex-col rounded-kore-lg border border-kore-border bg-kore-surface overflow-hidden';
-    $searchClass = 'w-full border-0 border-b border-kore-border bg-transparent px-3 py-2 text-sm text-kore-fg placeholder:text-kore-muted-fg focus:ring-0 outline-none';
-    $rowClass = 'flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-kore-muted/50 transition-colors';
-    $moveBtnClass = 'inline-flex items-center justify-center size-8 rounded-kore-md border border-kore-border text-kore-muted-fg enabled:hover:bg-kore-muted enabled:hover:text-kore-fg disabled:opacity-40 disabled:cursor-not-allowed transition-colors';
+    $searchClass = 'w-full border-0 border-b border-kore-border bg-transparent px-3 py-2 text-sm text-kore-fg placeholder:text-kore-muted-fg outline-none kore-transition focus:border-kore-ring';
+    $rowClass = 'flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-kore-muted/50 kore-transition';
+    $moveBtnClass = 'inline-flex items-center justify-center size-8 rounded-kore-md border border-kore-border text-kore-muted-fg enabled:hover:bg-kore-muted enabled:hover:text-kore-fg disabled:opacity-40 disabled:cursor-not-allowed kore-transition';
     // Solo lectura: las dos listas se leen y se buscan —buscar no es editar—,
     // pero no se marca ni se mueve nada. Los cuatro botones del centro se apagan
     // y las filas dejan de responder al clic.
@@ -102,12 +107,12 @@
                         <input type="checkbox" :checked="isChecked('source', item.value)"
                                @if($edicionBloqueada) disabled @endif
                                :aria-label="@js($tElegir).replace(':item', item.label)"
-                               class="pointer-events-none rounded-kore-sm border-kore-input text-kore-primary" />
+                               class="pointer-events-none size-4 kore-checkmark" />
                         <span class="text-kore-fg" x-text="item.label"></span>
                     </li>
                 </template>
                 <template x-if="sourceItems.length === 0">
-                    <li class="px-3 py-4 text-center text-xs text-kore-muted-fg">Sin elementos</li>
+                    <li class="px-3 py-4 text-center text-xs text-kore-muted-fg">{{ config('kore-ui.ui.translations.transfer_empty', 'Sin elementos') }}</li>
                 </template>
             </ul>
         </div>
@@ -145,12 +150,12 @@
                         <input type="checkbox" :checked="isChecked('target', item.value)"
                                @if($edicionBloqueada) disabled @endif
                                :aria-label="@js($tElegir).replace(':item', item.label)"
-                               class="pointer-events-none rounded-kore-sm border-kore-input text-kore-primary" />
+                               class="pointer-events-none size-4 kore-checkmark" />
                         <span class="text-kore-fg" x-text="item.label"></span>
                     </li>
                 </template>
                 <template x-if="targetItems.length === 0">
-                    <li class="px-3 py-4 text-center text-xs text-kore-muted-fg">Sin elementos</li>
+                    <li class="px-3 py-4 text-center text-xs text-kore-muted-fg">{{ config('kore-ui.ui.translations.transfer_empty', 'Sin elementos') }}</li>
                 </template>
             </ul>
         </div>

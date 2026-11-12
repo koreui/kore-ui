@@ -27,7 +27,7 @@ it('renders without border', function () {
 
 it('renders shadow by default', function () {
     $view = $this->blade('<x-kore::card>Content</x-kore::card>');
-    $view->assertSee('shadow-sm', false);
+    $view->assertSee('shadow-kore-sm', false);
 });
 
 it('renders as link when href provided', function () {

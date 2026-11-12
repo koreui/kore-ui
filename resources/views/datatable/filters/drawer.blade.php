@@ -16,7 +16,7 @@
         <button
             type="button"
             x-on:click="filtersOpen = true"
-            class="inline-flex items-center gap-1.5 rounded-kore-md border border-kore-input bg-kore-bg px-3 py-1.5 text-sm text-kore-fg hover:bg-kore-muted transition-colors"
+            class="kore-tool"
         >
             <x-lucide-filter class="size-4" />
             <span>{{ $translations['filters'] ?? 'Filtros' }}</span>
@@ -39,16 +39,10 @@
             <div
                 data-kore-teleport
                 x-show="filtersOpen"
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
                 x-on:click="filtersOpen = false"
                 x-cloak
                 aria-hidden="true"
-                class="fixed inset-0 z-[60] bg-black/30 backdrop-blur-[1px]"
+                class="kore-fade fixed inset-0 z-[60] bg-kore-backdrop/40 backdrop-blur-[1px]"
             ></div>
         </template>
 
@@ -69,14 +63,8 @@
                 x-on:keydown.escape="if (filtersOpen) { $event.preventDefault(); filtersOpen = false }"
                 x-kore-trap="filtersOpen"
                 x-show="filtersOpen"
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="translate-x-full"
-                x-transition:enter-end="translate-x-0"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="translate-x-0"
-                x-transition:leave-end="translate-x-full"
                 x-cloak
-                class="fixed inset-y-0 right-0 z-[61] w-full sm:max-w-sm bg-kore-surface border-l border-kore-border shadow-xl flex flex-col"
+                class="kore-drawer fixed inset-y-0 right-0 z-[61] w-full sm:max-w-sm bg-kore-surface border-l border-kore-border shadow-kore-xl flex flex-col"
             >
                 {{-- Header --}}
                 <div class="flex items-center justify-between px-5 py-4 border-b border-kore-border">
@@ -87,7 +75,7 @@
                         type="button"
                         x-on:click="filtersOpen = false"
                         aria-label="{{ $translations['close'] ?? 'Cerrar' }}"
-                        class="text-kore-muted-fg hover:text-kore-fg transition-colors"
+                        class="text-kore-muted-fg hover:text-kore-fg kore-transition"
                     >
                         <x-lucide-x class="size-5" />
                     </button>
@@ -103,7 +91,7 @@
                     <button
                         type="button"
                         x-on:click="$wire.resetAllFilters()"
-                        class="flex-1 inline-flex items-center justify-center gap-1.5 rounded-kore-md border border-kore-input bg-kore-bg px-3 py-2 text-sm text-kore-fg hover:bg-kore-muted transition-colors"
+                        class="flex-1 kore-tool min-h-(--kore-control-md)"
                     >
                         <x-lucide-filter-x class="size-4" />
                         {{ $translations['clear_filters'] ?? 'Limpiar filtros' }}
@@ -111,7 +99,7 @@
                     <button
                         type="button"
                         x-on:click="filtersOpen = false"
-                        class="flex-1 inline-flex items-center justify-center rounded-kore-md bg-kore-primary px-3 py-2 text-sm font-medium text-kore-primary-fg hover:bg-kore-primary/90 transition-colors"
+                        class="flex-1 inline-flex items-center justify-center rounded-kore-md bg-kore-primary px-3 py-2 text-sm font-medium text-kore-primary-fg hover:bg-kore-primary/90 kore-transition"
                     >
                         {{ $translations['apply'] ?? 'Aplicar' }}
                     </button>

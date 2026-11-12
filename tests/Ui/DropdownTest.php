@@ -43,7 +43,7 @@ it('renders separator', function () {
 it('renders header', function () {
     $view = $this->blade('<x-kore::dropdown.header label="Actions" />');
     $view->assertSee('Actions')
-        ->assertSee('uppercase', false);
+        ->assertSee('text-kore-muted-fg', false);
 });
 
 it('renders item with description', function () {

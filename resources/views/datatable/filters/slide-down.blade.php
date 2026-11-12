@@ -9,7 +9,7 @@
     <button
         type="button"
         x-on:click="slideDownOpen = !slideDownOpen"
-        class="inline-flex items-center gap-1.5 rounded-kore-md border border-kore-input bg-kore-bg px-3 py-1.5 text-sm text-kore-fg hover:bg-kore-muted transition-colors"
+        class="kore-tool"
     >
         <x-lucide-filter class="size-4" />
         <span>{{ $translations['filters'] ?? 'Filtros' }}</span>
@@ -19,7 +19,7 @@
             >{{ $filterCount }}</span>
         @endif
         <x-lucide-chevron-down
-            class="size-4 transition-transform duration-200"
+            class="size-4 kore-transition-base"
             x-bind:class="slideDownOpen ? 'rotate-180' : ''"
         />
     </button>

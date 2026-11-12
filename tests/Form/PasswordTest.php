@@ -31,7 +31,7 @@ it('shows error from errors bag', function () {
     $view = $this->blade('<x-kore::password label="Password" name="password" />');
 
     $view->assertSee('Password is too short')
-        ->assertSee('border-kore-destructive', false);
+        ->assertSee('kore-invalid', false);
 });
 
 it('does not render strength meter by default', function () {

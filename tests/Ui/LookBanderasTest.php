@@ -58,7 +58,7 @@ it('apaga las sombras de toda la librería de una vez', function () {
     config()->set('kore-ui.ui.look.shadow', false);
 
     $this->blade('<x-kore::card title="Con marco">x</x-kore::card>')
-        ->assertDontSee('shadow-sm', false);
+        ->assertDontSee('shadow-kore-sm', false);
 });
 
 it('y la sección del componente puede devolvérselas a uno', function () {
@@ -66,7 +66,7 @@ it('y la sección del componente puede devolvérselas a uno', function () {
     config()->set('kore-ui.ui.stats.shadow', true);
 
     $this->blade('<x-kore::stats label="Ingresos" value="1" />')
-        ->assertSee('shadow-sm', false);
+        ->assertSee('shadow-kore-sm', false);
 });
 
 it('el borde de la tabla ya no es un interruptor que no enciende nada', function () {
