@@ -83,6 +83,16 @@ export function startFloating(reference, floating, opts = {}) {
         const contexto = reference.closest?.('[data-kore-motion]');
         if (contexto) floating.dataset.koreMotion = contexto.dataset.koreMotion;
         else delete floating.dataset.koreMotion;
+
+        // Marcarlo no basta la PRIMERA vez que se abre. Para cuando se llega
+        // aquí el panel ya es visible y su transición de entrada ha empezado
+        // con la duración de siempre; poner después los tokens a cero no
+        // detiene una transición en curso. Medido: a los 60 ms seguía al 89 %
+        // de opacidad dentro de un contenedor marcado como «off». Se termina de
+        // golpe lo que esté corriendo.
+        if (floating.dataset.koreMotion === 'off') {
+            floating.getAnimations?.().forEach((animacion) => animacion.finish?.());
+        }
     }
 
     floating.style.position = 'fixed';

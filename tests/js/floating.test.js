@@ -161,4 +161,26 @@ describe('el panel hereda el movimiento de su disparador', () => {
         expect(() => startFloating(punto, panel)).not.toThrow();
         expect(panel.dataset.koreMotion).toBeUndefined();
     });
+
+    it('termina de golpe la transición de entrada que ya había empezado', () => {
+        // El panel se hace visible ANTES de pasar por aquí: marcarlo «off» no
+        // para una transición en curso, hay que acabarla.
+        const [disparador, panel] = montar('<section data-kore-motion="off"><button id="disparador"></button></section>');
+        const terminar = vi.fn();
+        panel.getAnimations = () => [{ finish: terminar }, { finish: terminar }];
+
+        startFloating(disparador, panel);
+
+        expect(terminar).toHaveBeenCalledTimes(2);
+    });
+
+    it('y no toca las animaciones de un panel que sí se anima', () => {
+        const [disparador, panel] = montar('<section><button id="disparador"></button></section>');
+        const terminar = vi.fn();
+        panel.getAnimations = () => [{ finish: terminar }];
+
+        startFloating(disparador, panel);
+
+        expect(terminar).not.toHaveBeenCalled();
+    });
 });
