@@ -27,6 +27,7 @@ Tag/chips input with keyboard support, paste handling, max limit, custom separat
 | `readonly` | bool | false | No añade ni quita etiquetas; el valor se envía |
 | `required` | `bool` | `false` | Required indicator |
 | `show-error` | `bool` | `true` | Show validation errors |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## wire:model
 

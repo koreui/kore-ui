@@ -30,6 +30,7 @@ Valoración con estrellas: medias estrellas, modo de solo lectura y `wire:model`
 | `disabled` | `bool` | `false` | Desactivado |
 | `required` | `bool` | `false` | Obligatorio, con asterisco |
 | `showError` | `bool` | `true` | Pinta los errores de validación. A `false` calla **todos**: ni el bag `$errors` ni un `error` escrito a mano |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## wire:model
 

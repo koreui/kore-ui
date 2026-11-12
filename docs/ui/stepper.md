@@ -26,6 +26,7 @@ Indicador de pasos para flujos multi-etapa como wizards, formularios y procesos.
 |------|------|---------|-------------|
 | `selected` | `string\|null` | `null` | ID del paso activo inicial |
 | `skeleton` | `bool\|int` | `false` | Silueta mientras no hay pasos; el entero elige cuántos. Ver [skeleton](skeleton.md#siluetas-de-componente) |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 Sin `selected`, el paso activo es **el primero**. Los que van detrás quedan como `pending` y los que quedan atrás, como `complete`.
 | `linear` | `bool` | `false` | Fuerza navegación secuencial (no permite saltar pasos) |

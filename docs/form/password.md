@@ -26,6 +26,7 @@ Campo de contraseña con botón para verla, y un medidor de fuerza opcional.
 | `readonly` | `bool` | `false` | Se lee y se envía, pero no se edita |
 | `required` | `bool` | `false` | Obligatorio, con asterisco |
 | `showError` | `bool` | `true` | Pinta los errores de validación. A `false` calla **todos**: ni el bag `$errors` ni un `error` escrito a mano |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Con icono
 

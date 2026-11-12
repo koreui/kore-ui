@@ -21,6 +21,7 @@ Componente de alerta con soporte para tipos, variantes, iconos automáticos, cie
 | `closeable` | `bool` | `false` | Muestra botón de cierre |
 | `timeout` | `int\|null` | `null` | Auto-dismiss en segundos |
 | `showIcon` | `bool` | `true` | Mostrar/ocultar icono |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Tipos
 

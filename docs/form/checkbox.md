@@ -25,6 +25,7 @@ estado indeterminado.
 | `name` | `string\|null` | `null` | Nombre. Si falta se deduce del `wire:model` |
 | `error` | `string\|null` | `null` | Mensaje de error manual |
 | `showError` | `bool` | `true` | Pinta los errores de validación. A `false` calla **todos**: ni el bag `$errors` ni un `error` escrito a mano |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Indeterminado
 

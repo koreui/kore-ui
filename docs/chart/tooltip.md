@@ -17,6 +17,7 @@ El tooltip y el crosshair.
 |---|---|---|---|
 | `crosshair` | `bool` | `true` | La línea vertical que sigue al puntero |
 | `show` | `bool` | `true` | `:show="false"` **no lo esconde: no emite el payload**. Ver abajo |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Cómo funciona
 

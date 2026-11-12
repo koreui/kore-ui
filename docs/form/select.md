@@ -44,6 +44,7 @@ The most feature-rich component: native/custom, searchable, multi-select with ch
 | `readonly` | bool | false | No abre el panel; el valor se envía. Ver [getting-started](getting-started.md#disabled-y-readonly) |
 | `required` | bool | false | Required indicator |
 | `showError` | bool | true | Auto-detect errors |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Options Format
 

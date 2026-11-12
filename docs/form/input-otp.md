@@ -25,6 +25,7 @@ One-time password input with auto-advance, paste support, numeric/masked modes, 
 | `readonly` | bool | false | Casillas no editables; el valor se envía |
 | `required` | bool | false | Required indicator |
 | `showError` | bool | true | Auto-detect errors |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Numeric
 

@@ -26,6 +26,7 @@ Component for switching between light, dark, and system themes. Three variants i
 | `darkLabel` | `string\|null` | `Oscuro` | Nombre del modo oscuro |
 | `systemLabel` | `string\|null` | `Sistema` | Nombre del modo sistema |
 | `ariaLabel` | `string\|null` | `Tema` | Nombre accesible del control. **No lo usa la variante `toggle`** (ver abajo) |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 Los cuatro últimos salen de `kore-ui.ui.translations` cuando no se pasan:
 `theme_light`, `theme_dark`, `theme_system` y `theme`.

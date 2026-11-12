@@ -37,6 +37,7 @@ Componente Blade estatico para tablas simples. Recibe arrays o collections y ren
 | `captionHidden` | `bool` | `false` | Deja el caption solo para lectores de pantalla |
 | `skeleton` | `bool\|int` | `false` | Silueta mientras no hay filas; el entero elige cuántas, y las columnas salen de `:headers`. Ver [skeleton](../ui/skeleton.md#siluetas-de-componente) |
 | `shadow` | `bool\|null` | `null` | Sombra de la superficie. Ver [aspecto](../ui/look.md) |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ### Nombrar la tabla
 

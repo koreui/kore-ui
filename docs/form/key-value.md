@@ -33,6 +33,7 @@ public array $meta = ['env' => 'production'];
 | `readonly` | bool | false | No añade, borra ni reordena pares; el valor se envía |
 | `required` | `bool` | `false` | Marca el campo como obligatorio |
 | `showError` | `bool` | `true` | Pinta los errores de validación. A `false` calla **todos**: ni el bag `$errors` ni un `error` escrito a mano |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Reordenable
 

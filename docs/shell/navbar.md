@@ -23,6 +23,7 @@ Va en el slot `navbar` del [shell](shell.md), que la coloca sobre el contenido (
 | `bordered` | `bool` | `true` | Borde inferior |
 | `toggle` | `bool` | `true` | Incluir el botón de menú |
 | `toggleFor` | `string` | `'main'` | A qué sidebar controla ese botón |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Slots
 

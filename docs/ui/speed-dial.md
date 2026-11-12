@@ -22,6 +22,7 @@ Botón de acción flotante (FAB) con menú expandible de acciones rápidas.
 | `items` | `array` | `[]` | Acciones del menú |
 | `color` | `string` | `primary` | Color del FAB: `primary`, `secondary`, `destructive` |
 | `size` | `string` | `md` | Tamaño: `sm`, `md`, `lg` |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Estructura de items
 

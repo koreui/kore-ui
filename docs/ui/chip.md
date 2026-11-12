@@ -21,6 +21,7 @@ Elemento compacto para representar etiquetas, filtros o selecciones.
 | `color` | `string` | `muted` | Color: `primary`, `success`, `warning`, `destructive`, `info`, `muted` |
 | `size` | `string` | `md` | Tamaño: `sm`, `md` |
 | `variant` | `string` | `soft` | Variante: `soft`, `solid`, `outline` |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Variantes
 

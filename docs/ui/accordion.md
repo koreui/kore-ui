@@ -22,6 +22,7 @@ Paneles colapsables para organizar contenido en secciones expandibles. Usa Alpin
 |------|------|---------|-------------|
 | `multiple` | `bool` | `false` | Permite abrir múltiples ítems a la vez |
 | `variant` | `string` | `bordered` | Variante visual: `bordered`, `flush`, `separated` |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Props de item
 

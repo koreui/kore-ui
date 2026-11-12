@@ -25,6 +25,7 @@ Switch toggle with on/off labels, sizes, and label position.
 | `name` | string | null | Name for error detection |
 | `error` | string | null | Manual error |
 | `showError` | bool | true | Auto-detect errors |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## On/Off Labels
 

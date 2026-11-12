@@ -44,6 +44,7 @@ Full-featured date selection: single, range, multiple modes with calendar naviga
 | `helpers` | bool | false | Show Ayer/Hoy/Mañana buttons (single mode). Labels: `form.translations.date_*` |
 | `manualInput` | bool | false | Allow typing the date: `YYYY-MM-DD` or `DD/MM/YYYY` (also with `-` or `.`). Enter applies what was typed; an invalid date selects nothing |
 | `requiresConfirmation` | bool | false | Apply/Cancel buttons, selection doesn't commit until confirmed |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Configuration
 

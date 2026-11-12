@@ -45,6 +45,7 @@ Cada entrada de `fields` define una columna de la fila:
 | `addLabel` | `string` | `Añadir` | Texto del botón de añadir |
 | `reorderable` | `bool` | `false` | Reordenar arrastrando (`x-sort`) |
 | `default` | `array` | `[]` | Filas iniciales si el modelo llega vacío |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Con select y límite
 

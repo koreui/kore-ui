@@ -61,6 +61,16 @@ Para dejarla como estaba:
 'ui' => ['stats' => ['shadow' => false]],
 ```
 
+### Otros cambios de aspecto que conviene conocer
+
+- **Cabeceras sin mayúsculas.** Las de tabla, datatable, menús y grupos del sidebar van en caja normal. Quien las quiera como antes puede añadir `uppercase tracking-wider` con su propia clase.
+- **Sidebar.** Solo el item de la página actual lleva fondo y barra lateral; los grupos que lo contienen se encienden en el texto.
+- **Paginación.** La página actual es un control con borde, no un bloque de color primario. La tabla normal (`<x-kore::table :paginator>`) pinta su propio pie, con la misma ventana de páginas que el datatable; ya no usa la vista de paginación del framework.
+- **Datatable vacío.** El pie dice «Sin resultados» en vez de «Mostrando 0 a 0 de 0 resultados» (clave `datatable.translations.showing_none`).
+- **Splitter.** La barra es una línea de un píxel. Su aspecto está en `.kore-splitter-gutter`; si lo cambiabas escribiendo sobre `element.style`, ahora se hace con CSS.
+- **Listas reordenables.** Sortable, order-list y repeater usan `kore-row` y `kore-grip`. Si publicaste esas vistas, compáralas con las nuevas.
+- **Editor.** Abre con el contenido de `wire:model` (antes salía en blanco al editar) y respeta `min-height`, así que el área de escritura es más alta que en 2.x: 12 rem por defecto.
+
 ## Configuración nueva
 
 ```php

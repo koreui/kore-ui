@@ -43,6 +43,7 @@ File upload with drag & drop, real-time progress via Livewire, client-side valid
 | `maxRetries` | int | 3 | Maximum retry attempts per file |
 | `retryDelay` | int | 2000 | Delay in ms between retries |
 | `capture` | string | null | Camera capture mode: `'user'` (front) or `'environment'` (rear) |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Configuration
 

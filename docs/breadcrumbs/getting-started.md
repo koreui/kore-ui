@@ -35,6 +35,7 @@ Sistema de navegacion jerarquica con componente Blade visual y sistema de regist
 | `size` | string | `'md'` | Tamano: `xs`, `sm`, `md`, `lg` |
 | `max-items` | int\|null | `null` | Maximo visible. Si hay mas, colapsa con ellipsis |
 | `json-ld` | bool | `false` | Genera JSON-LD structured data para SEO |
+| `animated` | bool\|null | `null` | `false` apaga las transiciones del componente. Ver [movimiento](../theme/motion.md) |
 
 ---
 

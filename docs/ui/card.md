@@ -28,6 +28,7 @@ Contenedor con header, body, footer, imágenes, modo colapsable y estado de load
 | `shadow` | `bool\|null` | `null` | Sombra. Ver [aspecto](look.md) |
 | `padding` | `bool\|null` | `null` | Relleno interior. Ver [aspecto](look.md) |
 | `skeleton` | `bool\|int` | `false` | Silueta mientras no hay datos; el entero elige las líneas del cuerpo. Ver [skeleton](skeleton.md#siluetas-de-componente) |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Slots
 

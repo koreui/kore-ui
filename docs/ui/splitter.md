@@ -22,6 +22,7 @@ Paneles redimensionables con separador draggable. Soporta orientación horizonta
 | `orientation` | `string` | `config(horizontal)` | Orientación: `horizontal`, `vertical` |
 | `gutterSize` | `int` | `config(8)` | Ancho del separador en px |
 | `stateKey` | `string\|null` | `null` | Clave para persistir tamaños en localStorage |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Props del panel
 

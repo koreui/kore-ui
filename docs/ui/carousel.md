@@ -25,6 +25,7 @@ Componente de carrusel con navegación, indicadores, autoplay, swipe y soporte m
 | `numVisible` | `int` | `config(1)` | Slides visibles simultáneamente |
 | `gap` | `int` | `config(16)` | Espacio entre slides en px |
 | `ariaLabel` | `string\|null` | `config(Carrusel)` | Nombre de la región. Ponlo cuando haya varios carruseles en la misma página |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Autoplay
 

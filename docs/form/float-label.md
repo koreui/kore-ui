@@ -21,6 +21,7 @@ el envoltorio.
 |------|------|---------|-------------|
 | `label` | `string\|null` | `null` | El texto de la etiqueta flotante |
 | `variant` | `string` | `over` | Variante: `over`, `in`, `on` |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Variantes
 

@@ -25,6 +25,7 @@ Componente de árbol jerárquico con expand/collapse, selección, filtrado y mú
 | `filter` | `bool` | `false` | Mostrar campo de filtro |
 | `filterPlaceholder` | `string` | `Filter...` | Placeholder del filtro, y nombre accesible del campo |
 | `ariaLabel` | `string\|null` | `config` | Nombre del árbol, para distinguir varios en la misma página |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Teclado
 

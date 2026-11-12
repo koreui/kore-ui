@@ -17,6 +17,7 @@ Componente para copiar texto al portapapeles con feedback visual.
 | `label` | `string\|null` | `null` | Etiqueta (solo variante `input`) |
 | `secret` | `bool` | `false` | Oculta el texto (password/dots) |
 | `feedbackDuration` | `int` | `2000` | Duración del feedback en ms |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Variantes
 

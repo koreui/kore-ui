@@ -21,6 +21,7 @@ Un botón de opción. Para varios, ver [radio-group](radio-group.md).
 | `name` | `string\|null` | `null` | Nombre del grupo. Si falta se deduce del `wire:model` |
 | `error` | `string\|null` | `null` | Mensaje de error manual |
 | `showError` | `bool` | `true` | Pinta los errores de validación. A `false` calla **todos**: ni el bag `$errors` ni un `error` escrito a mano |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 El `id` de cada opción lleva su `value` pegado (`kore-plan-pro`), que es lo que
 mantiene distintas a dos opciones del mismo grupo.

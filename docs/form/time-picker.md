@@ -26,6 +26,7 @@ Standalone time selection with spinner controls, 12/24 hour format, minute step,
 | `showError` | bool | true | Auto-detect errors from `$errors` bag |
 | `timeFormat` | string | `'24'` | Time format: `'24'` or `'12'` (AM/PM) |
 | `minuteStep` | int | 1 | Minute increment step |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## 12-hour Format
 

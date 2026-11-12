@@ -15,6 +15,7 @@ Agrupa varios `<x-kore::button>` en una sola pieza: redondea solo las esquinas e
 | Prop | Tipo | Default | Descripción |
 |------|------|---------|-------------|
 | `ariaLabel` | `string\|null` | `config(Acciones)` | Nombre del grupo |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Accesibilidad
 

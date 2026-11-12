@@ -25,6 +25,7 @@ Sistema de pestañas para organizar contenido en paneles con navegación. Usa Al
 | Prop | Tipo | Default | Descripción |
 |------|------|---------|-------------|
 | `selected` | `string\|null` | `null` | ID de la pestaña activa inicial |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 Sin `selected`, se abre **la primera pestaña habilitada**: un `<x-kore::tab>` nunca se queda con las pestañas pintadas y ningún panel debajo. Las deshabilitadas no pueden ser la inicial.
 | `variant` | `string` | `line` | Variante visual: `line`, `pill`, `enclosed` |

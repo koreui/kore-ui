@@ -27,6 +27,7 @@ no ata ningún valor; lo suyo es el nombre, la maquetación y el error.
 | `name` | `string\|null` | `null` | Nombre con el que buscar el error en el bag |
 | `required` | `bool` | `false` | Obligatorio, con asterisco |
 | `showError` | `bool` | `true` | Pinta los errores de validación. A `false` calla **todos**: ni el bag `$errors` ni un `error` escrito a mano |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## En línea
 

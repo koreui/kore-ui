@@ -36,6 +36,7 @@ Normalmente va dentro de un [`<x-kore::shell>`](shell.md), que es quien reserva 
 | `rail` | `bool` | `false` | Modo rail: solo iconos, se expande **sobre** el contenido al pasar el ratón |
 | `expandOnHover` | `bool` | `false` | Como rail, pero partiendo de expandido |
 | `ariaLabel` | `string\|null` | config `Navegación` | Nombre de la región de navegación. Sale de `kore-ui.ui.translations.sidebar` |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Qué heredan los items
 

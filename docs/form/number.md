@@ -25,6 +25,7 @@ Number input with increment/decrement controls and long-press support.
 | `readonly` | bool | false | Readonly state |
 | `required` | bool | false | Required indicator |
 | `showError` | bool | true | Auto-detect errors |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Custom Step
 

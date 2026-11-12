@@ -26,6 +26,7 @@ Botón versátil con soporte para variantes, colores, tamaños, iconos, estados 
 | `disabled` | `bool` | `false` | Estado deshabilitado |
 | `block` | `bool` | `false` | Ancho completo (`w-full`) |
 | `type` | `string` | `button` | Tipo HTML: `button`, `submit`, `reset` |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Variantes
 

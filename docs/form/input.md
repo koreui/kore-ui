@@ -28,6 +28,7 @@ Campo de texto con icono, adornos de prefijo y sufijo, botón de limpiar y
 | `readonly` | `bool` | `false` | Se lee y se envía, pero no se edita |
 | `required` | `bool` | `false` | Obligatorio, con asterisco en la etiqueta |
 | `showError` | `bool` | `true` | Pinta los errores de validación. A `false` calla **todos**: ni el bag `$errors` ni un `error` escrito a mano |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Iconos
 

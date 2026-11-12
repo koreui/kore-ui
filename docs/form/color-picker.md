@@ -32,6 +32,7 @@ Palette-based color picker with dropdown and inline modes, custom hex input, cle
 | `readonly` | bool | false | No abre la paleta; el valor se envía |
 | `required` | `bool` | `false` | Required indicator |
 | `show-error` | `bool` | `true` | Show validation errors |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## wire:model
 

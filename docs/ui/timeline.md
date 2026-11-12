@@ -21,6 +21,7 @@ Lista cronológica de eventos con marcadores, iconos y contenido personalizable.
 |------|------|---------|-------------|
 | `variant` | `string` | `left` | Layout: `left`, `right`, `alternate` |
 | `color` | `string` | `primary` | Color por defecto para marcadores |
+| `animated` | `bool\|null` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 ## Props del item
 

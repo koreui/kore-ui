@@ -150,6 +150,7 @@ Se puede subir de tres maneras, y las tres acaban en el mismo sitio:
 | `uploadMethod` | — | El método que guarda y devuelve la URL |
 | `uploadMimes` | `image/png, jpeg, gif, webp` | Tipos admitidos |
 | `uploadMaxSize` | `2048` | KB. Se comprueba en el navegador antes de gastar el viaje |
+| `animated` | `null` | `false` apaga las transiciones de este componente y de su panel. Ver [movimiento](../theme/motion.md) |
 
 El **texto alternativo** sale del nombre del archivo, sin extensión y con los
 guiones convertidos en espacios. No es una descripción, pero es infinitamente
