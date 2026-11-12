@@ -100,8 +100,26 @@ export default (config = {}) => ({
 
         const oculto = this.$refs.hiddenInput;
 
-        if (oculto?.value) {
-            this.$refs.editable.innerHTML = this.desdeElServidor(oculto.value);
+        // El nombre de la propiedad, con el modificador que lleve. Antes se
+        // buscaban cuatro atributos exactos (`wire:model`, `.live`, `.blur`,
+        // `.defer`), así que `wire:model.live.debounce.400ms` no se reconocía y
+        // el editor dejaba de enterarse de los cambios del servidor.
+        const modelo = oculto
+            ? [...oculto.attributes].find((a) => a.name === 'wire:model' || a.name.startsWith('wire:model.'))?.value
+            : null;
+
+        // El contenido con el que se abre. El campo oculto no basta: Livewire le
+        // pone su valor DESPUÉS de que Alpine arranque este componente, así que
+        // aquí todavía está vacío. Al editar un registro que ya tenía texto, el
+        // editor salía en blanco —y al guardar se perdía lo que había—. Se lee
+        // la propiedad directamente.
+        let inicial = oculto?.value || '';
+        if (!inicial && modelo && this.$wire) {
+            try { inicial = this.$wire.$get(modelo) ?? ''; } catch { inicial = ''; }
+        }
+
+        if (inicial) {
+            this.$refs.editable.innerHTML = this.desdeElServidor(inicial);
         }
 
         this.recontar();
@@ -110,11 +128,6 @@ export default (config = {}) => ({
         // formulario, otra pestaña—. El editable vive dentro de `wire:ignore`,
         // así que el morph no lo toca y hay que traerlo a mano.
         if (oculto && this.$wire) {
-            const modelo = oculto.getAttribute('wire:model.live')
-                || oculto.getAttribute('wire:model.blur')
-                || oculto.getAttribute('wire:model.defer')
-                || oculto.getAttribute('wire:model');
-
             if (modelo) {
                 this.$wire.$watch(modelo, (valor) => {
                     const nuevo = valor ?? '';

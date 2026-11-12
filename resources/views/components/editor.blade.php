@@ -5,6 +5,9 @@
     'error' => null,
     'placeholder' => null,
     'toolbar' => null,
+    // El contenido inicial cuando no hay `wire:model`: un formulario clásico, o
+    // el modo solo lectura.
+    'value' => null,
     'minHeight' => null,
     'maxHeight' => null,
     'maxlength' => null,
@@ -182,7 +185,8 @@
              porque un `contenteditable` no es un control de formulario: no tiene
              `value` que Livewire pueda leer. --}}
         <input type="hidden" x-ref="hiddenInput" {{ $attributes->whereStartsWith('wire:model') }}
-            @if($name) name="{{ $name }}" @endif />
+            @if($name) name="{{ $name }}" @endif
+            @if(filled($value)) value="{{ $value }}" @endif />
 
         @unless($edicionBloqueada)
             {{-- La barra es UNA sola parada del tabulador: se entra con Tab y se
@@ -200,7 +204,7 @@
                      una sola fila que se desplaza a lo ancho —el patrón de
                      cualquier aplicación móvil—, y a partir de `sm` vuelve a
                      envolverse, que en un escritorio es más cómodo que arrastrar. --}}
-                class="flex flex-nowrap overflow-x-auto sm:flex-wrap sm:overflow-x-visible items-center gap-0.5 border-b border-kore-border px-1.5 py-1"
+                class="flex flex-nowrap overflow-x-auto sm:flex-wrap sm:overflow-x-visible items-center gap-0.5 border-b border-kore-border bg-kore-muted/30 rounded-t-[inherit] px-1.5 py-1"
             >
                 @foreach($toolbar as $clave)
                     @if($clave === '|')
@@ -269,7 +273,11 @@
                 x-on:drop="alSoltar($event)"
                 x-bind:class="pantallaCompleta && 'flex-1'"
                 class="kore-prose px-3 py-2 text-sm text-kore-fg outline-none overflow-y-auto"
-                x-bind:style="pantallaCompleta ? 'min-height:0;max-height:none' : ''"
+                {{-- En OBJETO, no en cadena. Con una cadena Alpine reescribe el atributo
+                     `style` entero: la cadena vacía de «no estoy a pantalla completa»
+                     borraba el `min-height` de abajo y el área de escritura se quedaba
+                     en una línea, con cualquier `min-height` que se le pidiera. --}}
+                x-bind:style="pantallaCompleta ? { minHeight: '0', maxHeight: 'none' } : {}"
                 style="min-height: {{ $minHeight }};@if($maxHeight) max-height: {{ $maxHeight }};@endif"
             ></div>
 

@@ -144,3 +144,25 @@ it('el bundle del editor no viaja en el principal', function () {
 
     expect($principal)->not->toContain('KoreEditor');
 });
+
+it('lleva el contenido inicial en el campo oculto cuando no hay wire:model', function () {
+    // Sin `value`, un formulario clásico no tenía forma de abrir el editor con
+    // el texto que ya estaba guardado: la prop no existía y el atributo acababa
+    // en la raíz, donde no hace nada.
+    $this->blade('<x-kore::editor name="cuerpo" value="<p>Hola</p>" />')
+        ->assertSee('name="cuerpo"', false)
+        ->assertSee('value="&lt;p&gt;Hola&lt;/p&gt;"', false);
+});
+
+it('no escribe value si no se le da contenido', function () {
+    expect((string) $this->blade('<x-kore::editor name="cuerpo" />'))->not->toContain(' value=');
+});
+
+it('no borra la altura mínima con el estilo de pantalla completa', function () {
+    // En cadena, `x-bind:style` reescribe el atributo entero: la cadena vacía
+    // de «no estoy a pantalla completa» se llevaba el `min-height`.
+    $html = (string) $this->blade('<x-kore::editor min-height="9rem" />');
+
+    expect($html)->toContain('min-height: 9rem')
+        ->toContain("pantallaCompleta ? { minHeight: '0', maxHeight: 'none' } : {}");
+});
