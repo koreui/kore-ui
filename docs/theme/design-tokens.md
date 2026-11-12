@@ -94,6 +94,8 @@ Las plantillas de la librería nombran estas utilidades en vez de repetir sus re
 | `kore-press` | El elemento cede un poco al pulsarlo. |
 | `kore-option` | Fila de un menú o de una lista de opciones. |
 | `kore-tool` | Botón de barra de herramientas, de la altura de un control pequeño. |
+| `kore-row` | Fila reordenable (sortable, order-list, repeater): superficie, borde y la sombra corta de un campo. |
+| `kore-grip` | Asa de arrastre de 24 px, con fondo al pasar y foco visible. |
 | `kore-checkmark` · `kore-radiomark` | Casilla y radio nativos, redibujados. |
 
 ```blade

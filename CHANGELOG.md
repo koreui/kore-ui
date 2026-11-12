@@ -29,6 +29,7 @@ Rediseño de la librería. La API de los componentes no cambia; cambia el aspect
 - **Acordeón, stepper, empty-state, alert y subida:** el acordeón tiene superficie y sombra; el paso activo del stepper lleva halo y los conectores son más gruesos; el icono del estado vacío y el de la zona de subida van en una tesela con borde; el alert de contorno tiene fondo de superficie.
 - **Las pistas de `progress` y `range` usan `--kore-accent`**: con `--kore-muted` casi no se distinguían del fondo de página.
 - **Card, timeline, sidebar, toast, confirm y selector de hora.** El pie de la card lleva el fondo tenue del pie de la tabla. Los marcadores del timeline son un disco con el tinte de su color, no un aro. Las cabeceras de grupo del sidebar van sin mayúsculas y el item activo lleva una barra lateral. El icono del toast va en una tesela con el tinte de su tipo. Los botones del confirm usan el aspecto de `<x-kore::button>` y muestran el foco, que antes no se veía. Los dígitos del selector de hora van en teselas.
+- **Listas reordenables, árbol, splitter, toolbar, kanban y editor.** Sortable, order-list y repeater comparten fila (`kore-row`) y asa (`kore-grip`), con la sombra de un campo. El árbol dibuja guías de nivel y marca la selección en negrita. La barra del splitter es una línea de un píxel con una pastilla al pasar, y su aspecto vive en CSS (`.kore-splitter-gutter`) en vez de en `element.style`. La toolbar con borde lleva sombra, el contador de cada columna del kanban va en una pastilla y la barra del editor tiene fondo tenue. El tooltip de los gráficos usa la sombra de los demás paneles.
 
 ### Added
 
@@ -40,6 +41,10 @@ Rediseño de la librería. La API de los componentes no cambia; cambia el aspect
 
 ### Fixed
 
+- **El editor abría en blanco al editar un registro que ya tenía texto.** Leía el contenido inicial del campo oculto, y Livewire lo rellena después de que el editor arranque. Ahora lee la propiedad de `wire:model` directamente. Además, un `wire:model` con modificadores (`.live.debounce.400ms`) no se reconocía y el editor dejaba de recibir los cambios del servidor.
+- **`<x-kore::editor>` no tenía prop `value`**: sin `wire:model` no había forma de darle contenido inicial.
+- **El área de escritura del editor ignoraba `min-height`** y se quedaba en una línea: un `x-bind:style` en cadena reescribía el atributo `style` entero.
+- **En el sidebar, los grupos que contienen la página actual se pintaban como activos.** Con tres niveles abiertos había tres filas resaltadas. Ahora solo la página actual lleva fondo y barra; sus grupos se encienden solo en el texto.
 - **El recuento de `<x-kore::table.pagination>` decía «de 11tal resultados».** Sustituía con `str_replace`, que va en orden: `:to` se comía el principio de `:total`.
 - **El valor copiable de una celda del datatable salía centrado cuando ocupaba dos líneas**: es un `<button>`, que centra su texto por defecto.
 - **En un grupo de avatares, las iniciales del de atrás se leían a través del de delante**: el fondo es el color al veinte por ciento y no había nada opaco debajo.

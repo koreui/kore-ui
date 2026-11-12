@@ -230,6 +230,7 @@ uno hay que tocar el otro.
 | `error` | `string\|null` | `null` | Error manual |
 | `placeholder` | `string\|null` | config | Texto mientras está vacío |
 | `toolbar` | `array\|null` | config | Qué botones y en qué orden; `\|` es un separador |
+| `value` | `string\|null` | `null` | Contenido inicial cuando no hay `wire:model` (formulario clásico o solo lectura). Con `wire:model`, el editor abre con el valor de la propiedad |
 | `minHeight` | `string` | `12rem` | Alto mínimo del área de escritura |
 | `maxHeight` | `string\|null` | `null` | Alto máximo; a partir de ahí, scroll |
 | `maxlength` | `int\|null` | `null` | Límite de caracteres (cuenta texto, no marcado) |
