@@ -7,6 +7,12 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [3.0.1] — 2026-11-12
+
+### Fixed
+
+- **Dentro de un contenedor con `data-kore-motion="off"`, un panel teleportado seguía animando la primera vez que se abría.** El ajuste le llegaba al panel cuando su transición de entrada ya había empezado, y poner los tokens de duración a cero no detiene una transición en curso: a los 60 ms seguía al 89 % de opacidad. Afectaba a menús, selects, calendarios, selectores de hora y de color, y también a `:animated="false"`. Ahora se termina de golpe lo que esté corriendo.
+
 ## [3.0.0] — 2026-11-12
 
 Rediseño de la librería. La API de los componentes no cambia; cambia el aspecto por defecto. Guía: [docs/upgrade-3.0.md](docs/upgrade-3.0.md).
