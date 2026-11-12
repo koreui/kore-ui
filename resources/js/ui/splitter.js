@@ -89,8 +89,7 @@ export default (config = {}) => {
 
         if (idx !== null && gutterEls[idx]) {
             gutterEls[idx].releasePointerCapture(e.pointerId);
-            gutterEls[idx].style.background = 'var(--kore-border)';
-            gutterEls[idx].style.opacity = '';
+            delete gutterEls[idx].dataset.dragging;
         }
 
         document.body.style.cursor = '';
@@ -107,8 +106,7 @@ export default (config = {}) => {
         // Capture pointer to this gutter for reliable tracking
         gutterEls[index].setPointerCapture(e.pointerId);
 
-        gutterEls[index].style.background = 'var(--kore-primary)';
-        gutterEls[index].style.opacity = '0.7';
+        gutterEls[index].dataset.dragging = '';
 
         document.body.style.cursor = isHorizontal ? 'col-resize' : 'row-resize';
         document.body.style.userSelect = 'none';
@@ -153,11 +151,14 @@ export default (config = {}) => {
         for (let i = 0; i < panels.length - 1; i++) {
             const gutter = document.createElement('div');
 
-            gutter.style.flex = '0 0 ' + gutterSize + 'px';
-            gutter.style.background = 'var(--kore-border)';
-            gutter.style.transition = 'background 150ms, opacity 150ms';
-            gutter.style.cursor = isHorizontal ? 'col-resize' : 'row-resize';
-            gutter.style.touchAction = 'none';
+            // El aspecto es de la hoja de estilos (`.kore-splitter-gutter`): aquí
+            // solo va lo que es GEOMETRÍA, el tamaño de la zona de agarre, que
+            // entra en la cuenta de los paneles. Antes el color, la transición y
+            // el estado al pasar se escribían en `element.style`, y un tema no
+            // podía tocarlos.
+            gutter.className = 'kore-splitter-gutter';
+            gutter.dataset.koreSplitter = orientation;
+            gutter.style.flexBasis = gutterSize + 'px';
 
             gutter.setAttribute('role', 'separator');
             gutter.setAttribute('aria-orientation', orientation);
@@ -168,19 +169,6 @@ export default (config = {}) => {
             gutter.setAttribute('aria-label', resizeLabel);
             gutter.setAttribute('aria-valuemin', '0');
             gutter.setAttribute('aria-valuemax', '100');
-
-            gutter.addEventListener('mouseenter', () => {
-                if (dragging === null) {
-                    gutter.style.background = 'var(--kore-primary)';
-                    gutter.style.opacity = '0.5';
-                }
-            });
-            gutter.addEventListener('mouseleave', () => {
-                if (dragging === null) {
-                    gutter.style.background = 'var(--kore-border)';
-                    gutter.style.opacity = '';
-                }
-            });
 
             // Pointer events on gutter itself (with capture)
             const gutterIndex = i;

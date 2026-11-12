@@ -23,15 +23,15 @@
     };
 @endphp
 
-<div class="flex flex-col shrink-0 rounded-kore-lg bg-kore-muted/40 border border-kore-border" style="width: {{ $width }}">
-    <header class="flex items-center justify-between px-3 py-2.5 border-b border-kore-border">
+<div class="flex flex-col shrink-0 rounded-kore-lg bg-kore-muted/50 border border-kore-border" style="width: {{ $width }}">
+    <header class="flex items-center justify-between px-3 pt-3 pb-1">
         <div class="flex items-center gap-2">
             @if($color)
                 <span class="size-2 rounded-full {{ $dotClass }}"></span>
             @endif
             <span class="text-sm font-medium text-kore-fg">{{ $column['label'] ?? $columnId }}</span>
         </div>
-        <span class="text-xs text-kore-muted-fg tabular-nums">{{ $cards->count() }}</span>
+        <span class="inline-flex min-w-5 items-center justify-center rounded-full border border-kore-border bg-kore-surface px-1.5 text-xs font-medium text-kore-muted-fg tabular-nums">{{ $cards->count() }}</span>
     </header>
 
     {{-- Sin `role`, un tablero es un montón de `div` anidados: un lector de

@@ -21,7 +21,7 @@
         ->class([
             'flex items-center gap-2',
             $justifyClass,
-            'border border-kore-border rounded-kore-md bg-kore-surface px-3 py-2' => $variant === 'bordered',
+            'border border-kore-border rounded-kore-md bg-kore-surface shadow-kore-xs px-2 py-1.5' => $variant === 'bordered',
             'px-1 py-1' => $variant === 'default',
         ])
     }}

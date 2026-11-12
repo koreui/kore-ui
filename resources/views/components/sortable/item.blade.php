@@ -35,7 +35,7 @@
     @endif
     wire:key="kore-sortable-{{ $id }}"
     {{ $attributes->except(['id'])->class([
-        'flex items-center gap-2 rounded-kore-md border border-kore-border bg-kore-surface px-3 py-2',
+        'flex items-center gap-2 kore-row px-3 py-2',
         'cursor-grab' => ! $handle,
     ]) }}
 >
@@ -43,7 +43,7 @@
         <button
             type="button"
             {{ $p }}:handle
-            class="shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg kore-transition"
+            class="kore-grip"
             aria-label="{{ config('kore-ui.ui.translations.reorder', 'Arrastrar para reordenar') }}"
         >
             <x-lucide-grip-vertical class="size-4" />

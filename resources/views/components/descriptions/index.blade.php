@@ -21,7 +21,7 @@
     };
 
     $listClasses = $bordered
-        ? trim('grid grid-cols-1 ' . $colsClasses . ' gap-px bg-kore-border rounded-kore-lg border border-kore-border overflow-hidden')
+        ? trim('grid grid-cols-1 ' . $colsClasses . ' gap-px bg-kore-border rounded-kore-lg border border-kore-border shadow-kore-xs overflow-hidden')
         : trim('grid grid-cols-1 ' . $colsClasses . ' gap-x-6 gap-y-3');
 @endphp
 

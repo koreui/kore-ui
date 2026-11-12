@@ -106,7 +106,7 @@
             <template x-for="(pair, index) in pairs" :key="index">
                 <div class="flex items-center gap-2" @if($reorderable && ! $edicionBloqueada) x-sort:item="index" @endif>
                     @if($reorderable && ! $edicionBloqueada)
-                        <button type="button" x-sort:handle aria-label="{{ config('kore-ui.form.translations.reorder', 'Arrastrar para reordenar') }}" class="shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg">
+                        <button type="button" x-sort:handle aria-label="{{ config('kore-ui.form.translations.reorder', 'Arrastrar para reordenar') }}" class="kore-grip">
                             <x-lucide-grip-vertical class="size-4" />
                         </button>
                     @endif

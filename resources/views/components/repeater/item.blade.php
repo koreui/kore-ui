@@ -38,13 +38,13 @@
 
 <div
     @if($reorderable && ! $readonly) x-sort:item="index" @endif
-    class="flex items-start gap-2 rounded-kore-lg border border-kore-border bg-kore-surface p-3"
+    class="flex items-start gap-2 kore-row p-3"
 >
     @if($reorderable && ! $readonly)
         <button
             type="button"
             x-sort:handle
-            class="mt-2 shrink-0 cursor-grab text-kore-muted-fg hover:text-kore-fg kore-transition"
+            class="mt-1.5 kore-grip"
             aria-label="{{ config('kore-ui.ui.translations.reorder', 'Arrastrar para reordenar') }}"
         >
             <x-lucide-grip-vertical class="size-4" />
@@ -98,7 +98,7 @@
         <button
             type="button"
             x-on:click="removeRow(index)"
-            class="mt-2 shrink-0 text-kore-muted-fg hover:text-kore-destructive-text kore-transition"
+            class="mt-1.5 inline-flex size-6 shrink-0 items-center justify-center rounded-kore-sm text-kore-muted-fg hover:bg-kore-destructive/10 hover:text-kore-destructive-text kore-transition kore-focus"
             aria-label="{{ config('kore-ui.ui.translations.remove_row', 'Eliminar fila') }}"
         >
             <x-lucide-x class="size-4" />

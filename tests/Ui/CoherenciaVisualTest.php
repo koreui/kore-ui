@@ -232,3 +232,40 @@ it('y toda clase de color de token que usan las plantillas existe en @theme', fu
 
     expect($desconocidas)->toBe([], "Clases de color sin token en @theme inline:\n".implode("\n", array_unique($desconocidas)));
 });
+
+/**
+ * Las filas que se mueven y sus asas son UNA pieza, no tres.
+ *
+ * Sortable, order-list y repeater pintaban cada uno su caja y su asa, y las
+ * tres habían ido divergiendo. Ahora salen de `kore-row` y `kore-grip`.
+ */
+it('las listas reordenables comparten fila y asa', function () {
+    $vistas = __DIR__.'/../../resources/views/components/';
+
+    foreach (['sortable/item', 'order-list/index', 'repeater/item'] as $vista) {
+        $html = file_get_contents($vistas.$vista.'.blade.php');
+
+        expect($html)->toContain('kore-row')
+            ->toContain('kore-grip')
+            ->not->toContain('cursor-grab text-kore-muted-fg');
+    }
+
+    expect(file_get_contents($vistas.'key-value.blade.php'))->toContain('kore-grip');
+});
+
+/**
+ * El aspecto de la barra del splitter es de la hoja de estilos.
+ *
+ * Se pintaba desde JavaScript, con `element.style`: un tema no podía cambiarle
+ * el color ni el grosor, y `data-kore-motion="off"` no le llegaba.
+ */
+it('el splitter no pinta su barra desde JavaScript', function () {
+    $js = file_get_contents(__DIR__.'/../../resources/js/ui/splitter.js');
+
+    expect($js)->toContain('kore-splitter-gutter')
+        ->not->toContain('style.background')
+        ->not->toContain('style.opacity')
+        ->not->toContain('style.transition');
+
+    expect(file_get_contents(__DIR__.'/../../resources/css/kore-theme.css'))->toContain('.kore-splitter-gutter');
+});

@@ -790,6 +790,58 @@
   }
 }
 
+/* Una fila que se puede mover: sortable, order-list y repeater. Las tres
+   pintaban su propia caja —mismo borde, mismo fondo— y ninguna llevaba la
+   sombra corta de un campo, así que al lado de un input parecían de otro
+   sistema. */
+@utility kore-row {
+  background-color: var(--kore-surface);
+  border: 1px solid var(--kore-border);
+  border-radius: var(--kore-radius-md);
+  box-shadow: var(--kore-shadow-xs);
+  transition-property: border-color, box-shadow, background-color;
+  transition-duration: var(--kore-duration-fast);
+  transition-timing-function: var(--kore-ease-out);
+
+  &:hover {
+    border-color: var(--kore-input-hover);
+  }
+}
+
+/* El asa de arrastre. Un objetivo de 24 px (WCAG 2.5.8) con fondo al pasar, en
+   vez de un icono de 16 px suelto: se veía que era un icono, no que se podía
+   agarrar. */
+@utility kore-grip {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-inline-start: -0.25rem;
+  color: var(--kore-muted-fg);
+  border-radius: var(--kore-radius-sm);
+  cursor: grab;
+  outline: var(--kore-ring-width) solid transparent;
+  outline-offset: 0;
+  transition-property: color, background-color, outline-color;
+  transition-duration: var(--kore-duration-fast);
+  transition-timing-function: var(--kore-ease-out);
+
+  &:hover {
+    color: var(--kore-fg);
+    background-color: var(--kore-muted);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &:focus-visible {
+    outline-color: var(--kore-ring);
+  }
+}
+
 /* ── Botón de barra de herramientas ───────────────────────────────────────────
    Filtros, columnas, exportar, vistas: los botones que acompañan a un buscador
    encima de una tabla. Había nueve escritos a mano en las plantillas del
@@ -2341,7 +2393,9 @@
   border: 1px solid var(--kore-border);
   background: var(--kore-surface);
   color: var(--kore-surface-fg);
-  box-shadow: 0 10px 15px -3px var(--kore-pin-shadow);
+  /* La misma sombra que cualquier otro panel flotante —menú, select,
+     calendario—: antes llevaba una propia, de otro color y otra forma. */
+  box-shadow: var(--kore-shadow-lg);
   font-size: 0.75rem;
   pointer-events: none;
 }
@@ -2883,4 +2937,94 @@
    colapsa a cero y el cursor desaparece de la vista. */
 .kore-prose p:empty::after {
   content: '\200B';
+}
+
+/* ==========================================================================
+   Árbol
+   ========================================================================== */
+
+/* Las guías de nivel. El árbol se pinta PLANO —una fila por nodo, con el nivel
+   en el padding—, así que no hay un contenedor por rama al que ponerle un borde
+   izquierdo. Cada fila dibuja las suyas con un degradado repetido: una línea de
+   un píxel cada 20 px, tantas como niveles tiene por encima. Las filas van sin
+   hueco entre ellas para que las líneas se lean continuas. */
+.kore-tree-row {
+  background-image: repeating-linear-gradient(to right, var(--kore-border) 0 1px, transparent 1px 20px);
+  background-repeat: no-repeat;
+  background-position: 17px 0;
+  background-size: calc(var(--kore-tree-level, 0) * 20px) 100%;
+}
+
+/* ==========================================================================
+   Splitter
+   ========================================================================== */
+
+/* La barra entre paneles. Ocupa lo que diga `gutterSize` —es su zona de
+   agarre—, pero lo que se VE es una línea de un píxel y, al pasar, enfocar o
+   arrastrar, una pastilla en el centro. Antes era un bloque gris de ocho
+   píxeles que se pintaba de primario entero, y todo el estilo vivía en
+   `element.style` desde JavaScript: no había forma de cambiarlo con CSS. */
+.kore-splitter-gutter {
+  position: relative;
+  flex: none;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+
+.kore-splitter-gutter[data-kore-splitter="vertical"] {
+  cursor: row-resize;
+}
+
+.kore-splitter-gutter::before,
+.kore-splitter-gutter::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  transition-property: background-color, opacity, width, height;
+  transition-duration: var(--kore-duration-fast);
+  transition-timing-function: var(--kore-ease-out);
+}
+
+.kore-splitter-gutter::before {
+  width: 1px;
+  height: 100%;
+  background-color: var(--kore-border);
+}
+
+.kore-splitter-gutter::after {
+  width: 4px;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background-color: var(--kore-primary);
+  opacity: 0;
+}
+
+.kore-splitter-gutter[data-kore-splitter="vertical"]::before {
+  width: 100%;
+  height: 1px;
+}
+
+.kore-splitter-gutter[data-kore-splitter="vertical"]::after {
+  width: 1.75rem;
+  height: 4px;
+}
+
+.kore-splitter-gutter:is(:hover, :focus-visible, [data-dragging])::before {
+  background-color: var(--kore-primary);
+}
+
+.kore-splitter-gutter:is(:hover, :focus-visible, [data-dragging])::after {
+  opacity: 1;
+}
+
+.kore-splitter-gutter:is(:focus-visible, [data-dragging])::before {
+  width: 2px;
+}
+
+.kore-splitter-gutter[data-kore-splitter="vertical"]:is(:focus-visible, [data-dragging])::before {
+  width: 100%;
+  height: 2px;
 }

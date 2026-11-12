@@ -63,13 +63,13 @@
                             este campo. --}}
                        aria-label="{{ $filterPlaceholder }}"
                        placeholder="{{ $filterPlaceholder }}"
-                       class="w-full pl-9 pr-3 py-2 text-sm rounded-kore-md border border-kore-border bg-kore-bg text-kore-fg placeholder:text-kore-muted-fg kore-focus" />
+                       class="w-full pl-9 pr-3 py-2 text-sm kore-control" />
             </div>
         </div>
     @endif
 
     {{-- Flat-rendered nodes --}}
-    <div class="space-y-0.5" role="group">
+    <div role="group">
         <template x-for="item in flatNodes" :key="item.node.key">
             <div x-show="item.visible" class="select-none">
                 {{-- El `aria-level` va AQUÍ, en el elemento con `role="treeitem"`,
@@ -80,9 +80,9 @@
                      tabulador y las flechas mueven el foco dentro. Antes todos
                      valían -1 y no había forma de llegar a un nodo con el
                      teclado —ni, por tanto, de seleccionar nada sin ratón—. --}}
-                <div class="flex items-center gap-1 py-1 px-2 rounded-kore-sm cursor-pointer kore-transition hover:bg-kore-accent/50 kore-focus"
-                     :class="isSelected(item.node.key) && 'bg-kore-primary/10 text-kore-primary-text'"
-                     :style="'padding-left: ' + (item.level * 20 + 8) + 'px'"
+                <div class="kore-tree-row flex items-center gap-1 py-1.5 px-2 rounded-kore-sm cursor-pointer kore-transition hover:bg-kore-muted kore-focus"
+                     :class="isSelected(item.node.key) && 'bg-kore-primary/10 font-medium text-kore-primary-text hover:bg-kore-primary/15'"
+                     :style="'--kore-tree-level: ' + item.level + '; padding-left: ' + (item.level * 20 + 8) + 'px'"
                      x-on:click="onNodeClick(item.node); focusKey = item.node.key"
                      role="treeitem"
                      :data-kore-tree-key="item.node.key"
@@ -100,7 +100,7 @@
                     <template x-if="item.hasChildren">
                         <button type="button"
                                 x-on:click.stop="toggleExpand(item.node.key)"
-                                class="inline-flex items-center justify-center size-5 rounded-kore-sm hover:bg-kore-accent kore-transition"
+                                class="inline-flex items-center justify-center size-5 rounded-kore-sm text-kore-muted-fg hover:bg-kore-accent hover:text-kore-fg kore-transition"
                                 {{-- Con un nombre fijo, un lector anuncia lo mismo
                                      en cada rama y no dice cuál está abriendo.
                                      `tabindex=-1` porque quien recorre el árbol

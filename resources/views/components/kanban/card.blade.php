@@ -12,7 +12,7 @@
          (§A.7 del informe de formulario); el tablero se quedó fuera. --}}
     x-sort:item="{{ Js::from((string) ($card['id'] ?? '')) }}"
     role="listitem"
-    {{ $attributes->except(['card'])->class(['rounded-kore-md border border-kore-border bg-kore-surface p-3 shadow-kore-sm cursor-grab kore-transition hover:shadow-kore-md']) }}
+    {{ $attributes->except(['card'])->class(['rounded-kore-md border border-kore-border bg-kore-surface p-3 shadow-kore-xs cursor-grab kore-transition hover:border-kore-input-hover hover:shadow-kore-md active:cursor-grabbing']) }}
 >
     @if($slot->isNotEmpty())
         {{ $slot }}
