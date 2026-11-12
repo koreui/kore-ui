@@ -14,7 +14,7 @@
         // In: label inside input, near top, normal size
         'in' => 'top-2.5 left-3 text-sm',
         // On: always on the border
-        'on' => '-top-2.5 left-2 text-xs bg-kore-bg px-1',
+        'on' => '-top-2.5 left-2 text-xs bg-kore-field px-1',
         // Over: label centered like a placeholder
         default => 'top-1/2 left-3 -translate-y-1/2 text-sm',
     };
@@ -26,7 +26,7 @@
         // On: just changes color
         'on' => 'text-kore-primary-text',
         // Over: floats up to the border with bg cutout (like "on" but animated)
-        default => '!-top-2.5 !-translate-y-0 !text-xs !bg-kore-bg !px-1 text-kore-primary-text',
+        default => '!-top-2.5 !-translate-y-0 !text-xs !bg-kore-field !px-1 text-kore-primary-text',
     };
 
     // Only "in" needs extra padding (label stays inside, text goes below)

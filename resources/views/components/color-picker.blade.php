@@ -186,7 +186,7 @@
 
         @if($inline)
             {{-- Inline panel --}}
-            <div class="rounded-kore-md border border-kore-border bg-kore-bg p-3 {{ $edicionBloqueada ? 'pointer-events-none' : '' }}">
+            <div class="rounded-kore-md border border-kore-border bg-kore-surface p-3 {{ $edicionBloqueada ? 'pointer-events-none' : '' }}">
                 {{-- Swatch grid --}}
                 <div class="grid gap-1.5" style="grid-template-columns: repeat({{ $columns }}, minmax(0, 1fr))">
                     @foreach($palette as $hex)
@@ -226,7 +226,7 @@
                         <button
                             type="button"
                             x-on:click="applyCustom()"
-                            class="text-xs font-medium px-2 py-1 rounded-kore-sm bg-kore-primary text-kore-primary-fg shadow-kore-solid hover:bg-kore-primary/90 kore-transition kore-press"
+                            class="text-sm font-medium px-2.5 py-1 rounded-kore-sm border border-transparent bg-kore-primary text-kore-primary-fg shadow-kore-solid hover:bg-kore-primary/90 kore-transition kore-focus kore-press"
                         >
                             {{ config('kore-ui.form.translations.apply', 'Aplicar') }}
                         </button>
@@ -290,7 +290,7 @@
                             <button
                                 type="button"
                                 x-on:click="applyCustom()"
-                                class="text-xs font-medium px-2 py-1 rounded-kore-sm bg-kore-primary text-kore-primary-fg shadow-kore-solid hover:bg-kore-primary/90 kore-transition kore-press"
+                                class="text-sm font-medium px-2.5 py-1 rounded-kore-sm border border-transparent bg-kore-primary text-kore-primary-fg shadow-kore-solid hover:bg-kore-primary/90 kore-transition kore-focus kore-press"
                             >
                                 {{ config('kore-ui.form.translations.apply', 'Aplicar') }}
                             </button>

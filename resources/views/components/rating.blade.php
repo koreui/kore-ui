@@ -143,7 +143,7 @@
                      más grande sin mover nada de esto. --}}
                 <span class="relative inline-flex" data-kore-estrella>
                     {{-- Background star (empty) --}}
-                    <x-lucide-star class="{{ $starSize }} text-kore-muted-fg/30" />
+                    <x-lucide-star class="{{ $starSize }} text-kore-muted-fg/50" />
 
                     {{-- Foreground star (full) --}}
                     <x-lucide-star
