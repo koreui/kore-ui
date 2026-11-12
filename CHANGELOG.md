@@ -28,6 +28,7 @@ Rediseño de la librería. La API de los componentes no cambia; cambia el aspect
 - **Pestañas con indicador deslizante.** Una sola pieza se mueve hasta la pestaña elegida, en las tres variantes y en vertical, en lugar de un borde que se apaga en una y se enciende en otra.
 - **Acordeón, stepper, empty-state, alert y subida:** el acordeón tiene superficie y sombra; el paso activo del stepper lleva halo y los conectores son más gruesos; el icono del estado vacío y el de la zona de subida van en una tesela con borde; el alert de contorno tiene fondo de superficie.
 - **Las pistas de `progress` y `range` usan `--kore-accent`**: con `--kore-muted` casi no se distinguían del fondo de página.
+- **Card, timeline, sidebar, toast, confirm y selector de hora.** El pie de la card lleva el fondo tenue del pie de la tabla. Los marcadores del timeline son un disco con el tinte de su color, no un aro. Las cabeceras de grupo del sidebar van sin mayúsculas y el item activo lleva una barra lateral. El icono del toast va en una tesela con el tinte de su tipo. Los botones del confirm usan el aspecto de `<x-kore::button>` y muestran el foco, que antes no se veía. Los dígitos del selector de hora van en teselas.
 
 ### Added
 

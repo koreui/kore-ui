@@ -43,9 +43,10 @@
         <button
             type="button"
             wire:click="reject"
-            class="inline-flex w-full justify-center rounded-kore-md px-3 py-2 text-sm font-semibold
-                   bg-kore-secondary text-kore-secondary-fg ring-1 ring-inset ring-kore-border
-                   hover:bg-kore-accent kore-transition sm:w-auto"
+            class="inline-flex w-full justify-center rounded-kore-md px-3.5 py-2 text-sm font-medium
+                   border border-kore-input bg-kore-field text-kore-fg shadow-kore-xs
+                   hover:bg-kore-muted hover:border-kore-input-hover
+                   kore-transition kore-focus kore-press sm:w-auto"
         >
             {{ $cancelText }}
         </button>
@@ -54,8 +55,9 @@
             type="button"
             wire:click="accept"
             autofocus
-            class="inline-flex w-full justify-center rounded-kore-md px-3 py-2 text-sm font-semibold
-                   kore-transition sm:w-auto
+            class="inline-flex w-full justify-center rounded-kore-md px-3.5 py-2 text-sm font-medium
+                   border border-transparent shadow-kore-solid
+                   kore-transition kore-focus kore-press sm:w-auto
                    @if(in_array($type, ['warning', 'error']))
                        bg-kore-destructive text-kore-destructive-fg hover:bg-kore-destructive/90
                    @else

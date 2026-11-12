@@ -174,7 +174,7 @@
                         </button>
                         <span
                             x-text="String(hours).padStart(2, '0')"
-                            class="text-2xl font-medium text-kore-fg tabular-nums w-10 text-center py-1"
+                            class="text-2xl font-medium text-kore-fg tabular-nums w-14 text-center py-1.5 rounded-kore-md bg-kore-muted/60"
                         ></span>
                         <button
                             type="button"
@@ -208,7 +208,7 @@
                         </button>
                         <span
                             x-text="String(minutes).padStart(2, '0')"
-                            class="text-2xl font-medium text-kore-fg tabular-nums w-10 text-center py-1"
+                            class="text-2xl font-medium text-kore-fg tabular-nums w-14 text-center py-1.5 rounded-kore-md bg-kore-muted/60"
                         ></span>
                         <button
                             type="button"

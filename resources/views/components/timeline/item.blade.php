@@ -9,13 +9,26 @@
 @php
     $resolvedColor = $color ?? 'primary';
 
+    // Un disco con el tinte del color y un filo, no un aro de dos píxeles sobre
+    // blanco: es el mismo lenguaje que el badge suave y la tesela del icono de
+    // stats. El tinte va en una capa interior porque el disco tiene que ser
+    // OPACO —tapa la línea que une los marcadores—.
     $markerBorder = match($resolvedColor) {
-        'success' => 'border-kore-success',
-        'warning' => 'border-kore-warning',
-        'destructive' => 'border-kore-destructive',
-        'info' => 'border-kore-info',
+        'success' => 'border-kore-success/35',
+        'warning' => 'border-kore-warning/45',
+        'destructive' => 'border-kore-destructive/35',
+        'info' => 'border-kore-info/35',
         'muted' => 'border-kore-border',
-        default => 'border-kore-primary',
+        default => 'border-kore-primary/35',
+    };
+
+    $markerTint = match($resolvedColor) {
+        'success' => 'bg-kore-success/12',
+        'warning' => 'bg-kore-warning/15',
+        'destructive' => 'bg-kore-destructive/12',
+        'info' => 'bg-kore-info/12',
+        'muted' => 'bg-kore-muted',
+        default => 'bg-kore-primary/12',
     };
 
     $markerText = match($resolvedColor) {
@@ -46,11 +59,12 @@
          aria-hidden="true"></div>
 
     {{-- Marker --}}
-    <div class="relative z-10 shrink-0 size-8 rounded-full border-2 {{ $markerBorder }} flex items-center justify-center bg-kore-surface kore-timeline-marker">
+    <div class="relative z-10 shrink-0 size-8 rounded-full border {{ $markerBorder }} flex items-center justify-center bg-kore-surface kore-timeline-marker">
+        <span class="absolute inset-0 rounded-full {{ $markerTint }}" aria-hidden="true"></span>
         @if($icon)
-            <x-dynamic-component :component="'lucide-' . $icon" class="size-4 {{ $markerText }}" />
+            <x-dynamic-component :component="'lucide-' . $icon" class="relative size-4 {{ $markerText }}" />
         @else
-            <div class="size-2.5 rounded-full {{ $dotColor }}"></div>
+            <div class="relative size-2 rounded-full {{ $dotColor }}"></div>
         @endif
     </div>
 

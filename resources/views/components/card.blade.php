@@ -143,8 +143,10 @@
 
         {{-- Footer --}}
         @if(isset($footer))
+            {{-- Fondo tenue, el mismo que el pie de la tabla: separa las acciones
+                 del contenido sin depender solo de la línea. --}}
             <div @class([
-                'border-t border-kore-border',
+                'border-t border-kore-border bg-kore-muted/30 rounded-b-[inherit]',
                 'px-6 py-4' => $padding,
                 'px-4 py-3' => !$padding,
             ])>

@@ -12,7 +12,10 @@ it('renders a section header with its label', function () {
     $view = $this->blade('<x-kore::sidebar.group label="Gestión">items</x-kore::sidebar.group>');
 
     $view->assertSee('Gestión')
-        ->assertSee('uppercase', false)
+        // Sin mayúsculas: las cabeceras de sección de toda la librería (menús,
+        // tablas, sidebar) van en caja normal desde la 3.0.
+        ->assertDontSee('uppercase', false)
+        ->assertSee('text-xs font-medium', false)
         ->assertSee('items');
 });
 

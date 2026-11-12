@@ -21,7 +21,7 @@
     {{-- Header (always visible) --}}
     <div class="flex items-center gap-3 p-4">
         {{-- Icon --}}
-        <div class="kore-toast-icon shrink-0 kore-transition-base"
+        <div class="kore-toast-icon shrink-0 inline-flex size-8 items-center justify-center rounded-kore-md bg-current/10 kore-transition-base"
              :class="{
                 'opacity-0 scale-50': toast.resolving,
                 'text-kore-success-text': toast.type === 'success',
@@ -31,12 +31,12 @@
                 'text-kore-primary-text': toast.type === 'question',
                 'text-kore-muted-fg': toast.type === 'loading',
              }">
-            <x-lucide-circle-check  x-show="toast.type === 'success'"  class="h-5 w-5" x-cloak />
-            <x-lucide-circle-x      x-show="toast.type === 'error'"    class="h-5 w-5" x-cloak />
-            <x-lucide-triangle-alert x-show="toast.type === 'warning'" class="h-5 w-5" x-cloak />
-            <x-lucide-info           x-show="toast.type === 'info'"    class="h-5 w-5" x-cloak />
-            <x-lucide-circle-help    x-show="toast.type === 'question'" class="h-5 w-5" x-cloak />
-            <x-lucide-loader-circle  x-show="toast.type === 'loading'" class="h-5 w-5 animate-spin" x-cloak />
+            <x-lucide-circle-check  x-show="toast.type === 'success'"  class="size-[1.125rem]" x-cloak />
+            <x-lucide-circle-x      x-show="toast.type === 'error'"    class="size-[1.125rem]" x-cloak />
+            <x-lucide-triangle-alert x-show="toast.type === 'warning'" class="size-[1.125rem]" x-cloak />
+            <x-lucide-info           x-show="toast.type === 'info'"    class="size-[1.125rem]" x-cloak />
+            <x-lucide-circle-help    x-show="toast.type === 'question'" class="size-[1.125rem]" x-cloak />
+            <x-lucide-loader-circle  x-show="toast.type === 'loading'" class="size-[1.125rem] animate-spin" x-cloak />
         </div>
 
         {{-- Title + badge --}}
@@ -68,7 +68,7 @@
     {{-- Expandable body. isExpanded() se evalúa en vivo para que resolve() —que activa
          autoExpand al llegar una descripción— re-expanda el toast ya montado. --}}
     <div x-show="isExpanded(toast)" x-collapse class="overflow-hidden">
-        <div class="px-4 pb-4 pl-12">
+        <div class="px-4 pb-4 pl-15">
             {{-- Description --}}
             <template x-if="toast.description">
                 <p class="text-sm text-kore-muted-fg" x-text="toast.description"></p>

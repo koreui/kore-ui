@@ -40,7 +40,7 @@
                     x-on:click="toggleItem($event)"
                     aria-expanded="{{ $isOpen ? 'true' : 'false' }}"
                     aria-controls="{{ $uid }}"
-                    class="kore-sidebar-link w-full rounded-kore-md py-1.5 text-xs font-semibold uppercase tracking-wider text-kore-muted-fg kore-transition hover:bg-kore-muted kore-focus"
+                    class="kore-sidebar-link w-full rounded-kore-md py-1.5 text-xs font-medium text-kore-muted-fg kore-transition hover:bg-kore-muted kore-focus"
                 >
                     @if($icon)
                         <x-dynamic-component :component="'lucide-' . $icon" class="size-4 shrink-0" />
@@ -59,7 +59,7 @@
                         <x-dynamic-component :component="'lucide-' . $icon" class="size-4 shrink-0 text-kore-muted-fg" />
                     @endif
 
-                    <span class="kore-sidebar-label text-xs font-semibold uppercase tracking-wider text-kore-muted-fg">
+                    <span class="kore-sidebar-label text-xs font-medium text-kore-muted-fg">
                         {{ $header ?? $label }}
                     </span>
                 </div>
