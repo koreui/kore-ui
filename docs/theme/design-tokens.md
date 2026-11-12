@@ -122,3 +122,28 @@ Las plantillas de la librería nombran estas utilidades en vez de repetir sus re
     --kore-shadow-solid: none;
 }
 ```
+
+## Contraste de los colores sólidos
+
+Con su texto claro, cuatro colores de marca quedan por debajo del 4,5:1 que pide
+WCAG AA para texto normal: `primary` 4,41 · `destructive` 4,39 · `info` 3,42 ·
+`success` 3,17 (medido en el tema claro). Se conservan así a propósito, porque
+son los colores de la marca; afecta a botones, badges, alerts y chips en
+variante `solid`.
+
+Quien necesite AA estricto puede oscurecerlos en su CSS:
+
+```css
+:root {
+    --kore-primary: oklch(0.54 0.25 250);      /* 4,57 */
+    --kore-destructive: oklch(0.56 0.25 27);   /* 4,63 */
+    --kore-success: oklch(0.52 0.19 145);      /* 4,72 */
+    --kore-info: oklch(0.55 0.15 250);         /* 4,57 */
+}
+```
+
+Son las luminosidades medidas en un navegador contra el texto real de los
+sólidos (`oklch(0.98 0 0)`); la demo las compara en `/e2e/presentacion/solid`.
+
+Las variantes `soft` y `outline` no tienen este problema: usan los tokens
+`--kore-*-text`, que sí están calibrados para AA.
