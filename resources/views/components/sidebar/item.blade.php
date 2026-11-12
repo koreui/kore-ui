@@ -69,9 +69,16 @@
     $linkClasses = [
         'kore-sidebar-link group relative w-full rounded-kore-md py-2 text-sm kore-transition',
         'kore-focus',
-        $isActive
-            ? 'bg-kore-primary/10 font-medium text-kore-primary-text before:absolute before:left-0 before:inset-y-2 before:w-0.5 before:rounded-full before:bg-kore-primary'
-            : 'text-kore-fg hover:bg-kore-muted',
+        // Tres estados, no dos. El item de la página actual lleva el fondo y la
+        // barra. El grupo que lo CONTIENE solo se enciende en el texto: antes
+        // heredaba el mismo aspecto y, con tres niveles abiertos, había tres
+        // filas resaltadas y no se sabía cuál era la página. Colapsado sigue
+        // leyéndose, porque el icono conserva el color de activo.
+        match (true) {
+            $isActive && $hasActiveChild => 'font-medium text-kore-primary-text hover:bg-kore-muted',
+            $isActive => 'bg-kore-primary/10 font-medium text-kore-primary-text before:absolute before:left-0 before:inset-y-2 before:w-0.5 before:rounded-full before:bg-kore-primary',
+            default => 'text-kore-fg hover:bg-kore-muted',
+        },
         $disabled ? 'pointer-events-none opacity-50' : '',
     ];
 
