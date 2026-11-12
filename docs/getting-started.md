@@ -78,6 +78,17 @@ export default defineConfig({
 
 > **Order matters:** `@koreScripts` must come **before** `@livewireScripts`. Livewire initializes Alpine.js and dispatches the `alpine:init` event — kore-ui plugins must be registered at that moment.
 
+## Idioma
+
+Los textos vienen en español. Para una aplicación en inglés, o en varios idiomas:
+
+```php
+// config/kore-ui.php
+'locale' => 'auto',   // el idioma de la aplicación; null (de fábrica) deja el español
+```
+
+Ver [idiomas](idiomas.md).
+
 ## JavaScript (Alpine.js plugins)
 
 KoreUI ships a pre-compiled JavaScript bundle served via a Laravel route — **no npm configuration required** for the JS side.
