@@ -7,6 +7,12 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [3.1.2] — 2026-11-13
+
+### Fixed
+
+- **Al abrir y cerrar un modal, el contenido de la página se corría unos píxeles.** Con el `body` fijo el documento deja de desbordar y la barra de scroll vertical desaparece: la página ganaba su ancho y todo —también lo `fixed`, como una cabecera— se movía a la derecha al abrir y volvía al cerrar. Solo se veía donde la barra ocupa sitio: Windows, Linux y macOS con ratón o con las barras siempre visibles. Mientras dura el bloqueo se reserva ese hueco con `scrollbar-gutter: stable` en `<html>`, y al soltarlo se devuelve el valor que la página tuviera.
+
 ## [3.1.1] — 2026-11-13
 
 ### Fixed

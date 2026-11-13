@@ -15,6 +15,10 @@
 const owners = new Set();
 let savedScrollY = 0;
 
+// El `scrollbar-gutter` que tenía <html> antes del lock, o `null` si el lock no
+// lo ha tocado (página sin barra, o barras superpuestas como las de macOS/móvil).
+let savedGutter = null;
+
 /**
  * El dueño tiene que identificarse por VALOR, no por referencia.
  *
@@ -51,6 +55,7 @@ export function lockScroll(owner) {
     if (!isFirst) return;
 
     savedScrollY = window.scrollY;
+    reservarBarra();
     document.body.style.position = 'fixed';
     document.body.style.top = `-${savedScrollY}px`;
     document.body.style.left = '0';
@@ -109,7 +114,36 @@ export function hayDuenoPorEncima(owner) {
         : posicion < capas.length - 1;
 }
 
+/**
+ * Guarda el hueco de la barra de scroll mientras dura el lock.
+ *
+ * Con el body en `position: fixed` el documento deja de desbordar y la barra
+ * vertical desaparece: la página gana su ancho (unos 15 px en Windows y Linux,
+ * o en macOS con ratón) y todo el contenido —también lo `fixed`, como una
+ * cabecera— se corre a la derecha al abrir y vuelve al cerrar.
+ * `scrollbar-gutter: stable` mantiene reservado ese hueco aunque no haya nada
+ * que desplazar, así que el ancho útil no cambia.
+ *
+ * Solo si la barra ocupa sitio AHORA: con barras superpuestas, o en una página
+ * que no desborda, no hay salto que evitar y reservar el hueco lo provocaría.
+ * Hay que medirlo antes de fijar el body; después la barra ya no está.
+ */
+function reservarBarra() {
+    const root = document.documentElement;
+    if (!root?.style) return;
+
+    if (window.innerWidth - root.clientWidth <= 0) return;
+
+    savedGutter = root.style.scrollbarGutter ?? '';
+    root.style.scrollbarGutter = 'stable';
+}
+
 function apply(restoreScroll) {
+    if (savedGutter !== null) {
+        document.documentElement.style.scrollbarGutter = savedGutter;
+        savedGutter = null;
+    }
+
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.left = '';

@@ -3,9 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Vitest corre en environment 'node', así que no hay DOM. El módulo solo toca
 // document/window DENTRO de sus funciones (nunca al importarse), lo que permite
 // stubearlos aquí y probar la lógica de conteo de dueños, que es lo que importa.
-function stubDom(scrollY = 0) {
-    globalThis.document = { body: { style: {} }, addEventListener: vi.fn() };
-    globalThis.window = { scrollY, scrollTo: vi.fn() };
+// `barra` es el ancho que ocupa la barra de scroll vertical: 0 con barras
+// superpuestas (macOS sin ratón, móvil) o en una página que no desborda.
+function stubDom(scrollY = 0, barra = 0) {
+    globalThis.document = {
+        body: { style: {} },
+        documentElement: { style: {}, clientWidth: 1440 - barra },
+        addEventListener: vi.fn(),
+    };
+    globalThis.window = { scrollY, scrollTo: vi.fn(), innerWidth: 1440 };
 }
 
 let lockScroll, unlockScroll, releaseScrollLock, isScrollLocked, hayDuenoPorEncima;
@@ -172,5 +178,56 @@ describe('releaseScrollLock', () => {
         expect(isScrollLocked()).toBe(false);
         expect(document.body.style.position).toBe('');
         expect(window.scrollTo).not.toHaveBeenCalled();
+    });
+});
+
+describe('hueco de la barra de scroll', () => {
+    it('reserva el hueco mientras dura el lock, para que el contenido no se corra', () => {
+        stubDom(250, 15);
+
+        lockScroll('modal');
+        expect(document.documentElement.style.scrollbarGutter).toBe('stable');
+
+        unlockScroll('modal');
+        expect(document.documentElement.style.scrollbarGutter).toBe('');
+    });
+
+    it('no lo toca si la barra no ocupa sitio', () => {
+        stubDom(250, 0);
+
+        lockScroll('modal');
+
+        expect(document.documentElement.style.scrollbarGutter).toBeUndefined();
+    });
+
+    it('devuelve el valor que la página ya tenía', () => {
+        stubDom(250, 15);
+        document.documentElement.style.scrollbarGutter = 'stable both-edges';
+
+        lockScroll('modal');
+        unlockScroll('modal');
+
+        expect(document.documentElement.style.scrollbarGutter).toBe('stable both-edges');
+    });
+
+    it('lo suelta también al liberar tras una navegación', () => {
+        stubDom(250, 15);
+
+        lockScroll('modal');
+        releaseScrollLock();
+
+        expect(document.documentElement.style.scrollbarGutter).toBe('');
+    });
+
+    it('con dos dueños, no lo suelta hasta que se va el último', () => {
+        stubDom(250, 15);
+
+        lockScroll('drawer');
+        lockScroll('modal');
+        unlockScroll('drawer');
+        expect(document.documentElement.style.scrollbarGutter).toBe('stable');
+
+        unlockScroll('modal');
+        expect(document.documentElement.style.scrollbarGutter).toBe('');
     });
 });
