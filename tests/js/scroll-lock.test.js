@@ -31,7 +31,7 @@ describe('lock y unlock', () => {
 
         expect(isScrollLocked()).toBe(false);
         expect(document.body.style.position).toBe('');
-        expect(window.scrollTo).toHaveBeenCalledWith(0, 250);
+        expect(window.scrollTo).toHaveBeenCalledWith({ top: 250, left: 0, behavior: 'instant' });
     });
 
     it('ignora un unlock de quien no tenía el lock', () => {
@@ -68,7 +68,7 @@ describe('varios dueños', () => {
         unlockScroll('sidebar');
 
         expect(isScrollLocked()).toBe(false);
-        expect(window.scrollTo).toHaveBeenCalledWith(0, 250);
+        expect(window.scrollTo).toHaveBeenCalledWith({ top: 250, left: 0, behavior: 'instant' });
     });
 
     it('guarda el scroll del primero que llega, no del último', () => {
@@ -79,7 +79,7 @@ describe('varios dueños', () => {
         unlockScroll('modal');
         unlockScroll('sidebar');
 
-        expect(window.scrollTo).toHaveBeenCalledWith(0, 250);
+        expect(window.scrollTo).toHaveBeenCalledWith({ top: 250, left: 0, behavior: 'instant' });
     });
 });
 

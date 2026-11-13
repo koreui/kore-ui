@@ -7,6 +7,12 @@ y el proyecto usa [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [3.1.1] — 2026-11-13
+
+### Fixed
+
+- **Al cerrar un modal, la página saltaba arriba y volvía a bajar.** Mientras hay un overlay abierto el `body` queda fijo, y al soltarlo el desplazamiento se restauraba con `window.scrollTo(x, y)`, que obedece al `scroll-behavior` de la página. Con `scroll-behavior: smooth` en `<html>` —lo pone la utilidad `scroll-smooth` de Tailwind— la restauración se animaba: el documento quedaba en 0 y tardaba unos 400 ms en volver a su sitio. Ahora se restaura con `behavior: 'instant'`. Afectaba a todo lo que toma el bloqueo de scroll: modales, drawers, confirmaciones y el drawer móvil del sidebar.
+
 ## [3.1.0] — 2026-11-12
 
 ### Added

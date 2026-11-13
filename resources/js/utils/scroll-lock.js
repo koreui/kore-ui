@@ -115,7 +115,12 @@ function apply(restoreScroll) {
     document.body.style.left = '';
     document.body.style.right = '';
 
-    if (restoreScroll) window.scrollTo(0, savedScrollY);
+    // `behavior: 'instant'` y no `scrollTo(x, y)`: la forma de dos argumentos
+    // obedece al `scroll-behavior` de la página. Con `scroll-behavior: smooth`
+    // en <html> —lo pone `scroll-smooth` de Tailwind y media web—, al quitar el
+    // `position: fixed` el documento queda en 0 y la restauración se ANIMA: la
+    // página salta arriba y baja durante ~400 ms cada vez que se cierra un modal.
+    if (restoreScroll) window.scrollTo({ top: savedScrollY, left: 0, behavior: 'instant' });
 
     savedScrollY = 0;
 }
